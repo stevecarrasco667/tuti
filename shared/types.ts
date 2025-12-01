@@ -10,5 +10,13 @@ export interface Player {
 export interface RoomState {
     status: GameStatus;
     players: Player[];
-    // Add more state properties here as needed
 }
+
+// Messages sent from Client to Server
+export type ClientMessage =
+    | { type: 'JOIN'; payload: { name: string } };
+
+// Messages sent from Server to Client
+export type ServerMessage =
+    | { type: 'UPDATE_STATE'; payload: RoomState }
+    | { type: 'SYSTEM'; payload: string };

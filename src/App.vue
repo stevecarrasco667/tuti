@@ -1,29 +1,34 @@
 <script setup lang="ts">
 import { useSocket } from './composables/useSocket';
+import LobbyView from './components/LobbyView.vue';
 
-const { isConnected, lastMessage } = useSocket();
+const { isConnected } = useSocket();
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center h-full space-y-4">
-    <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 flex flex-col items-center justify-center p-4">
+    
+    <!-- MAIN TITLE -->
+    <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-2 drop-shadow-lg tracking-tight">
       Tutifruti Online
     </h1>
-    
-    <div class="p-6 bg-gray-800 rounded-xl border border-gray-700 shadow-xl">
-      <div class="flex items-center space-x-3 mb-4">
-        <div 
-          class="w-4 h-4 rounded-full transition-colors duration-300"
-          :class="isConnected ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]'"
-        ></div>
-        <span class="text-lg font-medium text-gray-300">
-          Status: {{ isConnected ? 'Connected' : 'Disconnected' }}
-        </span>
-      </div>
+    <p class="text-purple-200 mb-12 text-lg font-light tracking-wide">Project Phoenix</p>
 
-      <div v-if="lastMessage" class="p-4 bg-gray-900 rounded-lg font-mono text-sm text-green-400 border border-gray-800">
-        > {{ lastMessage }}
-      </div>
+    <!-- CONNECTION STATUS (Top Right) -->
+    <div class="fixed top-4 right-4 flex items-center gap-2 bg-black/40 px-4 py-2 rounded-full backdrop-blur-md border border-white/10">
+      <div 
+        class="w-3 h-3 rounded-full transition-colors duration-500 shadow-[0_0_10px_currentColor]"
+        :class="isConnected ? 'bg-green-500 text-green-500' : 'bg-red-500 text-red-500'"
+      ></div>
+      <span class="text-xs font-mono text-gray-300">
+        {{ isConnected ? 'Connected' : 'Disconnected' }}
+      </span>
     </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="w-full max-w-4xl">
+      <LobbyView />
+    </div>
+
   </div>
 </template>

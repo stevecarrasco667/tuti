@@ -129,19 +129,6 @@ PartyKit CLI tiene un bug crítico con rutas de Windows que impide ejecutar el s
 
 ---
 
-## 📊 MÉTRICAS DE PROGRESO
-
-### Completado: ~25%
-- ✅ Infraestructura: 100%
-- ✅ Tipos base: 100%
-- ✅ Comunicación Cliente-Servidor: 100% (Híbrida Mock/Cloud)
-- ⬜ Lobby: 0%
-- ⬜ Gameplay: 0%
-- ⬜ Validación: 0%
-- ✅ Despliegue: 100% (CI/CD Configurado)
-
----
-
 ## 🎯 RECOMENDACIÓN INMEDIATA
 
 **Siguiente Milestone Sugerido**: **"Lobby Funcional"**
