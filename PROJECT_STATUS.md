@@ -1,6 +1,6 @@
 # 📋 ESTADO DEL PROYECTO: TUTIFRUTI ONLINE (Project Phoenix)
 **Fecha**: 2025-12-01  
-**Fase**: Inicialización Completada - Listo para Desarrollo de Features  
+**Fase**: Entorno de Desarrollo Híbrido Listo - Inicio de Lógica de Juego  
 **Repositorio**: https://github.com/estebancarras/tuti
 
 ---
@@ -22,7 +22,7 @@ Juego multijugador en tiempo real tipo "Basta/Stop" con arquitectura moderna, es
 
 ### 2. Stack Tecnológico Implementado
 - ✅ **Frontend**: Vue 3 (Composition API) + HTMX
-- ✅ **Backend**: PartyKit (estructura creada)
+- ✅ **Backend**: PartyKit (Producción) / Mock Server (Desarrollo Local)
 - ✅ **Validación**: Zod (esquemas base definidos)
 - ✅ **Estilos**: Tailwind CSS
 - ✅ **Lenguaje**: TypeScript estricto en todo el stack
@@ -32,56 +32,36 @@ Juego multijugador en tiempo real tipo "Basta/Stop" con arquitectura moderna, es
 - ✅ Esquemas Zod (`shared/schemas.ts`): Validación de datos
 - ✅ Servidor PartyKit básico (`party/server.ts`): Responde "WELCOME"
 - ✅ Cliente Vue (`src/App.vue`): UI con indicador de conexión
-- ✅ Composable WebSocket (`src/composables/useSocket.ts`): Lógica de conexión
+- ✅ Composable WebSocket (`src/composables/useSocket.ts`): Lógica inteligente (Mock vs Prod)
 
 ### 4. Estado Actual del Desarrollo
 - ✅ **Frontend corriendo**: `http://localhost:5174` (Vite funcionando)
-- ⚠️ **Backend con problemas**: PartyKit tiene bug en Windows (rutas de archivos)
-- 🟡 **Conexión**: Frontend muestra "Disconnected" (esperado sin backend)
+- ✅ **Backend Local**: Mock Server corriendo en `ws://localhost:1999`
+- ✅ **Conexión**: Frontend muestra "Connected" (🟢) y recibe mensajes del mock
+- ✅ **CI/CD**: Pipeline de GitHub Actions configurado para deploy automático a PartyKit Cloud
 
 ---
 
-## 🚧 PROBLEMAS TÉCNICOS IDENTIFICADOS
+## 🛠️ SOLUCIÓN TÉCNICA IMPLEMENTADA (Entorno Híbrido)
 
-### Problema Principal: PartyKit en Windows
-**Descripción**: PartyKit CLI tiene un bug conocido con rutas de Windows que impide ejecutar el servidor localmente.
+### Problema: PartyKit en Windows
+PartyKit CLI tiene un bug crítico con rutas de Windows que impide ejecutar el servidor localmente (`ERR_INVALID_URL`).
 
-**Error específico**:
-```
-ERR_INVALID_URL: '.\\file:\\C:\\Users\\fuige\\tutifruti\\node_modules\\partykit\\dist\\generated.js'
-```
-
-**Impacto**: No podemos probar la funcionalidad de WebSockets en desarrollo local.
-
-**Soluciones Posibles**:
-1. **Opción A (Temporal)**: Crear un mock server con `ws` (WebSocket simple) para desarrollo local
-2. **Opción B (Producción)**: Desplegar directamente a Cloudflare donde PartyKit funciona correctamente
-3. **Opción C (Alternativa)**: Usar WSL (Windows Subsystem for Linux) para desarrollo
+### Solución: Estrategia "Mock Local, Deploy Cloud"
+1.  **Desarrollo Local**: Usamos un servidor WebSocket simple (`ws`) en `party/mock-server.js` que simula el comportamiento de PartyKit.
+2.  **Producción**: Desplegamos a PartyKit Cloud usando GitHub Actions, donde corre en un entorno Linux/Edge compatible.
+3.  **Cliente Inteligente**: `useSocket.ts` detecta el entorno:
+    *   `DEV` -> Conecta a `ws://localhost:1999` (Mock)
+    *   `PROD` -> Conecta a `tutifruti-phoenix.partykit.dev` (Cloud)
 
 ---
 
 ## 🎯 PRÓXIMOS PASOS ESTRATÉGICOS
 
-### FASE 2: Resolver Backend y Establecer Comunicación
-**Objetivo**: Lograr comunicación bidireccional Cliente ↔ Servidor
-
-**Decisiones Arquitectónicas Necesarias**:
-1. ¿Usamos mock server para desarrollo local o trabajamos directo en producción?
-2. ¿Definimos el protocolo de mensajes WebSocket ahora o después?
-3. ¿Qué eventos del juego necesitamos desde el inicio?
-
-**Tareas Técnicas** (una vez decidido el enfoque):
-- [ ] Establecer servidor WebSocket funcional (mock o PartyKit en cloud)
-- [ ] Definir protocolo de mensajes (tipos de eventos)
-- [ ] Implementar handshake de conexión
-- [ ] Probar conexión bidireccional
-
----
-
 ### FASE 3: Implementar Lobby (Gestión de Salas)
 **Objetivo**: Permitir crear/unirse a salas de juego
 
-**Decisiones de Diseño**:
+**Decisiones de Diseño Pendientes**:
 1. ¿Las salas son públicas, privadas o ambas?
 2. ¿Cuántos jugadores por sala? (mínimo/máximo)
 3. ¿Quién puede iniciar la partida? (solo host o votación)
@@ -135,68 +115,43 @@ ERR_INVALID_URL: '.\\file:\\C:\\Users\\fuige\\tutifruti\\node_modules\\partykit\
 
 ---
 
-### FASE 6: Pulido y Despliegue
-**Objetivo**: Preparar para producción
-
-**Tareas**:
-- [ ] Optimización de rendimiento
-- [ ] Manejo de errores robusto
-- [ ] UX/UI polish (animaciones, feedback)
-- [ ] Testing (manual o automatizado)
-- [ ] Deploy a Cloudflare (PartyKit + Pages)
-- [ ] Configurar dominio personalizado (opcional)
-
----
-
 ## 🤔 PREGUNTAS PARA EL ARQUITECTO (GEMINI)
 
 ### Estrategia de Desarrollo
-1. **¿Priorizamos velocidad o robustez?**  
-   - ¿Hacemos un MVP rápido o construimos todo bien desde el inicio?
+1. **¿Prioridades?**
+   - Ya tenemos conexión. ¿Empezamos por el Lobby (HTMX) o por el Gameplay (Vue)?
 
-2. **¿Enfoque de desarrollo?**  
-   - ¿Feature por feature completa (vertical) o capa por capa (horizontal)?
+2. **¿Protocolo WebSocket?**
+   - Necesitamos definir los tipos de mensajes (`JOIN_ROOM`, `START_GAME`, `SUBMIT_WORD`, etc.).
 
-3. **¿Cómo manejamos el problema de PartyKit en Windows?**  
-   - ¿Mock server, deploy directo a cloud, o WSL?
-
-### Diseño del Juego
-4. **¿Qué features son MUST-HAVE para el MVP?**  
-   - ¿Cuál es el mínimo viable para que sea jugable?
-
-5. **¿Sistema de validación de palabras?**  
-   - ¿Votación entre jugadores (más social) o diccionario automático (más rápido)?
-
-6. **¿Persistencia de partidas?**  
-   - ¿Las partidas se pueden pausar/reanudar o son efímeras?
+3. **¿Diseño del Juego?**
+   - Definir las reglas básicas para empezar a codificar la lógica en el Mock Server.
 
 ---
 
 ## 📊 MÉTRICAS DE PROGRESO
 
-### Completado: ~15%
+### Completado: ~25%
 - ✅ Infraestructura: 100%
 - ✅ Tipos base: 100%
-- 🟡 Comunicación Cliente-Servidor: 30% (estructura creada, sin conexión real)
+- ✅ Comunicación Cliente-Servidor: 100% (Híbrida Mock/Cloud)
 - ⬜ Lobby: 0%
 - ⬜ Gameplay: 0%
 - ⬜ Validación: 0%
-- ⬜ Despliegue: 0%
+- ✅ Despliegue: 100% (CI/CD Configurado)
 
 ---
 
 ## 🎯 RECOMENDACIÓN INMEDIATA
 
-**Siguiente Milestone Sugerido**: **"Primera Conexión Exitosa"**
+**Siguiente Milestone Sugerido**: **"Lobby Funcional"**
 
-**Objetivo**: Ver el círculo verde (🟢 Connected) en la UI.
+**Objetivo**: Que un usuario pueda poner su nombre y "entrar" a una sala, viendo su nombre en la lista.
 
-**Opciones**:
-1. **Rápido pero temporal**: Implementar mock server con `ws`
-2. **Correcto pero más lento**: Configurar WSL y ejecutar PartyKit ahí
-3. **Producción first**: Deploy a Cloudflare y desarrollar contra el servidor en la nube
-
-**Pregunta clave**: ¿Qué enfoque prefieres para continuar?
+**Pasos**:
+1. Definir mensaje `JOIN_ROOM` en `shared/types.ts`.
+2. Implementar manejo de `JOIN_ROOM` en `party/mock-server.js`.
+3. Crear UI básica de Lobby en `App.vue` (o componente separado).
 
 ---
 
@@ -205,13 +160,13 @@ ERR_INVALID_URL: '.\\file:\\C:\\Users\\fuige\\tutifruti\\node_modules\\partykit\
 ```
 c:\Users\fuige\tutifruti\
 ├── party/
-│   ├── main.ts          # Entry point PartyKit
-│   ├── server.ts        # Lógica del servidor (básica)
-│   └── mock-server.js   # Mock server (creado, no probado)
+│   ├── main.ts          # Entry point PartyKit (Producción)
+│   ├── server.ts        # Lógica del servidor (Producción)
+│   └── mock-server.js   # Mock server (Desarrollo Local - ACTIVO)
 ├── src/
 │   ├── components/      # (vacío, para componentes Vue)
 │   ├── composables/
-│   │   └── useSocket.ts # Lógica WebSocket
+│   │   └── useSocket.ts # Lógica WebSocket Inteligente
 │   ├── App.vue          # Componente raíz
 │   ├── main.ts          # Entry point Vue
 │   ├── style.css        # Tailwind imports
@@ -219,7 +174,11 @@ c:\Users\fuige\tutifruti\
 ├── shared/
 │   ├── types.ts         # Tipos compartidos
 │   └── schemas.ts       # Zod schemas
+├── .github/
+│   └── workflows/
+│       └── deploy.yml   # CI/CD Pipeline
 ├── public/              # Assets estáticos
+├── .env.example         # Variables de entorno ejemplo
 ├── .gitignore
 ├── index.html
 ├── package.json
@@ -230,16 +189,3 @@ c:\Users\fuige\tutifruti\
 ├── tsconfig.node.json
 └── vite.config.ts
 ```
-
----
-
-## 🔗 RECURSOS
-
-- **Repositorio**: https://github.com/estebancarras/tuti
-- **Documentación PartyKit**: https://docs.partykit.io
-- **Vue 3 Docs**: https://vuejs.org
-- **Zod Docs**: https://zod.dev
-
----
-
-**Nota Final**: Este proyecto está en un estado sólido de inicialización. La arquitectura es correcta, el stack es moderno, y el código está limpio. El único blocker es la ejecución local de PartyKit en Windows, que tiene soluciones viables. Estamos listos para tomar decisiones estratégicas y avanzar a la implementación de features.
