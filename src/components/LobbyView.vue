@@ -2,19 +2,12 @@
 import { ref, computed } from 'vue';
 import { useGame } from '../composables/useGame';
 
-const { gameState, joinGame } = useGame();
-const playerName = ref('');
-const hasJoined = ref(false);
+const { gameState } = useGame();
 
-const currentPlayer = computed(() => {
-    return gameState.value.players.find(p => p.name === playerName.value);
-});
-
-const handleJoin = () => {
-    if (!playerName.value.trim()) return;
-    joinGame(playerName.value);
-    hasJoined.value = true;
-};
+// We need to know if *we* are the host. 
+// Since we don't have a persistent "myPlayerId" in this simple mock setup yet,
+// let's assume for the UI that if we are in the lobby, we are connected.
+// Real implementation would check socket.id against player.id.
 </script>
 
 <template>
@@ -22,33 +15,22 @@ const handleJoin = () => {
         <!-- HEADER -->
         <div class="text-center mb-8">
             <h2 class="text-3xl font-bold text-white mb-2">Sala de Espera</h2>
+            
+            <!-- ROOM CODE -->
+            <div class="flex flex-col items-center justify-center gap-2 my-4 p-4 bg-black/40 rounded-xl border border-white/10">
+                <span class="text-purple-300 text-xs uppercase tracking-widest">Código de Sala</span>
+                <span class="text-4xl font-mono font-black text-white tracking-[0.5em] pl-2">
+                    {{ gameState.roomId || '----' }}
+                </span>
+            </div>
+
             <div class="inline-block px-3 py-1 rounded-full bg-purple-500/30 text-purple-200 text-sm">
                 {{ gameState.players.length }} Jugadores Conectados
             </div>
         </div>
 
-        <!-- STATE 1: JOIN FORM -->
-        <div v-if="!hasJoined" class="space-y-6">
-            <div>
-                <label class="block text-sm font-medium text-purple-200 mb-2">Tu Nombre</label>
-                <input 
-                    v-model="playerName"
-                    @keyup.enter="handleJoin"
-                    type="text" 
-                    class="w-full px-4 py-3 bg-black/30 border border-purple-500/30 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder-gray-400 transition-all"
-                    placeholder="Escribe tu nombre..."
-                >
-            </div>
-            <button 
-                @click="handleJoin"
-                class="w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold rounded-lg transform transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-black"
-            >
-                Entrar a la Sala
-            </button>
-        </div>
-
-        <!-- STATE 2: PLAYER LIST -->
-        <div v-else class="space-y-6">
+        <!-- PLAYER LIST -->
+        <div class="space-y-6">
             <div class="space-y-3">
                 <div 
                     v-for="player in gameState.players" 
@@ -61,19 +43,25 @@ const handleJoin = () => {
                         </div>
                         <span class="text-white font-medium">
                             {{ player.name }}
-                            <span v-if="player.name === playerName" class="text-xs text-purple-300 ml-2">(Tú)</span>
                         </span>
                     </div>
-                    <span v-if="player.isHost" class="text-xs font-bold text-yellow-400 bg-yellow-400/10 px-2 py-1 rounded">
+                    <span v-if="player.isHost" class="text-xs font-bold text-yellow-400 bg-yellow-400/10 px-2 py-1 rounded flex items-center gap-1">
                         👑 HOST
                     </span>
                 </div>
             </div>
 
+            <!-- HOST CONTROLS -->
             <div class="pt-4 border-t border-white/10 text-center">
-                <p v-if="currentPlayer?.isHost" class="text-green-400 font-medium animate-pulse">
-                    ¡Eres el anfitrión! Iniciar partida (Pronto...)
-                </p>
+                <!-- We show this button if there is a host (mock simplification) -->
+                <!-- In real app: v-if="myPlayer.isHost" -->
+                <button 
+                    v-if="gameState.players.length > 0 && gameState.players[0].isHost"
+                    class="w-full py-3 px-6 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-bold rounded-lg transform transition-all hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                >
+                    <span>🚀</span> Comenzar Partida
+                </button>
+                
                 <p v-else class="text-gray-400 text-sm animate-pulse">
                     Esperando al anfitrión para comenzar...
                 </p>
@@ -81,3 +69,4 @@ const handleJoin = () => {
         </div>
     </div>
 </template>
+

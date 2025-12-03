@@ -1,8 +1,15 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useSocket } from './composables/useSocket';
 import LobbyView from './components/LobbyView.vue';
+import HomeView from './components/HomeView.vue';
 
 const { isConnected } = useSocket();
+const currentView = ref<'HOME' | 'LOBBY' | 'GAME'>('HOME');
+
+const handleNavigate = (view: 'HOME' | 'LOBBY' | 'GAME') => {
+  currentView.value = view;
+};
 </script>
 
 <template>
@@ -26,8 +33,9 @@ const { isConnected } = useSocket();
     </div>
 
     <!-- MAIN CONTENT -->
-    <div class="w-full max-w-4xl">
-      <LobbyView />
+    <div class="w-full max-w-4xl transition-all duration-500">
+      <HomeView v-if="currentView === 'HOME'" @navigate="handleNavigate" />
+      <LobbyView v-else-if="currentView === 'LOBBY'" />
     </div>
 
   </div>

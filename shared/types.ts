@@ -10,6 +10,7 @@ export interface Player {
 export interface RoomState {
     status: GameStatus;
     players: Player[];
+    roomId: string | null;
 }
 
 // Messages sent from Client to Server

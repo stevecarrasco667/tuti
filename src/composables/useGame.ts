@@ -5,7 +5,8 @@ import type { RoomState, ServerMessage } from '../../shared/types';
 // Global state to persist across component mounts if needed
 const gameState = ref<RoomState>({
     status: 'LOBBY',
-    players: []
+    players: [],
+    roomId: null
 });
 
 export function useGame() {
@@ -26,12 +27,12 @@ export function useGame() {
         }
     });
 
-    const joinGame = (name: string) => {
+    const joinGame = (name: string, roomId: string) => {
         if (!socket.value) return;
 
         const message = {
             type: 'JOIN',
-            payload: { name }
+            payload: { name, roomId }
         };
 
         socket.value.send(JSON.stringify(message));
