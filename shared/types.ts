@@ -15,6 +15,10 @@ export interface RoomState {
     categories: string[];
     answers: Record<string, Record<string, string>>; // PlayerID -> { Category -> Answer }
     roundsPlayed: number;
+    // Voting System
+    votes: Record<string, Record<string, string[]>>; // targetPlayerId -> category -> voterIds[]
+    whoFinishedVoting: string[];
+    roundScores: Record<string, number>;
 }
 
 // Messages sent from Client to Server
@@ -24,7 +28,9 @@ export type ClientMessage =
     | { type: 'JOIN'; payload: { name: string; roomId: string; userId: string } }
     | { type: 'START_GAME' }
     | { type: 'STOP_ROUND'; payload: { answers: RoundAnswers } }
-    | { type: 'SUBMIT_ANSWERS'; payload: { answers: RoundAnswers } };
+    | { type: 'SUBMIT_ANSWERS'; payload: { answers: RoundAnswers } }
+    | { type: 'TOGGLE_VOTE'; payload: { targetUserId: string; category: string } }
+    | { type: 'CONFIRM_VOTES' };
 
 // Messages sent from Server to Client
 export type ServerMessage =

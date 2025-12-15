@@ -36,6 +36,10 @@ export default class Room implements Party.Server {
                 this.engine.stopRound(sender.id, parsed.payload.answers);
             } else if (parsed.type === 'SUBMIT_ANSWERS') {
                 this.engine.submitAnswers(sender.id, parsed.payload.answers);
+            } else if (parsed.type === 'TOGGLE_VOTE') {
+                this.engine.toggleVote(sender.id, parsed.payload.targetUserId, parsed.payload.category);
+            } else if (parsed.type === 'CONFIRM_VOTES') {
+                this.engine.confirmVotes(sender.id);
             }
 
             // Broadcast new state

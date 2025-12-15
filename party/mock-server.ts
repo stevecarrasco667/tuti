@@ -228,6 +228,10 @@ wss.on('connection', (ws, req) => {
                 engine.stopRound(connectionId, message.payload.answers);
             } else if (message.type === 'SUBMIT_ANSWERS') {
                 engine.submitAnswers(connectionId, message.payload.answers);
+            } else if (message.type === 'TOGGLE_VOTE') {
+                engine.toggleVote(connectionId, message.payload.targetUserId, message.payload.category);
+            } else if (message.type === 'CONFIRM_VOTES') {
+                engine.confirmVotes(connectionId);
             }
 
             // Always broadcast state update after action

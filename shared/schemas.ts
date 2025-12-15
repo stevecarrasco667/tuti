@@ -12,6 +12,15 @@ export const GameStatusSchema = z.enum(['LOBBY', 'PLAYING', 'REVIEW', 'RESULTS']
 export const RoomStateSchema = z.object({
     status: GameStatusSchema,
     players: z.array(PlayerSchema),
+    // We can't strictly validate everything easily since it's dynamic keys
+    roomId: z.string().nullable(),
+    currentLetter: z.string().nullable(),
+    categories: z.array(z.string()),
+    answers: z.record(z.string(), z.record(z.string(), z.string())),
+    roundsPlayed: z.number(),
+    votes: z.record(z.string(), z.record(z.string(), z.array(z.string()))),
+    whoFinishedVoting: z.array(z.string()),
+    roundScores: z.record(z.string(), z.number())
 });
 
 export const JoinRoomSchema = z.object({
@@ -41,4 +50,16 @@ export const SubmitAnswersSchema = z.object({
     payload: z.object({
         answers: RoundAnswersSchema
     })
+});
+
+export const ToggleVoteSchema = z.object({
+    type: z.literal('TOGGLE_VOTE'),
+    payload: z.object({
+        targetUserId: z.string(),
+        category: z.string()
+    })
+});
+
+export const ConfirmVotesSchema = z.object({
+    type: z.literal('CONFIRM_VOTES')
 });

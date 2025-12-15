@@ -10,7 +10,10 @@ const gameState = ref<RoomState>({
     currentLetter: null,
     categories: [],
     answers: {},
-    roundsPlayed: 0
+    roundsPlayed: 0,
+    votes: {},
+    whoFinishedVoting: [],
+    roundScores: {}
 });
 
 export function useGame() {
@@ -104,12 +107,29 @@ export function useGame() {
     // We expose a helper to check if we need to submit
     const shouldSubmit = () => gameState.value.status === 'REVIEW';
 
+    const toggleVote = (targetUserId: string, category: string) => {
+        if (!socket.value) return;
+        socket.value.send(JSON.stringify({
+            type: 'TOGGLE_VOTE',
+            payload: { targetUserId, category }
+        }));
+    };
+
+    const confirmVotes = () => {
+        if (!socket.value) return;
+        socket.value.send(JSON.stringify({
+            type: 'CONFIRM_VOTES'
+        }));
+    };
+
     return {
         gameState,
         joinGame,
         startGame,
         stopRound,
         submitAnswers,
-        shouldSubmit
+        shouldSubmit,
+        toggleVote,
+        confirmVotes
     };
 }
