@@ -56,8 +56,11 @@ export class GameEngine {
         return this.state;
     }
 
-    public startGame(playerId: string): RoomState {
-        const player = this.state.players.find(p => p.id === playerId);
+    public startGame(connectionId: string): RoomState {
+        const userId = this.connections.get(connectionId);
+        if (!userId) return this.state;
+
+        const player = this.state.players.find(p => p.id === userId);
         if (player && player.isHost) {
             this.state.status = 'PLAYING';
             this.state.currentLetter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.charAt(Math.floor(Math.random() * 26));
@@ -66,11 +69,25 @@ export class GameEngine {
         return this.state;
     }
 
-    public stopRound(playerId: string): RoomState {
-        // Ideally enforce that the player is in the game, etc.
-        const player = this.state.players.find(p => p.id === playerId);
-        if (player) {
+    public stopRound(connectionId: string, answers: Record<string, string>): RoomState {
+        const userId = this.connections.get(connectionId);
+        if (!userId) return this.state;
+
+        const player = this.state.players.find(p => p.id === userId);
+        if (player && this.state.status === 'PLAYING') {
             this.state.status = 'REVIEW';
+            this.state.answers[userId] = answers;
+        }
+        return this.state;
+    }
+
+    public submitAnswers(connectionId: string, answers: Record<string, string>): RoomState {
+        const userId = this.connections.get(connectionId);
+        if (!userId) return this.state;
+
+        const player = this.state.players.find(p => p.id === userId);
+        if (player && (this.state.status === 'PLAYING' || this.state.status === 'REVIEW')) {
+            this.state.answers[userId] = answers;
         }
         return this.state;
     }

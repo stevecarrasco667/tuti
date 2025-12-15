@@ -80,15 +80,36 @@ export function useGame() {
         socket.value.send(JSON.stringify({ type: 'START_GAME' }));
     };
 
-    const stopRound = () => {
+    const submitAnswers = (answers: Record<string, string>) => {
         if (!socket.value) return;
-        socket.value.send(JSON.stringify({ type: 'STOP_ROUND' }));
+        socket.value.send(JSON.stringify({
+            type: 'SUBMIT_ANSWERS',
+            payload: { answers }
+        }));
     };
+
+    const stopRound = (answers: Record<string, string>) => {
+        if (!socket.value) return;
+        socket.value.send(JSON.stringify({
+            type: 'STOP_ROUND',
+            payload: { answers }
+        }));
+    };
+
+    // Watch for state changes to REVIEW to trigger submitting answers if we haven't already
+    // Note: The UI component should handle calling 'submitAnswers' when it detects the state change 
+    // to grab the current values from the inputs. 
+    // However, defining the transport method here is key.
+
+    // We expose a helper to check if we need to submit
+    const shouldSubmit = () => gameState.value.status === 'REVIEW';
 
     return {
         gameState,
         joinGame,
         startGame,
-        stopRound
+        stopRound,
+        submitAnswers,
+        shouldSubmit
     };
 }

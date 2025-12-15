@@ -22,7 +22,23 @@ export const JoinRoomSchema = z.object({
     }),
 });
 
+export const RoundAnswersSchema = z.record(z.string(), z.string());
+
 export const UpdateStateSchema = z.object({
     type: z.literal('UPDATE_STATE'),
     payload: RoomStateSchema,
+});
+
+export const StopRoundSchema = z.object({
+    type: z.literal('STOP_ROUND'),
+    payload: z.object({
+        answers: RoundAnswersSchema
+    })
+});
+
+export const SubmitAnswersSchema = z.object({
+    type: z.literal('SUBMIT_ANSWERS'),
+    payload: z.object({
+        answers: RoundAnswersSchema
+    })
 });

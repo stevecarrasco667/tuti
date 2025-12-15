@@ -18,10 +18,13 @@ export interface RoomState {
 }
 
 // Messages sent from Client to Server
+export type RoundAnswers = Record<string, string>;
+
 export type ClientMessage =
     | { type: 'JOIN'; payload: { name: string; roomId: string; userId: string } }
     | { type: 'START_GAME' }
-    | { type: 'STOP_ROUND' };
+    | { type: 'STOP_ROUND'; payload: { answers: RoundAnswers } }
+    | { type: 'SUBMIT_ANSWERS'; payload: { answers: RoundAnswers } };
 
 // Messages sent from Server to Client
 export type ServerMessage =

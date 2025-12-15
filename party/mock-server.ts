@@ -225,7 +225,9 @@ wss.on('connection', (ws, req) => {
             } else if (message.type === 'START_GAME') {
                 engine.startGame(connectionId);
             } else if (message.type === 'STOP_ROUND') {
-                engine.stopRound(connectionId);
+                engine.stopRound(connectionId, message.payload.answers);
+            } else if (message.type === 'SUBMIT_ANSWERS') {
+                engine.submitAnswers(connectionId, message.payload.answers);
             }
 
             // Always broadcast state update after action

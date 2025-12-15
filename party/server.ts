@@ -33,7 +33,9 @@ export default class Room implements Party.Server {
             } else if (parsed.type === 'START_GAME') {
                 this.engine.startGame(sender.id);
             } else if (parsed.type === 'STOP_ROUND') {
-                this.engine.stopRound(sender.id);
+                this.engine.stopRound(sender.id, parsed.payload.answers);
+            } else if (parsed.type === 'SUBMIT_ANSWERS') {
+                this.engine.submitAnswers(sender.id, parsed.payload.answers);
             }
 
             // Broadcast new state
