@@ -9,6 +9,12 @@ export const PlayerSchema = z.object({
 
 export const GameStatusSchema = z.enum(['LOBBY', 'PLAYING', 'REVIEW', 'RESULTS']);
 
+export const GameConfigSchema = z.object({
+    roundDuration: z.number().min(30).max(180),
+    votingDuration: z.number().min(15).max(120),
+    categoriesCount: z.number().min(4).max(8)
+});
+
 export const RoomStateSchema = z.object({
     status: GameStatusSchema,
     players: z.array(PlayerSchema),
@@ -20,7 +26,13 @@ export const RoomStateSchema = z.object({
     roundsPlayed: z.number(),
     votes: z.record(z.string(), z.record(z.string(), z.array(z.string()))),
     whoFinishedVoting: z.array(z.string()),
-    roundScores: z.record(z.string(), z.number())
+    roundScores: z.record(z.string(), z.number()),
+    config: GameConfigSchema,
+    timers: z.object({
+        roundEndsAt: z.number().nullable(),
+        votingEndsAt: z.number().nullable(),
+        resultsEndsAt: z.number().nullable()
+    })
 });
 
 export const JoinRoomSchema = z.object({
@@ -62,4 +74,9 @@ export const ToggleVoteSchema = z.object({
 
 export const ConfirmVotesSchema = z.object({
     type: z.literal('CONFIRM_VOTES')
+});
+
+export const UpdateConfigSchema = z.object({
+    type: z.literal('UPDATE_CONFIG'),
+    payload: GameConfigSchema.partial()
 });

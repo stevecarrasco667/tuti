@@ -13,7 +13,17 @@ const gameState = ref<RoomState>({
     roundsPlayed: 0,
     votes: {},
     whoFinishedVoting: [],
-    roundScores: {}
+    roundScores: {},
+    config: {
+        roundDuration: 60,
+        votingDuration: 45,
+        categoriesCount: 5
+    },
+    timers: {
+        roundEndsAt: null,
+        votingEndsAt: null,
+        resultsEndsAt: null
+    }
 });
 
 export function useGame() {
@@ -122,6 +132,14 @@ export function useGame() {
         }));
     };
 
+    const updateConfig = (config: Partial<{ roundDuration: number; votingDuration: number; categoriesCount: number }>) => {
+        if (!socket.value) return;
+        socket.value.send(JSON.stringify({
+            type: 'UPDATE_CONFIG',
+            payload: config
+        }));
+    };
+
     return {
         gameState,
         joinGame,
@@ -130,6 +148,7 @@ export function useGame() {
         submitAnswers,
         shouldSubmit,
         toggleVote,
-        confirmVotes
+        confirmVotes,
+        updateConfig
     };
 }

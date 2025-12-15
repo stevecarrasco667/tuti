@@ -175,6 +175,7 @@ console.log('🎉 Mock PartyKit Server running on ws://localhost:1999');
 
 const rooms = new Map<string, GameEngine>();
 const socketMetadata = new Map<any, { roomId: string, playerId: string }>();
+const roomTimers = new Map<string, NodeJS.Timeout>(); // Track active timers per room
 
 function broadcastToRoom(roomId: string, message: any) {
     const data = JSON.stringify(message);
@@ -192,6 +193,72 @@ function getOrCreateRoom(roomId: string): GameEngine {
         console.log(`🏠 Created new room: ${roomId}`);
     }
     return rooms.get(roomId)!;
+}
+
+function scheduleWatchdog(roomId: string) {
+    // Clear existing timer
+    const existingTimer = roomTimers.get(roomId);
+    if (existingTimer) {
+        clearTimeout(existingTimer);
+        roomTimers.delete(roomId);
+    }
+
+    const engine = getOrCreateRoom(roomId);
+    const state = engine.getState();
+    const now = Date.now();
+
+    let nextTriggerTime: number | null = null;
+
+    // Determine next trigger time
+    if (state.status === 'PLAYING' && state.timers.roundEndsAt) {
+        nextTriggerTime = state.timers.roundEndsAt;
+    } else if (state.status === 'REVIEW' && state.timers.votingEndsAt) {
+        nextTriggerTime = state.timers.votingEndsAt;
+    } else if (state.status === 'RESULTS' && state.timers.resultsEndsAt) {
+        nextTriggerTime = state.timers.resultsEndsAt;
+    }
+
+    if (nextTriggerTime && nextTriggerTime > now) {
+        const delay = nextTriggerTime - now;
+        const timer = setTimeout(() => {
+            handleWatchdogTrigger(roomId);
+        }, delay);
+        roomTimers.set(roomId, timer);
+        console.log(`⏰ Watchdog scheduled for room ${roomId} in ${delay}ms`);
+    }
+}
+
+function handleWatchdogTrigger(roomId: string) {
+    const engine = getOrCreateRoom(roomId);
+    const state = engine.getState();
+    const now = Date.now();
+
+    console.log(`⏰ Watchdog triggered for room ${roomId}, status: ${state.status}`);
+
+    // Check if round timer expired
+    if (state.status === 'PLAYING' && state.timers.roundEndsAt && now >= state.timers.roundEndsAt) {
+        engine.forceEndRound();
+        console.log(`🔴 Forced end of round in room ${roomId}`);
+    }
+    // Check if voting timer expired
+    else if (state.status === 'REVIEW' && state.timers.votingEndsAt && now >= state.timers.votingEndsAt) {
+        engine.forceEndVoting();
+        console.log(`🔴 Forced end of voting in room ${roomId}`);
+    }
+    // Check if results timer expired
+    else if (state.status === 'RESULTS' && state.timers.resultsEndsAt && now >= state.timers.resultsEndsAt) {
+        engine.forceStartNextRound();
+        console.log(`🔴 Auto-starting next round in room ${roomId}`);
+    }
+
+    // Broadcast updated state
+    broadcastToRoom(roomId, {
+        type: "UPDATE_STATE",
+        payload: engine.getState()
+    });
+
+    // Schedule next watchdog if needed
+    scheduleWatchdog(roomId);
 }
 
 wss.on('connection', (ws, req) => {
@@ -232,12 +299,19 @@ wss.on('connection', (ws, req) => {
                 engine.toggleVote(connectionId, message.payload.targetUserId, message.payload.category);
             } else if (message.type === 'CONFIRM_VOTES') {
                 engine.confirmVotes(connectionId);
+            } else if (message.type === 'UPDATE_CONFIG') {
+                engine.updateConfig(connectionId, message.payload);
             }
+
+            const newState = engine.getState();
+
+            // Schedule watchdog based on new state
+            scheduleWatchdog(roomId);
 
             // Always broadcast state update after action
             broadcastToRoom(roomId, {
                 type: "UPDATE_STATE",
-                payload: engine.getState()
+                payload: newState
             });
 
         } catch (e) {

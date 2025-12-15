@@ -1,4 +1,10 @@
-import { RoomState, Player } from './types.js';
+import { RoomState, Player, GameConfig } from './types.js';
+
+const MASTER_CATEGORIES = [
+    'Nombre', 'Apellido', 'País', 'Ciudad', 'Animal', 'Color', 'Fruta/Verdura',
+    'Cosa', 'Profesión', 'Marca', 'Película', 'Canción', 'Comida', 'Deporte',
+    'Famoso', 'Serie de TV', 'Parte del Cuerpo', 'Instrumento Musical'
+];
 
 export class GameEngine {
     private state: RoomState;
@@ -17,12 +23,43 @@ export class GameEngine {
             // Voting System Initial State
             votes: {},
             whoFinishedVoting: [],
-            roundScores: {}
+            roundScores: {},
+            // Time Controls
+            config: {
+                roundDuration: 60, // 60 seconds default
+                votingDuration: 45, // 45 seconds default
+                categoriesCount: 5   // 5 categories default
+            },
+            timers: {
+                roundEndsAt: null,
+                votingEndsAt: null,
+                resultsEndsAt: null
+            }
         };
         this.connections = new Map();
     }
 
     public getState(): RoomState {
+        return this.state;
+    }
+
+    public updateConfig(connectionId: string, newConfig: Partial<GameConfig>): RoomState {
+        const userId = this.connections.get(connectionId);
+        if (!userId) return this.state;
+
+        const player = this.state.players.find(p => p.id === userId);
+
+        // Only host can update config, and only in LOBBY
+        if (player && player.isHost && this.state.status === 'LOBBY') {
+            this.state.config = { ...this.state.config, ...newConfig };
+            // Update initial preview of categories immediately if count changes? 
+            // Better to just wait for start game to pick randoms. 
+            // But we could refresh current categories list for UI feedback if we wanted.
+
+            // Validate limits just in case (though schemas handle input validation usually)
+            if (this.state.config.categoriesCount < 4) this.state.config.categoriesCount = 4;
+            if (this.state.config.categoriesCount > 8) this.state.config.categoriesCount = 8;
+        }
         return this.state;
     }
 
@@ -68,11 +105,20 @@ export class GameEngine {
         if (player && player.isHost) {
             this.state.status = 'PLAYING';
             this.state.currentLetter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.charAt(Math.floor(Math.random() * 26));
+
+            // Select random categories
+            const shuffled = [...MASTER_CATEGORIES].sort(() => 0.5 - Math.random());
+            this.state.categories = shuffled.slice(0, this.state.config.categoriesCount);
+
             this.state.answers = {}; // Reset answers for new round
             // Reset Voting System
             this.state.votes = {};
             this.state.whoFinishedVoting = [];
             this.state.roundScores = {};
+
+            // Set Timer
+            this.state.timers.roundEndsAt = Date.now() + (this.state.config.roundDuration * 1000);
+            this.state.timers.votingEndsAt = null;
         }
         return this.state;
     }
@@ -85,6 +131,11 @@ export class GameEngine {
         if (player && this.state.status === 'PLAYING') {
             this.state.status = 'REVIEW';
             this.state.answers[userId] = answers;
+
+            // Cancel Round Timer (server will handle clearing alarm if needed, or check state)
+            this.state.timers.roundEndsAt = null;
+            // Set Voting Timer
+            this.state.timers.votingEndsAt = Date.now() + (this.state.config.votingDuration * 1000);
         }
         return this.state;
     }
@@ -161,5 +212,63 @@ export class GameEngine {
             this.state.roundScores[player.id] = roundScore;
             player.score += roundScore;
         });
+
+        // Clear voting timer
+        this.state.timers.votingEndsAt = null;
+
+        // Set 10 second timer for results screen
+        this.state.timers.resultsEndsAt = Date.now() + 10000; // 10 seconds
+    }
+
+    // Forced Transitions (called by server Watchdog)
+    public forceEndRound(): RoomState {
+        if (this.state.status !== 'PLAYING') return this.state;
+
+        // Transition to REVIEW without any player triggering it
+        this.state.status = 'REVIEW';
+        // Players who didn't submit get empty answers (already default behavior)
+
+        // Cancel Round Timer
+        this.state.timers.roundEndsAt = null;
+        // Set Voting Timer
+        this.state.timers.votingEndsAt = Date.now() + (this.state.config.votingDuration * 1000);
+
+        return this.state;
+    }
+
+    public forceEndVoting(): RoomState {
+        if (this.state.status !== 'REVIEW') return this.state;
+
+        // Force calculate results even if not everyone confirmed
+        this.calculateResults();
+
+        return this.state;
+    }
+
+    public forceStartNextRound(): RoomState {
+        if (this.state.status !== 'RESULTS') return this.state;
+
+        // Auto-start next round (as if host pressed start)
+        this.state.status = 'PLAYING';
+        this.state.currentLetter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.charAt(Math.floor(Math.random() * 26));
+
+        // Select random categories
+        const shuffled = [...MASTER_CATEGORIES].sort(() => 0.5 - Math.random());
+        this.state.categories = shuffled.slice(0, this.state.config.categoriesCount);
+
+        this.state.answers = {}; // Reset answers for new round
+        // Reset Voting System
+        this.state.votes = {};
+        this.state.whoFinishedVoting = [];
+        this.state.roundScores = {};
+
+        // Set Timer
+        this.state.timers.roundEndsAt = Date.now() + (this.state.config.roundDuration * 1000);
+        this.state.timers.votingEndsAt = null;
+        this.state.timers.resultsEndsAt = null;
+
+        this.state.roundsPlayed++;
+
+        return this.state;
     }
 }

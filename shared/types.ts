@@ -7,6 +7,12 @@ export interface Player {
     isHost: boolean;
 }
 
+export interface GameConfig {
+    roundDuration: number;
+    votingDuration: number;
+    categoriesCount: number;
+}
+
 export interface RoomState {
     status: GameStatus;
     players: Player[];
@@ -19,6 +25,13 @@ export interface RoomState {
     votes: Record<string, Record<string, string[]>>; // targetPlayerId -> category -> voterIds[]
     whoFinishedVoting: string[];
     roundScores: Record<string, number>;
+    // Time Controls
+    config: GameConfig;
+    timers: {
+        roundEndsAt: number | null;
+        votingEndsAt: number | null;
+        resultsEndsAt: number | null;
+    };
 }
 
 // Messages sent from Client to Server
@@ -30,7 +43,8 @@ export type ClientMessage =
     | { type: 'STOP_ROUND'; payload: { answers: RoundAnswers } }
     | { type: 'SUBMIT_ANSWERS'; payload: { answers: RoundAnswers } }
     | { type: 'TOGGLE_VOTE'; payload: { targetUserId: string; category: string } }
-    | { type: 'CONFIRM_VOTES' };
+    | { type: 'CONFIRM_VOTES' }
+    | { type: 'UPDATE_CONFIG'; payload: Partial<GameConfig> };
 
 // Messages sent from Server to Client
 export type ServerMessage =

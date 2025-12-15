@@ -1,11 +1,60 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, computed, onUnmounted } from 'vue';
 import { useGame } from '../composables/useGame';
 
 const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVotes } = useGame();
 
 const answers = ref<Record<string, string>>({});
 const hasConfirmed = ref(false);
+
+// Countdown timer
+const timeRemaining = ref<number | null>(null);
+let timerInterval: NodeJS.Timeout | null = null;
+
+const updateTimer = () => {
+    const now = Date.now();
+    let targetTime: number | null = null;
+
+    if (gameState.value.status === 'PLAYING' && gameState.value.timers.roundEndsAt) {
+        targetTime = gameState.value.timers.roundEndsAt;
+    } else if (gameState.value.status === 'REVIEW' && gameState.value.timers.votingEndsAt) {
+        targetTime = gameState.value.timers.votingEndsAt;
+    } else if (gameState.value.status === 'RESULTS' && gameState.value.timers.resultsEndsAt) {
+        targetTime = gameState.value.timers.resultsEndsAt;
+    }
+
+    if (targetTime) {
+        const remaining = Math.max(0, Math.ceil((targetTime - now) / 1000));
+        timeRemaining.value = remaining;
+    } else {
+        timeRemaining.value = null;
+    }
+};
+
+// Watch for timer changes and update every second
+watch(() => [gameState.value.status, gameState.value.timers], () => {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+    }
+
+    updateTimer();
+
+    if (gameState.value.status === 'PLAYING' || gameState.value.status === 'REVIEW' || gameState.value.status === 'RESULTS') {
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+}, { immediate: true, deep: true });
+
+onUnmounted(() => {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+    }
+});
+
+const timerColor = computed(() => {
+    if (timeRemaining.value === null) return 'text-gray-400';
+    if (timeRemaining.value <= 10) return 'text-red-500 animate-pulse';
+    return 'text-white';
+});
 
 const handleStop = () => {
     stopRound(answers.value);
@@ -45,7 +94,14 @@ watch(() => gameState.value.status, (newStatus) => {
             </div>
             
             <div class="flex-1 px-8 text-center">
-                 <p v-if="gameState.status === 'PLAYING'" class="text-gray-400 text-sm animate-pulse">¡Escribe rápido!</p>
+                 <!-- Timer Display -->
+                 <div v-if="timeRemaining !== null" class="mb-2">
+                     <p class="text-sm text-gray-400 uppercase tracking-wide">Tiempo Restante</p>
+                     <p :class="['text-6xl font-black', timerColor]">
+                         {{ timeRemaining }}s
+                     </p>
+                 </div>
+                 <p v-if="gameState.status === 'PLAYING'" class="text-gray-400 text-sm">¡Escribe rápido!</p>
                  <p v-else-if="gameState.status === 'REVIEW'" class="text-yellow-400 text-xl font-bold animate-bounce">¡REVISIÓN DE VOTOS!</p>
                  <p v-else-if="gameState.status === 'RESULTS'" class="text-green-400 text-xl font-bold">¡RESULTADOS!</p>
             </div>
@@ -156,19 +212,22 @@ watch(() => gameState.value.status, (newStatus) => {
                 </div>
             </div>
 
-            <div class="text-gray-400 text-sm animate-pulse">
-                El anfitrion iniciará la siguiente ronda...
+            <div v-if="timeRemaining !== null" class="mb-4">
+                <p class="text-gray-400 text-sm mb-2">Siguiente ronda en:</p>
+                <p :class="['text-5xl font-black', timerColor]">
+                    {{ timeRemaining }}s
+                </p>
+            </div>
+            <div v-else class="text-gray-400 text-sm animate-pulse mb-4">
+                Preparando siguiente ronda...
             </div>
             
-            <!-- Host Controls could go here, but strictly relying on start game from user (Host check done in backend) -->
-            <!-- Actually, let's add a button if isHost -->
-             <!-- We don't have isHost exposed cleanly in useGame for direct usage without finding self. 
-                  But anyone can send START_GAME, server checks validation. -->
+            <!-- Manual start button (optional, host only) -->
             <button 
                 @click="useGame().startGame()"
-                class="mt-6 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-8 rounded-xl"
+                class="mt-4 bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-8 rounded-xl transition-all"
             >
-                Siguiente Ronda
+                Iniciar Ahora
             </button>
         </div>
 
