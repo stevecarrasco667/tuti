@@ -28,7 +28,8 @@ export class GameEngine {
             config: {
                 roundDuration: 60, // 60 seconds default
                 votingDuration: 45, // 45 seconds default
-                categoriesCount: 5   // 5 categories default
+                categoriesCount: 5,   // 5 categories default
+                totalRounds: 5       // 5 rounds default
             },
             timers: {
                 roundEndsAt: null,
@@ -274,18 +275,49 @@ export class GameEngine {
         return this.state;
     }
 
+
+
+    // Force start next round (Auto-start)
     public forceStartNextRound(): RoomState {
-        if (this.state.status !== 'RESULTS') return this.state;
+        // If we are already in Playing, ignore
+        if (this.state.status === 'PLAYING') return this.state;
 
-        // Auto-start next round (as if host pressed start)
-        this.state.status = 'PLAYING';
-        this.state.currentLetter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.charAt(Math.floor(Math.random() * 26));
+        // Check if Game Over condition is met
+        // roundsPlayed starts at 0, so if roundsPlayed >= totalRounds, game is over
+        if (this.state.roundsPlayed >= this.state.config.totalRounds) {
+            this.state.status = 'GAME_OVER';
+            // Clear timers
+            this.state.timers.roundEndsAt = null;
+            this.state.timers.votingEndsAt = null;
+            this.state.timers.resultsEndsAt = null;
+            return this.state;
+        }
 
-        // Select random categories
+        // Logic similar to startGame but without resetting scores
+        // Logic similar to startGame but without resetting scores
+        // const currentCategoryIdx = this.state.roundsPlayed % MASTER_CATEGORIES.length;
+        // const nextCategories = MASTER_CATEGORIES.slice(currentCategoryIdx, currentCategoryIdx + this.state.config.categoriesCount);
+
+        // Ensure we have enough categories, if not wrap around (simplified)
+        // In a real app we would shuffle better
+
+        // Randomize letter
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        this.state.currentLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
+
+        // Keep categories for now, or rotate them? 
+        // Let's rotate randomly for variety
         const shuffled = [...MASTER_CATEGORIES].sort(() => 0.5 - Math.random());
         this.state.categories = shuffled.slice(0, this.state.config.categoriesCount);
 
-        this.state.answers = {}; // Reset answers for new round
+        this.state.status = 'PLAYING';
+
+        // Clear previous answers
+        this.state.answers = {};
+        this.state.players.forEach(p => {
+            this.state.answers[p.id] = {};
+        });
+
         // Reset Voting System
         this.state.votes = {};
         this.state.whoFinishedVoting = [];
@@ -297,6 +329,29 @@ export class GameEngine {
         this.state.timers.resultsEndsAt = null;
 
         this.state.roundsPlayed++;
+
+        return this.state;
+    }
+
+    public restartGame(): RoomState {
+        this.state.status = 'LOBBY';
+        this.state.roundsPlayed = 0;
+        this.state.currentLetter = null;
+        this.state.categories = [];
+        this.state.answers = {};
+        this.state.votes = {};
+        this.state.whoFinishedVoting = [];
+        this.state.roundScores = {};
+
+        // Reset scores
+        this.state.players.forEach(p => {
+            p.score = 0;
+        });
+
+        // Clear timers
+        this.state.timers.roundEndsAt = null;
+        this.state.timers.votingEndsAt = null;
+        this.state.timers.resultsEndsAt = null;
 
         return this.state;
     }

@@ -5,12 +5,13 @@ import { useGame } from './composables/useGame';
 import LobbyView from './components/LobbyView.vue';
 import HomeView from './components/HomeView.vue';
 import GameView from './components/GameView.vue';
+import GameOverView from './components/GameOverView.vue';
 
 const { isConnected } = useSocket();
 const { gameState } = useGame();
-const currentView = ref<'HOME' | 'LOBBY' | 'GAME'>('HOME');
+const currentView = ref<'HOME' | 'LOBBY' | 'GAME' | 'GAME_OVER'>('HOME');
 
-const handleNavigate = (view: 'HOME' | 'LOBBY' | 'GAME') => {
+const handleNavigate = (view: 'HOME' | 'LOBBY' | 'GAME' | 'GAME_OVER') => {
   currentView.value = view;
 };
 
@@ -18,8 +19,10 @@ const handleNavigate = (view: 'HOME' | 'LOBBY' | 'GAME') => {
 watch(() => gameState.value.status, (newStatus) => {
     if (newStatus === 'PLAYING' || newStatus === 'REVIEW') {
         currentView.value = 'GAME';
-    } else if (newStatus === 'LOBBY' && currentView.value === 'GAME') {
+    } else if (newStatus === 'LOBBY') {
         currentView.value = 'LOBBY';
+    } else if (newStatus === 'GAME_OVER') {
+        currentView.value = 'GAME_OVER';
     }
 });
 </script>
@@ -49,6 +52,7 @@ watch(() => gameState.value.status, (newStatus) => {
       <HomeView v-if="currentView === 'HOME'" @navigate="handleNavigate" />
       <LobbyView v-else-if="currentView === 'LOBBY'" />
       <GameView v-else-if="currentView === 'GAME'" />
+      <GameOverView v-else-if="currentView === 'GAME_OVER'" />
     </div>
 
   </div>

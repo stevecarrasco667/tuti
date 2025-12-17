@@ -9,12 +9,13 @@ export const PlayerSchema = z.object({
     lastSeenAt: z.number()
 });
 
-export const GameStatusSchema = z.enum(['LOBBY', 'PLAYING', 'REVIEW', 'RESULTS']);
+export const GameStatusSchema = z.enum(['LOBBY', 'PLAYING', 'REVIEW', 'RESULTS', 'GAME_OVER']);
 
 export const GameConfigSchema = z.object({
     roundDuration: z.number().min(30).max(180),
     votingDuration: z.number().min(15).max(120),
-    categoriesCount: z.number().min(4).max(8)
+    categoriesCount: z.number().min(4).max(8),
+    totalRounds: z.number().min(1).max(20)
 });
 
 export const RoomStateSchema = z.object({

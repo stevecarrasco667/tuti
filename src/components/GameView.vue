@@ -86,7 +86,20 @@ watch(() => gameState.value.status, (newStatus) => {
         
         <!-- === HEADER === -->
         <div class="flex items-center justify-between mb-8 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-xl">
-             <div class="text-center">
+            <!-- Round Info -->
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-full bg-purple-600 flex items-center justify-center shadow-lg border border-white/20">
+                    <span class="text-xl">🏁</span>
+                </div>
+                <div>
+                    <span class="block text-xs uppercase tracking-widest text-purple-300 font-bold">Ronda</span>
+                    <span class="text-xl font-black tracking-tight leading-none">
+                        {{ gameState.roundsPlayed + 1 }} <span class="text-white/40 text-sm">/ {{ gameState.config.totalRounds || 5 }}</span>
+                    </span>
+                </div>
+            </div>
+            
+            <div class="text-center">
                 <p class="text-purple-200 text-sm uppercase tracking-widest font-bold">Letra</p>
                 <h1 class="text-8xl font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">
                     {{ gameState.currentLetter || '?' }}

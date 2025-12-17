@@ -17,7 +17,8 @@ const gameState = ref<RoomState>({
     config: {
         roundDuration: 60,
         votingDuration: 45,
-        categoriesCount: 5
+        categoriesCount: 5,
+        totalRounds: 5
     },
     timers: {
         roundEndsAt: null,
@@ -44,13 +45,13 @@ export function useGame() {
         }
     });
 
-    const getOrCreateUserId = (): string => {
-        const stored = localStorage.getItem('tuti-user-id');
-        if (stored) return stored;
-        const newId = crypto.randomUUID();
-        localStorage.setItem('tuti-user-id', newId);
-        return newId;
-    };
+    const myUserId = ref<string>(localStorage.getItem('tuti-user-id') || crypto.randomUUID());
+    // Ensure it's saved if we generated a new one
+    if (!localStorage.getItem('tuti-user-id')) {
+        localStorage.setItem('tuti-user-id', myUserId.value);
+    }
+
+    const getOrCreateUserId = (): string => myUserId.value;
 
     const joinGame = async (name: string, roomId: string) => {
         // 1. Connect to the specific room
@@ -149,6 +150,7 @@ export function useGame() {
         shouldSubmit,
         toggleVote,
         confirmVotes,
-        updateConfig
+        updateConfig,
+        myUserId
     };
 }

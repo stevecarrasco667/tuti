@@ -1,4 +1,4 @@
-export type GameStatus = 'LOBBY' | 'PLAYING' | 'REVIEW' | 'RESULTS';
+export type GameStatus = 'LOBBY' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER';
 
 export interface Player {
     id: string;
@@ -13,6 +13,7 @@ export interface GameConfig {
     roundDuration: number;
     votingDuration: number;
     categoriesCount: number;
+    totalRounds: number;
 }
 
 export interface RoomState {
@@ -46,7 +47,9 @@ export type ClientMessage =
     | { type: 'SUBMIT_ANSWERS'; payload: { answers: RoundAnswers } }
     | { type: 'TOGGLE_VOTE'; payload: { targetUserId: string; category: string } }
     | { type: 'CONFIRM_VOTES' }
-    | { type: 'UPDATE_CONFIG'; payload: Partial<GameConfig> };
+    | { type: 'UPDATE_CONFIG'; payload: Partial<GameConfig> }
+    | { type: 'RESTART_GAME' }
+    | { type: 'EXIT_GAME' };
 
 // Messages sent from Server to Client
 export type ServerMessage =

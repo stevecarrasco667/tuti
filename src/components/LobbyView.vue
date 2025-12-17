@@ -1,18 +1,21 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { useGame } from '../composables/useGame';
 
-const { gameState, startGame, updateConfig } = useGame();
+const { gameState, startGame, updateConfig, myUserId } = useGame();
 
 // Local state for config inputs (we'll sync them with gameState.config)
 const localConfig = computed(() => gameState.value.config);
 
-const handleConfigChange = (field: 'roundDuration' | 'votingDuration' | 'categoriesCount', value: number) => {
+const handleConfigChange = (field: 'roundDuration' | 'votingDuration' | 'categoriesCount' | 'totalRounds', value: number) => {
     updateConfig({ [field]: value });
 };
 
-// Check if current user is host (simplified - in real app would check userId)
-const isHost = computed(() => gameState.value.players.length > 0 && gameState.value.players[0].isHost);
+// Check if current user is host checking ID
+const amIHost = computed(() => {
+    const me = gameState.value.players.find(p => p.id === myUserId.value);
+    return me?.isHost || false;
+});
 </script>
 
 <template>
@@ -58,6 +61,7 @@ const isHost = computed(() => gameState.value.players.length > 0 && gameState.va
                         <div class="flex flex-col">
                             <span class="text-white font-medium">
                                 {{ player.name }}
+                                <span v-if="player.id === myUserId" class="ml-1 text-purple-300 font-bold">(Tú)</span>
                             </span>
                             <span v-if="!player.isConnected" class="text-[10px] text-red-400 uppercase font-bold tracking-wider">
                                 DESCONECTADO
@@ -74,88 +78,138 @@ const isHost = computed(() => gameState.value.players.length > 0 && gameState.va
             <div class="space-y-4">
                 <h3 class="text-white font-bold text-lg mb-3">Configuración</h3>
                 
-                <!-- Round Duration -->
-                <div class="bg-black/20 p-4 rounded-lg border border-white/5">
-                    <label class="block text-purple-200 text-sm font-bold mb-2">
-                        Duración de Ronda: {{ localConfig.roundDuration }}s
-                    </label>
-                    <input 
-                        type="range" 
-                        min="30" 
-                        max="180" 
-                        step="10"
-                        :value="localConfig.roundDuration"
-                        @input="handleConfigChange('roundDuration', parseInt(($event.target as HTMLInputElement).value))"
-                        :disabled="!isHost"
-                        class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                    <div class="flex justify-between text-xs text-gray-400 mt-1">
-                        <span>30s</span>
-                        <span>180s</span>
+                <div v-if="amIHost">
+                    <!-- Round Duration -->
+                    <div class="bg-black/20 p-4 rounded-lg border border-white/5 mb-4">
+                        <label class="block text-purple-200 text-sm font-bold mb-2">
+                            Duración de Ronda: {{ localConfig.roundDuration }}s
+                        </label>
+                        <input 
+                            type="range" 
+                            min="30" 
+                            max="180" 
+                            step="10"
+                            :value="localConfig.roundDuration"
+                            @input="e => handleConfigChange('roundDuration', parseInt((e.target as HTMLInputElement).value))"
+                            class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                        >
+                    </div>
+
+                    <!-- Voting Duration -->
+                    <div class="bg-black/20 p-4 rounded-lg border border-white/5 mb-4">
+                        <label class="block text-purple-200 text-sm font-bold mb-2">
+                            Duración de Votación: {{ localConfig.votingDuration }}s
+                        </label>
+                        <input 
+                            type="range" 
+                            min="15" 
+                            max="120" 
+                            step="5"
+                            :value="localConfig.votingDuration"
+                            @input="e => handleConfigChange('votingDuration', parseInt((e.target as HTMLInputElement).value))"
+                            class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                        >
+                    </div>
+
+                    <!-- Total Rounds -->
+                    <div class="bg-black/20 p-4 rounded-lg border border-white/5 mb-4">
+                        <label class="block text-purple-200 text-sm font-bold mb-2">
+                            Total de Rondas: {{ localConfig.totalRounds || 5 }}
+                        </label>
+                        <input 
+                            type="range" 
+                            min="1" 
+                            max="20" 
+                            step="1"
+                            :value="localConfig.totalRounds || 5"
+                            @input="e => handleConfigChange('totalRounds', parseInt((e.target as HTMLInputElement).value))"
+                            class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                        >
+                    </div>
+
+                    <!-- Categories Count -->
+                    <div class="bg-black/20 p-4 rounded-lg border border-white/5">
+                        <label class="block text-purple-200 text-sm font-bold mb-2">
+                            Cantidad de Categorías: {{ localConfig.categoriesCount }}
+                        </label>
+                        <input 
+                            type="range" 
+                            min="4" 
+                            max="8" 
+                            step="1"
+                            :value="localConfig.categoriesCount"
+                            @input="e => handleConfigChange('categoriesCount', parseInt((e.target as HTMLInputElement).value))"
+                            class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                        >
                     </div>
                 </div>
 
-                <!-- Voting Duration -->
-                <div class="bg-black/20 p-4 rounded-lg border border-white/5">
-                    <label class="block text-purple-200 text-sm font-bold mb-2">
-                        Duración de Votación: {{ localConfig.votingDuration }}s
-                    </label>
-                    <input 
-                        type="range" 
-                        min="15" 
-                        max="120" 
-                        step="5"
-                        :value="localConfig.votingDuration"
-                        @input="handleConfigChange('votingDuration', parseInt(($event.target as HTMLInputElement).value))"
-                        :disabled="!isHost"
-                        class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                    <div class="flex justify-between text-xs text-gray-400 mt-1">
-                        <span>15s</span>
-                        <span>120s</span>
+                <!-- READ ONLY CONFIG FOR GUESTS -->
+                <div v-else class="grid grid-cols-1 gap-4">
+                    <div class="bg-black/30 p-4 rounded-xl border border-white/5 flex items-center justify-between">
+                        <div>
+                            <span class="block text-xs uppercase tracking-wider text-purple-400 font-bold mb-1">Duración</span>
+                            <span class="text-2xl font-mono text-white font-bold">{{ localConfig.roundDuration }}s</span>
+                        </div>
+                        <div class="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center">
+                            ⏱️
+                        </div>
+                    </div>
+
+                    <div class="bg-black/30 p-4 rounded-xl border border-white/5 flex items-center justify-between">
+                        <div>
+                            <span class="block text-xs uppercase tracking-wider text-purple-400 font-bold mb-1">Votación</span>
+                            <span class="text-2xl font-mono text-white font-bold">{{ localConfig.votingDuration }}s</span>
+                        </div>
+                        <div class="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center">
+                            ⚖️
+                        </div>
+                    </div>
+
+                    <div class="bg-black/30 p-4 rounded-xl border border-white/5 flex items-center justify-between">
+                        <div>
+                            <span class="block text-xs uppercase tracking-wider text-purple-400 font-bold mb-1">Rondas</span>
+                            <span class="text-2xl font-mono text-white font-bold">{{ localConfig.totalRounds || 5 }}</span>
+                        </div>
+                        <div class="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center">
+                            🏁
+                        </div>
+                    </div>
+
+                    <div class="bg-black/30 p-4 rounded-xl border border-white/5 flex items-center justify-between">
+                        <div>
+                            <span class="block text-xs uppercase tracking-wider text-purple-400 font-bold mb-1">Categorías</span>
+                            <span class="text-2xl font-mono text-white font-bold">{{ localConfig.categoriesCount }}</span>
+                        </div>
+                        <div class="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center">
+                            📚
+                        </div>
+                    </div>
+                    
+                    <div class="mt-2 text-center text-xs text-white/30 italic">
+                        Esperando que el anfitrión inicie la partida...
                     </div>
                 </div>
 
-                <!-- Categories Count -->
-                <div class="bg-black/20 p-4 rounded-lg border border-white/5">
-                    <label class="block text-purple-200 text-sm font-bold mb-2">
-                        Cantidad de Categorías: {{ localConfig.categoriesCount }}
-                    </label>
-                    <input 
-                        type="range" 
-                        min="4" 
-                        max="8" 
-                        step="1"
-                        :value="localConfig.categoriesCount"
-                        @input="handleConfigChange('categoriesCount', parseInt(($event.target as HTMLInputElement).value))"
-                        :disabled="!isHost"
-                        class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                    <div class="flex justify-between text-xs text-gray-400 mt-1">
-                        <span>4</span>
-                        <span>8</span>
-                    </div>
-                </div>
-
-                <p v-if="!isHost" class="text-xs text-gray-400 italic text-center">
-                    Solo el anfitrión puede cambiar la configuración
-                </p>
-            </div>
         </div>
+    </div>
 
         <!-- HOST CONTROLS -->
         <div class="pt-6 mt-6 border-t border-white/10 text-center">
             <button 
-                v-if="isHost"
+                v-if="amIHost"
                 @click="startGame"
-                class="w-full py-3 px-6 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-bold rounded-lg transform transition-all hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                class="w-full py-4 px-6 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-bold rounded-xl transform transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(34,197,94,0.3)] flex items-center justify-center gap-3 text-lg"
             >
-                <span>🚀</span> Comenzar Partida
+                <span>🚀</span> COMENZAR PARTIDA
             </button>
             
-            <p v-else class="text-gray-400 text-sm animate-pulse">
-                Esperando al anfitrión para comenzar...
-            </p>
+            <div v-else class="flex flex-col items-center justify-center p-4 bg-white/5 rounded-xl border border-white/5 animate-pulse">
+                <p class="text-purple-200 font-medium mb-1">Esperando al anfitrión...</p>
+                <div class="h-1 w-32 bg-purple-500/20 rounded-full overflow-hidden mt-2">
+                    <div class="h-full bg-purple-400 w-1/3 animate-[shimmer_1.5s_infinite]"></div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
