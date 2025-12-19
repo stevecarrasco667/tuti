@@ -46,6 +46,11 @@ export class GameEngine {
         return this.state;
     }
 
+    public hydrate(newState: RoomState): void {
+        this.state = newState;
+        console.log("[ENGINE] State hydrated from storage");
+    }
+
     public updateConfig(connectionId: string, newConfig: Partial<GameConfig>): RoomState {
         const userId = this.connections.get(connectionId);
         if (!userId) return this.state;
