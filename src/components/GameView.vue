@@ -248,19 +248,53 @@ const handleInput = (category: string, event: Event) => {
         <div v-else-if="gameState.status === 'RESULTS'" class="max-w-2xl mx-auto bg-black/40 backdrop-blur-md rounded-2xl p-8 border border-white/10 text-center">
             <h2 class="text-4xl font-black text-white mb-8">Resultados de la Ronda</h2>
             
-            <div class="space-y-4 mb-8">
-                <div v-for="player in gameState.players" :key="player.id" 
-                     class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
-                            {{ player.name[0] }}
-                        </div>
-                        <span class="text-white text-xl font-bold">{{ player.name }}</span>
-                    </div>
-                    <div class="text-right">
-                        <span class="block text-3xl font-black text-green-400">+{{ gameState.roundScores[player.id] || 0 }}</span>
-                        <span class="text-gray-400 text-sm">Total: {{ player.score }}</span>
-                    </div>
+            <!-- Detailed Results Table -->
+            <div class="overflow-x-auto mb-8 bg-black/50 rounded-xl border border-white/10">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-white/10 text-purple-200 uppercase text-xs tracking-wider">
+                            <th class="p-3 font-bold border-b border-white/10">Jugador</th>
+                            <th v-for="cat in gameState.categories" :key="cat" class="p-3 font-bold border-b border-white/10">{{ cat }}</th>
+                            <th class="p-3 font-bold border-b border-white/10 text-right">Pts</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="player in gameState.players" :key="player.id" class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                            <td class="p-3 font-bold text-white relative">
+                                <span v-if="player.isHost" class="absolute left-1 top-1/2 -translate-y-1/2 text-[10px] text-yellow-500">👑</span>
+                                {{ player.name }}
+                            </td>
+                            
+                            <td v-for="cat in gameState.categories" :key="cat" class="p-2">
+                                <div class="flex flex-col">
+                                    <span 
+                                        class="font-medium text-sm"
+                                        :class="{
+                                            'text-green-400': gameState.answerStatuses[player.id]?.[cat] === 'VALID',
+                                            'text-yellow-400': gameState.answerStatuses[player.id]?.[cat] === 'DUPLICATE',
+                                            'text-red-500 line-through': gameState.answerStatuses[player.id]?.[cat] === 'INVALID' || !gameState.answerStatuses[player.id]?.[cat]
+                                        }"
+                                    >
+                                        {{ gameState.answers[player.id]?.[cat] || '-' }}
+                                    </span>
+                                    
+                                    <!-- Status Badge -->
+                                    <span v-if="gameState.answerStatuses[player.id]?.[cat] === 'DUPLICATE'" class="text-[10px] text-yellow-500/80 uppercase">Repetida</span>
+                                </div>
+                            </td>
+                            <td class="p-3 text-right font-black text-green-400">
+                                +{{ gameState.roundScores[player.id] || 0 }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Total Scores Summary -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-8">
+                <div v-for="player in gameState.players" :key="player.id" class="p-2 bg-white/5 rounded border border-white/5 text-center">
+                    <div class="text-gray-400 text-xs truncate">{{ player.name }}</div>
+                    <div class="text-white font-bold">{{ player.score }} pts</div>
                 </div>
             </div>
 

@@ -16,6 +16,8 @@ export interface GameConfig {
     totalRounds: number;
 }
 
+export type AnswerStatus = 'VALID' | 'DUPLICATE' | 'INVALID';
+
 export interface RoomState {
     status: GameStatus;
     players: Player[];
@@ -23,6 +25,7 @@ export interface RoomState {
     currentLetter: string | null;
     categories: string[];
     answers: Record<string, Record<string, string>>; // PlayerID -> { Category -> Answer }
+    answerStatuses: Record<string, Record<string, AnswerStatus>>; // PlayerID -> { Category -> AnswerStatus }
     roundsPlayed: number;
     // Voting System
     votes: Record<string, Record<string, string[]>>; // targetPlayerId -> category -> voterIds[]

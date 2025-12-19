@@ -11,6 +11,8 @@ export const PlayerSchema = z.object({
 
 export const GameStatusSchema = z.enum(['LOBBY', 'PLAYING', 'REVIEW', 'RESULTS', 'GAME_OVER']);
 
+export const AnswerStatusSchema = z.enum(['VALID', 'DUPLICATE', 'INVALID']);
+
 export const GameConfigSchema = z.object({
     roundDuration: z.number().min(30).max(180),
     votingDuration: z.number().min(15).max(120),
@@ -26,6 +28,7 @@ export const RoomStateSchema = z.object({
     currentLetter: z.string().nullable(),
     categories: z.array(z.string()),
     answers: z.record(z.string(), z.record(z.string(), z.string())),
+    answerStatuses: z.record(z.string(), z.record(z.string(), AnswerStatusSchema)),
     roundsPlayed: z.number(),
     votes: z.record(z.string(), z.record(z.string(), z.array(z.string()))),
     whoFinishedVoting: z.array(z.string()),

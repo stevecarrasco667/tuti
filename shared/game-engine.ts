@@ -20,6 +20,7 @@ export class GameEngine {
             currentLetter: null,
             categories: ['Nombre', 'Color', 'Fruta', 'País', 'Cosa'], // Default categories
             answers: {},
+            answerStatuses: {},
             roundsPlayed: 0,
             // Voting System Initial State
             votes: {},
@@ -295,34 +296,62 @@ export class GameEngine {
 
     private calculateResults() {
         this.state.status = 'RESULTS';
-
-
         const totalPlayers = this.state.players.length;
 
-        this.state.players.forEach(player => {
-            let roundScore = 0;
-            const answers = this.state.answers[player.id] || {};
+        // Initialize structures
+        this.state.answerStatuses = {};
+        this.state.players.forEach(p => {
+            this.state.answerStatuses[p.id] = {};
+            this.state.roundScores[p.id] = 0;
+        });
 
-            for (const category of this.state.categories) {
-                const answer = answers[category];
-                // Empty answer = 0
-                if (!answer || !answer.trim()) continue;
+        // Loop per category to analyze duplicates
+        for (const category of this.state.categories) {
 
-                // Check negative votes
-                const negativeVotes = this.state.votes[player.id]?.[category]?.length || 0;
+            // 1. Collect Valid Answers (Not empty, Not voted out)
+            const validAnswersMap: Record<string, string[]> = {}; // Normalized Word -> [PlayerIds]
 
-                // Majority rules (> 50%)
-                if (negativeVotes > totalPlayers / 2) {
-                    continue; // Invalidated
+            this.state.players.forEach(player => {
+                const rawAnswer = this.state.answers[player.id]?.[category];
+
+                // Check empty
+                if (!rawAnswer || !rawAnswer.trim()) {
+                    this.state.answerStatuses[player.id][category] = 'INVALID';
+                    return;
                 }
 
-                // Initial MVP scoring: 100 points per valid word
-                roundScore += 100;
-            }
+                // Check voting (Invalidation)
+                const negativeVotes = this.state.votes[player.id]?.[category]?.length || 0;
+                if (negativeVotes > totalPlayers / 2) {
+                    this.state.answerStatuses[player.id][category] = 'INVALID';
+                    return;
+                }
 
-            this.state.roundScores[player.id] = roundScore;
-            player.score += roundScore;
-        });
+                // It is potentially valid. Add to frequency map.
+                // Normalize: Lowercase + remove accents
+                const normalized = rawAnswer.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+                if (!validAnswersMap[normalized]) validAnswersMap[normalized] = [];
+                validAnswersMap[normalized].push(player.id);
+            });
+
+            // 2. Assign Scores based on Frequency
+            Object.entries(validAnswersMap).forEach(([_word, playerIds]) => {
+                const isDuplicate = playerIds.length > 1;
+                const points = isDuplicate ? 50 : 100;
+                const status = isDuplicate ? 'DUPLICATE' : 'VALID';
+
+                playerIds.forEach(pid => {
+                    this.state.answerStatuses[pid][category] = status;
+
+                    // Add Score
+                    this.state.roundScores[pid] = (this.state.roundScores[pid] || 0) + points;
+
+                    const player = this.state.players.find(p => p.id === pid);
+                    if (player) player.score += points;
+                });
+            });
+        }
 
         // Clear voting timer
         this.state.timers.votingEndsAt = null;
@@ -414,6 +443,7 @@ export class GameEngine {
         this.state.currentLetter = null;
         this.state.categories = [];
         this.state.answers = {};
+        this.state.answerStatuses = {};
         this.state.votes = {};
         this.state.whoFinishedVoting = [];
         this.state.roundScores = {};

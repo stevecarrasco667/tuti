@@ -10,6 +10,7 @@ const gameState = ref<RoomState>({
     currentLetter: null,
     categories: [],
     answers: {},
+    answerStatuses: {},
     roundsPlayed: 0,
     votes: {},
     whoFinishedVoting: [],
