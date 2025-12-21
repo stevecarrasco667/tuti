@@ -180,6 +180,14 @@ export function useGame() {
         }));
     };
 
+    const kickPlayer = (targetUserId: string) => {
+        if (!socket.value) return;
+        socket.value.send(JSON.stringify({
+            type: 'KICK_PLAYER',
+            payload: { targetUserId }
+        }));
+    };
+
     return {
         gameState,
         joinGame,
@@ -192,6 +200,7 @@ export function useGame() {
         confirmVotes,
         updateConfig,
         resetGame,
+        kickPlayer,
         myUserId,
         myUserName,
         amIHost

@@ -82,7 +82,7 @@ export default class Room implements Party.Server {
                     shouldPersist = true;
                 }
                 else if (parsed.type === 'RESTART_GAME') {
-                    this.engine.restartGame();
+                    this.engine.restartGame(sender.id);
                     shouldPersist = true;
                 }
                 else if (parsed.type === 'KICK_PLAYER') {

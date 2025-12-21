@@ -306,7 +306,7 @@ wss.on('connection', (ws, req) => {
                 engine.submitAnswers(connectionId, message.payload.answers);
             } else if (message.type === 'RESTART_GAME') {
                 console.log("[MOCK] RESTART_GAME received. Resetting...");
-                engine.restartGame();
+                engine.restartGame(connectionId);
             } else if (message.type === 'KICK_PLAYER') {
                 engine.kickPlayer(connectionId, message.payload.targetUserId);
             }

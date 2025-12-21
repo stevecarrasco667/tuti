@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useGame } from '../composables/useGame';
-import { useSocket } from '../composables/useSocket'; // Import socket composable
 
-const { gameState, startGame, updateConfig, myUserId, amIHost } = useGame();
-const { socket } = useSocket();
+const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer } = useGame();
 
 // Local state for config inputs (we'll sync them with gameState.config)
 const localConfig = computed(() => gameState.value.config);
@@ -13,12 +11,9 @@ const handleConfigChange = (field: 'roundDuration' | 'votingDuration' | 'categor
     updateConfig({ [field]: value });
 };
 
-const kickPlayer = (targetUserId: string, name: string) => {
+const handleKick = (targetUserId: string, name: string) => {
     if (confirm(`¿Estás seguro de que quieres expulsar a ${name}?`)) {
-        socket.value?.send(JSON.stringify({
-            type: 'KICK_PLAYER',
-            payload: { targetUserId }
-        }));
+        kickPlayer(targetUserId);
     }
 };
 </script>
@@ -80,7 +75,7 @@ const kickPlayer = (targetUserId: string, name: string) => {
                         <!-- Kick Button (Host Only) -->
                         <button 
                             v-if="amIHost && player.id !== myUserId"
-                            @click="kickPlayer(player.id, player.name)"
+                            @click="handleKick(player.id, player.name)"
                             class="text-red-500 hover:text-red-700 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                             title="Expulsar jugador"
                         >

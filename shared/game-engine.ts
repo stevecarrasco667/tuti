@@ -442,7 +442,16 @@ export class GameEngine {
         return this.state;
     }
 
-    public restartGame(): RoomState {
+    public restartGame(requestorId: string): RoomState {
+        const userId = this.connections.get(requestorId);
+        const player = this.state.players.find(p => p.id === userId);
+
+        // Validate Host
+        if (!player || !player.isHost) {
+            console.warn(`[SECURITY] Restart denied. Requestor ${requestorId} is not host.`);
+            return this.state;
+        }
+
         this.state.status = 'LOBBY';
         this.state.roundsPlayed = 0;
         this.state.currentLetter = null;
