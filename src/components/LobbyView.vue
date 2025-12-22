@@ -19,28 +19,32 @@ const handleKick = (targetUserId: string, name: string) => {
 </script>
 
 <template>
-    <div class="max-w-2xl mx-auto bg-white/10 backdrop-blur-lg rounded-xl p-8 shadow-2xl border border-white/20">
-        <!-- HEADER -->
-        <div class="text-center mb-8">
+    <div class="h-full flex flex-col w-full max-w-3xl mx-auto bg-white/10 backdrop-blur-lg rounded-xl shadow-2xl border border-white/20 overflow-hidden">
+        <!-- HEADER (Fixed) -->
+        <div class="flex-none text-center p-6 border-b border-white/10 bg-black/10">
             <h2 class="text-3xl font-bold text-white mb-2">Sala de Espera</h2>
             
             <!-- ROOM CODE -->
-            <div class="flex flex-col items-center justify-center gap-2 my-4 p-4 bg-black/40 rounded-xl border border-white/10">
-                <span class="text-purple-300 text-xs uppercase tracking-widest">Código de Sala</span>
-                <span class="text-4xl font-mono font-black text-white tracking-[0.5em] pl-2">
+            <div class="flex flex-col items-center justify-center gap-2 my-2 p-3 bg-black/40 rounded-xl border border-white/10 inline-block min-w-[200px]">
+                <span class="text-purple-300 text-[10px] uppercase tracking-widest">Código</span>
+                <span class="text-4xl font-mono font-black text-white tracking-[0.5em] pl-2 leading-none">
                     {{ gameState.roomId || '----' }}
                 </span>
             </div>
 
-            <div class="inline-block px-3 py-1 rounded-full bg-purple-500/30 text-purple-200 text-sm">
-                {{ gameState.players.length }} Jugadores Conectados
+            <div class="mt-2">
+                <span class="inline-block px-3 py-1 rounded-full bg-purple-500/30 text-purple-200 text-xs font-bold border border-white/10">
+                    {{ gameState.players.length }} Jugadores
+                </span>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- BODY (Scrollable Players + Config) -->
+        <div class="flex-1 overflow-y-auto min-h-0 p-6 space-y-8 scrollbar-thin scrollbar-thumb-white/20">
+            
             <!-- PLAYER LIST -->
             <div class="space-y-3">
-                <h3 class="text-white font-bold text-lg mb-3">Jugadores</h3>
+                <h3 class="text-white font-bold text-lg mb-2 sticky top-0 bg-transparent backdrop-blur-sm z-10">Jugadores</h3>
                 <div 
                     v-for="player in gameState.players" 
                     :key="player.id"
@@ -59,27 +63,27 @@ const handleKick = (targetUserId: string, name: string) => {
                             ></div>
                         </div>
                         <div class="flex flex-col">
-                            <span class="text-white font-medium">
+                            <span class="text-white font-medium text-sm">
                                 {{ player.name }}
-                                <span v-if="player.id === myUserId" class="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium">(Tú)</span>
+                                <span v-if="player.id === myUserId" class="ml-2 text-[10px] bg-blue-100/20 text-blue-200 px-2 py-0.5 rounded-full font-bold uppercase">(Tú)</span>
                             </span>
-                            <span v-if="!player.isConnected" class="text-[10px] text-red-400 uppercase font-bold tracking-wider">
+                            <span v-if="!player.isConnected" class="text-[9px] text-red-400 uppercase font-bold tracking-wider">
                                 DESCONECTADO
                             </span>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span v-if="player.isHost" class="text-xs font-bold text-yellow-400 bg-yellow-400/10 px-2 py-1 rounded flex items-center gap-1 shadow-[0_0_10px_rgba(250,204,21,0.2)]">
+                        <span v-if="player.isHost" class="text-[10px] font-bold text-yellow-400 bg-yellow-400/10 px-2 py-1 rounded flex items-center gap-1 border border-yellow-400/20">
                             👑 HOST
                         </span>
                         <!-- Kick Button (Host Only) -->
                         <button 
                             v-if="amIHost && player.id !== myUserId"
                             @click="handleKick(player.id, player.name)"
-                            class="text-red-500 hover:text-red-700 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            class="text-red-500 hover:text-red-400 p-1.5 rounded-full hover:bg-white/5 transition-colors"
                             title="Expulsar jugador"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
                             </svg>
                         </button>
@@ -87,142 +91,89 @@ const handleKick = (targetUserId: string, name: string) => {
                 </div>
             </div>
 
-            <!-- CONFIGURATION PANEL -->
-            <div class="space-y-4">
-                <h3 class="text-white font-bold text-lg mb-3">Configuración</h3>
+            <!-- CONFIGURATION PANEL (Host Only) -->
+            <div v-if="amIHost" class="space-y-4 pt-4 border-t border-white/10">
+                <h3 class="text-white font-bold text-lg mb-2">Configuración</h3>
                 
-                <div v-if="amIHost">
-                    <!-- Round Duration -->
-                    <div class="bg-black/20 p-4 rounded-lg border border-white/5 mb-4">
-                        <label class="block text-purple-200 text-sm font-bold mb-2">
-                            Duración de Ronda: {{ localConfig.roundDuration }}s
-                        </label>
-                        <input 
-                            type="range" 
-                            min="30" 
-                            max="180" 
-                            step="10"
-                            :value="localConfig.roundDuration"
-                            @input="e => handleConfigChange('roundDuration', parseInt((e.target as HTMLInputElement).value))"
-                            class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
-                        >
-                    </div>
-
-                    <!-- Voting Duration -->
-                    <div class="bg-black/20 p-4 rounded-lg border border-white/5 mb-4">
-                        <label class="block text-purple-200 text-sm font-bold mb-2">
-                            Duración de Votación: {{ localConfig.votingDuration }}s
-                        </label>
-                        <input 
-                            type="range" 
-                            min="15" 
-                            max="120" 
-                            step="5"
-                            :value="localConfig.votingDuration"
-                            @input="e => handleConfigChange('votingDuration', parseInt((e.target as HTMLInputElement).value))"
-                            class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
-                        >
-                    </div>
-
-                    <!-- Total Rounds -->
-                    <div class="bg-black/20 p-4 rounded-lg border border-white/5 mb-4">
-                        <label class="block text-purple-200 text-sm font-bold mb-2">
-                            Total de Rondas: {{ localConfig.totalRounds || 5 }}
-                        </label>
-                        <input 
-                            type="range" 
-                            min="1" 
-                            max="20" 
-                            step="1"
-                            :value="localConfig.totalRounds || 5"
-                            @input="e => handleConfigChange('totalRounds', parseInt((e.target as HTMLInputElement).value))"
-                            class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
-                        >
-                    </div>
-
-                    <!-- Categories Count -->
-                    <div class="bg-black/20 p-4 rounded-lg border border-white/5">
-                        <label class="block text-purple-200 text-sm font-bold mb-2">
-                            Cantidad de Categorías: {{ localConfig.categoriesCount }}
-                        </label>
-                        <input 
-                            type="range" 
-                            min="4" 
-                            max="8" 
-                            step="1"
-                            :value="localConfig.categoriesCount"
-                            @input="e => handleConfigChange('categoriesCount', parseInt((e.target as HTMLInputElement).value))"
-                            class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
-                        >
-                    </div>
+                <!-- Round Duration -->
+                <div class="bg-black/20 p-3 rounded-lg border border-white/5">
+                    <label class="block text-purple-200 text-xs font-bold mb-2 uppercase tracking-wide">
+                        Duración de Ronda: <span class="text-white">{{ localConfig.roundDuration }}s</span>
+                    </label>
+                    <input 
+                        type="range" 
+                        min="30" 
+                        max="300" 
+                        step="10" 
+                        :value="localConfig.roundDuration"
+                        @input="(e) => handleConfigChange('roundDuration', Number((e.target as HTMLInputElement).value))"
+                        class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-purple-500 hover:accent-purple-400 transition-all"
+                    >
                 </div>
 
-                <!-- READ ONLY CONFIG FOR GUESTS -->
-                <div v-else class="grid grid-cols-1 gap-4">
-                    <div class="bg-black/30 p-4 rounded-xl border border-white/5 flex items-center justify-between">
-                        <div>
-                            <span class="block text-xs uppercase tracking-wider text-purple-400 font-bold mb-1">Duración</span>
-                            <span class="text-2xl font-mono text-white font-bold">{{ localConfig.roundDuration }}s</span>
-                        </div>
-                        <div class="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center">
-                            ⏱️
-                        </div>
-                    </div>
+                <!-- Total Rounds -->
+                <div class="bg-black/20 p-3 rounded-lg border border-white/5">
+                     <label class="block text-purple-200 text-xs font-bold mb-2 uppercase tracking-wide">
+                        Total Rondas: <span class="text-white">{{ localConfig.totalRounds || 5 }}</span>
+                    </label>
+                    <input 
+                        type="range" 
+                        min="3" 
+                        max="20" 
+                        step="1" 
+                        :value="localConfig.totalRounds || 5"
+                        @input="(e) => handleConfigChange('totalRounds', Number((e.target as HTMLInputElement).value))"
+                        class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-pink-500 hover:accent-pink-400 transition-all"
+                    >
+                </div>
+                 
+                 <!-- Categories Count -->
+                <div class="bg-black/20 p-3 rounded-lg border border-white/5">
+                    <label class="block text-purple-200 text-xs font-bold mb-2 uppercase tracking-wide">
+                        Categorías: <span class="text-white">{{ localConfig.categoriesCount }}</span>
+                    </label>
+                    <input 
+                        type="range" 
+                        min="3" 
+                        max="12" 
+                        step="1" 
+                        :value="localConfig.categoriesCount"
+                        @input="(e) => handleConfigChange('categoriesCount', Number((e.target as HTMLInputElement).value))"
+                        class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400 transition-all"
+                    >
+                </div>
+            </div>
 
-                    <div class="bg-black/30 p-4 rounded-xl border border-white/5 flex items-center justify-between">
-                        <div>
-                            <span class="block text-xs uppercase tracking-wider text-purple-400 font-bold mb-1">Votación</span>
-                            <span class="text-2xl font-mono text-white font-bold">{{ localConfig.votingDuration }}s</span>
-                        </div>
-                        <div class="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center">
-                            ⚖️
-                        </div>
+             <!-- CONFIGURATION READONLY (Guest) -->
+             <div v-else class="space-y-4 pt-4 border-t border-white/10 opacity-70">
+                <h3 class="text-white font-bold text-lg mb-2">Configuración de la Partida</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-black/20 p-3 rounded-lg border border-white/5 text-center">
+                        <span class="block text-purple-300 text-[10px] uppercase font-bold">Rondas</span>
+                        <span class="text-white font-bold text-xl">{{ localConfig.totalRounds || 5 }}</span>
                     </div>
-
-                    <div class="bg-black/30 p-4 rounded-xl border border-white/5 flex items-center justify-between">
-                        <div>
-                            <span class="block text-xs uppercase tracking-wider text-purple-400 font-bold mb-1">Rondas</span>
-                            <span class="text-2xl font-mono text-white font-bold">{{ localConfig.totalRounds || 5 }}</span>
-                        </div>
-                        <div class="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center">
-                            🏁
-                        </div>
-                    </div>
-
-                    <div class="bg-black/30 p-4 rounded-xl border border-white/5 flex items-center justify-between">
-                        <div>
-                            <span class="block text-xs uppercase tracking-wider text-purple-400 font-bold mb-1">Categorías</span>
-                            <span class="text-2xl font-mono text-white font-bold">{{ localConfig.categoriesCount }}</span>
-                        </div>
-                        <div class="h-8 w-8 rounded-full bg-white/5 flex items-center justify-center">
-                            📚
-                        </div>
-                    </div>
-                    
-                    <div class="mt-2 text-center text-xs text-white/30 italic">
-                        Esperando que el anfitrión inicie la partida...
+                     <div class="bg-black/20 p-3 rounded-lg border border-white/5 text-center">
+                        <span class="block text-purple-300 text-[10px] uppercase font-bold">Tiempo</span>
+                        <span class="text-white font-bold text-xl">{{ localConfig.roundDuration }}s</span>
                     </div>
                 </div>
+            </div>
 
         </div>
-    </div>
 
-        <!-- HOST CONTROLS -->
-        <div class="pt-6 mt-6 border-t border-white/10 text-center">
+        <!-- FOOTER (Action Button) -->
+        <div class="flex-none p-6 border-t border-white/10 bg-black/10 flex justify-center">
             <button 
                 v-if="amIHost"
                 @click="startGame"
-                class="w-full py-4 px-6 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-bold rounded-xl transform transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(34,197,94,0.3)] flex items-center justify-center gap-3 text-lg"
+                class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-black text-xl py-4 rounded-xl shadow-lg shadow-purple-500/30 transform transition-all active:scale-95"
             >
-                <span>🚀</span> COMENZAR PARTIDA
+                🚀 INICIAR PARTIDA
             </button>
-            
-            <div v-else class="flex flex-col items-center justify-center p-4 bg-white/5 rounded-xl border border-white/5 animate-pulse">
-                <p class="text-purple-200 font-medium mb-1">Esperando al anfitrión...</p>
-                <div class="h-1 w-32 bg-purple-500/20 rounded-full overflow-hidden mt-2">
-                    <div class="h-full bg-purple-400 w-1/3 animate-[shimmer_1.5s_infinite]"></div>
-                </div>
+            <div v-else class="text-center">
+                <p class="text-purple-200 animate-pulse font-medium">Esperando al anfitrión...</p>
             </div>
         </div>
     </div>
-</template>
+</template> 
+

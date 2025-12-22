@@ -54,18 +54,20 @@ watch(() => gameState.value.players, (newPlayers) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 flex flex-col items-center justify-center p-4">
+  <div class="h-screen w-screen overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 flex flex-col items-center p-4">
     
-    <!-- MAIN TITLE -->
-    <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-2 drop-shadow-lg tracking-tight">
-      Tutifruti Online
-    </h1>
-    <p class="text-purple-200 mb-12 text-lg font-light tracking-wide">Project Phoenix</p>
+    <!-- MAIN TITLE (Header) -->
+    <header class="flex-none flex flex-col items-center mb-4 z-10">
+        <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 drop-shadow-lg tracking-tight">
+          Tutifruti Online
+        </h1>
+        <p class="text-purple-200 text-sm font-light tracking-wide">Project Phoenix</p>
+    </header>
 
     <!-- CONNECTION STATUS (Top Right) -->
-    <div class="fixed top-4 right-4 flex items-center gap-2 bg-black/40 px-4 py-2 rounded-full backdrop-blur-md border border-white/10">
+    <div class="fixed top-4 right-4 flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-md border border-white/10 z-50">
       <div 
-        class="w-3 h-3 rounded-full transition-colors duration-500 shadow-[0_0_10px_currentColor]"
+        class="w-2.5 h-2.5 rounded-full transition-colors duration-500 shadow-[0_0_10px_currentColor]"
         :class="isConnected ? 'bg-green-500 text-green-500' : 'bg-red-500 text-red-500'"
       ></div>
       <span class="text-xs font-mono text-gray-300">
@@ -73,13 +75,15 @@ watch(() => gameState.value.players, (newPlayers) => {
       </span>
     </div>
 
-    <!-- MAIN CONTENT -->
-    <div class="w-full max-w-4xl transition-all duration-500">
-      <HomeView v-if="currentView === 'HOME'" @navigate="handleNavigate" />
-      <LobbyView v-else-if="currentView === 'LOBBY'" />
-      <GameView v-else-if="currentView === 'GAME'" />
-      <GameOverView v-else-if="currentView === 'GAME_OVER'" />
-    </div>
+    <!-- MAIN CONTENT (Flex Child) -->
+    <main class="flex-1 w-full max-w-7xl relative overflow-hidden flex flex-col">
+      <div class="flex-1 w-full h-full overflow-hidden flex flex-col transition-all duration-500">
+        <HomeView v-if="currentView === 'HOME'" @navigate="handleNavigate" class="h-full overflow-y-auto" />
+        <LobbyView v-else-if="currentView === 'LOBBY'" class="h-full flex flex-col" />
+        <GameView v-else-if="currentView === 'GAME'" class="h-full flex flex-col" />
+        <GameOverView v-else-if="currentView === 'GAME_OVER'" class="h-full flex flex-col" />
+      </div>
+    </main>
 
   </div>
 </template>
