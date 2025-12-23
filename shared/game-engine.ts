@@ -37,7 +37,8 @@ export class GameEngine {
                 roundEndsAt: null,
                 votingEndsAt: null,
                 resultsEndsAt: null
-            }
+            },
+            stoppedBy: null
         };
         this.connections = new Map();
     }
@@ -173,6 +174,7 @@ export class GameEngine {
                 // Set Timer
                 this.state.timers.roundEndsAt = Date.now() + (this.state.config.roundDuration * 1000);
                 this.state.timers.votingEndsAt = null;
+                this.state.stoppedBy = null;
             }
         }
         return this.state;
@@ -196,6 +198,7 @@ export class GameEngine {
             this.state.timers.roundEndsAt = null;
             // Set Voting Timer
             this.state.timers.votingEndsAt = Date.now() + (this.state.config.votingDuration * 1000);
+            this.state.stoppedBy = userId;
         }
         return this.state;
     }
@@ -440,6 +443,7 @@ export class GameEngine {
         this.state.timers.roundEndsAt = Date.now() + (this.state.config.roundDuration * 1000);
         this.state.timers.votingEndsAt = null;
         this.state.timers.resultsEndsAt = null;
+        this.state.stoppedBy = null;
 
         return this.state;
     }
@@ -473,6 +477,7 @@ export class GameEngine {
         this.state.timers.roundEndsAt = null;
         this.state.timers.votingEndsAt = null;
         this.state.timers.resultsEndsAt = null;
+        this.state.stoppedBy = null;
 
         return this.state;
     }

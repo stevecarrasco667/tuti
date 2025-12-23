@@ -122,6 +122,48 @@ const handleInput = (category: string, event: Event) => {
     // Auto-save to server (Debounced)
     debouncedUpdateAnswers(answers.value);
 };
+
+// --- Live Presence & Stop Alert Logic ---
+const showStopAlert = ref(false);
+const stopperPlayer = computed(() => {
+    if (!gameState.value.stoppedBy) return null;
+    return gameState.value.players.find(p => p.id === gameState.value.stoppedBy);
+});
+
+// Watch for transition to REVIEW to trigger alert
+watch(() => gameState.value.status, (newStatus, oldStatus) => {
+    if (newStatus === 'REVIEW' && oldStatus === 'PLAYING') {
+        showStopAlert.value = true;
+        // Hide after 3 seconds
+        setTimeout(() => {
+            showStopAlert.value = false;
+        }, 3000);
+    } else if (newStatus !== 'REVIEW') {
+        showStopAlert.value = false;
+    }
+});
+
+const rivalsActivity = computed(() => {
+    const totalCategories = gameState.value.categories.length;
+    
+    return gameState.value.players
+        .filter(p => p.id !== myUserId.value && p.isConnected)
+        .map(p => {
+            const pAnswers = gameState.value.answers[p.id] || {};
+            // Count non-empty answers
+            const filledCount = Object.values(pAnswers).filter(val => val && val.trim().length > 0).length;
+            
+            return {
+                id: p.id,
+                name: p.name,
+                avatar: p.avatar,
+                filledCount,
+                totalCategories,
+                isFinished: filledCount === totalCategories,
+                isActive: filledCount > 0 && filledCount < totalCategories
+            };
+        });
+});
 </script>
 
 <template>
@@ -164,7 +206,33 @@ const handleInput = (category: string, event: Event) => {
             <div class="p-4">
                 
                 <!-- === PLAYING STATE === -->
-                <div v-if="gameState.status === 'PLAYING'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div v-if="gameState.status === 'PLAYING'" class="flex flex-col gap-4">
+                    
+                    <!-- RIVALS HUD -->
+                    <div v-if="rivalsActivity.length > 0" class="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                        <div 
+                            v-for="rival in rivalsActivity" 
+                            :key="rival.id"
+                            class="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-full border transition-all duration-300 min-w-max"
+                            :class="[
+                                rival.isFinished ? 'border-green-500/50 bg-green-500/10' : 
+                                rival.isActive ? 'border-purple-500/50' : 'border-white/10 opacity-60'
+                            ]"
+                        >
+                            <div class="relative">
+                                <span class="text-xl" :class="{ 'animate-pulse': rival.isActive }">{{ rival.avatar || '👤' }}</span>
+                                <div v-if="rival.isFinished" class="absolute -bottom-1 -right-1 bg-green-500 rounded-full w-3 h-3 border border-black"></div>
+                            </div>
+                            <div class="flex flex-col leading-none">
+                                <span class="text-[10px] uppercase font-bold text-white/50 max-w-[60px] truncate">{{ rival.name }}</span>
+                                <span class="font-mono text-sm font-bold" :class="rival.isFinished ? 'text-green-400' : 'text-white'">
+                                    {{ rival.filledCount }}<span class="text-white/40 text-[10px]">/{{ rival.totalCategories }}</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     <div 
                         v-for="category in gameState.categories" 
                         :key="category"
@@ -184,10 +252,27 @@ const handleInput = (category: string, event: Event) => {
                             >
                         </div>
                     </div>
-                </div>
+                </div> <!-- End Grid -->
+                </div> <!-- End Playing Wrapper -->
 
                 <!-- === REVIEW STATE (VOTING MOCKUP) === -->
-                <div v-else-if="gameState.status === 'REVIEW'" class="flex flex-col items-center bg-[#491B8F] rounded-2xl p-4 min-h-full">
+                <div v-else-if="gameState.status === 'REVIEW'" class="relative flex flex-col items-center bg-[#491B8F] rounded-2xl p-4 min-h-full">
+                    
+                    <!-- STOP ALERT OVERLAY -->
+                    <div v-if="showStopAlert && stopperPlayer" class="absolute inset-0 z-50 flex items-center justify-center bg-red-600/90 backdrop-blur-md rounded-2xl animate-in fade-in zoom-in duration-300">
+                        <div class="text-center p-6 animate-bounce">
+                            <div class="text-8xl mb-4 drop-shadow-xl">{{ stopperPlayer.avatar || '🛑' }}</div>
+                            <h2 class="text-4xl font-black text-white uppercase tracking-tighter drop-shadow-md">
+                                ¡BASTA!
+                            </h2>
+                            <p class="text-white/90 text-xl font-bold mt-2 bg-black/20 px-4 py-1 rounded-full inline-block">
+                                por {{ stopperPlayer.name }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- CAROUSEL CONTENT (Hidden behind overlay if active) -->
+                    <div class="w-full flex flex-col items-center transition-opacity duration-300 pl-4 pr-4" :class="{ 'opacity-0': showStopAlert }">
                     
                     <!-- Title Section -->
                     <h2 class="text-3xl font-bold text-white mb-1 tracking-tight">Votación</h2>
@@ -251,6 +336,7 @@ const handleInput = (category: string, event: Event) => {
                             </div>
                         </div>
                     </div>
+                    </div> <!-- End of content wrapper -->
                 </div>
 
                 <!-- === RESULTS STATE === -->

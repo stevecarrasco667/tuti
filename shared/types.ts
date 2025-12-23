@@ -39,6 +39,7 @@ export interface RoomState {
         votingEndsAt: number | null;
         resultsEndsAt: number | null;
     };
+    stoppedBy: string | null;
 }
 
 // Messages sent from Client to Server
