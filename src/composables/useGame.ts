@@ -26,7 +26,8 @@ const gameState = ref<RoomState>({
         roundEndsAt: null,
         votingEndsAt: null,
         resultsEndsAt: null
-    }
+    },
+    stoppedBy: null
 });
 
 export function useGame() {
