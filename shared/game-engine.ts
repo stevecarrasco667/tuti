@@ -95,6 +95,10 @@ export class GameEngine {
         };
 
         this.state.players.push(newPlayer);
+
+        // Ensure there is always an active host
+        this.ensureActiveHost();
+
         return this.state;
     }
 
@@ -109,7 +113,8 @@ export class GameEngine {
                 player.lastSeenAt = Date.now();
 
                 if (player.isHost) {
-                    this.handleHostSuccession(player.id);
+                    // Host disconnected, try to reassign immediately
+                    this.ensureActiveHost();
                 }
 
                 // If in REVIEW, check if this disconnection unblocks the game
@@ -137,18 +142,24 @@ export class GameEngine {
         return this.state;
     }
 
-    private handleHostSuccession(oldHostId: string) {
-        // Find next candidate: connected and not the old host
-        // We prioritize FIFO order which usually matches array order
-        const candidate = this.state.players.find(p => p.isConnected && p.id !== oldHostId);
+    private ensureActiveHost() {
+        // 1. Check if we currently have a CONNECTED host
+        const activeHost = this.state.players.find(p => p.isHost && p.isConnected);
+        if (activeHost) return; // We are good
 
-        if (candidate) {
-            // Transfer host status
-            const oldHost = this.state.players.find(p => p.id === oldHostId);
-            if (oldHost) oldHost.isHost = false;
+        // 2. No active host (either no host at all, or host is disconnected)
+        // Dethrone offline players to avoid confusion/multi-host (though we only pick one new one)
+        this.state.players.forEach(p => {
+            if (!p.isConnected) p.isHost = false;
+        });
 
-            candidate.isHost = true;
-            // console.log(`👑 Host succession: ${oldHostId} -> ${candidate.id}`);
+        // 3. Appoint new host: First connected player
+        const newHost = this.state.players.find(p => p.isConnected);
+        if (newHost) {
+            newHost.isHost = true;
+            console.log(`[HOST PROTECTION] New host assigned: ${newHost.name} (${newHost.id})`);
+        } else {
+            console.log(`[HOST PROTECTION] No active players to assign host.`);
         }
     }
 

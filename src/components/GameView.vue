@@ -233,12 +233,27 @@ watch(() => gameState.value.players, (newPlayers, oldPlayers) => {
 
 }, { deep: true });
 
+// Host Notification
+watch(amIHost, (isHost, wasHost) => {
+    if (isHost && !wasHost) {
+        addToast("👑 ¡Ahora eres el Anfitrión!", 'join');
+    }
+});
+
 const addToast = (text: string, type: 'join' | 'leave') => {
     const id = Date.now();
     sessionToasts.value.push({ id, text, type });
     setTimeout(() => {
         sessionToasts.value = sessionToasts.value.filter(t => t.id !== id);
     }, 3000);
+};
+
+// Mobile Keyboard Fix (Scroll into view)
+const handleInputFocus = (event: Event) => {
+    const target = event.target as HTMLElement;
+    setTimeout(() => {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
 };
 
 </script>
@@ -333,6 +348,7 @@ const addToast = (text: string, type: 'join' | 'leave') => {
                             <input 
                                 :value="answers[category]"
                                 @input="handleInput(category, $event)"
+                                @focus="handleInputFocus"
                                 type="text"
                                 :placeholder="`${gameState.currentLetter}...`"
                                 class="w-full bg-white/5 border rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:bg-black/50 transition-all font-medium text-lg border-white/10"
