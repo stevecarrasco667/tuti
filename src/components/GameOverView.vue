@@ -28,14 +28,26 @@ const exitGame = () => {
         <!-- BODY (Scrollable) -->
         <div class="flex-1 overflow-y-auto min-h-0 p-4 scrollbar-thin scrollbar-thumb-white/20">
             <!-- CELEBRATION HEADER -->
-            <div class="text-center mb-8 animate-bounce mt-4">
+            <!-- ABANDONMENT VICTORY HEADER -->
+            <div v-if="gameState.gameOverReason === 'ABANDONED'" class="text-center mb-12 animate-bounce mt-8">
+                <h2 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)] uppercase tracking-tighter">
+                    ¡VICTORIA!
+                </h2>
+                <div class="mt-4 bg-white/10 backdrop-blur-md px-6 py-3 rounded-2xl inline-block border border-white/20">
+                     <p class="text-white text-xl font-bold">🏆 Por Abandono</p>
+                     <p class="text-white/60 text-sm mt-1">Tus rivales se han rendido.</p>
+                </div>
+            </div>
+
+            <!-- NORMAL GAME OVER HEADER -->
+            <div v-else class="text-center mb-8 animate-bounce mt-4">
                 <h2 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-orange-400 to-yellow-200 drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]">
                     GAME OVER
                 </h2>
                 <p class="text-purple-200 text-lg mt-2 font-light tracking-wide uppercase">Podio Final</p>
             </div>
             
-            <!-- PODIUM -->
+            <!-- PODIUM (Hide only if strictly 0 players, but standard flow keeps them) -->
             <div class="flex items-end justify-center gap-4 mb-12 w-full max-w-2xl mx-auto h-64 sm:h-80">
                 <!-- 2nd Place -->
                 <div v-if="top3[1]" class="flex flex-col items-center w-1/3 animate-[slideUp_1s_ease-out_0.2s_both]">

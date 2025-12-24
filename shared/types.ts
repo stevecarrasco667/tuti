@@ -40,6 +40,7 @@ export interface RoomState {
         resultsEndsAt: number | null;
     };
     stoppedBy: string | null;
+    gameOverReason?: 'NORMAL' | 'ABANDONED';
 }
 
 // Messages sent from Client to Server

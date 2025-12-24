@@ -116,6 +116,22 @@ export class GameEngine {
                 if (this.state.status === 'REVIEW') {
                     this.checkConsensus();
                 }
+
+                // ABANDONMENT CHECK
+                // If game is active and not enough players remain, end it.
+                if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW') {
+                    const activePlayers = this.state.players.filter(p => p.isConnected);
+                    if (activePlayers.length < 2) {
+                        console.log(`[GAME OVER] Abandonment detected. Active players: ${activePlayers.length}`);
+                        this.state.status = 'GAME_OVER';
+                        this.state.gameOverReason = 'ABANDONED';
+
+                        // Clear all timers
+                        this.state.timers.roundEndsAt = null;
+                        this.state.timers.votingEndsAt = null;
+                        this.state.timers.resultsEndsAt = null;
+                    }
+                }
             }
         }
         return this.state;

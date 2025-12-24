@@ -182,11 +182,65 @@ watch(() => gameState.value.roomId, (newRoomId) => {
     }
 }, { immediate: true });
 
-// --- Navigation ---
+// --- Navigation & Modal ---
+const showExitModal = ref(false);
+
 const handleExit = () => {
+    // If modal is open, this confirms exit. If not, it just opens it.
+    // Button in UI will use specific handler logic or inline sets.
+    // Here we implement the actual exit action.
     leaveGame();
-    // App.vue will handle view swithing based on status change to LOBBY/HOME
+    showExitModal.value = false;
 };
+
+// --- Toasts (Session Notifications) ---
+interface Toast {
+    id: number;
+    text: string;
+    type: 'join' | 'leave';
+}
+const sessionToasts = ref<Toast[]>([]);
+
+watch(() => gameState.value.players, (newPlayers, oldPlayers) => {
+    if (!oldPlayers || oldPlayers.length === 0) return;
+
+    // Detect Joins
+    const joined = newPlayers.filter(np => !oldPlayers.some(op => op.id === np.id));
+    // Detect Leaves (connected -> disconnected) OR removed
+    // We only care about connection status changes or disappearances for toasts usually
+    // But GameEngine keeps disconnected players. So check 'isConnected'
+    
+    // Check for status changes in existing players
+    newPlayers.forEach(np => {
+        const op = oldPlayers.find(p => p.id === np.id);
+        if (op && np.id !== myUserId.value) {
+            if (np.isConnected && !op.isConnected) {
+                // Reconnected
+                addToast(`${np.avatar || '👤'} ${np.name} volvió.`, 'join');
+            } else if (!np.isConnected && op.isConnected) {
+                // Disconnected
+                addToast(`${np.avatar || '👤'} ${np.name} salió.`, 'leave');
+            }
+        }
+    });
+
+    // New players (first join)
+    joined.forEach(p => {
+        if (p.id !== myUserId.value) {
+             addToast(`${p.avatar || '👤'} ${p.name} entró.`, 'join');
+        }
+    });
+
+}, { deep: true });
+
+const addToast = (text: string, type: 'join' | 'leave') => {
+    const id = Date.now();
+    sessionToasts.value.push({ id, text, type });
+    setTimeout(() => {
+        sessionToasts.value = sessionToasts.value.filter(t => t.id !== id);
+    }, 3000);
+};
+
 </script>
 
 <template>
@@ -225,7 +279,7 @@ const handleExit = () => {
             <!-- Right: Exit Button -->
             <div class="justify-self-end">
                 <button 
-                    @click="handleExit" 
+                    @click="showExitModal = true" 
                     class="w-10 h-10 rounded-full bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white flex items-center justify-center transition-all"
                     title="Salir de la partida"
                 >
@@ -434,6 +488,37 @@ const handleExit = () => {
                     Esperando al anfitrión...
                 </div>
             </div>
+        </div>
+
+        <!-- EXIT MODAL -->
+        <div v-if="showExitModal" class="absolute inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+            <div class="bg-gray-800 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl border border-white/10 transform scale-100">
+                <h3 class="text-2xl font-black text-white mb-2">¿Abandonar Partida?</h3>
+                <p class="text-gray-300 mb-6 font-medium">Perderás tu progreso y otros jugadores podrían verse afectados.</p>
+                <div class="flex gap-3">
+                    <button @click="showExitModal = false" class="flex-1 px-4 py-3 bg-gray-600 hover:bg-gray-500 text-white rounded-xl font-bold transition-all">
+                        Cancelar
+                    </button>
+                    <button @click="handleExit" class="flex-1 px-4 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold transition-all">
+                        Abandonar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOASTS CONTAINER -->
+        <div class="absolute top-2 right-16 flex flex-col items-end gap-2 pointer-events-none z-50">
+            <TransitionGroup name="toast">
+                <div 
+                    v-for="toast in sessionToasts" 
+                    :key="toast.id" 
+                    class="flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-md shadow-lg border text-xs font-bold pointer-events-auto select-none"
+                    :class="toast.type === 'join' ? 'bg-green-500/20 text-green-200 border-green-500/30' : 'bg-red-500/20 text-red-200 border-red-500/30'"
+                >
+                    <span>{{ toast.type === 'join' ? '➕' : '➖' }}</span>
+                    <span>{{ toast.text }}</span>
+                </div>
+            </TransitionGroup>
         </div>
     </div>
 </template>

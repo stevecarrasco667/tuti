@@ -23,7 +23,14 @@ const handleNavigate = (view: 'HOME' | 'LOBBY' | 'GAME' | 'GAME_OVER') => {
 };
 
 // Auto-switch to GAME view when status changes to PLAYING
+// Auto-switch to GAME view when status changes to PLAYING
 watch(() => gameState.value.status, (newStatus) => {
+    // Priority check: If we have no room ID and status is LOBBY, it means we Reset/Left. Go Home.
+    if (!gameState.value.roomId && newStatus === 'LOBBY') {
+        currentView.value = 'HOME';
+        return;
+    }
+
     if (newStatus === 'PLAYING' || newStatus === 'REVIEW') {
         currentView.value = 'GAME';
     } else if (newStatus === 'LOBBY') {
