@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useSocket } from './composables/useSocket';
 import { useGame } from './composables/useGame';
 import LobbyView from './components/LobbyView.vue';
@@ -8,7 +8,14 @@ import GameView from './components/GameView.vue';
 import GameOverView from './components/GameOverView.vue';
 
 const { isConnected } = useSocket();
-const { gameState, myUserId } = useGame();
+const { gameState, myUserId, tryRestoreSession } = useGame();
+
+onMounted(() => {
+    // Attempt auto-reconnect if URL has room param
+    if (tryRestoreSession()) {
+        console.log('🔄 Attempting to restore session...');
+    }
+});
 const currentView = ref<'HOME' | 'LOBBY' | 'GAME' | 'GAME_OVER'>('HOME');
 
 const handleNavigate = (view: 'HOME' | 'LOBBY' | 'GAME' | 'GAME_OVER') => {

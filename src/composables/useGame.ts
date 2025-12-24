@@ -51,6 +51,7 @@ export function useGame() {
     // Persistence Constants
     const STORAGE_KEY_USER_ID = 'tuti-user-id';
     const STORAGE_KEY_USER_NAME = 'tuti-user-name';
+    const STORAGE_KEY_USER_AVATAR = 'tuti-user-avatar';
 
     // 1. User ID Persistence
     const getStoredUserId = () => localStorage.getItem(STORAGE_KEY_USER_ID);
@@ -69,6 +70,13 @@ export function useGame() {
         localStorage.setItem(STORAGE_KEY_USER_NAME, newName);
     });
 
+    // 3. User Avatar Persistence
+    const myUserAvatar = ref<string>(localStorage.getItem(STORAGE_KEY_USER_AVATAR) || '🦁');
+
+    watch(myUserAvatar, (newAvatar) => {
+        localStorage.setItem(STORAGE_KEY_USER_AVATAR, newAvatar);
+    });
+
     // Computed: Check if current user is host
     const amIHost = computed(() => {
         const me = gameState.value.players.find(p => p.id === myUserId.value);
@@ -78,6 +86,11 @@ export function useGame() {
     const joinGame = async (name: string, roomId: string, avatar: string) => {
         // 1. Connect to the specific room
         setRoomId(roomId);
+
+        // Update URL for deep linking
+        const url = new URL(window.location.href);
+        url.searchParams.set('room', roomId);
+        window.history.pushState({}, '', url);
 
         // 2. Wait for connection to open
         // Simple polling for now, could be improved with a Promise wrapper or watch
@@ -204,6 +217,18 @@ export function useGame() {
         kickPlayer,
         myUserId,
         myUserName,
-        amIHost
+        amIHost,
+        myUserAvatar,
+        tryRestoreSession: () => {
+            const url = new URL(window.location.href);
+            const roomParam = url.searchParams.get('room');
+
+            if (roomParam && myUserId.value && myUserName.value && myUserAvatar.value) {
+                console.log('🔄 Restoring session for room:', roomParam);
+                joinGame(myUserName.value, roomParam, myUserAvatar.value);
+                return true;
+            }
+            return false;
+        }
     };
 }

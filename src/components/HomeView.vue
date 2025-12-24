@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch } from 'vue';
 import { generateRoomId } from '../utils/random';
 import { useGame } from '../composables/useGame';
 
 const emit = defineEmits(['navigate']);
-const { joinGame, myUserName } = useGame();
+const { joinGame, myUserName, myUserAvatar } = useGame();
 
 const showJoinInput = ref(false);
 const joinCode = ref('');
@@ -12,23 +12,10 @@ const joinCode = ref('');
 const playerName = ref(myUserName.value);
 
 // Avatar Logic
-const STORAGE_KEY_AVATAR = 'tuti-user-avatar';
 const AVATARS = ['🦁', '🐯', '🐼', '🐸', '🐙', '🤖', '👽', '👻', '🤡', '💀', '🤠', '🎃'];
-const selectedAvatar = ref(AVATARS[0]);
 
-onMounted(() => {
-    // Restore or random default
-    const saved = localStorage.getItem(STORAGE_KEY_AVATAR);
-    if (saved && AVATARS.includes(saved)) {
-        selectedAvatar.value = saved;
-    } else {
-        selectedAvatar.value = AVATARS[Math.floor(Math.random() * AVATARS.length)];
-    }
-});
-
-watch(selectedAvatar, (newVal) => {
-    localStorage.setItem(STORAGE_KEY_AVATAR, newVal);
-});
+// We now use myUserAvatar directly which is already persisted in useGame
+const selectedAvatar = myUserAvatar;
 
 watch(playerName, (val: string) => {
     myUserName.value = val;
