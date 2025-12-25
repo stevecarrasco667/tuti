@@ -1,3 +1,5 @@
+import { ref } from 'vue';
+
 // Simple sound manager
 // Connect specific events to specific audio files
 // Note: Ideally these should be local assets in /public/sounds/
@@ -17,9 +19,20 @@ Object.values(sounds).forEach(audio => {
     audio.load();
 });
 
+// Global Mute State (Persisted)
+// Note: We need to use 'ref' which is imported at the top.
+const isMuted = ref(localStorage.getItem('tuti_muted') === 'true');
+
+const toggleMute = () => {
+    isMuted.value = !isMuted.value;
+    localStorage.setItem('tuti_muted', String(isMuted.value));
+};
+
 export function useSound() {
 
     const playSound = (name: keyof typeof sounds) => {
+        if (isMuted.value) return; // Silent mode
+
         try {
             const audio = sounds[name];
             if (audio) {
@@ -37,6 +50,8 @@ export function useSound() {
         playTick: () => playSound('tick'),
         playAlarm: () => playSound('timeout'),
         playSuccess: () => playSound('success'),
-        playWriting: () => playSound('scribble')
+        playWriting: () => playSound('scribble'),
+        isMuted,
+        toggleMute
     };
 }

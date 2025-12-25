@@ -20,7 +20,9 @@ const gameState = ref<RoomState>({
         roundDuration: 60,
         votingDuration: 45,
         categoriesCount: 5,
-        totalRounds: 5
+        totalRounds: 5,
+        mode: 'RANDOM',
+        selectedCategories: []
     },
     timers: {
         roundEndsAt: null,
@@ -222,7 +224,9 @@ export function useGame() {
                 roundDuration: 60,
                 votingDuration: 45,
                 categoriesCount: 5,
-                totalRounds: 5
+                totalRounds: 5,
+                mode: 'RANDOM',
+                selectedCategories: []
             },
             timers: {
                 roundEndsAt: null,

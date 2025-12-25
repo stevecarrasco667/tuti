@@ -1,49 +1,98 @@
 import { RoomState, Player, GameConfig } from './types.js';
 import { RoundAnswersSchema } from './schemas.js';
 
-export const MASTER_CATEGORIES = [
-    // Clásicos
-    'Nombre', 'Apellido', 'País', 'Ciudad', 'Animal', 'Color', 'Fruta/Verdura', 'Cosa', 'Profesión',
-    'Marca', 'Película', 'Canción', 'Comida', 'Deporte', 'Famoso', 'Serie de TV', 'Parte del Cuerpo',
-    'Instrumento Musical', 'Ropa/Accesorio', 'Medio de Transporte', 'Verbo',
+export interface CategoryItem {
+    id: string;
+    name: string;
+    tags: string[];
+}
 
-    // Geografía y Cultura
-    'Capital', 'Río/Lago', 'Idioma', 'Moneda', 'Plato Típico', 'Fiesta/Celebración', 'Gentilicio', 'Lugar Turístico',
-
-    // Entretenimiento
-    'Actor/Actriz', 'Cantante/Banda', 'Personaje Ficticio', 'Videojuego', 'Libro', 'Dibujo Animado', 'Superhéroe',
-    'Villano', 'Youtuber/Streamer', 'Red Social', 'App Móvil', 'Juego de Mesa', 'Director de Cine',
-
-    // Naturaleza
-    'Flor', 'Árbol', 'Raza de Perro', 'Insecto', 'Animal Marino', 'Ave', 'Elemento Químico', 'Fenómeno Natural', 'Mineral/Piedra',
-
-    // Cotidiano
-    'Objeto de Cocina', 'Objeto de Baño', 'Objeto de Oficina', 'Herramienta', 'Electrodoméstico', 'Mueble', 'Juguete',
-    'Bebida', 'Postre', 'Sabor de Helado', 'Ingrediente de Pizza', 'Frase de Madre', 'Excusa para llegar tarde',
-    'Cosa que se rompe', 'Cosa que se pierde', 'Regalo de cumpleaños', 'Cosa que huele bien', 'Cosa que huele mal',
-
-    // Abstracto y Creativo
-    'Sentimiento/Emoción', 'Adjetivo', 'Palabra en Inglés', 'Palabra con tilde', 'Palabra larga', 'Palabra de 4 letras',
-    'Insulto (suave)', 'Apodo', 'Nombre de Mascota', 'Hobby', 'Miedo/Fobia', 'Deseo', 'Pecado Capital',
-
-    // Específicos
-    'Marca de Auto', 'Marca de Ropa', 'Marca de Tecnología', 'Marca de Comida', 'Canal de TV', 'Equipo de Fútbol',
-    'Deportista', 'Político', 'Personaje Histórico', 'Carrera Universitaria', 'Asignatura Escolar', 'Parte del Auto',
-    'Parte de la Casa', 'Material de Construcción', 'Instrumento Quirúrgico', 'Arma', 'Monstruo', 'Dios Mitológico',
-
-    // Situacional
-    'Lo encuentras en la playa', 'Lo encuentras en la basura', 'Lo encuentras en un bolso', 'Se compra en farmacia',
-    'Se compra en ferretería', 'Se ve en el cielo', 'Se lleva puesto', 'Hace ruido', 'Es pegajoso', 'Es redondo',
-    'Es verde', 'Es rojo', 'Es frío', 'Es caliente', 'Es líquido', 'Es caro', 'Es barato',
-
-    // Random Divertido
-    'Nombre de Abuela', 'Cosa de millonarios', 'Cosa de pobres', 'Motivo de divorcio', 'Crimen', 'Castigo',
-    'Título de Canción de Reggaeton', 'Nombre de Telenovela', 'Sabor de Pizza', 'Topping de Pizza', 'Tipo de Pasta',
-    'Tipo de Queso', 'Marca de Cerveza', 'Coctel/Trago', 'Golosina', 'Chocolate', 'Galleta',
-
-    // Tech & Modern
-    'Lenguaje de Programación', 'Criptomoneda', 'Meme famoso', 'Emoji', 'Hashtag', 'Software', 'Gadget',
-    'Sitio Web', 'Virus', 'Término Tecnológico'
+export const MASTER_CATEGORIES: CategoryItem[] = [
+    // CLASICOS
+    { id: '1', name: 'Nombre', tags: ['CLASICO', 'FACIL'] },
+    { id: '2', name: 'Apellido', tags: ['CLASICO'] },
+    { id: '3', name: 'País', tags: ['CLASICO', 'GEO'] },
+    { id: '4', name: 'Ciudad', tags: ['CLASICO', 'GEO'] },
+    { id: '5', name: 'Animal', tags: ['CLASICO', 'NATURALEZA'] },
+    { id: '6', name: 'Color', tags: ['CLASICO', 'FACIL'] },
+    { id: '7', name: 'Fruta/Verdura', tags: ['CLASICO', 'NATURALEZA'] },
+    { id: '8', name: 'Cosa', tags: ['CLASICO', 'FACIL'] },
+    { id: '9', name: 'Profesión', tags: ['CLASICO', 'SOCIEDAD'] },
+    
+    // ENTERTAINMENT
+    { id: '10', name: 'Película', tags: ['CINE', 'FUN'] },
+    { id: '11', name: 'Serie de TV', tags: ['CINE', 'FUN'] },
+    { id: '12', name: 'Actor/Actriz', tags: ['CINE', 'FAMOSO'] },
+    { id: '13', name: 'Villano', tags: ['CINE', 'FUN'] },
+    { id: '14', name: 'Superhéroe', tags: ['CINE', 'FUN'] },
+    { id: '15', name: 'Personaje Ficticio', tags: ['CINE', 'FUN'] },
+    { id: '16', name: 'Videojuego', tags: ['GAMING', 'FUN'] },
+    { id: '17', name: 'Youtuber/Streamer', tags: ['INTERNET', 'MODERNO'] },
+    
+    // MUSIC
+    { id: '20', name: 'Canción', tags: ['MUSICA', 'ARTE'] },
+    { id: '21', name: 'Cantante/Banda', tags: ['MUSICA', 'FAMOSO'] },
+    { id: '22', name: 'Instrumento Musical', tags: ['MUSICA', 'OBJETO'] },
+    { id: '23', name: 'Título de Canción de Reggaeton', tags: ['MUSICA', 'FUN', 'HARD'] },
+    
+    // BRANDS & TECH
+    { id: '30', name: 'Marca', tags: ['MARCAS', 'CONSUMO'] },
+    { id: '31', name: 'Marca de Auto', tags: ['MARCAS', 'VEHICULO'] },
+    { id: '32', name: 'Marca de Ropa', tags: ['MARCAS', 'MODA'] },
+    { id: '33', name: 'Marca de Tecnología', tags: ['MARCAS', 'TECH'] },
+    { id: '34', name: 'App Móvil', tags: ['TECH', 'MODERNO'] },
+    { id: '35', name: 'Sitio Web', tags: ['TECH', 'INTERNET'] },
+    
+    // FOOD
+    { id: '40', name: 'Comida', tags: ['COMIDA', 'FACIL'] },
+    { id: '41', name: 'Bebida', tags: ['COMIDA'] },
+    { id: '42', name: 'Postre', tags: ['COMIDA', 'DULCE'] },
+    { id: '43', name: 'Sabor de Helado', tags: ['COMIDA', 'DULCE'] },
+    { id: '44', name: 'Ingrediente de Pizza', tags: ['COMIDA'] },
+    { id: '45', name: 'Plato Típico', tags: ['COMIDA', 'CULTURA'] },
+    
+    // GEO & CULTURE
+    { id: '50', name: 'Capital', tags: ['GEO', 'HARD'] },
+    { id: '51', name: 'Río/Lago', tags: ['GEO', 'NATURALEZA'] },
+    { id: '52', name: 'Idioma', tags: ['CULTURA'] },
+    { id: '53', name: 'Moneda', tags: ['CULTURA', 'ECONOMIA'] },
+    { id: '54', name: 'Lugar Turístico', tags: ['GEO', 'VIAJES'] },
+    
+    // RANDOM & FUN
+    { id: '60', name: 'Insulto (suave)', tags: ['FUN', 'SOCIAL'] },
+    { id: '61', name: 'Excusa para llegar tarde', tags: ['FUN', 'SITUACIONAL'] },
+    { id: '62', name: 'Motivo de divorcio', tags: ['FUN', 'SITUACIONAL'] },
+    { id: '63', name: 'Cosa de millonarios', tags: ['FUN', 'SOCIEDAD'] },
+    { id: '64', name: 'Cosa que se pierde', tags: ['FUN', 'SITUACIONAL'] },
+    { id: '65', name: 'Cosa que huele mal', tags: ['FUN', 'SENSORIAL'] },
+    { id: '66', name: 'Miedo/Fobia', tags: ['PSICOLOGIA'] },
+    { id: '67', name: 'Pecado Capital', tags: ['CULTURA', 'HARD'] },
+    
+    // SPORTS
+    { id: '70', name: 'Deporte', tags: ['DEPORTE'] },
+    { id: '71', name: 'Deportista', tags: ['DEPORTE', 'FAMOSO'] },
+    { id: '72', name: 'Equipo de Fútbol', tags: ['DEPORTE'] },
+    
+    // HOUSE & OBJECTS
+    { id: '80', name: 'Parte de la Casa', tags: ['HOGAR'] },
+    { id: '81', name: 'Electrodoméstico', tags: ['HOGAR', 'TECH'] },
+    { id: '82', name: 'Mueble', tags: ['HOGAR'] },
+    { id: '83', name: 'Objeto de Cocina', tags: ['HOGAR', 'COCINA'] },
+    { id: '84', name: 'Herramienta', tags: ['HOGAR', 'OBJETO'] },
+    { id: '85', name: 'Ropa/Accesorio', tags: ['MODA'] },
+    
+    // NATURE & ANIMALS
+    { id: '90', name: 'Raza de Perro', tags: ['NATURALEZA', 'ANIMALES'] },
+    { id: '91', name: 'Insecto', tags: ['NATURALEZA', 'ANIMALES'] },
+    { id: '92', name: 'Animal Marino', tags: ['NATURALEZA', 'ANIMALES'] },
+    { id: '93', name: 'Flor', tags: ['NATURALEZA'] },
+    
+    // SITUATIONAL
+    { id: '100', name: 'Lo encuentras en la playa', tags: ['SITUACIONAL', 'VERANO'] },
+    { id: '101', name: 'Se compra en farmacia', tags: ['SITUACIONAL', 'COMPRAS'] },
+    { id: '102', name: 'Se lleva puesto', tags: ['SITUACIONAL'] },
+    { id: '103', name: 'Es redondo', tags: ['SITUACIONAL', 'FORMA'] },
+    { id: '104', name: 'Es rojo', tags: ['SITUACIONAL', 'COLOR'] }
 ];
 
 export class GameEngine {
@@ -242,8 +291,9 @@ export class GameEngine {
                     this.state.categories = [...this.state.config.selectedCategories];
                 } else {
                     // RANDOM MODE (or fallback if manual is empty)
+                    // shuffle objects then map to names
                     const shuffled = [...MASTER_CATEGORIES].sort(() => 0.5 - Math.random());
-                    this.state.categories = shuffled.slice(0, this.state.config.categoriesCount);
+                    this.state.categories = shuffled.slice(0, this.state.config.categoriesCount).map(c => c.name);
                 }
 
                 this.state.answers = {}; // Reset answers for new round
@@ -510,8 +560,9 @@ export class GameEngine {
             // "Tutti Frutti" usually means same categories, different letter.
             // So we just keep them.
         } else {
+            // shuffle objects then map to names
             const shuffled = [...MASTER_CATEGORIES].sort(() => 0.5 - Math.random());
-            this.state.categories = shuffled.slice(0, this.state.config.categoriesCount);
+            this.state.categories = shuffled.slice(0, this.state.config.categoriesCount).map(c => c.name);
         }
 
         this.state.status = 'PLAYING';

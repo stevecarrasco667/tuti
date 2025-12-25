@@ -29,9 +29,16 @@ const handleKick = (targetUserId: string, name: string) => {
     }
 };
 
+const handleQuickDelete = (catName: string) => {
+    const current = localConfig.value.selectedCategories || [];
+    const newSelection = current.filter(c => c !== catName);
+    handleConfigChange('selectedCategories', newSelection);
+};
+
 // --- Manual Selection Modal ---
 const showCategoriesModal = ref(false);
 const searchQuery = ref('');
+const activeFilterTag = ref<string | null>(null);
 // We keep a local copy to allow cancelling edits
 const tempSelectedCategories = ref<string[]>([]);
 
@@ -39,17 +46,18 @@ const openCategoryModal = () => {
     tempSelectedCategories.value = [...(localConfig.value.selectedCategories || [])];
     showCategoriesModal.value = true;
     searchQuery.value = '';
+    activeFilterTag.value = null;
     playClick();
 };
 
-const toggleCategory = (cat: string) => {
-    const index = tempSelectedCategories.value.indexOf(cat);
+const toggleCategory = (catName: string) => {
+    const index = tempSelectedCategories.value.indexOf(catName);
     if (index === -1) {
-        tempSelectedCategories.value.push(cat);
+        tempSelectedCategories.value.push(catName);
     } else {
         tempSelectedCategories.value.splice(index, 1);
     }
-    playClick(); // Short click needed here? Maybe too noisy. Let's keep it.
+    playClick();
 };
 
 const saveCategories = () => {
@@ -58,10 +66,24 @@ const saveCategories = () => {
     playSuccess();
 };
 
+// Extract unique tags
+const availableTags = computed(() => {
+    const tags = new Set<string>();
+    MASTER_CATEGORIES.forEach(c => c.tags.forEach(t => tags.add(t)));
+    return Array.from(tags).sort();
+});
+
 const filteredCategories = computed(() => {
     const query = searchQuery.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    
     return MASTER_CATEGORIES.filter(cat => {
-        const normalized = cat.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        // Tag Filter
+        if (activeFilterTag.value && !cat.tags.includes(activeFilterTag.value)) {
+            return false;
+        }
+
+        // Search Filter
+        const normalized = cat.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         return normalized.includes(query);
     });
 });
@@ -205,9 +227,12 @@ const handleStart = () => {
                          </div>
                          
                          <div v-if="localConfig.selectedCategories?.length > 0" class="flex flex-wrap gap-2">
-                             <span v-for="cat in localConfig.selectedCategories" :key="cat" class="px-2 py-1 bg-white/10 rounded-md text-xs text-white border border-white/10">
-                                 {{ cat }}
-                             </span>
+                             <div v-for="cat in localConfig.selectedCategories" :key="cat" class="group flex items-center gap-2 px-2 py-1 bg-white/10 hover:bg-white/20 rounded-md text-xs text-white border border-white/10 transition-colors">
+                                 <span>{{ cat }}</span>
+                                 <button @click.stop="handleQuickDelete(cat)" class="text-white/30 hover:text-red-400 font-bold px-1 rounded-sm focus:outline-none">
+                                     &times;
+                                 </button>
+                             </div>
                          </div>
                          <div v-else class="text-center py-4 border-2 border-dashed border-white/10 rounded-lg">
                              <p class="text-white/50 text-sm">No has seleccionado categorías.</p>
@@ -312,29 +337,47 @@ const handleStart = () => {
                 <span class="text-purple-300 text-xs font-mono bg-purple-500/10 px-2 py-1 rounded">{{ tempSelectedCategories.length }} seleccionadas</span>
             </div>
             
-            <div class="p-4 bg-black/20">
+            <div class="p-4 bg-black/20 space-y-3">
                 <input 
                     v-model="searchQuery" 
                     type="text" 
-                    placeholder="Buscar categoría (ej: Animal, País)..." 
+                    placeholder="Buscar categoría..." 
                     class="w-full bg-white/10 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                     autoFocus
                 >
+                <!-- Filter Pills -->
+                <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    <button
+                        @click="activeFilterTag = null"
+                        :class="['px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-colors border', !activeFilterTag ? 'bg-white text-black border-white' : 'bg-black/30 text-white/50 border-white/10 hover:bg-white/10']"
+                    >
+                        TODO
+                    </button>
+                    <button
+                        v-for="tag in availableTags"
+                        :key="tag"
+                        @click="activeFilterTag = activeFilterTag === tag ? null : tag"
+                        :class="['px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-colors border', activeFilterTag === tag ? 'bg-purple-500 text-white border-purple-400 shadow-md' : 'bg-black/30 text-white/50 border-white/10 hover:bg-white/10']"
+                    >
+                        {{ tag }}
+                    </button>
+                </div>
             </div>
 
             <div class="flex-1 overflow-y-auto p-4 content-start">
                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                      <button
                         v-for="cat in filteredCategories"
-                        :key="cat"
-                        @click="toggleCategory(cat)"
-                        class="text-left px-3 py-2 rounded-lg text-sm border transition-all duration-200"
-                        :class="tempSelectedCategories.includes(cat) ? 'bg-purple-600 border-purple-400 text-white shadow-md transform scale-[1.02]' : 'bg-white/5 border-white/5 text-gray-400 hover:bg-white/10 hover:text-white'"
+                        :key="cat.id"
+                        @click="toggleCategory(cat.name)"
+                        class="text-left px-3 py-2 rounded-lg text-sm border transition-all duration-200 relative overflow-hidden"
+                        :class="tempSelectedCategories.includes(cat.name) ? 'bg-purple-600 border-purple-400 text-white shadow-md transform scale-[1.02]' : 'bg-white/5 border-white/5 text-gray-400 hover:bg-white/10 hover:text-white'"
                      >
-                        {{ cat }}
+                        <span class="relative z-10">{{ cat.name }}</span>
+                        <!-- Mini tags decoration? Maybe too busy. Let's keep clean. -->
                      </button>
                      <p v-if="filteredCategories.length === 0" class="col-span-full text-center text-white/30 py-8">
-                         No se encontraron resultados para "{{ searchQuery }}"
+                         No se encontraron resultados
                      </p>
                  </div>
             </div>
