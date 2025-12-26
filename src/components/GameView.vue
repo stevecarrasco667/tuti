@@ -63,7 +63,23 @@ const timerColor = computed(() => {
     return 'text-white';
 });
 
+// Anti-Troll Logic
+const canStopRound = computed(() => {
+    // Must have a non-empty answer for EVERY category in the current list
+    return gameState.value.categories.every(cat => {
+        const val = answers.value[cat];
+        return val && val.trim().length > 0;
+    });
+});
+
+
 const handleStop = () => {
+    if (!canStopRound.value) {
+        // Validation Failed: Show subtle feedback
+        addToast("⚠️ Completa todas las categorías para parar", 'join'); // reusing 'join' type for generic info or add new type
+        // Play error/blocked sound if available (optional)
+        return;
+    }
     stopRound(answers.value);
     playAlarm();
 };
@@ -359,28 +375,57 @@ const handleInputFocus = (event: Event) => {
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <div 
-                        v-for="category in gameState.categories" 
-                        :key="category"
-                        class="bg-black/30 backdrop-blur-sm p-3 rounded-xl border border-white/10 hover:border-purple-500/50 transition-colors group focus-within:ring-2 focus-within:ring-purple-500/50"
-                    >
-                        <label class="block text-purple-200 text-xs font-bold mb-1.5 uppercase tracking-wide group-hover:text-purple-100 truncate">
-                            {{ category }}
-                        </label>
-                        <div class="relative">
-                            <input 
-                                :value="answers[category]"
-                                @input="handleInput(category, $event)"
-                                @focus="handleInputFocus"
-                                type="text"
-                                :placeholder="`${gameState.currentLetter}...`"
-                                class="w-full bg-white/5 border rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:bg-black/50 transition-all font-medium text-lg border-white/10"
-                                autocomplete="off"
-                            >
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-32">
+                        <div 
+                            v-for="category in gameState.categories" 
+                            :key="category"
+                            class="relative group transition-all duration-300 transform hover:-translate-y-1"
+                        >
+                            <!-- Glow Effect -->
+                             <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                             
+                             <!-- Card -->
+                             <div class="relative bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 transition-all duration-300"
+                                  :class="{'border-green-400/40 bg-green-500/5 shadow-[0_0_20px_rgba(74,222,128,0.1)]': answers[category]?.trim().length > 0}"
+                             >
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="text-[10px] uppercase font-black tracking-widest text-indigo-300 pl-1">{{ category }}</label>
+                                    <!-- Success Icon -->
+                                    <div v-if="answers[category]?.trim().length > 0" class="text-green-400 bg-green-400/10 rounded-full p-1 animate-in fade-in zoom-in duration-300">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </div>
+
+                                <input 
+                                    :value="answers[category]"
+                                    @input="handleInput(category, $event)"
+                                    @focus="handleInputFocus"
+                                    type="text"
+                                    autocomplete="off"
+                                    class="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white placeholder-white/15 text-lg font-bold tracking-wide focus:outline-none focus:bg-black/40 focus:border-purple-500/50 transition-all font-mono shadow-inner"
+                                    :placeholder="`${gameState.currentLetter}...`"
+                                >
+                             </div>
                         </div>
+                    </div> <!-- End Grid -->
+
+                    <!-- FLOAT BASTA BUTTON -->
+                    <div class="fixed bottom-8 inset-x-0 px-6 flex justify-center z-30 pointer-events-none">
+                        <button 
+                            @click="handleStop"
+                            :disabled="!canStopRound"
+                            class="pointer-events-auto relative group overflow-hidden bg-gradient-to-r from-pink-600 to-orange-500 text-white font-black text-2xl py-5 px-16 rounded-full shadow-[0_10px_40px_rgba(236,72,153,0.4)] border-4 border-white/10 uppercase tracking-widest transform transition-all duration-500 flex items-center gap-4 hover:scale-105 active:scale-95 hover:shadow-[0_20px_60px_rgba(236,72,153,0.6)] hover:border-white/30"
+                            :class="[
+                                canStopRound ? 'animate-pulse ring-4 ring-pink-500/30' : 'opacity-50 grayscale cursor-not-allowed shadow-none transform-none'
+                            ]"
+                        >
+                            <span class="text-3xl filter drop-shadow-md group-hover:rotate-12 transition-transform duration-300">✋</span>
+                            <span class="drop-shadow-md">¡BASTA!</span>
+                            
+                            <!-- Shine Effect -->
+                            <div v-if="canStopRound" class="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"></div>
+                        </button>
                     </div>
-                </div> <!-- End Grid -->
                 </div> <!-- End Playing Wrapper -->
 
                 <!-- === REVIEW STATE (VOTING MOCKUP) === -->
@@ -487,17 +532,11 @@ const handleInputFocus = (event: Event) => {
 
         <!-- FOOTER (Actions) - Fixed at bottom -->
         <div class="flex-none p-4 flex justify-center bg-black/20 backdrop-blur-sm border-t border-white/5 z-20">
-             <!-- PLAYING ACTION -->
-             <button 
-                v-if="gameState.status === 'PLAYING'"
-                @click="handleStop"
-                class="w-full max-w-md px-8 py-3 bg-red-600 hover:bg-red-500 text-white font-black text-2xl rounded-xl transition-all shadow-[0_0_20px_rgba(220,38,38,0.5)] active:scale-95 flex items-center justify-center gap-3"
-            >
-                ⚠️ ¡BASTA!
-            </button>
+             <!-- PLAYING ACTION (Moved to Floating Button) -->
+
 
             <!-- REVIEW ACTION -->
-            <div v-else-if="gameState.status === 'REVIEW'" class="w-full max-w-lg"> 
+            <div v-if="gameState.status === 'REVIEW'" class="w-full max-w-lg"> 
                 <button 
                     v-if="activeCategoryIndex < gameState.categories.length - 1"
                     @click="nextCategory"
