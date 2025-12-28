@@ -73,10 +73,21 @@ const canStopRound = computed(() => {
 });
 
 
+const validationCooldown = ref(false);
+
 const handleStop = () => {
+    if (validationCooldown.value) return; // Throttle spam
+
     if (!canStopRound.value) {
         // Validation Failed: Show subtle feedback
-        addToast("⚠️ Completa todas las categorías para parar", 'join'); // reusing 'join' type for generic info or add new type
+        addToast("⚠️ Completa todas las categorías para parar", 'join', 'stop-warning'); 
+        
+        // Activate cooldown
+        validationCooldown.value = true;
+        setTimeout(() => {
+            validationCooldown.value = false;
+        }, 800); // 800ms throttle for interactions
+
         // Play error/blocked sound if available (optional)
         return;
     }
@@ -238,6 +249,7 @@ interface Toast {
     id: number;
     text: string;
     type: 'join' | 'leave';
+    groupId?: string;
 }
 const sessionToasts = ref<Toast[]>([]);
 
@@ -280,9 +292,24 @@ watch(amIHost, (isHost, wasHost) => {
     }
 });
 
-const addToast = (text: string, type: 'join' | 'leave') => {
+const addToast = (text: string, type: 'join' | 'leave', uniqueGroupId?: string) => {
+    // Deduplication logic
+    if (uniqueGroupId) {
+        const existing = sessionToasts.value.find(t => t.groupId === uniqueGroupId);
+        if (existing) {
+            // Reset timer relative to now? Or just ignore? 
+            // Re-adding it to the end might be better visual feedback (pulse) but we want to avoid stacking.
+            // Let's just ignore if it's already there to prevent spam, or update timestamp to keep it longer?
+            // "Si el mensaje ya está visible: No debe volver a crearse. O debe reiniciarse su timer."
+            // Simple approach: Do nothing if exists. It will clear eventually.
+            // Better approach: Remove old one and add new one so it stays longer?
+            // Let's just return to avoid visual jumpiness, wait for it to expire.
+            return;
+        }
+    }
+
     const id = Date.now();
-    sessionToasts.value.push({ id, text, type });
+    sessionToasts.value.push({ id, text, type, groupId: uniqueGroupId });
     setTimeout(() => {
         sessionToasts.value = sessionToasts.value.filter(t => t.id !== id);
     }, 3000);
@@ -347,8 +374,9 @@ const handleInputFocus = (event: Event) => {
         </div>
 
         <!-- BODY (Scrollable Content) -->
-        <div class="flex-1 overflow-y-auto scroll-smooth w-full">
-            <div class="w-full max-w-7xl mx-auto p-4 pb-48">
+        <!-- BODY (Scrollable Content) -->
+        <div class="flex-1 overflow-y-auto scroll-smooth w-full px-4 py-6">
+            <div class="w-full max-w-7xl mx-auto">
                 
                 <!-- === PLAYING STATE === -->
                 <div v-if="gameState.status === 'PLAYING'" class="flex flex-col gap-6">
@@ -514,8 +542,8 @@ const handleInputFocus = (event: Event) => {
             </div>
         </div>
 
-        <!-- FOOTER / ACTIONS (Absolute & Safe) -->
-        <div class="absolute bottom-0 inset-x-0 z-30 pointer-events-none bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-32 pb-8 flex justify-center">
+        <!-- FOOTER / ACTIONS (Static & Solid) -->
+        <div class="flex-none w-full p-4 bg-white/5 backdrop-blur-md border-t border-white/10 z-10 flex justify-center">
             
             <!-- PLAYING: BASTA BUTTON -->
             <button 
