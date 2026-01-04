@@ -1,5 +1,6 @@
 import { RoomState, Player, GameConfig } from './types.js';
 import { RoundAnswersSchema } from './schemas.js';
+import { validateWord } from './validator.js';
 
 export interface CategoryItem {
     id: string;
@@ -330,8 +331,74 @@ export class GameEngine {
             // Set Voting Timer
             this.state.timers.votingEndsAt = Date.now() + (this.state.config.votingDuration * 1000);
             this.state.stoppedBy = userId;
+
+            // --- 1vs1 OPTIMIZATION ---
+            // If strictly 2 active players, bypass voting to avoid toxicity
+            const activePlayers = this.state.players.filter(p => p.isConnected);
+            if (activePlayers.length === 2) {
+                console.log("[1vs1] Bypassing Review Phase -> Auto Validation");
+                this.autoValidateAndScore(activePlayers);
+                return this.state;
+            }
         }
         return this.state;
+    }
+
+    private autoValidateAndScore(activePlayers: Player[]) {
+        this.state.status = 'RESULTS';
+        this.state.timers.roundEndsAt = null;
+        this.state.timers.votingEndsAt = null;
+        this.state.timers.resultsEndsAt = Date.now() + 10000;
+
+        // Initialize structures
+        this.state.answerStatuses = {};
+        this.state.roundScores = {};
+        this.state.players.forEach(p => {
+            this.state.answerStatuses[p.id] = {};
+            this.state.roundScores[p.id] = 0;
+        });
+
+        const playerA = activePlayers[0];
+        const playerB = activePlayers[1];
+
+        for (const category of this.state.categories) {
+            const ansA = this.state.answers[playerA.id]?.[category] || "";
+            const ansB = this.state.answers[playerB.id]?.[category] || "";
+
+            // Validate Individual Words
+            const valA = validateWord(ansA, category);
+            const valB = validateWord(ansB, category);
+
+            // Compare for Duplicates (only if both valid)
+            const isDuplicate = valA.isValid && valB.isValid &&
+                ansA.trim().toLowerCase() === ansB.trim().toLowerCase(); // Simple check, or use normalized
+
+            // Score Player A
+            if (!valA.isValid) {
+                this.state.answerStatuses[playerA.id][category] = 'INVALID';
+            } else if (isDuplicate) {
+                this.state.answerStatuses[playerA.id][category] = 'DUPLICATE';
+                this.state.roundScores[playerA.id] += 5;
+                playerA.score += 5;
+            } else {
+                this.state.answerStatuses[playerA.id][category] = 'VALID';
+                this.state.roundScores[playerA.id] += 10;
+                playerA.score += 10;
+            }
+
+            // Score Player B
+            if (!valB.isValid) {
+                this.state.answerStatuses[playerB.id][category] = 'INVALID';
+            } else if (isDuplicate) {
+                this.state.answerStatuses[playerB.id][category] = 'DUPLICATE';
+                this.state.roundScores[playerB.id] += 5;
+                playerB.score += 5;
+            } else {
+                this.state.answerStatuses[playerB.id][category] = 'VALID';
+                this.state.roundScores[playerB.id] += 10;
+                playerB.score += 10;
+            }
+        }
     }
 
     public submitAnswers(connectionId: string, answers: Record<string, string>): RoomState {
