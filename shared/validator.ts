@@ -1,4 +1,3 @@
-
 // Basic Levenshtein implementation
 export function levenshteinDistance(a: string, b: string): number {
     if (a.length === 0) return b.length;
@@ -36,30 +35,13 @@ export function levenshteinDistance(a: string, b: string): number {
     return matrix[b.length][a.length];
 }
 
-// Simple blacklist for example purposes (expand as needed or load from JSON)
+// Simple blacklist for example purposes
 const BLACKLIST = new Set([
     "puto", "maricon", "mierda", "verga", "pija", "concha",
     "retrasado", "imbecil", "estupido", "idiota", "mogolico"
 ]);
 
-// Dictionary Interface
-export type Dictionary = Set<string>;
-
-import { countries } from './dictionaries/paises.js';
-// Import other dictionaries as needed
-import { animals } from './dictionaries/animales.js';
-import { colors } from './dictionaries/colores.js';
-import { fruits } from './dictionaries/frutas.js';
-import { names } from './dictionaries/nombres.js';
-
-const DICTIONARIES: Record<string, Dictionary> = {
-    'País': countries,
-    'Animal': animals,
-    'Color': colors,
-    'Fruta/Verdura': fruits,
-    'Nombre': names,
-    // Add mapping for other categories
-};
+import { dictionaryManager } from './dictionaries/manager.js';
 
 export function validateWord(word: string, category: string): { isValid: boolean, isFuzzy: boolean } {
     const cleanWord = word.trim().toLowerCase();
@@ -68,40 +50,46 @@ export function validateWord(word: string, category: string): { isValid: boolean
     if (!cleanWord) return { isValid: false, isFuzzy: false };
 
     // 2. Blacklist Check
-    // Check strict match or contains? Strict for now to avoid false positives on legitimate words.
-    // Or check if any blacklist word is a substring?
     if (BLACKLIST.has(cleanWord)) return { isValid: false, isFuzzy: false };
 
-    // 3. Dictionary Check
-    const dictionary = DICTIONARIES[category];
-    if (!dictionary) {
+    // 3. Dictionary Check (O(1))
+    // We strictly assume if dict exists, words must be in it.
+    // However, checking existence of collection first is good to define fallback policy.
+    const collection = dictionaryManager.getCollection(category);
+
+    if (!collection) {
         // Fallback: In 1vs1 Authoritative Mode, if we don't know the category, we MUST reject it.
-        // Otherwise, players can score points with nonsense.
-        // This implicitly prompts us to support all categories in the game config for 1vs1 matches.
         return { isValid: false, isFuzzy: false };
     }
 
-    // 3.1 Exact Match
-    // Optimization: Dictionaries should probably be lowercased sets.
-    if (dictionary.has(cleanWord)) {
+    // 3.1 Exact Match (via Manager which creates normalized sets)
+    if (dictionaryManager.hasExact(category, cleanWord)) {
         return { isValid: true, isFuzzy: false };
     }
 
     // 4. Fuzzy Match (Typo Tolerance)
     // Only for words > 4 length
     if (cleanWord.length > 4) {
-        // Iterate dictionary? This is expensive if dictionary is huge.
-        // Optimization: Early exit or BK-Tree. 
-        // For simple countries list (~200 items), iteration is fine.
-        // For larger lists, we might need a better structure.
-        // Let's iterate for now, assuming small counts.
-
-        for (const validWord of dictionary) {
+        // We iterate the Set from the Manager
+        for (const validWord of collection) {
             // Optimization: Length diff check first
             if (Math.abs(validWord.length - cleanWord.length) > 2) continue;
 
-            const dist = levenshteinDistance(cleanWord, validWord);
-            if (dist <= 2) {
+            const dist = levenshteinDistance(cleanWord, validWord); // Note: cleanWord isn't fully normalized (accents), but manager content is. 
+            // Better: normalize cleanWord too for LEV comparison? 
+            // Levenshtein on "Peru" vs "Perú" is 1. That's handled.
+            // But manager stores "peru". Input "Perú" -> clean "perú".
+            // cleanWord still has accents? yes, .toLowerCase() doesn't remove accents.
+            // We should ideally compare normalized input against normalized set for fuzzy too.
+            // BUT, removing accents is a type of fuzzy matching itself.
+            // Let's use the same normalize as Manager for optimal check.
+            const normInput = cleanWord.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+            // Check normalized exact match again? hasExact does it.
+            // So this is for real typos. "Perru".
+
+            const distNorm = levenshteinDistance(normInput, validWord);
+            if (distNorm <= 2) {
                 return { isValid: true, isFuzzy: true };
             }
         }

@@ -1,6 +1,0 @@
-export const countries = new Set([
-    "argentina", "bolivia", "brasil", "chile", "colombia", "ecuador", "paraguay", "peru", "uruguay", "venezuela",
-    "españa", "italia", "francia", "alemania", "reino unido", "estados unidos", "canada", "mexico",
-    "china", "japon", "corea del sur", "rusia", "australia"
-    // TODO: Add full list
-]);
