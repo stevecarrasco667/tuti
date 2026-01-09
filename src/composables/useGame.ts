@@ -57,27 +57,34 @@ export function useGame() {
     const STORAGE_KEY_USER_AVATAR = 'tuti-user-avatar';
 
     // 1. User ID Persistence
-    const getStoredUserId = () => localStorage.getItem(STORAGE_KEY_USER_ID);
+    const getStoredUserId = () => {
+        if (typeof localStorage !== 'undefined') {
+            return localStorage.getItem(STORAGE_KEY_USER_ID);
+        }
+        return null; // Fallback for SSR/Test without DOM
+    };
     const myUserId = ref<string>(getStoredUserId() || crypto.randomUUID());
 
     // Ensure it's saved if we generated a new one or if it was missing
-    if (!getStoredUserId()) {
+    if (!getStoredUserId() && typeof localStorage !== 'undefined') {
         localStorage.setItem(STORAGE_KEY_USER_ID, myUserId.value);
     }
 
     // 2. User Name Persistence
-    const myUserName = ref<string>(localStorage.getItem(STORAGE_KEY_USER_NAME) || '');
+    const getStoredUserName = () => typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY_USER_NAME) : '';
+    const myUserName = ref<string>(getStoredUserName() || '');
 
     // Watch and save name changes
     watch(myUserName, (newName) => {
-        localStorage.setItem(STORAGE_KEY_USER_NAME, newName);
+        if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY_USER_NAME, newName);
     });
 
     // 3. User Avatar Persistence
-    const myUserAvatar = ref<string>(localStorage.getItem(STORAGE_KEY_USER_AVATAR) || '🦁');
+    const getStoredAvatar = () => typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY_USER_AVATAR) : '🦁';
+    const myUserAvatar = ref<string>(getStoredAvatar() || '🦁');
 
     watch(myUserAvatar, (newAvatar) => {
-        localStorage.setItem(STORAGE_KEY_USER_AVATAR, newAvatar);
+        if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY_USER_AVATAR, newAvatar);
     });
 
     // Computed: Check if current user is host
@@ -237,9 +244,11 @@ export function useGame() {
         };
 
         // 2. Clear URL
-        const url = new URL(window.location.href);
-        url.searchParams.delete('room');
-        window.history.pushState({}, '', url);
+        if (typeof window !== 'undefined') {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('room');
+            window.history.pushState({}, '', url);
+        }
 
         // 3. Close connection? 
         // useSocket handles connection based on roomId. If we setRoomId(null), it might disconnect if logic allows.
