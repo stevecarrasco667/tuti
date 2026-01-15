@@ -20,4 +20,4 @@ jobs:
         run: npm ci
         
       - name: Deploy to PartyKit
-        run: PARTYKIT_TOKEN=${{ secrets.PARTYKIT_TOKEN }} npx partykit deploy --non-interactive
+        run: PARTYKIT_TOKEN=${{ secrets.PARTYKIT_TOKEN }} npx partykit deploy
