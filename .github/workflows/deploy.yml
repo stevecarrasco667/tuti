@@ -26,4 +26,5 @@ jobs:
       - name: Deploy to PartyKit
         env:
           PARTYKIT_TOKEN: ${{ secrets.PARTYKIT_TOKEN }}
-        run: npx partykit deploy --token=${{ secrets.PARTYKIT_TOKEN }}
+        # EL CAMBIO CLAVE ESTÁ AQUÍ ABAJO: @latest
+        run: npx partykit@latest deploy --token=${{ secrets.PARTYKIT_TOKEN }}
