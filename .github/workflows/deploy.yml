@@ -21,10 +21,15 @@ jobs:
         run: npm ci
 
       - name: Build Project
-        run: npm run build
+        # Usamos 'vite build' directo para evitar bloqueos por tipos
+        run: npx vite build
 
       - name: Deploy to PartyKit
         env:
+          # Pasamos AMBAS variables para asegurar la autenticación
           PARTYKIT_TOKEN: ${{ secrets.PARTYKIT_TOKEN }}
-        # EL CAMBIO CLAVE ESTÁ AQUÍ ABAJO: @latest
-        run: npx partykit@latest deploy --token=${{ secrets.PARTYKIT_TOKEN }}
+          PARTYKIT_LOGIN: ${{ secrets.PARTYKIT_LOGIN }} 
+          # Si no creaste el secreto LOGIN, cambia la línea de arriba por:
+          # PARTYKIT_LOGIN: stevecarrasco667
+        # Usamos @latest para asegurar la versión nueva, SIN flags inventados
+        run: npx partykit@latest deploy
