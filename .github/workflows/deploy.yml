@@ -20,4 +20,6 @@ jobs:
         run: npm ci
         
       - name: Deploy to PartyKit
-        run: PARTYKIT_TOKEN=${{ secrets.PARTYKIT_TOKEN }} npx partykit deploy
+        env:
+          PARTYKIT_TOKEN: ${{ secrets.PARTYKIT_TOKEN }}
+        run: npx partykit deploy
