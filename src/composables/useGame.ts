@@ -94,8 +94,10 @@ export function useGame() {
     });
 
     const joinGame = async (name: string, roomId: string, avatar: string) => {
-        // 1. Connect to the specific room
-        setRoomId(roomId);
+        const userId = myUserId.value; // Use the reactive myUserId
+
+        // 1. Connect to the specific room with identity
+        setRoomId(roomId, { userId, name, avatar });
 
         // Update URL for deep linking
         const url = new URL(window.location.href);
@@ -103,7 +105,7 @@ export function useGame() {
         window.history.pushState({}, '', url);
 
         // 2. Wait for connection to open
-        // Simple polling for now, could be improved with a Promise wrapper or watch
+        // Simple polling for now
         const waitForConnection = () => {
             return new Promise<void>((resolve) => {
                 if (isConnected.value) {
@@ -121,17 +123,8 @@ export function useGame() {
 
         await waitForConnection();
 
-        // 3. Send JOIN message
-        if (!socket.value) return;
-
-        const userId = myUserId.value; // Use the reactive myUserId
-
-        const message = {
-            type: 'JOIN',
-            payload: { name, roomId, userId, avatar }
-        };
-
-        socket.value.send(JSON.stringify(message));
+        // 3. JOIN message is now handled by connection params, no need to send manually here
+        // The server 'connection' handler will read params and auto-join the player.
     };
 
     const startGame = () => {

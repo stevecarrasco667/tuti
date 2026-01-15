@@ -12,7 +12,7 @@ const isConnected = ref(false);
 const lastMessage = ref<string>('');
 
 export function useSocket() {
-    const setRoomId = (roomId: string | null) => {
+    const setRoomId = (roomId: string | null, userInfo?: { userId: string, name: string, avatar: string }) => {
         // 1. Close existing connection if any
         if (socket.value) {
             console.log('🔌 Switching rooms... Closing old connection.');
@@ -28,8 +28,13 @@ export function useSocket() {
 
         if (import.meta.env.DEV) {
             // Mock Server Connection (Native WebSocket)
-            // We pass roomId in query param for mock server to identify it (simulating PartyKit routing)
-            const ws = new WebSocket(`ws://${PARTYKIT_HOST}?roomId=${roomId}`);
+            const query = new URLSearchParams({ roomId });
+            if (userInfo) {
+                query.append('userId', userInfo.userId);
+                query.append('name', userInfo.name);
+                query.append('avatar', userInfo.avatar);
+            }
+            const ws = new WebSocket(`ws://${PARTYKIT_HOST}?${query.toString()}`);
 
             ws.addEventListener('open', () => {
                 isConnected.value = true;
@@ -52,6 +57,7 @@ export function useSocket() {
             socket.value = new PartySocket({
                 host: PARTYKIT_HOST,
                 room: roomId,
+                query: userInfo // PartySocket handles object to query string conversion
             });
 
             socket.value.addEventListener('open', () => {
