@@ -1,7 +1,10 @@
 import { ref } from 'vue';
 import PartySocket from "partysocket";
 
-const PARTYKIT_HOST = import.meta.env.VITE_PARTYKIT_HOST || (import.meta.env.DEV ? "localhost:1999" : "tutifruti-phoenix.partykit.dev");
+// Si es DEV, usa localhost. Si es PROD, usa el host actual del navegador.
+const PARTYKIT_HOST = import.meta.env.DEV
+    ? "127.0.0.1:1999"
+    : window.location.host;
 
 // Global state (Singleton pattern) to ensure App.vue and useGame.ts share the connection
 const socket = ref<PartySocket | null>(null);
