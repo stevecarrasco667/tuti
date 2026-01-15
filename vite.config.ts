@@ -9,6 +9,8 @@ const __dirname = path.dirname(__filename)
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [vue()],
+    // AÑADIMOS ESTA LÍNEA:
+    base: './', 
     resolve: {
         alias: {
             '@shared': path.resolve(__dirname, './shared')
