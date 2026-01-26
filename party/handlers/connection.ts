@@ -14,6 +14,9 @@ export class ConnectionHandler extends BaseHandler {
             const userId = url.searchParams.get("userId") || connection.id;
             const avatar = url.searchParams.get("avatar") || "👤";
 
+            // Guardar userId en el socket para que sobreviva a la hibernación
+            connection.setState({ userId });
+
             console.log(`[Connect] ${name} (${userId}) joined ${this.room.id}`);
 
             // Join Player in Engine

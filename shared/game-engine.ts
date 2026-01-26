@@ -143,6 +143,10 @@ export class GameEngine {
         console.log("[ENGINE] State hydrated from storage");
     }
 
+    public registerConnection(connectionId: string, userId: string): void {
+        this.connections.set(connectionId, userId);
+    }
+
     public updateConfig(connectionId: string, newConfig: Partial<GameConfig>): RoomState {
         const userId = this.connections.get(connectionId);
         if (!userId) return this.state;

@@ -51,6 +51,13 @@ export default class Server implements Party.Server {
             const data = JSON.parse(message);
             const { type, payload } = data;
 
+            // 1. Recuperar identidad
+            const state = sender.state as { userId: string } | null;
+            if (state && state.userId) {
+                // 2. Reparar el mapa del engine antes de procesar nada
+                this.engine.registerConnection(sender.id, state.userId);
+            }
+
             console.log(`[Message] ${type} from ${sender.id}`);
 
             switch (type) {
@@ -99,7 +106,7 @@ export default class Server implements Party.Server {
             await this.scheduleAlarms(this.engine['state']);
 
         } catch (err) {
-            console.error("[SERVER ERROR] processing message:", err);
+            console.error(`[CRITICAL ERROR] Message failed:`, err);
             sendError(sender, (err as Error).message || "Unknown error processing request");
         }
     }
