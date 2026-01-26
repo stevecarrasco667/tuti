@@ -270,10 +270,13 @@ export class GameEngine {
 
     public startGame(connectionId: string): RoomState {
         const userId = this.connections.get(connectionId);
-        if (!userId) return this.state;
+        if (!userId) throw new Error("Connection not mapped to a player");
 
         const player = this.state.players.find(p => p.id === userId);
-        if (player && player.isHost) {
+        if (!player) throw new Error("Player not found in state");
+        if (!player.isHost) throw new Error("Only the host can start the game");
+
+        if (player) {
 
             // CASE 1: Manual "Next Round" from Results screen
             if (this.state.status === 'RESULTS') {
@@ -314,10 +317,17 @@ export class GameEngine {
 
     public stopRound(connectionId: string, answers: Record<string, string>): RoomState {
         const userId = this.connections.get(connectionId);
-        if (!userId) return this.state;
+        if (!userId) throw new Error("Connection not mapped to a player");
 
         const player = this.state.players.find(p => p.id === userId);
-        if (player && this.state.status === 'PLAYING') {
+        // Assuming any player can stop round for now? Or just host?
+        // Original logic: "if (player && this.state.status === 'PLAYING')"
+        // If we want restriction, we add it. For now, strict 'PLAYING' check.
+
+        if (!player) throw new Error("Player not found in state");
+        if (this.state.status !== 'PLAYING') throw new Error("Game is not in PLAYING state");
+
+        if (player) {
             this.state.status = 'REVIEW';
 
             // Validate and Sanitize
@@ -386,10 +396,15 @@ export class GameEngine {
 
     public submitAnswers(connectionId: string, answers: Record<string, string>): RoomState {
         const userId = this.connections.get(connectionId);
-        if (!userId) return this.state;
+        if (!userId) throw new Error("Connection not mapped to a player");
 
         const player = this.state.players.find(p => p.id === userId);
-        if (player && (this.state.status === 'PLAYING' || this.state.status === 'REVIEW')) {
+        if (!player) throw new Error("Player not found in state");
+        if (this.state.status !== 'PLAYING' && this.state.status !== 'REVIEW') {
+            throw new Error("Cannot submit answers in current state");
+        }
+
+        if (player) {
             // Validate and Sanitize
             const sanitizedAnswers = this.validateAndSanitizeAnswers(answers);
             if (sanitizedAnswers) {
@@ -441,10 +456,10 @@ export class GameEngine {
 
     public kickPlayer(hostConnectionId: string, targetUserId: string): RoomState {
         const hostId = this.connections.get(hostConnectionId);
-        if (!hostId) return this.state;
+        if (!hostId) throw new Error("Connection not mapped to a player");
 
         const hostPlayer = this.state.players.find(p => p.id === hostId);
-        if (!hostPlayer || !hostPlayer.isHost) return this.state; // Only host can kick
+        if (!hostPlayer || !hostPlayer.isHost) throw new Error("Only host can kick players");
 
         if (hostId === targetUserId) return this.state; // Cannot kick self
 

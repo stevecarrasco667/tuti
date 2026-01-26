@@ -26,7 +26,7 @@ export class ConnectionHandler extends BaseHandler {
             broadcastState(this.room, state);
         } catch (err) {
             console.error("[Connect Error]", err);
-            sendError(connection, "Failed to join room");
+            sendError(connection, "Failed to join room: " + (err instanceof Error ? err.message : String(err)));
         }
     }
 
