@@ -43,6 +43,9 @@ export default class Server implements Party.Server {
     }
 
     async onConnect(connection: Party.Connection, ctx: Party.ConnectionContext) {
+        // CANCEL AUTO-DESTRUCT if a human connects
+        await this.room.storage.deleteAlarm();
+
         await this.connectionHandler.handleConnect(connection, ctx);
     }
 
@@ -131,6 +134,15 @@ export default class Server implements Party.Server {
     }
 
     async onAlarm() {
+        // [AUTO-WIPE] Check for inactivity
+        const activeConnections = [...this.room.getConnections()].length;
+        if (activeConnections === 0) {
+            console.log(`[Auto-Wipe] Room ${this.room.id} purged due to inactivity (10m).`);
+            await this.room.storage.deleteAll();
+            this.engine = new GameEngine(this.room.id); // Reset RAM
+            return;
+        }
+
         console.log(`⏰ Watchdog triggered for room ${this.room.id}, status: ${this.engine['state'].status}`);
         try {
             const newState = this.engine.checkTimeouts();
@@ -146,5 +158,13 @@ export default class Server implements Party.Server {
 
     onClose(connection: Party.Connection) {
         this.connectionHandler.handleClose(connection);
+
+        // START SELF-DESTRUCT TIMER if room is empty
+        const connections = [...this.room.getConnections()];
+        if (connections.length === 0) {
+            console.log(`[Auto-Wipe] Room ${this.room.id} is empty. Self-destruct in 10m.`);
+            // 10 minutes in milliseconds
+            this.room.storage.setAlarm(Date.now() + 10 * 60 * 1000);
+        }
     }
 }
