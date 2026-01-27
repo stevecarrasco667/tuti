@@ -137,7 +137,30 @@ const rivalsActivity = computed(() => {
             @exit="showExitModal = true"
         />
 
-        <div class="flex-1 overflow-y-auto flex items-center justify-center p-4 relative w-full scroll-smooth">
+        <div class="flex-1 overflow-y-auto flex flex-col items-center justify-start p-4 relative w-full scroll-smooth">
+            
+            <!-- RIVALS HEADER (Medal Row) -->
+            <div v-if="rivalsActivity.length > 0 && gameState.status === 'PLAYING'" class="flex flex-wrap items-center justify-center gap-6 mb-6 w-full max-w-6xl mx-auto z-10">
+                <div v-for="rival in rivalsActivity" :key="rival.id" 
+                     class="flex flex-col items-center gap-1 group"
+                >
+                    <!-- Avatar -->
+                    <div class="relative transition-transform group-hover:scale-110">
+                         <div class="w-16 h-16 rounded-full bg-gradient-to-b from-indigo-500 to-indigo-700 border-2 border-white/20 flex items-center justify-center text-3xl shadow-xl relative z-10">
+                            {{ rival.avatar || '👤' }}
+                        </div>
+                        <!-- Status Ring (Optional visual flare) -->
+                         <div v-if="rival.isActive" class="absolute inset-0 rounded-full border-2 border-yellow-400/50 animate-pulse"></div>
+                    </div>
+                    
+                    <!-- Progress Badge -->
+                    <div class="bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-xs font-mono font-bold text-white shadow-lg flex items-center gap-1">
+                        <span :class="rival.isFinished ? 'text-green-400' : 'text-yellow-400'">{{ rival.filledCount }}</span>
+                        <span class="text-white/40">/</span>
+                        <span class="text-white/60">{{ rival.totalCategories }}</span>
+                    </div>
+                </div>
+            </div>
             <ActiveBoard 
                 v-if="gameState.status === 'PLAYING'"
                 :categories="gameState.categories"

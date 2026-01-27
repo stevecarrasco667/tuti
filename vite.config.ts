@@ -10,15 +10,13 @@ const __dirname = path.dirname(__filename)
 export default defineConfig({
     plugins: [vue()],
     // AÑADIMOS ESTA LÍNEA:
-    base: './', 
+    base: './',
     resolve: {
         alias: {
             '@shared': path.resolve(__dirname, './shared')
         }
     },
-    optimizeDeps: {
-        disabled: true
-    },
+
     server: {
         proxy: {
             '/party': {

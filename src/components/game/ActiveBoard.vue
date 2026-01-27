@@ -26,29 +26,24 @@ const handleInput = (category: string, event: Event) => {
 </script>
 
 <template>
-    <div class="w-full md:max-w-5xl mx-auto transition-all duration-500 ease-out">
+    <div class="w-full max-w-[95%] xl:max-w-7xl mx-auto transition-all duration-500 ease-out">
         
         <div class="bg-indigo-900/40 backdrop-blur-xl border border-white/10 rounded-3xl shadow-[0_0_40px_-10px_rgba(139,92,246,0.3)] overflow-hidden relative transition-all">
             
             <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-fuchsia-500 via-yellow-400 to-fuchsia-500 opacity-70"></div>
 
-            <div v-if="rivalsActivity.length > 0" class="bg-black/30 border-b border-white/5 px-4 py-3 flex items-center justify-center gap-4 overflow-x-auto scrollbar-hide">
-                <div v-for="rival in rivalsActivity" :key="rival.id" 
-                    class="flex items-center gap-2 opacity-90 transition-opacity"
-                    :title="rival.name"
-                >
-                    <div class="relative">
-                        <span class="text-2xl filter drop-shadow">{{ rival.avatar || '👤' }}</span>
-                        <div v-if="rival.isFinished" class="absolute -bottom-1 -right-1 bg-green-500 w-3 h-3 rounded-full border-2 border-black"></div>
-                    </div>
-                    <div class="bg-indigo-600/50 px-2 py-0.5 rounded-md border border-white/10 text-yellow-400 font-mono text-xs font-bold shadow-sm">
-                        {{ rival.filledCount }}/{{ rival.totalCategories }}
-                    </div>
-                </div>
-            </div>
+            <!-- Rivals Header REMOVED (Moved to GameView) -->
 
             <div class="p-5 md:p-8">
-                <div class="grid gap-4 grid-cols-1 md:grid-cols-2 md:gap-6">
+                <!-- Smart Grid Logic -->
+                <div class="grid gap-4 md:gap-6 items-start"
+                     :class="[
+                        'grid-cols-1',       // Mobile
+                        'md:grid-cols-2',    // Tablet
+                        'lg:grid-cols-3',    // Desktop Standard
+                        categories.length > 3 ? 'xl:grid-cols-4' : '' // Ultrawide optimization
+                     ]"
+                >
                     <div v-for="category in categories" :key="category" class="group">
                         <label class="block font-bold text-indigo-200 mb-1.5 transition-colors group-focus-within:text-yellow-400 truncate tracking-wide text-sm md:text-xs uppercase">
                             {{ category }}

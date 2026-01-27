@@ -19,7 +19,7 @@ defineEmits<{
 
 <template>
     <div class="flex-none bg-gradient-to-t from-black via-indigo-950/90 to-transparent p-4 pb-8 pt-12 -mt-8 z-30 pointer-events-none">
-        <div class="w-full max-w-4xl mx-auto flex items-center justify-between gap-4 pointer-events-auto">
+        <div class="w-full max-w-[95%] xl:max-w-7xl mx-auto flex items-center justify-between gap-4 pointer-events-auto">
             
             <!-- My Progress (Left) -->
              <div class="hidden md:flex flex-col w-20">
