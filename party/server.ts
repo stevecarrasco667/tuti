@@ -73,6 +73,10 @@ export default class Server implements Party.Server {
                     await this.gameHandler.handleStopRound(payload, sender);
                     break;
 
+                case "UPDATE_ANSWERS":
+                    await this.gameHandler.handleUpdateAnswers(payload, sender);
+                    break;
+
                 case "SUBMIT_ANSWERS":
                     await this.gameHandler.handleSubmitAnswers(payload, sender);
                     break;

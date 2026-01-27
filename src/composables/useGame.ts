@@ -45,6 +45,13 @@ export function useGame() {
 
             if (parsed.type === 'UPDATE_STATE') {
                 gameState.value = parsed.payload;
+            } else if (parsed.type === 'RIVAL_UPDATE') {
+                // [SILENT UPDATE] Optimize rendering by only updating specific field
+                const { playerId, filledCount } = parsed.payload;
+                const player = gameState.value.players.find(p => p.id === playerId);
+                if (player) {
+                    player.filledCount = filledCount;
+                }
             }
         } catch (e) {
             console.error('Failed to parse message:', e);

@@ -113,7 +113,11 @@ const rivalsActivity = computed(() => {
         .filter(p => p.id !== myUserId.value && p.isConnected)
         .map(p => {
             const pAnswers = gameState.value.answers[p.id] || {};
-            const filledCount = Object.values(pAnswers).filter(val => val && val.trim().length > 0).length;
+            // [SILENT UPDATE] Use specific field if available (O(1)), fallback to calculation (O(K))
+            const filledCount = p.filledCount !== undefined 
+                ? p.filledCount 
+                : Object.values(pAnswers).filter(val => val && val.trim().length > 0).length;
+            
             return {
                 id: p.id, name: p.name, avatar: p.avatar, filledCount, totalCategories,
                 isFinished: filledCount === totalCategories, isActive: filledCount > 0 && filledCount < totalCategories

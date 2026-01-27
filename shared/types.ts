@@ -8,6 +8,7 @@ export interface Player {
     isConnected: boolean;
     lastSeenAt: number;
     avatar: string;
+    filledCount?: number;
 }
 
 export interface GameConfig {
@@ -64,4 +65,5 @@ export type ClientMessage =
 // Messages sent from Server to Client
 export type ServerMessage =
     | { type: 'UPDATE_STATE'; payload: RoomState }
+    | { type: 'RIVAL_UPDATE'; payload: { playerId: string; filledCount: number } }
     | { type: 'SYSTEM'; payload: string };

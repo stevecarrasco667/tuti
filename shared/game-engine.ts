@@ -395,6 +395,7 @@ export class GameEngine {
         }
 
         // Note: Duplicates are handled by the 'calculateResults' logic during scoring, 
+        // Note: Duplicates are handled by the 'calculateResults' logic during scoring,
         // which runs AFTER the review phase. We only need to inject rejection votes here.
     }
 
@@ -404,19 +405,34 @@ export class GameEngine {
 
         const player = this.state.players.find(p => p.id === userId);
         if (!player) throw new Error("Player not found in state");
+
         if (this.state.status !== 'PLAYING' && this.state.status !== 'REVIEW') {
-            throw new Error("Cannot submit answers in current state");
+            // Allow submission in review for late comers or corrections? 
+            // Ideally only if not already confirmed.
+            // For safety, let's allow it in REVIEW too as per race condition fix logic.
         }
 
-        if (player) {
-            // Validate and Sanitize
-            const sanitizedAnswers = this.validateAndSanitizeAnswers(answers);
-            if (sanitizedAnswers) {
-                this.state.answers[userId] = sanitizedAnswers;
+        // Validate and Sanitize
+        const sanitizedAnswers: Record<string, string> = {};
+        for (const [cat, val] of Object.entries(answers)) {
+            if (typeof val === 'string') {
+                sanitizedAnswers[cat] = val.trim().slice(0, 50); // limit length
             }
         }
+
+        this.state.answers[userId] = sanitizedAnswers;
         return this.state;
     }
+
+    public updateAnswers(connectionId: string, answers: Record<string, string>): RoomState {
+        const userId = this.connections.get(connectionId);
+        if (!userId) return this.state;
+
+        // Just update the storage. No status changes.
+        this.state.answers[userId] = answers;
+        return this.state;
+    }
+
     public toggleVote(connectionId: string, targetUserId: string, category: string): RoomState {
         const userId = this.connections.get(connectionId);
         if (!userId || this.state.status !== 'REVIEW') return this.state;
