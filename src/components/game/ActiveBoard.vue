@@ -43,8 +43,8 @@ const handleInput = (category: string, event: Event) => {
             <!-- Board Header / Decoration -->
             <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-fuchsia-500 via-yellow-400 to-fuchsia-500 opacity-70"></div>
 
-            <!-- Rivals HUD (Numeric Badges) -->
-                <div v-if="rivalsActivity.length > 0" class="bg-black/30 border-b border-white/5 px-4 py-3 flex items-center justify-center gap-4 overflow-x-auto scrollbar-hide">
+            <!-- Rivals HUD (Numeric Badges) - Mobile Only -->
+                <div v-if="rivalsActivity.length > 0" class="md:hidden bg-black/30 border-b border-white/5 px-4 py-3 flex items-center justify-center gap-4 overflow-x-auto scrollbar-hide">
                     <div v-for="rival in rivalsActivity" :key="rival.id" 
                         class="flex items-center gap-2 opacity-90 transition-opacity"
                         :title="rival.name"
@@ -64,7 +64,8 @@ const handleInput = (category: string, event: Event) => {
             <div class="p-5 md:p-8">
                 
                 <!-- PLAYING: Inputs Grid -->
-                <div class="grid gap-4" :class="boardConfig.gridCols">
+                <!-- Force 2 cols on desktop, fallback to boardConfig on mobile (usually 1) -->
+                <div class="grid gap-4 md:grid-cols-2 md:gap-6 items-start" :class="boardConfig.gridCols">
                     <div v-for="category in categories" :key="category" class="group">
                         <label class="block font-bold text-indigo-200 mb-1.5 transition-colors group-focus-within:text-yellow-400 truncate tracking-wide"
                                 :class="boardConfig.labelSize"

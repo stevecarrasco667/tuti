@@ -250,8 +250,42 @@ const rivalsActivity = computed(() => {
         />
 
         <!-- === B. MAIN STAGE (The Board) === -->
-        <div class="flex-1 overflow-y-auto flex items-center justify-center p-4 relative w-full scroll-smooth">
+        <div class="flex-1 overflow-y-auto flex items-start justify-center p-0 md:p-4 relative w-full scroll-smooth">
             
+            <!-- DESKTOP CARD CONTAINER -->
+            <div class="w-full md:max-w-6xl md:mx-auto md:my-4 md:p-8 md:bg-black/20 md:backdrop-blur-xl md:rounded-3xl md:border md:border-white/10 md:shadow-2xl transition-all duration-500 flex flex-col items-center">
+            
+            <!-- COMPETITORS HEADER (Desktop Only/Enhanced) -->
+            <div v-if="rivalsActivity.length > 0 && gameState.status === 'PLAYING'" class="w-full flex flex-wrap justify-center gap-6 mb-8">
+                 <div v-for="rival in rivalsActivity" :key="rival.id" 
+                      class="flex flex-col items-center gap-2 opacity-90 hover:opacity-100 transition-all transform hover:scale-105"
+                      :title="rival.name"
+                 >
+                    <div class="relative group cursor-help">
+                        <!-- Avatar Shield -->
+                        <div class="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-600 to-violet-800 border-2 border-white/20 flex items-center justify-center text-3xl shadow-lg relative z-10">
+                            {{ rival.avatar || '👤' }}
+                        </div>
+                        
+                        <!-- Status Indicator Ring -->
+                        <svg class="absolute -top-1 -left-1 w-16 h-16 pointer-events-none transform -rotate-90">
+                            <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="3" fill="transparent" class="text-black/30" />
+                            <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="3" fill="transparent" 
+                                class="text-yellow-400 transition-all duration-700 ease-out"
+                                :stroke-dasharray="175.9"
+                                :stroke-dashoffset="175.9 - (175.9 * (rival.filledCount / rival.totalCategories))"
+                            />
+                        </svg>
+
+                        <!-- Done Checkmark -->
+                        <div v-if="rival.isFinished" class="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs border-2 border-black z-20 shadow-sm animate-bounce">✓</div>
+                    </div>
+                    
+                    <!-- Name Tag -->
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-200/60 group-hover:text-white transition-colors">{{ rival.name }}</span>
+                 </div>
+            </div>
+
             <!-- PLAYING PHASE -->
             <ActiveBoard 
                 v-if="gameState.status === 'PLAYING'"
@@ -282,7 +316,6 @@ const rivalsActivity = computed(() => {
                 @next-cat="nextCategory"
             />
             
-            <!-- RESULTS PHASE -->
             <ResultsRanking
                 v-else-if="gameState.status === 'RESULTS'"
                 :players="sortedPlayers"
@@ -292,20 +325,28 @@ const rivalsActivity = computed(() => {
                 :get-player-status="getPlayerStatusForRanking"
             />
 
+            <!-- === C. FOOTER (Action Zone) - INSIDE CARD === -->
+            <!-- Sticky bottom of card on Desktop, Fixed bottom on Mobile (via Footer component logic or classes override) -->
+            <div class="w-full mt-auto pt-8">
+                 <GameFooter 
+                    :status="gameState.status"
+                    :am-i-host="amIHost"
+                    :can-stop="canStopRound"
+                    :cooldown="validationCooldown"
+                    :has-confirmed="hasConfirmed"
+                    :my-progress="{
+                        current: Object.values(answers).filter(v => v && v.trim()).length,
+                        total: gameState.categories.length
+                    }"
+                    @stop="handleStop"
+                    @confirm-votes="handleConfirmVotes"
+                    @next-round="startGame()"
+                />
+            </div>
+
+            </div> <!-- End Desktop Card -->
         </div>
 
-        <!-- === C. FOOTER (Action Zone) === -->
-        <GameFooter 
-            :status="gameState.status"
-            :am-i-host="amIHost"
-            :can-stop="canStopRound"
-            :cooldown="validationCooldown"
-            :has-confirmed="hasConfirmed"
-            :my-progress="{ current: Object.values(answers).filter(v => v?.trim()).length, total: gameState.categories.length }"
-            @stop="handleStop"
-            @confirm-votes="handleConfirmVotes"
-            @next-round="startGame"
-        />
 
         <!-- TOASTS (Top Right) -->
         <div class="fixed top-20 right-4 z-[60] flex flex-col items-end gap-2 pointer-events-none">
