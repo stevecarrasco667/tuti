@@ -164,25 +164,7 @@ const handleInputFocus = (event: Event) => {
     }, 300);
 };
 
-// --- SMART BOARD ENGINE (Responsive Logic) ---
-const boardConfig = computed(() => {
-    const count = gameState.value.categories.length;
-    if (count <= 5) {
-        return {
-            containerMaxWidth: "max-w-md",
-            gridCols: "grid-cols-1",
-            inputSize: "py-3 px-3 text-2xl h-14",
-            labelSize: "text-sm"
-        };
-    } else {
-        return {
-            containerMaxWidth: "max-w-4xl",
-            gridCols: "grid-cols-2",
-            inputSize: "py-2 px-3 text-lg h-12",
-            labelSize: "text-xs"
-        };
-    }
-});
+
 
 // Sorted players for Ranking
 const sortedPlayers = computed(() => {
@@ -292,7 +274,6 @@ const rivalsActivity = computed(() => {
                 :categories="gameState.categories"
                 :model-value="answers"
                 :current-letter="gameState.currentLetter"
-                :board-config="boardConfig"
                 :rivals-activity="rivalsActivity"
                 @update:model-value="(val) => answers = val"
                 @input-focus="handleInputFocus"

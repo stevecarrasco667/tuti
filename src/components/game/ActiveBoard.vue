@@ -5,12 +5,6 @@ const props = defineProps<{
     categories: string[];
     modelValue: Record<string, string>;
     currentLetter: string | null;
-    boardConfig: {
-        containerMaxWidth: string;
-        gridCols: string;
-        inputSize: string;
-        labelSize: string;
-    };
     rivalsActivity: Array<{
         id: string;
         name: string;
@@ -35,7 +29,7 @@ const handleInput = (category: string, event: Event) => {
 </script>
 
 <template>
-    <div class="w-full transition-all duration-500 ease-out" :class="boardConfig.containerMaxWidth">
+    <div class="w-full md:max-w-5xl mx-auto transition-all duration-500 ease-out">
                 
         <!-- THE ELECTRIC BOARD -->
         <div class="bg-indigo-900/40 backdrop-blur-xl border border-white/10 rounded-3xl shadow-[0_0_40px_-10px_rgba(139,92,246,0.3)] overflow-hidden relative transition-all">
@@ -64,11 +58,10 @@ const handleInput = (category: string, event: Event) => {
             <div class="p-5 md:p-8">
                 
                 <!-- PLAYING: Inputs Grid -->
-                <!-- Force 2 cols on desktop, fallback to boardConfig on mobile (usually 1) -->
-                <div class="grid gap-4 md:grid-cols-2 md:gap-6 items-start" :class="boardConfig.gridCols">
+                <!-- Force 2 cols on desktop -->
+                <div class="grid gap-4 grid-cols-1 md:grid-cols-2 md:gap-6 items-start">
                     <div v-for="category in categories" :key="category" class="group">
-                        <label class="block font-bold text-indigo-200 mb-1.5 transition-colors group-focus-within:text-yellow-400 truncate tracking-wide"
-                                :class="boardConfig.labelSize"
+                        <label class="block font-bold text-indigo-200 mb-1.5 transition-colors group-focus-within:text-yellow-400 truncate tracking-wide text-sm"
                         >
                             {{ category }}
                         </label>
@@ -80,8 +73,7 @@ const handleInput = (category: string, event: Event) => {
                                 @keydown.enter.prevent
                                 type="text"
                                 autocomplete="off"
-                                class="w-full bg-black/20 border-b-2 border-white/10 text-white rounded-t-lg focus:bg-black/40 focus:border-yellow-400 focus:shadow-[0_4px_15px_-5px_rgba(250,204,21,0.4)] outline-none transition-all placeholder-white/10 font-medium"
-                                :class="boardConfig.inputSize"
+                                class="w-full bg-black/20 border-b-2 border-white/10 text-white rounded-t-lg focus:bg-black/40 focus:border-yellow-400 focus:shadow-[0_4px_15px_-5px_rgba(250,204,21,0.4)] outline-none transition-all placeholder-white/10 font-medium h-14 md:h-12 py-3 md:py-2 px-3 text-2xl md:text-lg"
                                 :placeholder="(currentLetter || '') + '...'"
                             >
                             <!-- Status Dot (Subtle) -->
