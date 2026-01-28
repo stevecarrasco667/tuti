@@ -1,6 +1,7 @@
 import { RoomState, Player, GameConfig } from './types.js';
 import { RoundAnswersSchema } from './schemas.js';
 import { validateWord } from './validator.js';
+import { ScoreSystem } from './systems/score-system.js';
 
 export interface CategoryItem {
     id: string;
@@ -98,6 +99,7 @@ export const MASTER_CATEGORIES: CategoryItem[] = [
 
 export class GameEngine {
     private state: RoomState;
+    private scoreSystem = new ScoreSystem();
 
     private connections: Map<string, string>; // ConnectionId -> UserId
 
@@ -521,69 +523,7 @@ export class GameEngine {
     }
 
     private calculateResults() {
-        this.state.status = 'RESULTS';
-        const totalPlayers = this.state.players.length;
-
-        // Initialize structures
-        this.state.answerStatuses = {};
-        this.state.players.forEach(p => {
-            this.state.answerStatuses[p.id] = {};
-            this.state.roundScores[p.id] = 0;
-        });
-
-        // Loop per category to analyze duplicates
-        for (const category of this.state.categories) {
-
-            // 1. Collect Valid Answers (Not empty, Not voted out)
-            const validAnswersMap: Record<string, string[]> = {}; // Normalized Word -> [PlayerIds]
-
-            this.state.players.forEach(player => {
-                const rawAnswer = this.state.answers[player.id]?.[category];
-
-                // Check empty
-                if (!rawAnswer || !rawAnswer.trim()) {
-                    this.state.answerStatuses[player.id][category] = 'INVALID';
-                    return;
-                }
-
-                // Check voting (Invalidation)
-                const negativeVotes = this.state.votes[player.id]?.[category]?.length || 0;
-                if (negativeVotes > totalPlayers / 2) {
-                    this.state.answerStatuses[player.id][category] = 'INVALID';
-                    return;
-                }
-
-                // It is potentially valid. Add to frequency map.
-                // Normalize: Lowercase + remove accents
-                const normalized = rawAnswer.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
-                if (!validAnswersMap[normalized]) validAnswersMap[normalized] = [];
-                validAnswersMap[normalized].push(player.id);
-            });
-
-            // 2. Assign Scores based on Frequency
-            Object.entries(validAnswersMap).forEach(([_word, playerIds]) => {
-                const isDuplicate = playerIds.length > 1;
-                const points = isDuplicate ? 50 : 100;
-                const status = isDuplicate ? 'DUPLICATE' : 'VALID';
-
-                playerIds.forEach(pid => {
-                    this.state.answerStatuses[pid][category] = status;
-
-                    // Add Score
-                    this.state.roundScores[pid] = (this.state.roundScores[pid] || 0) + points;
-
-                    const player = this.state.players.find(p => p.id === pid);
-                    if (player) player.score += points;
-                });
-            });
-        }
-
-        // Clear voting timer
-        this.state.timers.votingEndsAt = null;
-
-        // Set 10 second timer for results screen
-        this.state.timers.resultsEndsAt = Date.now() + 10000; // 10 seconds
+        this.scoreSystem.calculate(this.state);
     }
 
 
