@@ -18,6 +18,7 @@ export interface GameConfig {
     totalRounds: number;
     mode: 'RANDOM' | 'MANUAL';
     selectedCategories: string[];
+    customCategories: string[];
 }
 
 export type AnswerStatus = 'VALID' | 'DUPLICATE' | 'INVALID';

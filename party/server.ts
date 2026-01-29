@@ -62,7 +62,7 @@ export default class Server implements Party.Server {
             const state = sender.state as { userId: string } | null;
             if (state && state.userId) {
                 // 2. Reparar el mapa del engine antes de procesar nada
-                this.engine.registerConnection(sender.id, state.userId);
+                this.engine.players.reconnect(this.engine.getState(), sender.id, state.userId);
             }
 
             console.log(`[Message] ${type} from ${sender.id}`);
