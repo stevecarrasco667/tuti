@@ -3,6 +3,7 @@ import { RoundAnswersSchema } from './schemas.js';
 import { validateWord } from './validator.js';
 import { ScoreSystem } from './systems/score-system.js';
 import { RoundManager } from './systems/round-manager.js';
+import { PlayerManager } from './systems/player-manager.js';
 
 export interface CategoryItem {
     id: string;
@@ -102,8 +103,9 @@ export class GameEngine {
     private state: RoomState;
     private scoreSystem = new ScoreSystem();
     private rounds: RoundManager;
+    public players = new PlayerManager();
 
-    private connections: Map<string, string>; // ConnectionId -> UserId
+    // ConnectionId -> UserId logic is now in PlayerManager
 
     constructor(roomId: string, private onGameStateChange?: (state: RoomState) => void) {
         this.rounds = new RoundManager();
@@ -136,7 +138,7 @@ export class GameEngine {
             },
             stoppedBy: null
         };
-        this.connections = new Map();
+        // connections map removed
     }
 
     public getState(): RoomState {
@@ -149,11 +151,11 @@ export class GameEngine {
     }
 
     public registerConnection(connectionId: string, userId: string): void {
-        this.connections.set(connectionId, userId);
+        this.players.reconnect(this.state, connectionId, userId);
     }
 
     public updateConfig(connectionId: string, newConfig: Partial<GameConfig>): RoomState {
-        const userId = this.connections.get(connectionId);
+        const userId = this.players.getPlayerId(connectionId);
         if (!userId) return this.state;
 
         const player = this.state.players.find(p => p.id === userId);
@@ -161,124 +163,54 @@ export class GameEngine {
         // Only host can update config, and only in LOBBY
         if (player && player.isHost && this.state.status === 'LOBBY') {
             this.state.config = { ...this.state.config, ...newConfig };
-            // Update initial preview of categories immediately if count changes? 
-            // Better to just wait for start game to pick randoms. 
-            // But we could refresh current categories list for UI feedback if we wanted.
-
-            // Validate limits just in case (though schemas handle input validation usually)
             if (this.state.config.categoriesCount < 1) this.state.config.categoriesCount = 1;
             if (this.state.config.categoriesCount > 10) this.state.config.categoriesCount = 10;
-
-            // Validate Manual Config
-            if (this.state.config.mode === 'MANUAL') {
-                // Ensure selectedCategories respects the count limit logic or overrides it?
-                // Let's stick to: count is derived from length in manual mode usually, OR we enforce selection matches count.
-                // Easier: In manual mode, keys are keys.
-                // We won't auto-truncate here, but we will check length at start.
-            }
         }
         return this.state;
     }
 
     public joinPlayer(userId: string, name: string, avatar: string, connectionId: string): RoomState {
-        this.connections.set(connectionId, userId);
-
-        const existingPlayer = this.state.players.find(p => p.id === userId);
-        if (existingPlayer) {
-            existingPlayer.name = name;
-            existingPlayer.avatar = avatar;
-            existingPlayer.isConnected = true;
-            existingPlayer.lastSeenAt = Date.now();
+        // Try Reconnect First
+        if (this.players.reconnect(this.state, connectionId, userId)) {
             return this.state;
         }
 
-        const newPlayer: Player = {
-            id: userId,
-            name,
-            avatar,
-            score: 0,
-            isHost: this.state.players.length === 0, // First player is host
-            isConnected: true,
-            lastSeenAt: Date.now()
-        };
-
-        this.state.players.push(newPlayer);
-
-        // Ensure there is always an active host
-        this.ensureActiveHost();
+        // Add New Player (Manager handles name handling & host assignment)
+        this.players.add(this.state, connectionId, { id: userId, name, avatar });
 
         return this.state;
     }
 
     public playerDisconnected(connectionId: string): RoomState {
-        const userId = this.connections.get(connectionId);
-        if (userId) {
-            this.connections.delete(connectionId);
+        this.players.remove(this.state, connectionId);
 
-            const player = this.state.players.find(p => p.id === userId);
-            if (player) {
-                player.isConnected = false;
-                player.lastSeenAt = Date.now();
+        // ABANDONMENT CHECK
+        // If game is active and not enough players remain, end it.
+        if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW') {
+            const activePlayers = this.state.players.filter(p => p.isConnected);
+            if (activePlayers.length < 2) {
+                console.log(`[GAME OVER] Abandonment detected. Active players: ${activePlayers.length}`);
+                this.state.status = 'GAME_OVER';
+                this.state.gameOverReason = 'ABANDONED';
 
-                if (player.isHost) {
-                    // Host disconnected, try to reassign immediately
-                    this.ensureActiveHost();
-                }
-
-                // If in REVIEW, check if this disconnection unblocks the game
-                if (this.state.status === 'REVIEW') {
-                    this.checkConsensus();
-                }
-
-                // ABANDONMENT CHECK
-                // If game is active and not enough players remain, end it.
-                if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW') {
-                    const activePlayers = this.state.players.filter(p => p.isConnected);
-                    if (activePlayers.length < 2) {
-                        console.log(`[GAME OVER] Abandonment detected. Active players: ${activePlayers.length}`);
-                        this.state.status = 'GAME_OVER';
-                        this.state.gameOverReason = 'ABANDONED';
-
-                        // Clear all timers
-                        this.state.timers.roundEndsAt = null;
-                        this.state.timers.votingEndsAt = null;
-                        this.state.timers.resultsEndsAt = null;
-                    }
-                }
+                // Clear all timers
+                this.state.timers.roundEndsAt = null;
+                this.state.timers.votingEndsAt = null;
+                this.state.timers.resultsEndsAt = null;
             }
         }
+
         return this.state;
     }
 
-    private ensureActiveHost() {
-        // 1. Check if we currently have a CONNECTED host
-        const activeHost = this.state.players.find(p => p.isHost && p.isConnected);
-        if (activeHost) return; // We are good
-
-        // 2. No active host (either no host at all, or host is disconnected)
-        // Dethrone offline players to avoid confusion/multi-host (though we only pick one new one)
-        this.state.players.forEach(p => {
-            if (!p.isConnected) p.isHost = false;
-        });
-
-        // 3. Appoint new host: First connected player
-        const newHost = this.state.players.find(p => p.isConnected);
-        if (newHost) {
-            newHost.isHost = true;
-            console.log(`[HOST PROTECTION] New host assigned: ${newHost.name} (${newHost.id})`);
-        } else {
-            console.log(`[HOST PROTECTION] No active players to assign host.`);
-        }
+    // ensureActiveHost moved to PlayerManager
+    public ensureActiveHost() {
+        // NO-OP or helper if needed wrapper
+        // this.players.ensureActiveHost(this.state);
     }
 
-    // We do NOT remove the player from the list to support reconnection (F5).
-    // They remain in the state.
-
-    // Note: If we wanted to reassign host on long disconnection, we'd need a timer or explicit "leave" action.
-    // For now, we trust the host comes back or the room dies if everyone leaves.
-
     public startGame(connectionId: string): RoomState {
-        const userId = this.connections.get(connectionId);
+        const userId = this.players.getPlayerId(connectionId);
         if (!userId) throw new Error("Connection not mapped to a player");
 
         const player = this.state.players.find(p => p.id === userId);
@@ -326,7 +258,7 @@ export class GameEngine {
     }
 
     public stopRound(connectionId: string, answers: Record<string, string>): RoomState {
-        const userId = this.connections.get(connectionId);
+        const userId = this.players.getPlayerId(connectionId);
         if (!userId) throw new Error("Connection not mapped to a player");
 
         const player = this.state.players.find(p => p.id === userId);
@@ -403,7 +335,7 @@ export class GameEngine {
     }
 
     public submitAnswers(connectionId: string, answers: Record<string, string>): RoomState {
-        const userId = this.connections.get(connectionId);
+        const userId = this.players.getPlayerId(connectionId);
         if (!userId) throw new Error("Connection not mapped to a player");
 
         const player = this.state.players.find(p => p.id === userId);
@@ -428,7 +360,7 @@ export class GameEngine {
     }
 
     public updateAnswers(connectionId: string, answers: Record<string, string>): RoomState {
-        const userId = this.connections.get(connectionId);
+        const userId = this.players.getPlayerId(connectionId);
         if (!userId) return this.state;
 
         // Just update the storage. No status changes.
@@ -437,7 +369,7 @@ export class GameEngine {
     }
 
     public toggleVote(connectionId: string, targetUserId: string, category: string): RoomState {
-        const userId = this.connections.get(connectionId);
+        const userId = this.players.getPlayerId(connectionId);
         if (!userId || this.state.status !== 'REVIEW') return this.state;
         if (userId === targetUserId) return this.state; // Cannot vote self
 
@@ -455,7 +387,7 @@ export class GameEngine {
     }
 
     public confirmVotes(connectionId: string): RoomState {
-        const userId = this.connections.get(connectionId);
+        const userId = this.players.getPlayerId(connectionId);
         if (!userId || this.state.status !== 'REVIEW') return this.state;
 
         if (!this.state.whoFinishedVoting.includes(userId)) {
@@ -478,26 +410,9 @@ export class GameEngine {
     }
 
     public kickPlayer(hostConnectionId: string, targetUserId: string): RoomState {
-        const hostId = this.connections.get(hostConnectionId);
-        if (!hostId) throw new Error("Connection not mapped to a player");
+        const success = this.players.kick(this.state, hostConnectionId, targetUserId);
 
-        const hostPlayer = this.state.players.find(p => p.id === hostId);
-        if (!hostPlayer || !hostPlayer.isHost) throw new Error("Only host can kick players");
-
-        if (hostId === targetUserId) return this.state; // Cannot kick self
-
-        // Remove player
-        const playerIndex = this.state.players.findIndex(p => p.id === targetUserId);
-        if (playerIndex !== -1) {
-            // Remove from array
-            this.state.players.splice(playerIndex, 1);
-
-            // Clean up connections map (inefficient but safe scan)
-            for (const [connId, uid] of this.connections.entries()) {
-                if (uid === targetUserId) {
-                    this.connections.delete(connId);
-                }
-            }
+        if (success) {
 
             // Clean up state
             delete this.state.answers[targetUserId];
@@ -548,7 +463,7 @@ export class GameEngine {
     }
 
     public restartGame(requestorId: string): RoomState {
-        const userId = this.connections.get(requestorId);
+        const userId = this.players.getPlayerId(requestorId);
         const player = this.state.players.find(p => p.id === userId);
 
         // Validate Host
