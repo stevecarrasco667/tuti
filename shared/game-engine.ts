@@ -2,6 +2,7 @@ import { RoomState, Player, GameConfig } from './types.js';
 import { RoundAnswersSchema } from './schemas.js';
 import { validateWord } from './validator.js';
 import { ScoreSystem } from './systems/score-system.js';
+import { RoundManager } from './systems/round-manager.js';
 
 export interface CategoryItem {
     id: string;
@@ -100,10 +101,12 @@ export const MASTER_CATEGORIES: CategoryItem[] = [
 export class GameEngine {
     private state: RoomState;
     private scoreSystem = new ScoreSystem();
+    private rounds: RoundManager;
 
     private connections: Map<string, string>; // ConnectionId -> UserId
 
-    constructor(roomId: string) {
+    constructor(roomId: string, private onGameStateChange?: (state: RoomState) => void) {
+        this.rounds = new RoundManager();
         this.state = {
             status: 'LOBBY',
             players: [],
@@ -293,32 +296,33 @@ export class GameEngine {
             if (this.state.status === 'LOBBY' || this.state.status === 'GAME_OVER') {
                 this.state.roundsPlayed = 0; // Explicit safety reset
 
-                this.state.status = 'PLAYING';
-                this.state.currentLetter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.charAt(Math.floor(Math.random() * 26));
-
                 // Select categories based on mode
                 if (this.state.config.mode === 'MANUAL' && this.state.config.selectedCategories.length >= 3) {
                     this.state.categories = [...this.state.config.selectedCategories];
                 } else {
-                    // RANDOM MODE (or fallback if manual is empty)
-                    // shuffle objects then map to names
+                    // Random mode
                     const shuffled = [...MASTER_CATEGORIES].sort(() => 0.5 - Math.random());
                     this.state.categories = shuffled.slice(0, this.state.config.categoriesCount).map(c => c.name);
                 }
 
-                this.state.answers = {}; // Reset answers for new round
-                // Reset Voting System
-                this.state.votes = {};
-                this.state.whoFinishedVoting = [];
-                this.state.roundScores = {};
-
-                // Set Timer
-                this.state.timers.roundEndsAt = Date.now() + (this.state.config.roundDuration * 1000);
-                this.state.timers.votingEndsAt = null;
-                this.state.stoppedBy = null;
+                // Delegate Round Start to Manager
+                this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp());
             }
+
+            return this.state;
         }
         return this.state;
+    }
+
+    // Callback for RoundManager when time is up
+    private handleTimeUp() {
+        console.log("[GameEngine] auto-stop triggered by timer.");
+        this.rounds.stopRound(this.state, this.state.config);
+
+        // BROADCAST BRIDGE: Notify server to send update
+        if (this.onGameStateChange) {
+            this.onGameStateChange(this.state);
+        }
     }
 
     public stopRound(connectionId: string, answers: Record<string, string>): RoomState {
@@ -334,19 +338,16 @@ export class GameEngine {
         if (this.state.status !== 'PLAYING') throw new Error("Game is not in PLAYING state");
 
         if (player) {
-            this.state.status = 'REVIEW';
-
             // Validate and Sanitize
             const sanitizedAnswers = this.validateAndSanitizeAnswers(answers);
             if (!sanitizedAnswers) return this.state; // Invalid payload
 
             this.state.answers[userId] = sanitizedAnswers;
 
-            // Cancel Round Timer (server will handle clearing alarm if needed, or check state)
-            this.state.timers.roundEndsAt = null;
-            // Set Voting Timer
-            this.state.timers.votingEndsAt = Date.now() + (this.state.config.votingDuration * 1000);
-            this.state.stoppedBy = userId;
+            this.state.stoppedBy = userId || 'SYSTEM';
+
+            // Delegate Stop to Manager
+            this.rounds.stopRound(this.state, this.state.config);
 
             // --- 1vs1 GHOST VOTING ---
             // If strictly 2 active players, we automate the "voting" judgment
@@ -535,56 +536,13 @@ export class GameEngine {
         // If we are already in Playing, ignore
         if (this.state.status === 'PLAYING') return this.state;
 
-        // Increment round counter (We are ATTEMPTING to start the next round)
-        // 0 -> 1 (End of Round 1 attempt)
-        this.state.roundsPlayed++;
+        // Delegate Next Round Logic
+        const continueGame = this.rounds.nextRound(this.state, this.state.config);
 
-        // Check if Game Over condition is met
-        // If roundsPlayed (e.g. 2) >= totalRounds (2), we are done.
-        if (this.state.roundsPlayed >= this.state.config.totalRounds) {
-            this.state.status = 'GAME_OVER';
-            // Clear timers
-            this.state.timers.roundEndsAt = null;
-            this.state.timers.votingEndsAt = null;
-            this.state.timers.resultsEndsAt = null;
-            return this.state;
+        if (continueGame) {
+            // Start the round
+            this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp());
         }
-
-        // Logic similar to startGame but without resetting scores
-        // Randomize letter
-        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        this.state.currentLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
-
-        // Rotate categories randomly for variety or keep manual
-        if (this.state.config.mode === 'MANUAL' && this.state.config.selectedCategories.length >= 3) {
-            this.state.categories = [...this.state.config.selectedCategories];
-            // In manual mode, we usually keep the SAME categories every round? Or shuffle them?
-            // "Tutti Frutti" usually means same categories, different letter.
-            // So we just keep them.
-        } else {
-            // shuffle objects then map to names
-            const shuffled = [...MASTER_CATEGORIES].sort(() => 0.5 - Math.random());
-            this.state.categories = shuffled.slice(0, this.state.config.categoriesCount).map(c => c.name);
-        }
-
-        this.state.status = 'PLAYING';
-
-        // Clear previous answers
-        this.state.answers = {};
-        this.state.players.forEach(p => {
-            this.state.answers[p.id] = {};
-        });
-
-        // Reset Voting System
-        this.state.votes = {};
-        this.state.whoFinishedVoting = [];
-        this.state.roundScores = {};
-
-        // Set Timer
-        this.state.timers.roundEndsAt = Date.now() + (this.state.config.roundDuration * 1000);
-        this.state.timers.votingEndsAt = null;
-        this.state.timers.resultsEndsAt = null;
-        this.state.stoppedBy = null;
 
         return this.state;
     }

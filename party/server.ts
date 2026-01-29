@@ -25,7 +25,11 @@ export default class Server implements Party.Server {
 
     constructor(room: Party.Room) {
         this.room = room;
-        this.engine = new GameEngine(room.id);
+        this.engine = new GameEngine(room.id, (newState) => {
+            // [Broadcast Bridge]
+            // When the engine changes state internally (e.g. timeout), notify all clients.
+            this.room.broadcast(JSON.stringify({ type: 'UPDATE_STATE', payload: newState }));
+        });
 
         // Instantiate Handlers
         this.connectionHandler = new ConnectionHandler(room, this.engine);
