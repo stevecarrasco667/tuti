@@ -69,4 +69,14 @@ export class RoundManager {
         }
         return true; // Continue
     }
+
+    /**
+     * Cancels any active timer. Used for server-side forced stops (Game Over).
+     */
+    public cancelTimer() {
+        if (this.timer) {
+            clearTimeout(this.timer);
+            this.timer = null;
+        }
+    }
 }

@@ -141,16 +141,17 @@ export class GameEngine {
     public playerDisconnected(connectionId: string): RoomState {
         this.players.remove(this.state, connectionId);
 
-        // ABANDONMENT CHECK
-        // If game is active and not enough players remain, end it.
+        // ABANDONMENT CHECK (RELAXED)
+        // Only end if total players (connected + zombies) < 2
+        // This allows zombies to exist while timer is running.
         if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW') {
-            const activePlayers = this.state.players.filter(p => p.isConnected);
-            if (activePlayers.length < 2) {
-                console.log(`[GAME OVER] Abandonment detected. Active players: ${activePlayers.length}`);
+            if (this.state.players.length < 2) {
+                console.log(`[GAME OVER] Not enough players (Active+Zombie) to continue.`);
                 this.state.status = 'GAME_OVER';
                 this.state.gameOverReason = 'ABANDONED';
 
                 // Clear timers
+                this.rounds.cancelTimer();
                 this.state.timers.roundEndsAt = null;
                 this.state.timers.votingEndsAt = null;
                 this.state.timers.resultsEndsAt = null;
@@ -165,13 +166,33 @@ export class GameEngine {
         // Purge players disconnected > 60s
         const changed = this.players.removeInactive(this.state, 60000);
 
-        if (changed) {
-            // If anyone was purged, we must broadcast the updated list
+        let stateChanged = changed;
+
+        // REAL "PULL PLUG" CHECK
+        // If after purging zombies we have < 2 players left, kill the game.
+        if ((this.state.status === 'PLAYING' || this.state.status === 'REVIEW') && this.state.players.length < 2) {
+            console.log(`[GAME OVER] Abandonment after Zombie Purge.`);
+            this.state.status = 'GAME_OVER';
+            this.state.gameOverReason = 'ABANDONED';
+
+            // Kill server timer
+            this.rounds.cancelTimer();
+
+            // Clear UI timers
+            this.state.timers.roundEndsAt = null;
+            this.state.timers.votingEndsAt = null;
+            this.state.timers.resultsEndsAt = null;
+
+            stateChanged = true;
+        }
+
+        if (stateChanged) {
+            // If anyone was purged OR game ended, we must broadcast
             if (this.onGameStateChange) {
                 this.onGameStateChange(this.state);
             }
         }
-        return changed; // Return true to let caller know state mutated
+        return stateChanged;
     }
 
     // --- CONFIGURATION ---
