@@ -78,6 +78,7 @@ const handleInput = (category: string, event: Event) => {
     }
     answers.value[category] = val;
     debouncedUpdateAnswers(answers.value);
+    playClick(); // Feedback tactile & Unlock
 };
 
 const hydrateLocalState = () => {
@@ -92,6 +93,7 @@ const showExitModal = ref(false);
 const handleExit = () => { leaveGame(); showExitModal.value = false; };
 
 const handleInputFocus = (event: Event) => {
+    playClick(); // Audio Context Unlock
     const target = event.target as HTMLElement;
     setTimeout(() => { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
 };
@@ -110,7 +112,7 @@ const getPlayerStatusForRanking = (playerId: string, category: string) => {
 const rivalsActivity = computed(() => {
     const totalCategories = gameState.value.categories.length;
     return gameState.value.players
-        .filter(p => p.id !== myUserId.value && p.isConnected)
+                .filter(p => p.id !== myUserId.value) // Show everyone, even disconnected
         .map(p => {
             const pAnswers = gameState.value.answers[p.id] || {};
             // [SILENT UPDATE] Use specific field if available (O(1)), fallback to calculation (O(K))
@@ -120,7 +122,8 @@ const rivalsActivity = computed(() => {
             
             return {
                 id: p.id, name: p.name, avatar: p.avatar, filledCount, totalCategories,
-                isFinished: filledCount === totalCategories, isActive: filledCount > 0 && filledCount < totalCategories
+                isFinished: filledCount === totalCategories, isActive: filledCount > 0 && filledCount < totalCategories,
+                isConnected: p.isConnected
             };
         });
 });
@@ -146,15 +149,16 @@ const rivalsActivity = computed(() => {
             <!-- RIVALS HEADER (Medal Row) -->
             <div v-if="rivalsActivity.length > 0 && gameState.status === 'PLAYING'" class="flex flex-wrap items-center justify-center gap-6 mb-6 w-full max-w-6xl mx-auto z-10">
                 <div v-for="rival in rivalsActivity" :key="rival.id" 
-                     class="flex flex-col items-center gap-1 group"
+                     class="flex flex-col items-center gap-1 group transition-all duration-500"
+                     :class="{'opacity-50 grayscale': !rival.isConnected}"
                 >
                     <!-- Avatar -->
                     <div class="relative transition-transform group-hover:scale-110">
                          <div class="w-16 h-16 rounded-full bg-gradient-to-b from-indigo-500 to-indigo-700 border-2 border-white/20 flex items-center justify-center text-3xl shadow-xl relative z-10">
-                            {{ rival.avatar || '👤' }}
+                            {{ rival.isConnected ? (rival.avatar || '👤') : '🔌' }}
                         </div>
                         <!-- Status Ring (Optional visual flare) -->
-                         <div v-if="rival.isActive" class="absolute inset-0 rounded-full border-2 border-yellow-400/50 animate-pulse"></div>
+                         <div v-if="rival.isActive && rival.isConnected" class="absolute inset-0 rounded-full border-2 border-yellow-400/50 animate-pulse"></div>
                     </div>
                     
                     <!-- Progress Badge -->
