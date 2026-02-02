@@ -27,20 +27,24 @@ export class GameHandler extends BaseHandler {
     // [SILENT UPDATE] Optimized for bandwidth (O(n) instead of O(n^2))
     async handleUpdateAnswers(payload: any, sender: Party.Connection) {
         try {
-            // 1. Update Engine (RAM)
+            // 1. Resolve Identity (FIX)
+            const userId = this.engine.players.getPlayerId(sender.id);
+            if (!userId) return; // Ignore unmapped connections
+
+            // 2. Update Engine (RAM)
             const state = this.engine.updateAnswers(sender.id, payload.answers);
 
-            // 2. Persist to Disk (Silent)
+            // 3. Persist to Disk (Silent)
             await this.room.storage.put(STORAGE_KEY, state);
 
-            // 3. Calculate Delta (Filled Count)
+            // 4. Calculate Delta (Filled Count)
             const filledCount = Object.values(payload.answers).filter((val: any) => val && val.trim().length > 0).length;
 
-            // 4. Lightweight Broadcast (Exclude Sender)
+            // 5. Lightweight Broadcast (Exclude Sender)
             const msg = JSON.stringify({
                 type: "RIVAL_UPDATE",
                 payload: {
-                    playerId: sender.id,
+                    playerId: userId, // <--- CHANGED from sender.id to userId
                     filledCount
                 }
             });
