@@ -29,28 +29,50 @@ export class PlayerManager {
         if (player) {
             player.isConnected = true;
             player.lastSeenAt = Date.now();
+            delete player.disconnectedAt; // <--- Restore from Zombie
             this.connectionMap[connectionId] = userId;
             return true;
         }
         return false;
     }
 
+    // SOFT DELETE: Mark as Zombie
     public remove(state: RoomState, connectionId: string) {
         const userId = this.connectionMap[connectionId];
         if (!userId) return;
 
-        // Cleanup map
+        // Cleanup map (socket is gone, but player stays)
         delete this.connectionMap[connectionId];
 
-        // Mark disconnected
         const player = state.players.find(p => p.id === userId);
         if (player) {
             player.isConnected = false;
             player.lastSeenAt = Date.now();
+            player.disconnectedAt = Date.now(); // <--- Mark as Zombie
         }
 
-        // Host Succession Logic
+        // Host Succession: Immediate transfer even if soft disconnected
         this.ensureActiveHost(state);
+    }
+
+    // HARD DELETE: Cleanup Zombies
+    public removeInactive(state: RoomState, timeoutMs: number): boolean {
+        const now = Date.now();
+        const initialCount = state.players.length;
+
+        // Filter out players who are disconnected AND expired
+        state.players = state.players.filter(p => {
+            if (p.isConnected) return true; // Keep active
+            if (!p.disconnectedAt) return true; // Should not happen if connected=false, but safe
+            return (now - p.disconnectedAt) < timeoutMs; // Keep if within grace period
+        });
+
+        const changed = state.players.length !== initialCount;
+        if (changed) {
+            console.log(`[PlayerManager] Purged ${initialCount - state.players.length} zombies.`);
+            this.ensureActiveHost(state); // Re-check just in case
+        }
+        return changed;
     }
 
     public kick(state: RoomState, hostConnectionId: string, targetUserId: string): boolean {

@@ -1,7 +1,7 @@
 import type * as Party from "partykit/server";
 import { GameEngine } from "../shared/game-engine.js";
 import { RoomState } from "../shared/types.js";
-import { broadcastState, sendError } from "./utils/broadcaster";
+import { sendError } from "./utils/broadcaster";
 import { ConnectionHandler } from "./handlers/connection";
 import { PlayerHandler } from "./handlers/player";
 import { GameHandler } from "./handlers/game";
@@ -151,23 +151,30 @@ export default class Server implements Party.Server {
             return;
         }
 
-        console.log(`⏰ Watchdog triggered for room ${this.room.id}, status: ${this.engine['state'].status}`);
-        try {
-            const newState = this.engine.checkTimeouts();
-            if (newState) {
-                await this.room.storage.put(STORAGE_KEY, newState);
-                await this.scheduleAlarms(newState);
-                broadcastState(this.room, newState);
-            }
-        } catch (e) {
-            console.error("[SERVER] Error in onAlarm:", e);
+        console.log(`⏰ Watchdog triggered for room ${this.room.id}.`);
+
+        // 1. Check for Zombies (Hard Delete)
+        // If changed, engine calls onGameStateChange -> we persist/broadcast via bridge
+        const zombiesPurged = this.engine.checkInactivePlayers();
+        if (zombiesPurged) {
+            console.log(`[SERVER] Zombies purged in ${this.room.id}`);
+            await this.room.storage.put(STORAGE_KEY, this.engine.getState());
+            // Broadcast is handled by engine callback
         }
+
+        // 2. Schedule next alarms if needed (e.g. for Round/Vote timers)
+        // Note: RoundManager uses setTimeout, but we might want redundancy or other checks here.
     }
 
     onClose(connection: Party.Connection) {
         this.connectionHandler.handleClose(connection);
 
-        // START SELF-DESTRUCT TIMER if room is empty
+        // ZOMBIE ALARM: Schedule cleanup check in 60s
+        // If they reconnect before this, they are restored.
+        // If they don't, this alarm will purge them.
+        this.room.storage.setAlarm(Date.now() + 60000);
+
+        // START SELF-DESTRUCT TIMER if room is empty (override/add logic)
         const connections = [...this.room.getConnections()];
         if (connections.length === 0) {
             console.log(`[Auto-Wipe] Room ${this.room.id} is empty. Self-destruct in 10m.`);

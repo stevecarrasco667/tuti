@@ -7,6 +7,7 @@ export interface Player {
     isHost: boolean;
     isConnected: boolean;
     lastSeenAt: number;
+    disconnectedAt?: number; // For Zombie State
     avatar: string;
     filledCount?: number;
 }

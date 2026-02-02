@@ -160,6 +160,20 @@ export class GameEngine {
         return this.state;
     }
 
+    // CHECK ZOMBIES
+    public checkInactivePlayers(): boolean {
+        // Purge players disconnected > 60s
+        const changed = this.players.removeInactive(this.state, 60000);
+
+        if (changed) {
+            // If anyone was purged, we must broadcast the updated list
+            if (this.onGameStateChange) {
+                this.onGameStateChange(this.state);
+            }
+        }
+        return changed; // Return true to let caller know state mutated
+    }
+
     // --- CONFIGURATION ---
 
     public updateConfig(connectionId: string, newConfig: Partial<GameConfig>): RoomState {
