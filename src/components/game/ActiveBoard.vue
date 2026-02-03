@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue';
+
 const props = defineProps<{
     categories: string[];
     modelValue: Record<string, string>;
@@ -23,6 +25,32 @@ const emit = defineEmits<{
 const handleInput = (category: string, event: Event) => {
     emit('input-change', category, event);
 };
+
+// --- MOBILE KEYBOARD SPACER LOGIC ---
+const keyboardHeight = ref(0);
+
+const updateKeyboardHeight = () => {
+    if (window.visualViewport) {
+        // Height difference between window and viewport = Virtual Keyboard Height
+        // const diff = window.innerHeight - window.visualViewport.height;
+        // We use Math.max to avoid negative numbers or weird glitches active board might be smaller
+        keyboardHeight.value = Math.max(0, window.innerHeight - window.visualViewport.height);
+    }
+};
+
+onMounted(() => {
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', updateKeyboardHeight);
+        window.visualViewport.addEventListener('scroll', updateKeyboardHeight); // Sometimes scroll changes viewport too
+    }
+});
+
+onUnmounted(() => {
+    if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', updateKeyboardHeight);
+        window.visualViewport.removeEventListener('scroll', updateKeyboardHeight);
+    }
+});
 </script>
 
 <template>
@@ -65,5 +93,8 @@ const handleInput = (category: string, event: Event) => {
                 </div>
             </div>
         </div>
+        
+        <!-- KEYBOARD SPACER -->
+        <div :style="{ height: keyboardHeight + 'px' }" class="transition-all duration-300 pointer-events-none w-full"></div>
     </div>
 </template>

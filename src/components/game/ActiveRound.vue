@@ -43,9 +43,24 @@ const handleInput = (category: string, event: Event) => {
 
 const handleInputFocus = (event: Event) => {
     playClick(); // Audio Unlock
-    const target = event.target as HTMLElement;
-    // Mobile Scroll Assist
-    setTimeout(() => { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
+    
+    // SMART SCROLL: Only if keyboard covers input
+    if (window.visualViewport) {
+        const target = event.target as HTMLElement;
+        const rect = target.getBoundingClientRect();
+        const viewportHeight = window.visualViewport.height;
+
+        // If bottom of input is outside visible viewport
+        if (rect.bottom > viewportHeight) {
+             setTimeout(() => { 
+                target.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); 
+            }, 300);
+        }
+    } else {
+         // Fallback for non-compliant browsers (old behavior)
+        const target = event.target as HTMLElement;
+        setTimeout(() => { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
+    }
 };
 </script>
 
