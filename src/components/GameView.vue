@@ -5,12 +5,13 @@ import { useSmartReview } from '../composables/useSmartReview';
 import { useGameEffects } from '../composables/useGameEffects';
 
 import GameHUD from './game/GameHUD.vue';
-import ActiveBoard from './game/ActiveBoard.vue';
+import RivalsHeader from './game/RivalsHeader.vue';
+import ActiveRound from './game/ActiveRound.vue';
 import ReviewPhase from './game/ReviewPhase.vue';
 import ResultsRanking from './game/ResultsRanking.vue';
 import GameFooter from './game/GameFooter.vue';
 
-const { gameState, stopRound, submitAnswers, debouncedUpdateAnswers, shouldSubmit, toggleVote, confirmVotes, myUserId, amIHost, startGame, leaveGame } = useGame();
+const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVotes, myUserId, amIHost, startGame, leaveGame } = useGame();
 
 const { 
     timeRemaining, timerColor, sessionToasts, addToast, showStopAlert, stopperPlayer, playClick, playAlarm
@@ -64,23 +65,6 @@ watch(() => gameState.value.status, (newStatus) => {
     }
 });
 
-const handleInput = (category: string, event: Event) => {
-    const input = event.target as HTMLInputElement;
-    let val = input.value;
-    if (gameState.value.currentLetter && val.length > 0) {
-        const firstChar = val.charAt(0).toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        const targetChar = gameState.value.currentLetter.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        if (firstChar !== targetChar) {
-            val = ""; input.value = "";
-            input.classList.add('bg-red-500/20', 'animate-pulse');
-            setTimeout(() => input.classList.remove('bg-red-500/20', 'animate-pulse'), 500);
-        }
-    }
-    answers.value[category] = val;
-    debouncedUpdateAnswers(answers.value);
-    playClick(); // Feedback tactile & Unlock
-};
-
 const hydrateLocalState = () => {
     if (!myUserId.value) return;
     const myServerAnswers = gameState.value.answers[myUserId.value];
@@ -91,14 +75,6 @@ watch(() => gameState.value.roomId, (newRoomId) => { if (newRoomId) hydrateLocal
 
 const showExitModal = ref(false);
 const handleExit = () => { leaveGame(); showExitModal.value = false; };
-
-const handleInputFocus = (event: Event) => {
-    playClick(); // Audio Context Unlock
-    const target = event.target as HTMLElement;
-    setTimeout(() => { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
-};
-
-// LÓGICA ELIMINADA: boardConfig ya no existe.
 
 const sortedPlayers = computed(() => [...gameState.value.players].sort((a,b) => b.score - a.score));
 
@@ -112,7 +88,7 @@ const getPlayerStatusForRanking = (playerId: string, category: string) => {
 const rivalsActivity = computed(() => {
     const totalCategories = gameState.value.categories.length;
     return gameState.value.players
-                .filter(p => p.id !== myUserId.value) // Show everyone, even disconnected
+        .filter(p => p.id !== myUserId.value) // Show everyone, even disconnected
         .map(p => {
             const pAnswers = gameState.value.answers[p.id] || {};
             // [SILENT UPDATE] Use specific field if available (O(1)), fallback to calculation (O(K))
@@ -146,38 +122,19 @@ const rivalsActivity = computed(() => {
 
         <div class="flex-1 overflow-y-auto flex flex-col items-center justify-start p-4 relative w-full scroll-smooth">
             
-            <!-- RIVALS HEADER (Medal Row) -->
-            <div v-if="rivalsActivity.length > 0 && gameState.status === 'PLAYING'" class="flex flex-wrap items-center justify-center gap-6 mb-6 w-full max-w-6xl mx-auto z-10">
-                <div v-for="rival in rivalsActivity" :key="rival.id" 
-                     class="flex flex-col items-center gap-1 group transition-all duration-500"
-                     :class="{'opacity-50 grayscale': !rival.isConnected}"
-                >
-                    <!-- Avatar -->
-                    <div class="relative transition-transform group-hover:scale-110">
-                         <div class="w-16 h-16 rounded-full bg-gradient-to-b from-indigo-500 to-indigo-700 border-2 border-white/20 flex items-center justify-center text-3xl shadow-xl relative z-10">
-                            {{ rival.isConnected ? (rival.avatar || '👤') : '🔌' }}
-                        </div>
-                        <!-- Status Ring (Optional visual flare) -->
-                         <div v-if="rival.isActive && rival.isConnected" class="absolute inset-0 rounded-full border-2 border-yellow-400/50 animate-pulse"></div>
-                    </div>
-                    
-                    <!-- Progress Badge -->
-                    <div class="bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-xs font-mono font-bold text-white shadow-lg flex items-center gap-1">
-                        <span :class="rival.isFinished ? 'text-green-400' : 'text-yellow-400'">{{ rival.filledCount }}</span>
-                        <span class="text-white/40">/</span>
-                        <span class="text-white/60">{{ rival.totalCategories }}</span>
-                    </div>
-                </div>
-            </div>
-            <ActiveBoard 
+            <!-- ORCHESTRATOR: RIVALS HEADER -->
+            <RivalsHeader 
+                v-if="rivalsActivity.length > 0 && gameState.status === 'PLAYING'"
+                :rivals="rivalsActivity" 
+            />
+
+            <!-- ORCHESTRATOR: ACTIVE ROUND -->
+            <ActiveRound 
                 v-if="gameState.status === 'PLAYING'"
                 :categories="gameState.categories"
-                :model-value="answers"
                 :current-letter="gameState.currentLetter"
                 :rivals-activity="rivalsActivity"
-                @update:model-value="(val) => answers = val"
-                @input-focus="handleInputFocus"
-                @input-change="handleInput"
+                v-model="answers"
             />
 
             <ReviewPhase 
