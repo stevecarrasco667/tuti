@@ -108,7 +108,7 @@ describe('GameEngine Core', () => {
             engine.submitAnswers(cE, { 'Fruta': 'Xylofono' });
 
             // Force End Round -> Review
-            (engine as any).forceEndRound();
+            (engine as any).handleTimeUp();
 
             // Perform Voting: Reject Player E's "Xylofono"
             // Everyone votes against E
@@ -153,9 +153,44 @@ describe('GameEngine Core', () => {
             engine.joinPlayer('guest', 'Guest', 'av2', 'conn-guest');
 
             // Attempt start from guest
-            engine.startGame('conn-guest');
+            // Attempt start from guest
+            expect(() => engine.startGame('conn-guest')).toThrow();
 
             expect(engine.getState().status).toBe('LOBBY');
+        });
+    });
+
+    // C. Regresión y Estabilidad
+    describe('Regression & Stability', () => {
+        it('Regression: Memory Leak Check (Round Reset)', () => {
+            // 1. Setup & Start Round 1
+            const p1 = 'p1'; const c1 = 'c1';
+            engine.joinPlayer(p1, 'Player 1', 'av', c1);
+            engine.startGame(c1);
+
+            // 2. Pollute State (Simulate Round 1 Data)
+            const state = engine.getState();
+            state.answers[p1] = { 'Cat1': 'Val1' };
+            state.votes[p1] = { 'Cat1': ['p2'] };
+            state.roundScores[p1] = 10;
+            state.answerStatuses[p1] = { 'Cat1': 'VALID' };
+
+            // 3. End Round 1 (Simulate flow)
+            state.status = 'RESULTS';
+
+            // 4. Start Round 2
+            engine.startGame(c1); // Helper validation might block if not Host, but p1 is Host (first joined)
+
+            // 5. Assert Tabula Rasa
+            const newState = engine.getState();
+            expect(newState.status).toBe('PLAYING');
+
+            // CRITICAL CHECKS
+            expect(newState.answers).toEqual({});
+            expect(newState.votes).toEqual({});
+            expect(newState.roundScores).toEqual({}); // The fix we implemented
+            expect(newState.answerStatuses).toEqual({});
+            expect(newState.whoFinishedVoting).toEqual([]);
         });
     });
 });

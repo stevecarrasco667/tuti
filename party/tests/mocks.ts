@@ -25,6 +25,8 @@ export function createMockRoom(id: string): Party.Room {
         list: vi.fn(async () => storageMap),
         setAlarm: vi.fn(),
         getAlarm: vi.fn(),
+        deleteAlarm: vi.fn(),
+        getAlarms: vi.fn(async () => new Map()),
     } as unknown as Party.Storage;
 
     return {
