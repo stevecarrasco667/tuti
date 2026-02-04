@@ -4,6 +4,8 @@ import { useGame } from '../composables/useGame';
 import { useSmartReview } from '../composables/useSmartReview';
 import { useGameEffects } from '../composables/useGameEffects';
 import ConnectionBanner from './ConnectionBanner.vue';
+import CountdownOverlay from './overlays/CountdownOverlay.vue';
+import StopSignal from './overlays/StopSignal.vue';
 
 import GameHUD from './game/GameHUD.vue';
 import RivalsHeader from './game/RivalsHeader.vue';
@@ -13,6 +15,13 @@ import ResultsRanking from './game/ResultsRanking.vue';
 import GameFooter from './game/GameFooter.vue';
 
 const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVotes, myUserId, amIHost, startGame, leaveGame, isConnected, isStopping } = useGame();
+
+const showCountdown = ref(false);
+const showStopSignal = ref(false);
+
+const handleCountdownFinished = () => {
+    showCountdown.value = false;
+};
 
 const { 
     timeRemaining, timerColor, sessionToasts, addToast, showStopAlert, stopperPlayer, playClick, playAlarm
@@ -63,6 +72,9 @@ watch(() => gameState.value.status, (newStatus) => {
         answers.value = {};
         hasConfirmed.value = false;
         activeCategoryIndex.value = 0;
+        showCountdown.value = true;
+    } else if (newStatus === 'REVIEW') {
+        showStopSignal.value = true;
     }
 });
 
@@ -120,50 +132,66 @@ const rivalsActivity = computed(() => {
             @exit="showExitModal = true"
         />
 
-        <div class="flex-1 overflow-y-auto flex flex-col items-center justify-start p-4 relative w-full scroll-smooth">
+        <div class="flex-1 overflow-y-auto w-full scroll-smooth p-4 relative">
             
+            <CountdownOverlay v-if="showCountdown" @finished="handleCountdownFinished" />
+            <StopSignal v-if="showStopSignal" @finished="showStopSignal = false" />
+
             <Transition name="fade" mode="out-in">
-                <component :is="'div'" class="w-full flex flex-col items-center"> <!-- Wrapper for transition -->
-                    <!-- ORCHESTRATOR: RIVALS HEADER -->
-                    <RivalsHeader 
-                        v-if="rivalsActivity.length > 0 && gameState.status === 'PLAYING'"
-                        :rivals="rivalsActivity" 
-                    />
-
-                    <!-- ORCHESTRATOR: ACTIVE ROUND -->
-                    <ActiveRound 
-                        v-if="gameState.status === 'PLAYING'"
-                        :categories="gameState.categories"
-                        :current-letter="gameState.currentLetter"
-                        :rivals-activity="rivalsActivity"
-                        v-model="answers"
-                    />
-
-                    <ReviewPhase 
-                        v-else-if="gameState.status === 'REVIEW'"
-                        :current-category="currentCategory"
-                        :players="gameState.players"
-                        :votes="gameState.votes"
-                        :my-user-id="myUserId"
-                        :get-review-item="getReviewItem"
-                        :nav-index="activeCategoryIndex"
-                        :total-categories="gameState.categories.length"
-                        :show-stop-alert="showStopAlert"
-                        :stopper-player="stopperPlayer || undefined"
-                        @vote="(pid) => toggleVote(pid, currentCategory)"
-                        @prev-cat="prevCategory"
-                        @next-cat="nextCategory"
-                    />
+                <!-- MAIN LAYOUT WRAPPER (Desktop Grid vs Mobile Flex) -->
+                <div :key="gameState.status" class="w-full h-full flex flex-col items-center lg:grid lg:grid-cols-[280px_1fr_200px] lg:gap-8 lg:items-start lg:max-w-[1600px] lg:mx-auto"> 
                     
-                    <ResultsRanking
-                        v-else-if="gameState.status === 'RESULTS'"
-                        :players="sortedPlayers"
-                        :my-answers="answers"
-                        :categories="gameState.categories"
-                        :my-user-id="myUserId"
-                        :get-player-status="getPlayerStatusForRanking"
-                    />
-                </component>
+                    <!-- COLUMN 1: RIVALS (Desktop Left) -->
+                    <div class="w-full lg:h-full lg:overflow-y-auto order-1 lg:order-1">
+                         <RivalsHeader 
+                            v-if="rivalsActivity.length > 0 && gameState.status === 'PLAYING'"
+                            :rivals="rivalsActivity" 
+                        />
+                    </div>
+
+                    <!-- COLUMN 2: GAME CENTER (Desktop Center) -->
+                    <div class="w-full flex justify-center order-2 lg:order-2 lg:h-full lg:overflow-y-auto">
+                        <ActiveRound 
+                            v-if="gameState.status === 'PLAYING'"
+                            :categories="gameState.categories"
+                            :current-letter="gameState.currentLetter"
+                            :rivals-activity="rivalsActivity"
+                            v-model="answers"
+                            :is-blocked="showCountdown || isStopping"
+                        />
+
+                        <ReviewPhase 
+                            v-else-if="gameState.status === 'REVIEW'"
+                            :current-category="currentCategory"
+                            :players="gameState.players"
+                            :votes="gameState.votes"
+                            :my-user-id="myUserId"
+                            :get-review-item="getReviewItem"
+                            :nav-index="activeCategoryIndex"
+                            :total-categories="gameState.categories.length"
+                            :show-stop-alert="showStopAlert"
+                            :stopper-player="stopperPlayer || undefined"
+                            @vote="(pid) => toggleVote(pid, currentCategory)"
+                            @prev-cat="prevCategory"
+                            @next-cat="nextCategory"
+                        />
+                        
+                        <ResultsRanking
+                            v-else-if="gameState.status === 'RESULTS'"
+                            :players="sortedPlayers"
+                            :my-answers="answers"
+                            :categories="gameState.categories"
+                            :my-user-id="myUserId"
+                            :get-player-status="getPlayerStatusForRanking"
+                        />
+                    </div>
+
+                    <!-- COLUMN 3: SPACER / EXTRA (Desktop Right) -->
+                     <div class="hidden lg:flex flex-col h-full w-full order-3 lg:order-3 bg-indigo-950/20 rounded-2xl p-4 border border-white/5">
+                        <!-- Future Chat / Stats Placeholder -->
+                        <div class="text-xs font-bold text-white/30 uppercase tracking-widest text-center mt-4">Chat de Sala</div>
+                     </div>
+                </div>
             </Transition>
         </div>
 

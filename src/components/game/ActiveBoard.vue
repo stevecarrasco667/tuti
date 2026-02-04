@@ -14,6 +14,7 @@ const props = defineProps<{
         isFinished: boolean;
         isActive: boolean;
     }>;
+    isBlocked?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -84,8 +85,9 @@ onUnmounted(() => {
                                 @keydown.enter.prevent
                                 type="text"
                                 autocomplete="off"
-                                class="w-full bg-black/20 border-b-2 border-white/10 text-white rounded-t-lg focus:bg-black/40 focus:border-yellow-400 focus:shadow-[0_4px_15px_-5px_rgba(250,204,21,0.4)] outline-none transition-all placeholder-white/10 font-medium h-14 md:h-12 py-3 md:py-2 px-3 text-2xl md:text-lg"
+                                class="w-full bg-black/20 border-b-2 border-white/10 text-white rounded-t-lg focus:bg-black/40 focus:border-yellow-400 focus:shadow-[0_4px_15px_-5px_rgba(250,204,21,0.4)] outline-none transition-all placeholder-white/10 font-medium h-14 md:h-12 py-3 md:py-2 px-3 text-2xl md:text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                                 :placeholder="(currentLetter || '') + '...'"
+                                :disabled="isBlocked"
                             >
                             <div v-if="modelValue[category]?.trim().length > 0" class="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)] pointer-events-none"></div>
                         </div>

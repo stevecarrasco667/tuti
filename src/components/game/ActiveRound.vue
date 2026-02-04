@@ -9,6 +9,7 @@ const props = defineProps<{
     currentLetter: string | null;
     modelValue: Record<string, string>;
     rivalsActivity: any[]; // Using any for simplicity as Interface is complex or importing from types might be better
+    isBlocked?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -73,5 +74,6 @@ const handleInputFocus = (event: Event) => {
         @update:model-value="(val) => emit('update:modelValue', val)"
         @input-focus="handleInputFocus"
         @input-change="handleInput"
+        :is-blocked="isBlocked"
     />
 </template>
