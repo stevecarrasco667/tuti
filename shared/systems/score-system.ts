@@ -1,4 +1,5 @@
 import { RoomState } from '../types';
+import { normalizeAnswer } from '../utils';
 
 export class ScoreSystem {
 
@@ -40,8 +41,8 @@ export class ScoreSystem {
                 }
 
                 // It is potentially valid. Add to frequency map.
-                // Normalize: Lowercase + remove accents
-                const normalized = rawAnswer.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                // Smart Normalization
+                const normalized = normalizeAnswer(rawAnswer);
 
                 if (!validAnswersMap[normalized]) validAnswersMap[normalized] = [];
                 validAnswersMap[normalized].push(player.id);

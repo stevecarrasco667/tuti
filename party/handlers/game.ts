@@ -3,6 +3,7 @@ import { BaseHandler } from "./base";
 import { broadcastState, sendError } from "../utils/broadcaster";
 
 import { StopRoundSchema, SubmitAnswersSchema, UpdateAnswersSchema } from "../../shared/schemas";
+import { EVENTS } from "../../shared/consts";
 
 const STORAGE_KEY = "room_state_v1";
 
@@ -52,7 +53,7 @@ export class GameHandler extends BaseHandler {
             // Note: RIVAL_UPDATE is server-to-client, so we construct it manually (or use Schema if we want strict output too)
             // Keep generic JSON.stringify for perf in hot path or import ServerMessage types
             const msg = JSON.stringify({
-                type: "RIVAL_UPDATE", // We could use EVENTS.RIVAL_UPDATE but keeping string in JSON.stringify is same.
+                type: EVENTS.RIVAL_UPDATE, // We could use EVENTS.RIVAL_UPDATE but keeping string in JSON.stringify is same.
                 payload: {
                     playerId: userId,
                     filledCount

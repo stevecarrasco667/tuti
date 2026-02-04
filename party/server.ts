@@ -40,10 +40,17 @@ export default class Server implements Party.Server {
     }
 
     async onStart() {
-        const stored = await this.room.storage.get<RoomState>(STORAGE_KEY);
-        if (stored) {
-            console.log(`[Hydrate] Loaded state for room ${this.room.id}`);
-            this.engine['state'] = stored;
+        try {
+            const stored = await this.room.storage.get<RoomState>(STORAGE_KEY);
+            if (stored) {
+                console.log(`[Hydrate] Loaded state for room ${this.room.id}`);
+                this.engine['state'] = stored;
+            }
+        } catch (err) {
+            console.error(`[CRITICAL] Failed to load state for room ${this.room.id}. Resetting.`, err);
+            // Engine is already fresh from constructor, so we just don't hydrate it.
+            // Possibly persist the empty state to overwrite corrupt data?
+            // Safer to just let it start fresh and overwrite on next action.
         }
     }
 

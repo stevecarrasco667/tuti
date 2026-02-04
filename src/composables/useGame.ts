@@ -38,6 +38,8 @@ const gameState = ref<RoomState>({
 export function useGame() {
     const { socket, lastMessage, setRoomId, isConnected } = useSocket();
 
+    const isStopping = ref(false);
+
     // Watch for incoming messages
     watch(lastMessage, (newMsg) => {
         if (!newMsg) return;
@@ -47,6 +49,10 @@ export function useGame() {
 
             if (parsed.type === EVENTS.UPDATE_STATE) {
                 gameState.value = parsed.payload;
+                // If we were stopping and state changed from PLAYING, reset flag
+                if (isStopping.value && gameState.value.status !== 'PLAYING') {
+                    isStopping.value = false;
+                }
             } else if (parsed.type === EVENTS.RIVAL_UPDATE) {
                 // [SILENT UPDATE] Optimize rendering by only updating specific field
                 const { playerId, filledCount } = parsed.payload;
@@ -151,10 +157,14 @@ export function useGame() {
 
     const stopRound = (answers: Record<string, string>) => {
         if (!socket.value) return;
+        isStopping.value = true; // Optimistic Lock
         socket.value.send(JSON.stringify({
             type: EVENTS.STOP_ROUND,
             payload: { answers }
         }));
+
+        // Safety timeout in case server doesn't respond
+        setTimeout(() => { isStopping.value = false; }, 3000);
     };
 
     // Continuous Sync (Debounced)
@@ -243,7 +253,8 @@ export function useGame() {
                 votingEndsAt: null,
                 resultsEndsAt: null
             },
-            stoppedBy: null
+            stoppedBy: null,
+            gameOverReason: undefined
         };
 
         // 2. Clear URL
@@ -287,6 +298,7 @@ export function useGame() {
             return false;
         },
         leaveGame,
-        isConnected
+        isConnected,
+        isStopping
     };
 }

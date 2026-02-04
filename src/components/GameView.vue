@@ -3,6 +3,7 @@ import { ref, watch, computed } from 'vue';
 import { useGame } from '../composables/useGame';
 import { useSmartReview } from '../composables/useSmartReview';
 import { useGameEffects } from '../composables/useGameEffects';
+import ConnectionBanner from './ConnectionBanner.vue';
 
 import GameHUD from './game/GameHUD.vue';
 import RivalsHeader from './game/RivalsHeader.vue';
@@ -11,7 +12,7 @@ import ReviewPhase from './game/ReviewPhase.vue';
 import ResultsRanking from './game/ResultsRanking.vue';
 import GameFooter from './game/GameFooter.vue';
 
-const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVotes, myUserId, amIHost, startGame, leaveGame, isConnected } = useGame();
+const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVotes, myUserId, amIHost, startGame, leaveGame, isConnected, isStopping } = useGame();
 
 const { 
     timeRemaining, timerColor, sessionToasts, addToast, showStopAlert, stopperPlayer, playClick, playAlarm
@@ -107,9 +108,8 @@ const rivalsActivity = computed(() => {
 
 <template>
     <div class="h-[100dvh] w-full flex flex-col bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-900 via-indigo-950 to-black text-slate-100 overflow-hidden font-sans">
-         <div v-if="!isConnected" class="absolute top-16 left-1/2 -translate-x-1/2 z-50 bg-red-500/90 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg animate-pulse pointer-events-none">
-            ⚠️ Sin Conexión
-        </div>
+        
+        <ConnectionBanner :is-connected="!!isConnected" />
 
         <GameHUD 
             :round="gameState.roundsPlayed + 1"
@@ -122,45 +122,49 @@ const rivalsActivity = computed(() => {
 
         <div class="flex-1 overflow-y-auto flex flex-col items-center justify-start p-4 relative w-full scroll-smooth">
             
-            <!-- ORCHESTRATOR: RIVALS HEADER -->
-            <RivalsHeader 
-                v-if="rivalsActivity.length > 0 && gameState.status === 'PLAYING'"
-                :rivals="rivalsActivity" 
-            />
+            <Transition name="fade" mode="out-in">
+                <component :is="'div'" class="w-full flex flex-col items-center"> <!-- Wrapper for transition -->
+                    <!-- ORCHESTRATOR: RIVALS HEADER -->
+                    <RivalsHeader 
+                        v-if="rivalsActivity.length > 0 && gameState.status === 'PLAYING'"
+                        :rivals="rivalsActivity" 
+                    />
 
-            <!-- ORCHESTRATOR: ACTIVE ROUND -->
-            <ActiveRound 
-                v-if="gameState.status === 'PLAYING'"
-                :categories="gameState.categories"
-                :current-letter="gameState.currentLetter"
-                :rivals-activity="rivalsActivity"
-                v-model="answers"
-            />
+                    <!-- ORCHESTRATOR: ACTIVE ROUND -->
+                    <ActiveRound 
+                        v-if="gameState.status === 'PLAYING'"
+                        :categories="gameState.categories"
+                        :current-letter="gameState.currentLetter"
+                        :rivals-activity="rivalsActivity"
+                        v-model="answers"
+                    />
 
-            <ReviewPhase 
-                v-else-if="gameState.status === 'REVIEW'"
-                :current-category="currentCategory"
-                :players="gameState.players"
-                :votes="gameState.votes"
-                :my-user-id="myUserId"
-                :get-review-item="getReviewItem"
-                :nav-index="activeCategoryIndex"
-                :total-categories="gameState.categories.length"
-                :show-stop-alert="showStopAlert"
-                :stopper-player="stopperPlayer || undefined"
-                @vote="(pid) => toggleVote(pid, currentCategory)"
-                @prev-cat="prevCategory"
-                @next-cat="nextCategory"
-            />
-            
-            <ResultsRanking
-                v-else-if="gameState.status === 'RESULTS'"
-                :players="sortedPlayers"
-                :my-answers="answers"
-                :categories="gameState.categories"
-                :my-user-id="myUserId"
-                :get-player-status="getPlayerStatusForRanking"
-            />
+                    <ReviewPhase 
+                        v-else-if="gameState.status === 'REVIEW'"
+                        :current-category="currentCategory"
+                        :players="gameState.players"
+                        :votes="gameState.votes"
+                        :my-user-id="myUserId"
+                        :get-review-item="getReviewItem"
+                        :nav-index="activeCategoryIndex"
+                        :total-categories="gameState.categories.length"
+                        :show-stop-alert="showStopAlert"
+                        :stopper-player="stopperPlayer || undefined"
+                        @vote="(pid) => toggleVote(pid, currentCategory)"
+                        @prev-cat="prevCategory"
+                        @next-cat="nextCategory"
+                    />
+                    
+                    <ResultsRanking
+                        v-else-if="gameState.status === 'RESULTS'"
+                        :players="sortedPlayers"
+                        :my-answers="answers"
+                        :categories="gameState.categories"
+                        :my-user-id="myUserId"
+                        :get-player-status="getPlayerStatusForRanking"
+                    />
+                </component>
+            </Transition>
         </div>
 
         <GameFooter 
@@ -173,6 +177,7 @@ const rivalsActivity = computed(() => {
             @stop="handleStop"
             @confirm-votes="handleConfirmVotes"
             @next-round="startGame"
+            :is-stopping="isStopping"
         />
 
         <div class="fixed top-20 right-4 z-[60] flex flex-col items-end gap-2 pointer-events-none">
@@ -191,3 +196,26 @@ const rivalsActivity = computed(() => {
         </div>
     </div>
 </template>
+
+<style>
+/* Global Transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
+</style>
