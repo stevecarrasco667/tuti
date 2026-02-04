@@ -1,3 +1,5 @@
+import { EVENTS } from './consts';
+
 export type GameStatus = 'LOBBY' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER';
 
 export interface Player {
@@ -52,20 +54,20 @@ export interface RoomState {
 export type RoundAnswers = Record<string, string>;
 
 export type ClientMessage =
-    | { type: 'JOIN'; payload: { name: string; roomId: string; userId: string; avatar: string } }
-    | { type: 'START_GAME' }
-    | { type: 'STOP_ROUND'; payload: { answers: RoundAnswers } }
-    | { type: 'SUBMIT_ANSWERS'; payload: { answers: RoundAnswers } }
-    | { type: 'UPDATE_ANSWERS'; payload: { answers: RoundAnswers } }
-    | { type: 'TOGGLE_VOTE'; payload: { targetUserId: string; category: string } }
-    | { type: 'CONFIRM_VOTES' }
-    | { type: 'UPDATE_CONFIG'; payload: Partial<GameConfig> }
-    | { type: 'RESTART_GAME' }
-    | { type: 'KICK_PLAYER'; payload: { targetUserId: string } }
-    | { type: 'EXIT_GAME' };
+    | { type: typeof EVENTS.JOIN; payload: { name: string; roomId: string; userId: string; avatar: string } }
+    | { type: typeof EVENTS.START_GAME }
+    | { type: typeof EVENTS.STOP_ROUND; payload: { answers: RoundAnswers } }
+    | { type: typeof EVENTS.SUBMIT_ANSWERS; payload: { answers: RoundAnswers } }
+    | { type: typeof EVENTS.UPDATE_ANSWERS; payload: { answers: RoundAnswers } }
+    | { type: typeof EVENTS.TOGGLE_VOTE; payload: { targetUserId: string; category: string } }
+    | { type: typeof EVENTS.CONFIRM_VOTES }
+    | { type: typeof EVENTS.UPDATE_CONFIG; payload: Partial<GameConfig> }
+    | { type: typeof EVENTS.RESTART_GAME }
+    | { type: typeof EVENTS.KICK_PLAYER; payload: { targetUserId: string } }
+    | { type: typeof EVENTS.EXIT_GAME };
 
 // Messages sent from Server to Client
 export type ServerMessage =
-    | { type: 'UPDATE_STATE'; payload: RoomState }
-    | { type: 'RIVAL_UPDATE'; payload: { playerId: string; filledCount: number } }
-    | { type: 'SYSTEM'; payload: string };
+    | { type: typeof EVENTS.UPDATE_STATE; payload: RoomState }
+    | { type: typeof EVENTS.RIVAL_UPDATE; payload: { playerId: string; filledCount: number } }
+    | { type: typeof EVENTS.SYSTEM_MESSAGE; payload: string };

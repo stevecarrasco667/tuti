@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { EVENTS } from "./consts";
 
 export const PlayerSchema = z.object({
     id: z.string(),
@@ -42,10 +43,11 @@ export const RoomStateSchema = z.object({
 });
 
 export const JoinRoomSchema = z.object({
-    type: z.literal('JOIN'),
+    type: z.literal(EVENTS.JOIN),
     payload: z.object({
         name: z.string().min(1, "El nombre es obligatorio").max(20, "El nombre es muy largo"),
         userId: z.string(),
+        avatar: z.string()
     }),
 });
 
@@ -53,26 +55,33 @@ export const JoinRoomSchema = z.object({
 export const RoundAnswersSchema = z.record(z.string(), z.string().trim().max(40));
 
 export const UpdateStateSchema = z.object({
-    type: z.literal('UPDATE_STATE'),
+    type: z.literal(EVENTS.UPDATE_STATE),
     payload: RoomStateSchema,
 });
 
+export const UpdateAnswersSchema = z.object({
+    type: z.literal(EVENTS.UPDATE_ANSWERS),
+    payload: z.object({
+        answers: RoundAnswersSchema
+    })
+});
+
 export const StopRoundSchema = z.object({
-    type: z.literal('STOP_ROUND'),
+    type: z.literal(EVENTS.STOP_ROUND),
     payload: z.object({
         answers: RoundAnswersSchema
     })
 });
 
 export const SubmitAnswersSchema = z.object({
-    type: z.literal('SUBMIT_ANSWERS'),
+    type: z.literal(EVENTS.SUBMIT_ANSWERS),
     payload: z.object({
         answers: RoundAnswersSchema
     })
 });
 
 export const ToggleVoteSchema = z.object({
-    type: z.literal('TOGGLE_VOTE'),
+    type: z.literal(EVENTS.TOGGLE_VOTE),
     payload: z.object({
         targetUserId: z.string(),
         category: z.string()
@@ -80,10 +89,21 @@ export const ToggleVoteSchema = z.object({
 });
 
 export const ConfirmVotesSchema = z.object({
-    type: z.literal('CONFIRM_VOTES')
+    type: z.literal(EVENTS.CONFIRM_VOTES)
 });
 
 export const UpdateConfigSchema = z.object({
-    type: z.literal('UPDATE_CONFIG'),
+    type: z.literal(EVENTS.UPDATE_CONFIG),
     payload: GameConfigSchema.partial()
+});
+
+export const RestartGameSchema = z.object({
+    type: z.literal(EVENTS.RESTART_GAME)
+});
+
+export const KickPlayerSchema = z.object({
+    type: z.literal(EVENTS.KICK_PLAYER),
+    payload: z.object({
+        targetUserId: z.string()
+    })
 });

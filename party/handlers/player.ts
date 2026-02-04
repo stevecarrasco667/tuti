@@ -1,14 +1,15 @@
 import type * as Party from "partykit/server";
 import { BaseHandler } from "./base";
 import { broadcastState, sendError } from "../utils/broadcaster";
+import { KickPlayerSchema, UpdateConfigSchema } from "../../shared/schemas";
 
 const STORAGE_KEY = "room_state_v1";
 
 export class PlayerHandler extends BaseHandler {
 
-    async handleKick(payload: any, sender: Party.Connection) {
+    async handleKick(rawPayload: unknown, sender: Party.Connection) {
         try {
-            const { targetUserId } = payload;
+            const { targetUserId } = KickPlayerSchema.shape.payload.parse(rawPayload);
 
             // Engine logic
             const state = this.engine.kickPlayer(sender.id, targetUserId);
@@ -29,8 +30,11 @@ export class PlayerHandler extends BaseHandler {
         }
     }
 
-    async handleUpdateSettings(payload: any, sender: Party.Connection) {
+    async handleUpdateSettings(rawPayload: unknown, sender: Party.Connection) {
         try {
+            // Strict Validation
+            const payload = UpdateConfigSchema.shape.payload.parse(rawPayload);
+
             // Engine logic
             const state = this.engine.updateConfig(sender.id, payload);
 

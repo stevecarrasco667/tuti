@@ -1,14 +1,16 @@
 import type * as Party from "partykit/server";
 import { BaseHandler } from "./base";
 import { broadcastState, sendError } from "../utils/broadcaster";
+import { ToggleVoteSchema } from "../../shared/schemas";
 
 const STORAGE_KEY = "room_state_v1";
 
 export class VotingHandler extends BaseHandler {
 
-    async handleVote(payload: any, sender: Party.Connection) {
+    async handleVote(rawPayload: unknown, sender: Party.Connection) {
         try {
-            const { targetUserId, category } = payload;
+            const { targetUserId, category } = ToggleVoteSchema.shape.payload.parse(rawPayload);
+
             const state = this.engine.toggleVote(sender.id, targetUserId, category);
             await this.persistAndBroadcast(state);
         } catch (err) {

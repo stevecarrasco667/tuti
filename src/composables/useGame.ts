@@ -2,6 +2,7 @@ import { ref, watch, computed } from 'vue';
 import { useSocket } from './useSocket';
 import { debounce } from '../utils/timing';
 import type { RoomState, ServerMessage } from '../../shared/types';
+import { EVENTS } from '../../shared/consts';
 
 // Global state to persist across component mounts if needed
 const gameState = ref<RoomState>({
@@ -44,9 +45,9 @@ export function useGame() {
         try {
             const parsed: ServerMessage = JSON.parse(newMsg);
 
-            if (parsed.type === 'UPDATE_STATE') {
+            if (parsed.type === EVENTS.UPDATE_STATE) {
                 gameState.value = parsed.payload;
-            } else if (parsed.type === 'RIVAL_UPDATE') {
+            } else if (parsed.type === EVENTS.RIVAL_UPDATE) {
                 // [SILENT UPDATE] Optimize rendering by only updating specific field
                 const { playerId, filledCount } = parsed.payload;
                 const player = gameState.value.players.find(p => p.id === playerId);
@@ -137,13 +138,13 @@ export function useGame() {
 
     const startGame = () => {
         if (!socket.value) return;
-        socket.value.send(JSON.stringify({ type: 'START_GAME' }));
+        socket.value.send(JSON.stringify({ type: EVENTS.START_GAME }));
     };
 
     const submitAnswers = (answers: Record<string, string>) => {
         if (!socket.value) return;
         socket.value.send(JSON.stringify({
-            type: 'SUBMIT_ANSWERS',
+            type: EVENTS.SUBMIT_ANSWERS,
             payload: { answers }
         }));
     };
@@ -151,7 +152,7 @@ export function useGame() {
     const stopRound = (answers: Record<string, string>) => {
         if (!socket.value) return;
         socket.value.send(JSON.stringify({
-            type: 'STOP_ROUND',
+            type: EVENTS.STOP_ROUND,
             payload: { answers }
         }));
     };
@@ -160,7 +161,7 @@ export function useGame() {
     const updateAnswers = (answers: Record<string, string>) => {
         if (!socket.value) return;
         socket.value.send(JSON.stringify({
-            type: 'UPDATE_ANSWERS',
+            type: EVENTS.UPDATE_ANSWERS,
             payload: { answers }
         }));
     };
@@ -178,7 +179,7 @@ export function useGame() {
     const toggleVote = (targetUserId: string, category: string) => {
         if (!socket.value) return;
         socket.value.send(JSON.stringify({
-            type: 'TOGGLE_VOTE',
+            type: EVENTS.TOGGLE_VOTE,
             payload: { targetUserId, category }
         }));
     };
@@ -186,14 +187,14 @@ export function useGame() {
     const confirmVotes = () => {
         if (!socket.value) return;
         socket.value.send(JSON.stringify({
-            type: 'CONFIRM_VOTES'
+            type: EVENTS.CONFIRM_VOTES
         }));
     };
 
     const updateConfig = (config: Partial<{ roundDuration: number; votingDuration: number; categoriesCount: number }>) => {
         if (!socket.value) return;
         socket.value.send(JSON.stringify({
-            type: 'UPDATE_CONFIG',
+            type: EVENTS.UPDATE_CONFIG,
             payload: config
         }));
     };
@@ -201,14 +202,14 @@ export function useGame() {
     const resetGame = () => {
         if (!socket.value) return;
         socket.value.send(JSON.stringify({
-            type: 'RESTART_GAME'
+            type: EVENTS.RESTART_GAME
         }));
     };
 
     const kickPlayer = (targetUserId: string) => {
         if (!socket.value) return;
         socket.value.send(JSON.stringify({
-            type: 'KICK_PLAYER',
+            type: EVENTS.KICK_PLAYER,
             payload: { targetUserId }
         }));
     };
@@ -285,6 +286,7 @@ export function useGame() {
             }
             return false;
         },
-        leaveGame
+        leaveGame,
+        isConnected
     };
 }

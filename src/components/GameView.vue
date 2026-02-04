@@ -11,7 +11,7 @@ import ReviewPhase from './game/ReviewPhase.vue';
 import ResultsRanking from './game/ResultsRanking.vue';
 import GameFooter from './game/GameFooter.vue';
 
-const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVotes, myUserId, amIHost, startGame, leaveGame } = useGame();
+const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVotes, myUserId, amIHost, startGame, leaveGame, isConnected } = useGame();
 
 const { 
     timeRemaining, timerColor, sessionToasts, addToast, showStopAlert, stopperPlayer, playClick, playAlarm
@@ -107,8 +107,8 @@ const rivalsActivity = computed(() => {
 
 <template>
     <div class="h-[100dvh] w-full flex flex-col bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-900 via-indigo-950 to-black text-slate-100 overflow-hidden font-sans">
-         <div v-if="!gameState.players.find(p => p.id === myUserId)?.isConnected" class="absolute top-16 left-1/2 -translate-x-1/2 z-50 bg-red-500/90 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg animate-pulse pointer-events-none">
-            ⚠️ Conexión Perdida
+         <div v-if="!isConnected" class="absolute top-16 left-1/2 -translate-x-1/2 z-50 bg-red-500/90 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg animate-pulse pointer-events-none">
+            ⚠️ Sin Conexión
         </div>
 
         <GameHUD 
