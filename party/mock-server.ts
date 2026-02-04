@@ -247,7 +247,11 @@ function handleWatchdogTrigger(roomId: string) {
     }
     // Check if results timer expired
     else if (state.status === 'RESULTS' && state.timers.resultsEndsAt && now >= state.timers.resultsEndsAt) {
-        engine.forceStartNextRound();
+        // Mock Server specific logic, casting to any to bypass strict checks on private members if needed
+        const continueGame = (engine as any).rounds.nextRound(state, state.config);
+        if (continueGame) {
+            (engine as any).rounds.startRound(state, state.config, () => { /* no-op */ });
+        }
         console.log(`🔴 Auto-starting next round in room ${roomId}`);
     }
 

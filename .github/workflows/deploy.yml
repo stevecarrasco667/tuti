@@ -1,4 +1,4 @@
-name: Deploy to PartyKit
+name: Operation Iron Shield (Deploy)
 
 on:
   push:
@@ -6,30 +6,69 @@ on:
       - main
 
 jobs:
-  deploy:
+  # JOB 1: QUALITY GATE
+  # Falla si hay errores de tipos o tests rotos.
+  quality-gate:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: '20'
 
       - name: Install Dependencies
         run: npm ci
 
-      - name: Build Project
-        # Usamos 'vite build' directo para evitar bloqueos por tipos
-        run: npx vite build
+      - name: Typecheck (Strict)
+        run: npm run typecheck
+
+      - name: Test (Vitest)
+        run: npm test
+
+  # JOB 2: DEPLOY
+  # Solo ejecuta si Quality Gate pasa.
+  deploy:
+    needs: quality-gate
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Frontend
+        run: npm run build
 
       - name: Deploy to PartyKit
         env:
-          # Pasamos AMBAS variables para asegurar la autenticación
           PARTYKIT_TOKEN: ${{ secrets.PARTYKIT_TOKEN }}
-          PARTYKIT_LOGIN: ${{ secrets.PARTYKIT_LOGIN }} 
-          # Si no creaste el secreto LOGIN, cambia la línea de arriba por:
-          # PARTYKIT_LOGIN: stevecarrasco667
-        # Usamos @latest para asegurar la versión nueva, SIN flags inventados
-        run: npx partykit@latest deploy
+          PARTYKIT_LOGIN: ${{ secrets.PARTYKIT_LOGIN }}
+        run: npx partykit deploy
+
+  # JOB 3: RELEASE & TAG
+  # Etiqueta versiones automáticamente (v0.0.1 -> v0.0.2)
+  create-release:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: success()
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Bump Version and Push Tag
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch

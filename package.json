@@ -10,7 +10,8 @@
     "party:dev": "partykit dev",
     "party:deploy": "partykit deploy",
     "deploy": "npm run build && npx partykit deploy",
-    "test": "vitest"
+    "test": "vitest",
+    "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
     "htmx.org": "^1.9.10",
@@ -28,10 +29,10 @@
     "esbuild": "0.19.12",
     "postcss": "^8.4.33",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.3.3",
+    "typescript": "^5.9.3",
     "vite": "^5.0.12",
     "vitest": "^4.0.16",
-    "vue-tsc": "^1.8.27",
+    "vue-tsc": "^3.2.4",
     "ws": "^8.18.3"
   }
 }

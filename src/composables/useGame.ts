@@ -22,7 +22,8 @@ const gameState = ref<RoomState>({
         categoriesCount: 5,
         totalRounds: 5,
         mode: 'RANDOM',
-        selectedCategories: []
+        selectedCategories: [],
+        customCategories: []
     },
     timers: {
         roundEndsAt: null,
@@ -233,7 +234,8 @@ export function useGame() {
                 categoriesCount: 5,
                 totalRounds: 5,
                 mode: 'RANDOM',
-                selectedCategories: []
+                selectedCategories: [],
+                customCategories: []
             },
             timers: {
                 roundEndsAt: null,
