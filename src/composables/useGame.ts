@@ -2,7 +2,7 @@ import { ref, watch, computed } from 'vue';
 import { useSocket } from './useSocket';
 import { debounce } from '../utils/timing';
 import type { RoomState, ServerMessage } from '../../shared/types';
-import { EVENTS } from '../../shared/consts';
+import { EVENTS, APP_VERSION } from '../../shared/consts';
 
 // Global state to persist across component mounts if needed
 const gameState = ref<RoomState>({
@@ -39,6 +39,7 @@ export function useGame() {
     const { socket, lastMessage, setRoomId, isConnected } = useSocket();
 
     const isStopping = ref(false);
+    const isUpdateAvailable = ref(false);
 
     // Watch for incoming messages
     watch(lastMessage, (newMsg) => {
@@ -59,6 +60,12 @@ export function useGame() {
                 const player = gameState.value.players.find(p => p.id === playerId);
                 if (player) {
                     player.filledCount = filledCount;
+                }
+            } else if (parsed.type === EVENTS.SYSTEM_VERSION) {
+                const serverVersion = (parsed.payload as any).version;
+                if (serverVersion && serverVersion !== APP_VERSION) {
+                    console.warn(`[VERSION MISMATCH] Client: ${APP_VERSION}, Server: ${serverVersion}`);
+                    isUpdateAvailable.value = true;
                 }
             }
         } catch (e) {
@@ -299,6 +306,7 @@ export function useGame() {
         },
         leaveGame,
         isConnected,
-        isStopping
+        isStopping,
+        isUpdateAvailable
     };
 }

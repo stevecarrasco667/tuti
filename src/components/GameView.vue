@@ -4,6 +4,7 @@ import { useGame } from '../composables/useGame';
 import { useSmartReview } from '../composables/useSmartReview';
 import { useGameEffects } from '../composables/useGameEffects';
 import ConnectionBanner from './ConnectionBanner.vue';
+import ReloadPrompt from './ReloadPrompt.vue';
 import CountdownOverlay from './overlays/CountdownOverlay.vue';
 import StopSignal from './overlays/StopSignal.vue';
 
@@ -122,6 +123,7 @@ const rivalsActivity = computed(() => {
     <div class="h-[100dvh] w-full flex flex-col bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-900 via-indigo-950 to-black text-slate-100 overflow-hidden font-sans">
         
         <ConnectionBanner :is-connected="!!isConnected" />
+        <ReloadPrompt />
 
         <GameHUD 
             :round="gameState.roundsPlayed + 1"

@@ -1,7 +1,7 @@
 import type * as Party from "partykit/server";
 import { GameEngine } from "../shared/game-engine.js";
 import { RoomState } from "../shared/types.js";
-import { EVENTS } from "../shared/consts.js"; // Import Consolidado
+import { EVENTS, APP_VERSION } from "../shared/consts.js"; // Import Consolidado
 import { sendError } from "./utils/broadcaster";
 import { ConnectionHandler } from "./handlers/connection";
 import { PlayerHandler } from "./handlers/player";
@@ -57,6 +57,13 @@ export default class Server implements Party.Server {
     async onConnect(connection: Party.Connection, ctx: Party.ConnectionContext) {
         // CANCEL AUTO-DESTRUCT if a human connects
         await this.room.storage.deleteAlarm();
+
+        // 0. Send Version
+        const versionMsg = JSON.stringify({
+            type: EVENTS.SYSTEM_VERSION,
+            payload: { version: APP_VERSION }
+        });
+        connection.send(versionMsg);
 
         await this.connectionHandler.handleConnect(connection, ctx);
     }

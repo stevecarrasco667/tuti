@@ -15,8 +15,11 @@ export const EVENTS = {
     // Server -> Client
     UPDATE_STATE: 'UPDATE_STATE',
     RIVAL_UPDATE: 'RIVAL_UPDATE',
-    SYSTEM_MESSAGE: 'SYSTEM'
+    SYSTEM_MESSAGE: 'SYSTEM',
+    SYSTEM_VERSION: 'SYSTEM_VERSION'
 } as const;
+
+export const APP_VERSION = 'v0.5.0';
 
 export const GAME_CONSTS = {
     MAX_POINTS: 100,

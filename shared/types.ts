@@ -70,4 +70,5 @@ export type ClientMessage =
 export type ServerMessage =
     | { type: typeof EVENTS.UPDATE_STATE; payload: RoomState }
     | { type: typeof EVENTS.RIVAL_UPDATE; payload: { playerId: string; filledCount: number } }
-    | { type: typeof EVENTS.SYSTEM_MESSAGE; payload: string };
+    | { type: typeof EVENTS.SYSTEM_MESSAGE; payload: string }
+    | { type: typeof EVENTS.SYSTEM_VERSION; payload: { version: string } };
