@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
+import { useSound } from '../../composables/useSound';
 
 const emit = defineEmits(['finished']);
+const { playStop } = useSound();
 
 onMounted(() => {
-    // Auto-dismiss after animation + dramatic pause
+    // 1. Audio & Haptics
+    playStop();
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+
+    // 2. Auto-dismiss
     setTimeout(() => {
         emit('finished');
     }, 2000);

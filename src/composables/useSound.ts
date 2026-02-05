@@ -1,57 +1,60 @@
-import { ref } from 'vue';
 
-// Simple sound manager
-// Connect specific events to specific audio files
-// Note: Ideally these should be local assets in /public/sounds/
-
-const sounds = {
-    click: new Audio('https://cdn.freesound.org/previews/256/256113_3263906-lq.mp3'), // Short Click
-    join: new Audio('https://cdn.freesound.org/previews/274/274183_5123851-lq.mp3'),  // Pop/Bubble
-    tick: new Audio('https://cdn.freesound.org/previews/269/269026_5094865-lq.mp3'),  // Clock Tick
-    timeout: new Audio('https://cdn.freesound.org/previews/337/337049_3232293-lq.mp3'), // Alarm/Whistle
-    success: new Audio('https://cdn.freesound.org/previews/270/270402_5123851-lq.mp3'), // Success Chime
-    scribble: new Audio('https://cdn.freesound.org/previews/175/175409_1326499-lq.mp3') // Writing sound?
+const SFX = {
+    click: 'https://cdn.freesound.org/previews/256/256113_3263906-lq.mp3',
+    stop: 'https://cdn.freesound.org/previews/337/337049_3232293-lq.mp3',
+    error: 'https://cdn.freesound.org/previews/142/142608_1840739-lq.mp3',
+    win: 'https://cdn.freesound.org/previews/270/270402_5123851-lq.mp3',
+    tally: 'https://cdn.freesound.org/previews/320/320655_5260872-lq.mp3'
 };
 
-// Preload
-Object.values(sounds).forEach(audio => {
-    audio.volume = 0.5;
-    audio.load();
-});
-
-// Global Mute State (Persisted)
-// Note: We need to use 'ref' which is imported at the top.
-const isMuted = ref(localStorage.getItem('tuti_muted') === 'true');
-
-const toggleMute = () => {
-    isMuted.value = !isMuted.value;
-    localStorage.setItem('tuti_muted', String(isMuted.value));
-};
+const audioCache: Record<string, HTMLAudioElement> = {};
 
 export function useSound() {
 
-    const playSound = (name: keyof typeof sounds) => {
-        if (isMuted.value) return; // Silent mode
-
+    const play = (url: string, volume = 0.5) => {
         try {
-            const audio = sounds[name];
-            if (audio) {
-                audio.currentTime = 0;
-                audio.play().catch(e => console.warn('Audio play blocked', e));
+            // Simple cache to avoid re-fetching, but allow overlapping sounds (cloneNode)
+            if (!audioCache[url]) {
+                audioCache[url] = new Audio(url);
             }
-        } catch (e) {
-            console.warn('Audio error', e);
+
+            // Clone to allow overlapping instances of the same sound
+            const sound = audioCache[url].cloneNode() as HTMLAudioElement;
+            sound.volume = volume;
+
+            const promise = sound.play();
+            if (promise !== undefined) {
+                promise.catch(error => {
+                    console.warn(`[Audio] Playback prevented: ${error}`);
+                });
+            }
+        } catch (err) {
+            console.error('[Audio] Error:', err);
         }
     };
 
+    const playClick = () => play(SFX.click, 0.4);
+    const playStop = () => play(SFX.stop, 0.6);
+    const playError = () => play(SFX.error, 0.4);
+    const playWin = () => play(SFX.win, 0.5);
+    const playTally = () => play(SFX.tally, 0.3);
+
+    // Aliases for Backward Compatibility
+    const playJoin = () => play(SFX.click, 0.4);
+    const playTick = () => play(SFX.tally, 0.3);
+    const playAlarm = () => play(SFX.error, 0.4);
+    const playSuccess = () => play(SFX.win, 0.5);
+
     return {
-        playClick: () => playSound('click'),
-        playJoin: () => playSound('join'),
-        playTick: () => playSound('tick'),
-        playAlarm: () => playSound('timeout'),
-        playSuccess: () => playSound('success'),
-        playWriting: () => playSound('scribble'),
-        isMuted,
-        toggleMute
+        playClick,
+        playStop,
+        playError,
+        playWin,
+        playTally,
+        // Compat
+        playJoin,
+        playTick,
+        playAlarm,
+        playSuccess
     };
 }
