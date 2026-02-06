@@ -41,4 +41,9 @@ export class ConnectionHandler extends BaseHandler {
         // Broadcast update
         broadcastState(this.room, state);
     }
+
+    async handleExitGame(connection: Party.Connection) {
+        // Explicit exit logic (same as close for now)
+        await this.handleClose(connection);
+    }
 }

@@ -24,6 +24,9 @@ export default class Server implements Party.Server {
     gameHandler: GameHandler;
     votingHandler: VotingHandler;
 
+    // Chat State
+    messages: import('../shared/types').ChatMessage[] = [];
+
     constructor(room: Party.Room) {
         this.room = room;
         this.engine = new GameEngine(room.id, (newState) => {
@@ -54,7 +57,7 @@ export default class Server implements Party.Server {
         }
     }
 
-    async onConnect(connection: Party.Connection, ctx: Party.ConnectionContext) {
+    async onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
         // CANCEL AUTO-DESTRUCT if a human connects
         await this.room.storage.deleteAlarm();
 
@@ -63,9 +66,22 @@ export default class Server implements Party.Server {
             type: EVENTS.SYSTEM_VERSION,
             payload: { version: APP_VERSION }
         });
-        connection.send(versionMsg);
+        conn.send(versionMsg);
 
-        await this.connectionHandler.handleConnect(connection, ctx);
+        // 1. Send current Game State
+        conn.send(JSON.stringify({
+            type: EVENTS.UPDATE_STATE,
+            payload: this.engine.getState()
+        }));
+
+        // 2. Send Chat History
+        conn.send(JSON.stringify({
+            type: EVENTS.CHAT_HISTORY,
+            payload: this.messages
+        }));
+
+        // 3. Handle Identity via ConnectionHandler
+        await this.connectionHandler.handleConnect(conn, ctx);
     }
 
     async onMessage(message: string, sender: Party.Connection) {
@@ -118,22 +134,42 @@ export default class Server implements Party.Server {
                     await this.playerHandler.handleKick(payload, sender);
                     break;
 
-                // --- Lifecycle ---
-                case EVENTS.RESTART_GAME:
-                    // Needs Handler Implementation if not already present or direct?
-                    // GameHandler doesn't expose restart yet? Check shared/game-engine.ts has `restartGame`.
-                    // Let's assume GameHandler or BaseHandler might expose it, or I add it.
-                    // The original switch case didn't show RESTART_GAME?
-                    // Wait, `shared/types` has RESTART_GAME.
-                    // Original code onMessage switch didn't show it?
-                    // Looking at original file... No, it wasn't there!
-                    // But `shared/types.ts` had it.
-                    // I should probably add it if it's expected, but for "Diamond Polish" I stick to existing behavior mostly unless instructed.
-                    // However, the instruction said "Actualiza party/server.ts y todos los archivos en party/handlers/ para usar las nuevas constantes/enums".
-                    // If it wasn't there, I won't add it unless I see a handler for it.
-                    // Leaving it out for now to avoid breaking changes if implementation is missing.
-                    // Wait, `PONG` was there.
+                case EVENTS.EXIT_GAME:
+                    this.connectionHandler.handleExitGame(sender);
                     break;
+
+                // --- CHAT SYSTEM (Phase 2.A) ---
+                case EVENTS.CHAT_SEND: {
+                    const text = (payload as { text?: string }).text;
+                    if (!text || typeof text !== 'string') return;
+
+                    const trimmed = text.trim();
+                    if (trimmed.length === 0 || trimmed.length > 140) return;
+
+                    const senderId = (sender.state as any)?.userId || sender.id;
+                    const player = this.engine.getState().players.find(p => p.id === senderId);
+                    const senderName = player ? player.name : 'Voz Misteriosa';
+
+                    const chatMsg: import('../shared/types').ChatMessage = {
+                        id: `${senderId}-${Date.now()}`,
+                        senderId,
+                        senderName,
+                        text: trimmed,
+                        type: 'USER',
+                        timestamp: Date.now()
+                    };
+
+                    // Store & Limit
+                    this.messages.push(chatMsg);
+                    if (this.messages.length > 50) this.messages.shift();
+
+                    // Broadcast
+                    this.room.broadcast(JSON.stringify({
+                        type: EVENTS.CHAT_NEW,
+                        payload: chatMsg
+                    }));
+                    break;
+                }
 
                 case "PONG": // Keep PONG as string or add to consts? Usually keep PONG/PING separate/internal.
                     return;

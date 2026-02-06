@@ -2,6 +2,15 @@ import { EVENTS } from './consts';
 
 export type GameStatus = 'LOBBY' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER';
 
+export interface ChatMessage {
+    id: string;
+    senderId: string;
+    senderName: string;
+    text: string;
+    type: 'USER' | 'SYSTEM';
+    timestamp: number;
+}
+
 export interface Player {
     id: string;
     name: string;
@@ -64,11 +73,14 @@ export type ClientMessage =
     | { type: typeof EVENTS.UPDATE_CONFIG; payload: Partial<GameConfig> }
     | { type: typeof EVENTS.RESTART_GAME }
     | { type: typeof EVENTS.KICK_PLAYER; payload: { targetUserId: string } }
-    | { type: typeof EVENTS.EXIT_GAME };
+    | { type: typeof EVENTS.EXIT_GAME }
+    | { type: typeof EVENTS.CHAT_SEND; payload: { text: string } };
 
 // Messages sent from Server to Client
 export type ServerMessage =
     | { type: typeof EVENTS.UPDATE_STATE; payload: RoomState }
     | { type: typeof EVENTS.RIVAL_UPDATE; payload: { playerId: string; filledCount: number } }
     | { type: typeof EVENTS.SYSTEM_MESSAGE; payload: string }
-    | { type: typeof EVENTS.SYSTEM_VERSION; payload: { version: string } };
+    | { type: typeof EVENTS.SYSTEM_VERSION; payload: { version: string } }
+    | { type: typeof EVENTS.CHAT_NEW; payload: ChatMessage }
+    | { type: typeof EVENTS.CHAT_HISTORY; payload: ChatMessage[] };

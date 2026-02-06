@@ -12,11 +12,18 @@ export const EVENTS = {
     KICK_PLAYER: 'KICK_PLAYER',
     EXIT_GAME: 'EXIT_GAME',
 
+    // Chat Events (Client -> Server)
+    CHAT_SEND: 'CHAT_SEND',
+
     // Server -> Client
     UPDATE_STATE: 'UPDATE_STATE',
     RIVAL_UPDATE: 'RIVAL_UPDATE',
     SYSTEM_MESSAGE: 'SYSTEM',
-    SYSTEM_VERSION: 'SYSTEM_VERSION'
+    SYSTEM_VERSION: 'SYSTEM_VERSION',
+
+    // Chat Events (Server -> Client)
+    CHAT_NEW: 'CHAT_NEW',
+    CHAT_HISTORY: 'CHAT_HISTORY'
 } as const;
 
 export const APP_VERSION = 'v0.5.0';
