@@ -27,6 +27,23 @@ const handleInput = (category: string, event: Event) => {
     emit('input-change', category, event);
 };
 
+// --- KEYBOARD NAVIGATION ---
+const inputElements = ref<(HTMLInputElement | null)[]>([]);
+
+const setInputRef = (el: any, index: number) => {
+    if (el) inputElements.value[index] = el as HTMLInputElement;
+};
+
+const handleNextFocus = (currentIndex: number) => {
+    const nextIndex = currentIndex + 1;
+    if (nextIndex < props.categories.length) {
+        inputElements.value[nextIndex]?.focus();
+    } else {
+        // Last element: just blur for now to close keyboard on mobile
+        inputElements.value[currentIndex]?.blur();
+    }
+};
+
 // --- MOBILE KEYBOARD SPACER LOGIC ---
 const keyboardHeight = ref(0);
 
@@ -73,7 +90,7 @@ onUnmounted(() => {
                         categories.length > 3 ? 'xl:grid-cols-4' : '' // Ultrawide optimization
                      ]"
                 >
-                    <div v-for="category in categories" :key="category" class="group">
+                    <div v-for="(category, index) in categories" :key="category" class="group">
                         <label class="block font-bold text-indigo-200 mb-1.5 transition-colors group-focus-within:text-yellow-400 truncate tracking-wide text-sm md:text-xs uppercase">
                             {{ category }}
                         </label>
@@ -82,7 +99,8 @@ onUnmounted(() => {
                                 :value="modelValue[category]"
                                 @input="handleInput(category, $event)"
                                 @focus="$emit('input-focus', $event)"
-                                @keydown.enter.prevent
+                                @keydown.enter.prevent="handleNextFocus(index)"
+                                :ref="(el) => setInputRef(el, index)"
                                 type="text"
                                 autocomplete="off"
                                 class="w-full bg-black/20 border-b-2 border-white/10 text-white rounded-t-lg focus:bg-black/40 focus:border-yellow-400 focus:shadow-[0_4px_15px_-5px_rgba(250,204,21,0.4)] outline-none transition-all placeholder-white/10 font-medium h-14 md:h-12 py-3 md:py-2 px-3 text-2xl md:text-lg disabled:opacity-50 disabled:cursor-not-allowed"

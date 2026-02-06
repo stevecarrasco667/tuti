@@ -4,15 +4,11 @@ import { RoomState } from '../../../shared/types';
 defineProps<{
     status: RoomState['status'];
     amIHost: boolean;
-    canStop: boolean;
-    cooldown: boolean;
     hasConfirmed: boolean;
     myProgress: { current: number, total: number };
-    isStopping?: boolean;
 }>();
 
 defineEmits<{
-    (e: 'stop'): void;
     (e: 'confirm-votes'): void;
     (e: 'next-round'): void;
 }>();
@@ -29,18 +25,6 @@ defineEmits<{
                      {{ myProgress.current }}<span class="text-base text-white/20">/{{ myProgress.total }}</span>
                  </span>
              </div>
-
-            <!-- STOP BUTTON (Center) -->
-            <button 
-                v-if="status === 'PLAYING'"
-                @click="$emit('stop')"
-                class="flex-1 max-w-sm bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-black text-xl py-4 rounded-2xl shadow-[0_0_30px_rgba(236,72,153,0.4)] transition-all active:scale-[0.98] flex items-center justify-center gap-3 border border-white/20"
-                :class="{'opacity-50 saturate-0 cursor-not-allowed': (!canStop && !cooldown) || isStopping, 'animate-shake': cooldown}"
-                :disabled="isStopping"
-            >
-                <span class="text-2xl drop-shadow-md">{{ isStopping ? '⏳' : '✋' }}</span>
-                <span class="tracking-widest drop-shadow-md">{{ isStopping ? 'ENVIANDO...' : 'BASTA' }}</span>
-            </button>
 
              <!-- CONFIRM -->
             <button 
