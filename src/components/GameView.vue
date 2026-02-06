@@ -3,7 +3,6 @@ import { ref, watch, computed } from 'vue';
 import { useGame } from '../composables/useGame';
 import { useSmartReview } from '../composables/useSmartReview';
 import { useGameEffects } from '../composables/useGameEffects';
-import ConnectionBanner from './ConnectionBanner.vue';
 import ReloadPrompt from './ReloadPrompt.vue';
 import CountdownOverlay from './overlays/CountdownOverlay.vue';
 import StopSignal from './overlays/StopSignal.vue';
@@ -131,11 +130,7 @@ const rivalsActivity = computed(() => {
             :current-letter="gameState.currentLetter"
             :time-left="timeRemaining"
             :timer-color="timerColor"
-            :can-stop="canStopRound"
-            :cooldown="validationCooldown"
-            :is-stopping="!!isStopping"
             @exit="showExitModal = true"
-            @stop="handleStop"
         />
 
         <div class="flex-1 overflow-y-auto w-full scroll-smooth p-4 relative">
@@ -204,10 +199,14 @@ const rivalsActivity = computed(() => {
         <GameFooter 
             :status="gameState.status"
             :am-i-host="amIHost"
+            :can-stop="canStopRound"
+            :cooldown="validationCooldown"
             :has-confirmed="hasConfirmed"
             :my-progress="{ current: Object.values(answers).filter(v => v?.trim()).length, total: gameState.categories.length }"
+            @stop="handleStop"
             @confirm-votes="handleConfirmVotes"
             @next-round="startGame"
+            :is-stopping="!!isStopping"
         />
 
         <div class="fixed top-20 right-4 z-[60] flex flex-col items-end gap-2 pointer-events-none">

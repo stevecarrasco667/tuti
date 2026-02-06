@@ -5,15 +5,10 @@ defineProps<{
     currentLetter: string | null;
     timeLeft: number | null;
     timerColor: string;
-    // Stop Logic
-    canStop: boolean;
-    cooldown: boolean;
-    isStopping: boolean;
 }>();
 
 defineEmits<{
     (e: 'exit'): void;
-    (e: 'stop'): void;
 }>();
 </script>
 
@@ -62,40 +57,15 @@ defineEmits<{
             </div>
         </div>
 
-        <!-- Right: Control Area (Time + STOP) -->
-        <div class="flex items-center gap-4 justify-end w-full md:w-auto">
-             
-             <!-- STOP BUTTON (Moved from Footer) -->
-             <!-- Only visible if we are not stopping and have time? Always visible? -->
-             <button 
-                @click="$emit('stop')"
-                class="hidden md:flex bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold text-sm px-6 py-2 rounded-xl shadow-[0_0_15px_rgba(236,72,153,0.4)] transition-all active:scale-[0.98] items-center gap-2 border border-white/20 whitespace-nowrap"
-                :class="{'opacity-50 saturate-0 cursor-not-allowed': (!canStop && !cooldown) || isStopping, 'animate-shake': cooldown}"
-                :disabled="isStopping"
-             >
-                <span>{{ isStopping ? '⏳' : '✋' }}</span>
-                <span>{{ isStopping ? 'ENVIANDO...' : 'BASTA' }}</span>
-            </button>
-            <!-- Mobile "Mini" Stop Button -->
-             <button 
-                @click="$emit('stop')"
-                class="md:hidden flex bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold p-3 rounded-xl shadow-lg transition-all active:scale-[0.98] border border-white/20"
-                :class="{'opacity-50 saturate-0 cursor-not-allowed': (!canStop && !cooldown) || isStopping, 'animate-shake': cooldown}"
-                :disabled="isStopping"
-             >
-                <span class="text-lg">{{ isStopping ? '⏳' : '✋' }}</span>
-            </button>
-
-            <!-- Timer -->
-            <div class="flex flex-col items-end w-[50px] md:w-[60px]">
-                <span v-if="timeLeft !== null" 
-                    class="font-mono text-xl font-bold leading-none tabular-nums"
-                    :class="timerColor"
-                >
-                    {{ timeLeft }}
-                </span>
-                <span v-else class="text-xl font-bold text-white/20">--</span>
-            </div>
+        <!-- Right: Timer -->
+        <div class="flex flex-col items-end w-[50px] md:w-[60px]">
+            <span v-if="timeLeft !== null" 
+                class="font-mono text-xl font-bold leading-none tabular-nums"
+                :class="timerColor"
+            >
+                {{ timeLeft }}
+            </span>
+            <span v-else class="text-xl font-bold text-white/20">--</span>
         </div>
     </div>
 </template>
