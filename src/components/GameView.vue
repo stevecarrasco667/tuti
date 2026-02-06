@@ -14,7 +14,7 @@ import ReviewPhase from './game/ReviewPhase.vue';
 import ResultsRanking from './game/ResultsRanking.vue';
 import GameFooter from './game/GameFooter.vue';
 
-const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVotes, myUserId, amIHost, startGame, leaveGame, isConnected, isStopping } = useGame();
+const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVotes, myUserId, amIHost, startGame, leaveGame, isStopping } = useGame();
 
 const showCountdown = ref(false);
 const showStopSignal = ref(false);
@@ -121,7 +121,6 @@ const rivalsActivity = computed(() => {
 <template>
     <div class="h-[100dvh] w-full flex flex-col bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-900 via-indigo-950 to-black text-slate-100 overflow-hidden font-sans">
         
-        <ConnectionBanner :is-connected="!!isConnected" />
         <ReloadPrompt />
 
         <RoundStatusHeader 
