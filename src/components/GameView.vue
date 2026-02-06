@@ -13,6 +13,7 @@ import ActiveRound from './game/ActiveRound.vue';
 import ReviewPhase from './game/ReviewPhase.vue';
 import ResultsRanking from './game/ResultsRanking.vue';
 import GameFooter from './game/GameFooter.vue';
+import ChatWidget from './chat/ChatWidget.vue';
 
 const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVotes, myUserId, amIHost, startGame, leaveGame, isStopping } = useGame();
 
@@ -186,11 +187,8 @@ const rivalsActivity = computed(() => {
                         />
                     </div>
 
-                    <!-- COLUMN 3: SPACER / EXTRA (Desktop Right) -->
-                     <div class="hidden lg:flex flex-col h-full w-full order-3 lg:order-3 bg-indigo-950/20 rounded-2xl p-4 border border-white/5">
-                        <!-- Future Chat / Stats Placeholder -->
-                        <div class="text-xs font-bold text-white/30 uppercase tracking-widest text-center mt-4">Chat de Sala</div>
-                     </div>
+                    <!-- COLUMN 3: CHAT (Desktop Right) -->
+                    <ChatWidget class="hidden lg:flex order-3 lg:order-3 w-full h-full max-h-[calc(100vh-140px)]" />
                 </div>
             </Transition>
         </div>
