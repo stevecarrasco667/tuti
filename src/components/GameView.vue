@@ -14,6 +14,7 @@ import ReviewPhase from './game/ReviewPhase.vue';
 import ResultsRanking from './game/ResultsRanking.vue';
 import GameFooter from './game/GameFooter.vue';
 import ChatWidget from './chat/ChatWidget.vue';
+import MobileChatDrawer from './chat/MobileChatDrawer.vue';
 
 const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVotes, myUserId, amIHost, startGame, leaveGame, isStopping } = useGame();
 
@@ -220,6 +221,7 @@ const rivalsActivity = computed(() => {
                  </div>
              </div>
         </div>
+        <MobileChatDrawer class="lg:hidden" />
     </div>
 </template>
 
