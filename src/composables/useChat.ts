@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue';
+import { ref, watch, effectScope } from 'vue';
 import { useSocket } from './useSocket';
 import { useGame } from './useGame';
 import { useSound } from './useSound';
@@ -8,39 +8,57 @@ import type { ChatMessage } from '../../shared/types';
 // Global Singleton State
 const messages = ref<ChatMessage[]>([]);
 const unreadCount = ref(0);
+let isInitialized = false;
+const chatScope = effectScope(true); // Detached scope
 
 export function useChat() {
     const { socket, lastMessage } = useSocket();
-    const { myUserId } = useGame();
-    const { playClick } = useSound();
+    // We can't destructure useGame/useSound outside, but we need them inside the watcher.
+    // However, useGame/useSound might rely on injection context if used inside components.
+    // But since they are composables using global state/refs, it should be fine.
 
-    watch(lastMessage, (newMsg) => {
-        if (!newMsg) return;
-        try {
-            const parsed = JSON.parse(newMsg);
+    // Initialize Singleton Watcher ONCE
+    if (!isInitialized) {
+        chatScope.run(() => {
+            const { myUserId } = useGame();
+            const { playClick } = useSound();
 
-            if (parsed.type === EVENTS.CHAT_HISTORY) {
-                messages.value = parsed.payload;
-            }
-            else if (parsed.type === EVENTS.CHAT_NEW) {
-                const msg = parsed.payload as ChatMessage;
-                messages.value.push(msg);
+            watch(lastMessage, (newMsg) => {
+                if (!newMsg) return;
+                try {
+                    const parsed = JSON.parse(newMsg);
 
-                // Keep client in sync with server limit (optional but good UI practice)
-                if (messages.value.length > 50) {
-                    messages.value.shift();
+                    if (parsed.type === EVENTS.CHAT_HISTORY) {
+                        messages.value = parsed.payload;
+                    }
+                    else if (parsed.type === EVENTS.CHAT_NEW) {
+                        const msg = parsed.payload as ChatMessage;
+
+                        // Deduplication Check (Safety Net)
+                        if (messages.value.some(m => m.id === msg.id)) {
+                            return;
+                        }
+
+                        messages.value.push(msg);
+
+                        // Keep client in sync with server limit
+                        if (messages.value.length > 50) {
+                            messages.value.shift();
+                        }
+
+                        // Sound & Notification
+                        if (msg.senderId !== myUserId.value) {
+                            playClick();
+                            unreadCount.value++;
+                        }
+                    }
+                } catch (e) {
+                    // Silently ignore parse errors
                 }
-
-                // Sound & Notification
-                if (msg.senderId !== myUserId.value) {
-                    playClick();
-                    unreadCount.value++;
-                }
-            }
-        } catch (e) {
-            // Silently ignore parse errors (handled by useGame or others)
-        }
-    });
+            });
+        });
+        isInitialized = true;
+    }
 
     const sendMessage = (text: string) => {
         if (!socket.value) return;
