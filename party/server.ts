@@ -3,6 +3,7 @@ import { GameEngine } from "../shared/game-engine.js";
 import { RoomState } from "../shared/types.js";
 import { EVENTS, APP_VERSION } from "../shared/consts.js"; // Import Consolidado
 import { sendError } from "./utils/broadcaster";
+import { RateLimiter } from "./utils/rate-limiter";
 import { ConnectionHandler } from "./handlers/connection";
 import { PlayerHandler } from "./handlers/player";
 import { GameHandler } from "./handlers/game";
@@ -23,6 +24,9 @@ export default class Server implements Party.Server {
     playerHandler: PlayerHandler;
     gameHandler: GameHandler;
     votingHandler: VotingHandler;
+
+    // Utilites
+    private rateLimiter = new RateLimiter(); // 5 burst, 1 refill/2s
 
     // Chat State
     messages: import('../shared/types').ChatMessage[] = [];
@@ -138,13 +142,23 @@ export default class Server implements Party.Server {
                     this.connectionHandler.handleExitGame(sender);
                     break;
 
-                // --- CHAT SYSTEM (Phase 2.A) ---
+                // --- CHAT SYSTEM (Phase 2.A + 2.E Security) ---
                 case EVENTS.CHAT_SEND: {
-                    const text = (payload as { text?: string }).text;
-                    if (!text || typeof text !== 'string') return;
+                    // 1. Rate Limiting (The Wall)
+                    if (!this.rateLimiter.checkLimit(sender.id)) {
+                        // Silent drop or debug log
+                        // console.warn(`[Spam Blocked] ${sender.id}`);
+                        return;
+                    }
 
-                    const trimmed = text.trim();
-                    if (trimmed.length === 0 || trimmed.length > 140) return;
+                    const rawText = (payload as { text?: string }).text;
+                    if (!rawText || typeof rawText !== 'string') return;
+
+                    // 2. Sanitization (The Filter)
+                    const trimmed = rawText.trim();
+                    // Hard cap 140 chars
+                    if (trimmed.length === 0) return;
+                    const finalText = trimmed.slice(0, 140);
 
                     const senderId = (sender.state as any)?.userId || sender.id;
                     const player = this.engine.getState().players.find(p => p.id === senderId);
@@ -154,7 +168,7 @@ export default class Server implements Party.Server {
                         id: `${senderId}-${Date.now()}`,
                         senderId,
                         senderName,
-                        text: trimmed,
+                        text: finalText,
                         type: 'USER',
                         timestamp: Date.now()
                     };
@@ -235,6 +249,7 @@ export default class Server implements Party.Server {
     }
 
     onClose(connection: Party.Connection) {
+        this.rateLimiter.cleanup(connection.id);
         this.connectionHandler.handleClose(connection);
 
         // ZOMBIE ALARM: Schedule cleanup check in 60s
