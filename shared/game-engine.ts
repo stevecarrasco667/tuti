@@ -1,9 +1,12 @@
-import { RoomState, Player, GameConfig } from './types.js';
+import { RoomState, GameConfig } from './types.js';
 import { RoundAnswersSchema } from './schemas.js';
-import { validateWord } from './validator.js';
+
 import { ScoreSystem } from './systems/score-system.js';
 import { RoundManager } from './systems/round-manager.js';
 import { PlayerManager } from './systems/player-manager.js';
+import { ValidationManager } from './systems/validation-manager.js';
+import { ConfigurationManager } from './systems/configuration-manager.js';
+import { VotingManager } from './systems/voting-manager.js';
 
 export interface CategoryItem {
     id: string;
@@ -74,6 +77,9 @@ export class GameEngine {
     public scoreSystem = new ScoreSystem();
     public rounds = new RoundManager();
     public players = new PlayerManager();
+    public validation = new ValidationManager();
+    public configManager = new ConfigurationManager();
+    public voting = new VotingManager(this.validation);
 
     constructor(roomId: string, private onGameStateChange?: (state: RoomState) => void) {
         this.state = {
@@ -90,15 +96,7 @@ export class GameEngine {
             roundScores: {},
 
             // Default Config
-            config: {
-                totalRounds: 5,
-                roundDuration: 60,
-                votingDuration: 30, // seconds
-                categoriesCount: 5,
-                mode: 'RANDOM', // 'RANDOM' | 'MANUAL'
-                selectedCategories: [], // For manual mode
-                customCategories: []    // User created
-            },
+            config: this.configManager.getDefaultConfig(),
 
             // Timers
             timers: {
@@ -205,9 +203,7 @@ export class GameEngine {
 
         // Only host can update config, and only in LOBBY
         if (player && player.isHost && this.state.status === 'LOBBY') {
-            this.state.config = { ...this.state.config, ...newConfig };
-            if (this.state.config.categoriesCount < 1) this.state.config.categoriesCount = 1;
-            if (this.state.config.categoriesCount > 10) this.state.config.categoriesCount = 10;
+            this.state.config = this.configManager.updateConfig(this.state.config, newConfig);
         }
         return this.state;
     }
@@ -286,7 +282,7 @@ export class GameEngine {
         const activePlayers = this.state.players.filter(p => p.isConnected);
         if (activePlayers.length === 2) {
             console.log("[1vs1] Injecting Ghost Votes for Automated Judgment");
-            this.injectAutomatedVotes(activePlayers);
+            this.injectAutomatedVotes();
         }
 
         return this.state;
@@ -360,31 +356,19 @@ export class GameEngine {
 
     public toggleVote(connectionId: string, targetUserId: string, category: string): RoomState {
         const userId = this.players.getPlayerId(connectionId);
-        if (!userId || this.state.status !== 'REVIEW') return this.state;
-        if (userId === targetUserId) return this.state; // Cannot vote self
+        if (!userId) return this.state;
 
-        if (!this.state.votes[targetUserId]) this.state.votes[targetUserId] = {};
-        if (!this.state.votes[targetUserId][category]) this.state.votes[targetUserId][category] = [];
-
-        const voters = this.state.votes[targetUserId][category];
-        const index = voters.indexOf(userId);
-        if (index === -1) {
-            voters.push(userId); // Vote negative
-        } else {
-            voters.splice(index, 1); // Remove negative vote
-        }
+        this.voting.toggleVote(this.state, userId, targetUserId, category);
         return this.state;
     }
 
     public confirmVotes(connectionId: string): RoomState {
         const userId = this.players.getPlayerId(connectionId);
-        if (!userId || this.state.status !== 'REVIEW') return this.state;
+        if (!userId) return this.state;
 
-        if (!this.state.whoFinishedVoting.includes(userId)) {
-            this.state.whoFinishedVoting.push(userId);
+        if (this.voting.confirmVotes(this.state, userId)) {
+            this.calculateResults();
         }
-
-        this.checkConsensus();
 
         return this.state;
     }
@@ -393,25 +377,18 @@ export class GameEngine {
         const success = this.players.kick(this.state, hostConnectionId, targetUserId);
 
         if (success) {
-            // Clean up state
+            // Clean up state (Answers, Scores)
             delete this.state.answers[targetUserId];
-            delete this.state.votes[targetUserId];
             delete this.state.roundScores[targetUserId];
 
-            // Remove votes made by this player against others
-            for (const targetId in this.state.votes) {
-                for (const category in this.state.votes[targetId]) {
-                    const voters = this.state.votes[targetId][category];
-                    const idx = voters.indexOf(targetUserId);
-                    if (idx !== -1) {
-                        voters.splice(idx, 1);
-                    }
-                }
-            }
+            // Clean up votes via Manager
+            this.voting.cleanupPlayerVotes(this.state, targetUserId);
 
             // If kicking unblocked the game
             if (this.state.status === 'REVIEW') {
-                this.checkConsensus();
+                if (this.voting.checkConsensus(this.state)) {
+                    this.calculateResults();
+                }
             }
         }
         return this.state;
@@ -419,15 +396,7 @@ export class GameEngine {
 
     // --- SYSTEMS DELEGATION ---
 
-    private checkConsensus() {
-        const activePlayers = this.state.players.filter(p => p.isConnected);
-        const confirmedActivePlayers = activePlayers.filter(p => this.state.whoFinishedVoting.includes(p.id));
 
-        // Check if ALL active players have confirmed
-        if (confirmedActivePlayers.length === activePlayers.length && activePlayers.length > 0) {
-            this.calculateResults();
-        }
-    }
 
     private calculateResults() {
         // Delegate to ScoreSystem
@@ -439,40 +408,8 @@ export class GameEngine {
 
     // --- HELPER LOGIC ---
 
-    private injectAutomatedVotes(activePlayers: Player[]) {
-        const playerA = activePlayers[0];
-        const playerB = activePlayers[1];
-
-        // Ensure votes object exists
-        if (!this.state.votes) this.state.votes = {};
-
-        // Loop all categories
-        for (const category of this.state.categories) {
-            // Validate A
-            const ansA = this.state.answers[playerA.id]?.[category] || "";
-            const valA = validateWord(ansA, category);
-            if (!valA.isValid) {
-                // Inject vote from B against A
-                if (!this.state.votes[playerA.id]) this.state.votes[playerA.id] = {};
-                if (!this.state.votes[playerA.id][category]) this.state.votes[playerA.id][category] = [];
-                // Check if already voted (unlikely in fresh round but safe)
-                if (!this.state.votes[playerA.id][category].includes(playerB.id)) {
-                    this.state.votes[playerA.id][category].push(playerB.id);
-                }
-            }
-
-            // Validate B
-            const ansB = this.state.answers[playerB.id]?.[category] || "";
-            const valB = validateWord(ansB, category);
-            if (!valB.isValid) {
-                // Inject vote from A against B
-                if (!this.state.votes[playerB.id]) this.state.votes[playerB.id] = {};
-                if (!this.state.votes[playerB.id][category]) this.state.votes[playerB.id][category] = [];
-                if (!this.state.votes[playerB.id][category].includes(playerA.id)) {
-                    this.state.votes[playerB.id][category].push(playerA.id);
-                }
-            }
-        }
+    private injectAutomatedVotes() {
+        this.voting.injectAutomatedVotes(this.state);
     }
 
     private validateAndSanitizeAnswers(rawAnswers: any): Record<string, string> | null {
@@ -485,23 +422,24 @@ export class GameEngine {
 
         const answers = result.data;
         const sanitized: Record<string, string> = {};
-        const allowedLetter = this.state.currentLetter?.toUpperCase();
+        const allowedLetter = this.state.currentLetter || "";
 
         for (const [key, value] of Object.entries(answers)) {
-            let processedValue = value.trim().slice(0, 40); // Hard limit safety
+            // DELEGATE TO VALIDATION MANAGER
+            const valResult = this.validation.processAnswer(value, allowedLetter);
 
-            // 2. Rule Enforcement: Start Letter Check
-            if (allowedLetter && processedValue.length > 0) {
-                const firstChar = processedValue.charAt(0).toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                const targetChar = allowedLetter.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            // If Invalid or Empty, we store empty string (as per previous logic essentially)
+            // Or we could store the text but mark it invalid in a separate structure?
+            // Current strict logic was: "processedValue = ""; // WIPE IT" if invalid start.
 
-                if (firstChar !== targetChar) {
-                    console.log(`[RULE BREACH] Word '${processedValue}' does not start with '${allowedLetter}'. Cleared.`);
-                    processedValue = ""; // WIPE IT
+            if (valResult.status === 'INVALID' || valResult.status === 'EMPTY') {
+                if (valResult.status === 'INVALID') {
+                    console.log(`[RULE BREACH] Word '${value}' invalid for letter '${allowedLetter}'. Cleared.`);
                 }
+                sanitized[key] = "";
+            } else {
+                sanitized[key] = valResult.text;
             }
-
-            sanitized[key] = processedValue;
         }
 
         return sanitized;

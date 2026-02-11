@@ -11,6 +11,113 @@ describe('GameEngine Core', () => {
         engine = new GameEngine(roomId);
     });
 
+
+    // --- 3.A: VALIDATION MANAGER INTEGRATION ---
+    describe('ValidationManager Integration within GameEngine', () => {
+        let engine: GameEngine;
+
+        beforeEach(() => {
+            engine = new GameEngine('test-room');
+            const state = engine.getState();
+            state.status = 'PLAYING';
+            state.currentLetter = 'A';
+            state.categories = ['Fruta', 'País'];
+            state.players = [{ id: 'p1', name: 'Tester', score: 0, isHost: true, isConnected: true, lastSeenAt: Date.now(), avatar: '🙂' }];
+        });
+
+        it('should normalize input (trim, uppercase, remove accents)', () => {
+            // " Árbol " -> "ARBOL"
+            const result = engine.validation.processAnswer(' Árbol ', 'A');
+            expect(result.text).toBe('ARBOL');
+            expect(result.status).toBe('PENDING'); // Valid matching letter
+        });
+
+        it('should reject words starting with wrong letter', () => {
+            // "Barco" vs "A" -> INVALID
+            const result = engine.validation.processAnswer('Barco', 'A');
+            expect(result.status).toBe('INVALID');
+            expect(result.text).toBe('BARCO');
+        });
+
+        it('should handle empty strings as EMPTY', () => {
+            const result = engine.validation.processAnswer('   ', 'A');
+            expect(result.status).toBe('EMPTY');
+            expect(result.text).toBe('');
+        });
+    });
+
+    // --- 3.C: VOTING MANAGER INTEGRATION ---
+    describe('VotingManager Integration', () => {
+        let engine: GameEngine;
+        beforeEach(() => {
+            engine = new GameEngine('test-room');
+            engine.joinPlayer('p1', 'P1', 'av', 'c1');
+            engine.joinPlayer('p2', 'P2', 'av', 'c2');
+            const state = engine.getState();
+            state.status = 'REVIEW'; // Must be in REVIEW for voting
+            state.players[0].isConnected = true;
+            state.players[1].isConnected = true;
+        });
+
+        it('should toggle votes correctly', () => {
+            // P1 votes against P2 in Category 'A'
+            engine.toggleVote('c1', 'p2', 'A');
+            const state = engine.getState();
+            expect(state.votes['p2']['A']).toContain('p1');
+
+            // Toggle off
+            engine.toggleVote('c1', 'p2', 'A');
+            expect(state.votes['p2']['A']).not.toContain('p1');
+        });
+
+        it('should prevent self-voting', () => {
+            engine.toggleVote('c1', 'p1', 'A');
+            const state = engine.getState();
+            expect(state.votes['p1']).toBeUndefined();
+        });
+
+        it('should handle confirmation and consensus', () => {
+            // Verify initial state
+            expect(engine.getState().whoFinishedVoting).toHaveLength(0);
+
+            // P1 confirms
+            engine.confirmVotes('c1');
+            expect(engine.getState().whoFinishedVoting).toContain('p1');
+            expect(engine.getState().status).toBe('REVIEW'); // Still waiting for P2
+
+            // P2 confirms -> Consensus -> Results
+            engine.confirmVotes('c2');
+            expect(engine.getState().status).toBe('RESULTS');
+        });
+
+        it('should reject answer with 50% negative votes (1vs1 scenario)', () => {
+            // P1 votes against P2
+            engine.toggleVote('c1', 'p2', 'A');
+
+            // Initial check: Vote is recorded
+            expect(engine.getState().votes['p2']['A']).toContain('p1');
+
+            // Set answers so we can calculate results
+            const state = engine.getState();
+            state.categories = ['A']; // Must exist for ScoreSystem to iterate
+            state.answers['p1'] = { 'A': 'Manzana' };
+            state.answers['p2'] = { 'A': 'Pera' };
+
+            // Force Calculation Logic (usually requires Confirm, but we test ScoreSystem via Engine)
+            // We need to trigger calculateResults via confirm or direct call. 
+            // Let's use confirm to be integration-style.
+            engine.confirmVotes('c1');
+            engine.confirmVotes('c2');
+
+            expect(state.status).toBe('RESULTS');
+            // P2 should be INVALID because 1 vote out of 2 players = 50% >= 50%
+            expect(state.answerStatuses['p2']['A']).toBe('INVALID');
+
+            // P1 should be VALID (0 votes against)
+            expect(state.answerStatuses['p1']['A']).toBe('VALID');
+        });
+    });
+
     // A. Inicialización y Gestión de Salas
     describe('Initialization & Player Management', () => {
         it('should initialize in LOBBY status', () => {
@@ -44,6 +151,31 @@ describe('GameEngine Core', () => {
             expect(state.status).toBe('PLAYING');
             expect(state.currentLetter).not.toBeNull();
             expect(state.timers.roundEndsAt).not.toBeNull();
+        });
+    });
+
+    // --- 3.B: CONFIGURATION MANAGER INTEGRATION ---
+    describe('ConfigurationManager Integration', () => {
+        let engine: GameEngine;
+        beforeEach(() => { engine = new GameEngine('test-room'); });
+
+        it('should use default config on init', () => {
+            const config = engine.getState().config;
+            expect(config.categoriesCount).toBe(5);
+            expect(config.roundDuration).toBe(60);
+        });
+
+        it('should enforce limits on updateConfig', () => {
+            // Mock Host
+            engine.joinPlayer(hostId, 'Host', 'av', hostConn);
+
+            // Try setting -5 categories
+            engine.updateConfig(hostConn, { categoriesCount: -5 });
+            expect(engine.getState().config.categoriesCount).toBe(1); // Min 1
+
+            // Try setting 100 categories
+            engine.updateConfig(hostConn, { categoriesCount: 100 });
+            expect(engine.getState().config.categoriesCount).toBe(10); // Max 10
         });
     });
 

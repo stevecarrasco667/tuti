@@ -35,7 +35,9 @@ export class ScoreSystem {
 
                 // Check voting (Invalidation)
                 const negativeVotes = state.votes[player.id]?.[category]?.length || 0;
-                if (negativeVotes > totalPlayers / 2) {
+                // [RULE] If >= 50% of players vote negative, it is rejected.
+                // This ensures 1vs1 (1 vote >= 1) works, and 2/4 works.
+                if (negativeVotes >= totalPlayers / 2) {
                     state.answerStatuses[player.id][category] = 'INVALID';
                     return;
                 }

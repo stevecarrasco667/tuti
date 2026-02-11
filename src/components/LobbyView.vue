@@ -131,7 +131,7 @@ const handleStart = () => {
 </script>
 
 <template>
-    <div class="h-[100dvh] w-full max-w-6xl mx-auto flex flex-col p-2 md:p-4 overflow-hidden">
+    <div class="h-full w-full max-w-6xl mx-auto flex flex-col p-2 md:p-4 overflow-hidden">
         
         <!-- === TITLE === -->
         <h1 class="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-100 to-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] mb-4 text-center tracking-tight flex-none">

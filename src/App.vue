@@ -91,13 +91,11 @@ watch(() => gameState.value.players, (newPlayers) => {
     </div>
 
     <!-- MAIN CONTENT (Flex Child) -->
-    <main class="flex-1 w-full max-w-7xl relative overflow-hidden flex flex-col">
-      <div class="flex-1 w-full h-full overflow-hidden flex flex-col transition-all duration-500">
-        <HomeView v-if="currentView === 'HOME'" @navigate="handleNavigate" class="h-full overflow-y-auto" />
-        <LobbyView v-else-if="currentView === 'LOBBY'" class="h-full flex flex-col" />
-        <GameView v-else-if="currentView === 'GAME'" class="h-full flex flex-col" />
-        <GameOverView v-else-if="currentView === 'GAME_OVER'" class="h-full flex flex-col" />
-      </div>
+    <main class="flex-1 w-full relative overflow-hidden flex flex-col min-h-0">
+        <HomeView v-if="currentView === 'HOME'" @navigate="handleNavigate" class="flex-1 overflow-y-auto" />
+        <LobbyView v-else-if="currentView === 'LOBBY'" class="flex-1 flex flex-col min-h-0" />
+        <GameView v-else-if="currentView === 'GAME'" class="flex-1 flex flex-col min-h-0" />
+        <GameOverView v-else-if="currentView === 'GAME_OVER'" class="flex-1 flex flex-col min-h-0" />
     </main>
 
   </div>

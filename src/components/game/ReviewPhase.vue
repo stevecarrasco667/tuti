@@ -48,7 +48,10 @@ defineEmits<{
                             <div class="text-left overflow-hidden">
                                 <div class="text-[10px] font-bold text-white/30 uppercase">{{ player.name }}</div>
                                 <div class="font-medium text-lg text-white truncate group-hover:text-yellow-300 transition-colors"
-                                        :class="{'line-through opacity-50': getReviewItem(player.id).state === 'REJECTED'}"
+                                        :class="{
+                                            'line-through opacity-50 text-red-400': getReviewItem(player.id).state === 'REJECTED' || (votes[player.id]?.[currentCategory]?.length || 0) >= (players.length / 2),
+                                            'text-green-400': getReviewItem(player.id).state === 'VALID'
+                                        }"
                                 >
                                     {{ getReviewItem(player.id).answer || '-' }}
                                 </div>
@@ -57,14 +60,17 @@ defineEmits<{
 
                             <!-- Vote Toggle -->
                         <button 
-                            v-if="player.id !== myUserId && players.length > 2"
+                            v-if="player.id !== myUserId"
                             @click="$emit('vote', player.id)"
                             class="px-4 py-2 rounded-lg border text-xs font-bold transition-all uppercase tracking-wider"
                             :class="votes[player.id]?.[currentCategory]?.includes(myUserId) 
                                 ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-500/20' 
                                 : 'bg-transparent border-white/10 text-white/40 hover:text-white hover:bg-white/10'"
                         >
-                            {{ votes[player.id]?.[currentCategory]?.includes(myUserId) ? '👎 NO' : 'SI' }}
+                            <div class="flex items-center gap-2">
+                                <span>{{ votes[player.id]?.[currentCategory]?.includes(myUserId) ? '👎' : '👍' }}</span>
+                                <span v-if="votes[player.id]?.[currentCategory]?.length" class="bg-white/20 px-1.5 rounded text-[10px]">{{ votes[player.id]?.[currentCategory]?.length }}</span>
+                            </div>
                         </button>
                         <div v-else class="text-xl">
                             <span v-if="getReviewItem(player.id).state === 'VALID'">✅</span>
