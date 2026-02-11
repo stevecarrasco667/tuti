@@ -85,7 +85,16 @@ export function useGame() {
         }
         return null; // Fallback for SSR/Test without DOM
     };
-    const myUserId = ref<string>(getStoredUserId() || crypto.randomUUID());
+
+    const generateSafeId = (): string => {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+            return crypto.randomUUID();
+        }
+        // Fallback para HTTP (red local / móviles sin contexto seguro)
+        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    };
+
+    const myUserId = ref<string>(getStoredUserId() || generateSafeId());
 
     // Ensure it's saved if we generated a new one or if it was missing
     if (!getStoredUserId() && typeof localStorage !== 'undefined') {

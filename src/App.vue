@@ -22,23 +22,26 @@ const handleNavigate = (view: 'HOME' | 'LOBBY' | 'GAME' | 'GAME_OVER') => {
   currentView.value = view;
 };
 
-// Auto-switch to GAME view when status changes to PLAYING
-// Auto-switch to GAME view when status changes to PLAYING
-watch(() => gameState.value.status, (newStatus) => {
-    // Priority check: If we have no room ID and status is LOBBY, it means we Reset/Left. Go Home.
-    if (!gameState.value.roomId && newStatus === 'LOBBY') {
-        currentView.value = 'HOME';
-        return;
-    }
+// Auto-switch views based on game state changes
+watch(
+    () => [gameState.value.status, gameState.value.roomId] as const,
+    ([newStatus, newRoomId]) => {
+        // Si no hay sala y el estado es LOBBY → usuario hizo Reset/Leave. Ir a HOME.
+        if (!newRoomId && newStatus === 'LOBBY') {
+            currentView.value = 'HOME';
+            return;
+        }
 
-    if (newStatus === 'PLAYING' || newStatus === 'REVIEW') {
-        currentView.value = 'GAME';
-    } else if (newStatus === 'LOBBY') {
-        currentView.value = 'LOBBY';
-    } else if (newStatus === 'GAME_OVER') {
-        currentView.value = 'GAME_OVER';
+        // Transiciones normales y reconexiones
+        if (newStatus === 'PLAYING' || newStatus === 'REVIEW') {
+            currentView.value = 'GAME';
+        } else if (newStatus === 'LOBBY' && newRoomId) {
+            currentView.value = 'LOBBY';
+        } else if (newStatus === 'GAME_OVER') {
+            currentView.value = 'GAME_OVER';
+        }
     }
-});
+);
 
 
 // Detect if current user has been kicked
