@@ -26,16 +26,16 @@ const handleNavigate = (view: 'HOME' | 'LOBBY' | 'GAME' | 'GAME_OVER') => {
 watch(
     () => [gameState.value.status, gameState.value.roomId] as const,
     ([newStatus, newRoomId]) => {
-        // Si no hay sala y el estado es LOBBY → usuario hizo Reset/Leave. Ir a HOME.
-        if (!newRoomId && newStatus === 'LOBBY') {
+        // GUARDIA: Si no hay sala, cualquier status → HOME (previene bucle de salida)
+        if (!newRoomId) {
             currentView.value = 'HOME';
             return;
         }
 
-        // Transiciones normales y reconexiones
+        // Transiciones normales y reconexiones (solo con roomId válido)
         if (newStatus === 'PLAYING' || newStatus === 'REVIEW') {
             currentView.value = 'GAME';
-        } else if (newStatus === 'LOBBY' && newRoomId) {
+        } else if (newStatus === 'LOBBY') {
             currentView.value = 'LOBBY';
         } else if (newStatus === 'GAME_OVER') {
             currentView.value = 'GAME_OVER';

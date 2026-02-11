@@ -1,7 +1,7 @@
 import { ref, watch, computed } from 'vue';
 import { useSocket } from './useSocket';
 import { debounce } from '../utils/timing';
-import type { RoomState, ServerMessage } from '../../shared/types';
+import type { RoomState, ServerMessage, GameConfig } from '../../shared/types';
 import { EVENTS, APP_VERSION } from '../../shared/consts';
 
 // Global state to persist across component mounts if needed
@@ -217,7 +217,7 @@ export function useGame() {
         }));
     };
 
-    const updateConfig = (config: Partial<{ roundDuration: number; votingDuration: number; categoriesCount: number }>) => {
+    const updateConfig = (config: Partial<GameConfig>) => {
         if (!socket.value) return;
         socket.value.send(JSON.stringify({
             type: EVENTS.UPDATE_CONFIG,
@@ -241,8 +241,15 @@ export function useGame() {
     };
 
     const leaveGame = () => {
-        // 1. Clear State
+        // 1. Close socket FIRST to prevent reconnection race
+        if (socket.value) {
+            socket.value.close();
+        }
+
+        // 2. Clear room reference
         setRoomId(null);
+
+        // 3. Reset state to initial
         gameState.value = {
             status: 'LOBBY',
             players: [],
@@ -273,16 +280,12 @@ export function useGame() {
             gameOverReason: undefined
         };
 
-        // 2. Clear URL
+        // 4. Clear URL
         if (typeof window !== 'undefined') {
             const url = new URL(window.location.href);
             url.searchParams.delete('room');
             window.history.pushState({}, '', url);
         }
-
-        // 3. Close connection? 
-        // useSocket handles connection based on roomId. If we setRoomId(null), it might disconnect if logic allows.
-        // For now, setting roomId to null in state is enough for the UI to switch.
     };
 
     return {
