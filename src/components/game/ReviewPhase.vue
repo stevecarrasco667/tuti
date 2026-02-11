@@ -1,23 +1,48 @@
 <script setup lang="ts">
-import { Player } from '../../../shared/types';
+import VoteSwitch from './VoteSwitch.vue';
+import type { Player } from '../../../shared/types';
 
-defineProps<{
+const props = defineProps<{
     currentCategory: string;
     players: Player[];
     votes: Record<string, Record<string, string[]>>;
     myUserId: string;
-    getReviewItem: (playerId: string) => { answer: string; state: string }; // Typed Helper
+    getReviewItem: (playerId: string) => { answer: string; state: string };
     navIndex: number;
     totalCategories: number;
     showStopAlert: boolean;
-    stopperPlayer: Player | undefined; // Can be null/undefined
+    stopperPlayer: Player | undefined;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
     (e: 'vote', playerId: string): void;
     (e: 'next-cat'): void;
     (e: 'prev-cat'): void;
 }>();
+
+// "Innocent until proven guilty" — switch is ON (valid) by default
+// Toggling OFF = casting a negative vote
+const isApproved = (playerId: string) => {
+    return !props.votes[playerId]?.[props.currentCategory]?.includes(props.myUserId);
+};
+
+const isAutoValidated = (playerId: string) => {
+    return props.getReviewItem(playerId).state === 'VALID_AUTO';
+};
+
+const handleToggle = (playerId: string, _newValue: boolean) => {
+    emit('vote', playerId);
+    // Haptic on parent level too if needed
+};
+
+const getVoteCount = (playerId: string) => {
+    return props.votes[playerId]?.[props.currentCategory]?.length || 0;
+};
+
+const isRejected = (playerId: string) => {
+    const review = props.getReviewItem(playerId);
+    return review.state === 'REJECTED' || getVoteCount(playerId) >= (props.players.length / 2);
+};
 </script>
 
 <template>
@@ -34,48 +59,79 @@ defineEmits<{
 
         <!-- REVIEW -->
         <div class="text-center">
-                <h3 class="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-4">Revisión en Progreso</h3>
-                <div class="bg-indigo-900/40 backdrop-blur-xl rounded-3xl p-6 border border-white/5 shadow-2xl">
+            <h3 class="text-xs font-bold text-indigo-300 uppercase tracking-widest mb-4">Revisión en Progreso</h3>
+            <div class="bg-indigo-900/40 backdrop-blur-xl rounded-3xl p-6 border border-white/5 shadow-2xl">
                 <h2 class="text-3xl font-black text-white mb-6 drop-shadow-md">{{ currentCategory }}</h2>
                 
-                    <!-- Player List -->
+                <!-- === PLAYER CARDS (Mobile + Desktop unified) === -->
                 <div class="space-y-3">
                     <div v-for="player in players" :key="player.id" 
-                            class="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors group"
+                        class="flex items-center justify-between p-3 rounded-xl transition-all duration-200"
+                        :class="[
+                            isAutoValidated(player.id)
+                                ? 'bg-amber-500/10 border border-amber-500/20'
+                                : isRejected(player.id)
+                                    ? 'bg-red-500/5 border border-red-500/10'
+                                    : 'bg-white/5 hover:bg-white/10 border border-transparent'
+                        ]"
                     >
-                        <div class="flex items-center gap-3 overflow-hidden">
-                            <span class="text-2xl">{{ player.avatar || '👤' }}</span>
-                            <div class="text-left overflow-hidden">
-                                <div class="text-[10px] font-bold text-white/30 uppercase">{{ player.name }}</div>
-                                <div class="font-medium text-lg text-white truncate group-hover:text-yellow-300 transition-colors"
-                                        :class="{
-                                            'line-through opacity-50 text-red-400': getReviewItem(player.id).state === 'REJECTED' || (votes[player.id]?.[currentCategory]?.length || 0) >= (players.length / 2),
-                                            'text-green-400': getReviewItem(player.id).state === 'VALID'
-                                        }"
+                        <!-- Left: Avatar + Name + Answer -->
+                        <div class="flex items-center gap-3 overflow-hidden flex-1 min-w-0">
+                            <span class="text-2xl shrink-0">{{ player.avatar || '👤' }}</span>
+                            <div class="text-left overflow-hidden min-w-0">
+                                <div class="text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5"
+                                    :class="isAutoValidated(player.id) ? 'text-amber-400/60' : 'text-white/30'"
+                                >
+                                    {{ player.name }}
+                                    <!-- Auto-validation badge -->
+                                    <span v-if="isAutoValidated(player.id)" 
+                                        class="inline-flex items-center gap-0.5 bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded-full text-[9px] font-bold"
+                                    >
+                                        🛡️ Auto
+                                    </span>
+                                </div>
+                                <div class="font-medium text-lg truncate transition-all duration-200"
+                                    :class="[
+                                        isAutoValidated(player.id)
+                                            ? 'text-amber-300'
+                                            : isRejected(player.id)
+                                                ? 'line-through opacity-50 text-red-400'
+                                                : getReviewItem(player.id).state === 'DUPLICATE'
+                                                    ? 'text-yellow-400'
+                                                    : 'text-white group-hover:text-yellow-300'
+                                    ]"
                                 >
                                     {{ getReviewItem(player.id).answer || '-' }}
                                 </div>
                             </div>
                         </div>
 
-                            <!-- Vote Toggle -->
-                        <button 
-                            v-if="player.id !== myUserId"
-                            @click="$emit('vote', player.id)"
-                            class="px-4 py-2 rounded-lg border text-xs font-bold transition-all uppercase tracking-wider"
-                            :class="votes[player.id]?.[currentCategory]?.includes(myUserId) 
-                                ? 'bg-red-500 border-red-500 text-white shadow-lg shadow-red-500/20' 
-                                : 'bg-transparent border-white/10 text-white/40 hover:text-white hover:bg-white/10'"
-                        >
-                            <div class="flex items-center gap-2">
-                                <span>{{ votes[player.id]?.[currentCategory]?.includes(myUserId) ? '👎' : '👍' }}</span>
-                                <span v-if="votes[player.id]?.[currentCategory]?.length" class="bg-white/20 px-1.5 rounded text-[10px]">{{ votes[player.id]?.[currentCategory]?.length }}</span>
+                        <!-- Right: VoteSwitch or Self-status -->
+                        <div class="shrink-0 ml-3 flex items-center gap-2">
+                            <!-- Vote counter badge -->
+                            <span v-if="getVoteCount(player.id) > 0 && !isAutoValidated(player.id)" 
+                                class="bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded text-[10px] font-bold"
+                            >
+                                {{ getVoteCount(player.id) }}👎
+                            </span>
+
+                            <!-- VoteSwitch for OTHER players -->
+                            <VoteSwitch 
+                                v-if="player.id !== myUserId"
+                                :model-value="isApproved(player.id)"
+                                :is-auto-validated="isAutoValidated(player.id)"
+                                :label="`Voto para ${player.name}`"
+                                @update:model-value="handleToggle(player.id, $event)"
+                            />
+
+                            <!-- Self indicator -->
+                            <div v-else class="text-xl w-14 text-center">
+                                <span v-if="isAutoValidated(player.id)">🛡️</span>
+                                <span v-else-if="getReviewItem(player.id).state === 'VALID'">✅</span>
+                                <span v-else-if="getReviewItem(player.id).state === 'REJECTED'">❌</span>
+                                <span v-else-if="getReviewItem(player.id).state === 'DUPLICATE'">⚠️</span>
+                                <span v-else class="text-white/20">—</span>
                             </div>
-                        </button>
-                        <div v-else class="text-xl">
-                            <span v-if="getReviewItem(player.id).state === 'VALID'">✅</span>
-                            <span v-else-if="getReviewItem(player.id).state === 'REJECTED'">❌</span>
-                            <span v-else-if="getReviewItem(player.id).state === 'DUPLICATE'">⚠️</span>
                         </div>
                     </div>
                 </div>
@@ -86,7 +142,7 @@ defineEmits<{
                     <span class="font-mono text-xl self-center text-yellow-400 font-bold">{{ navIndex + 1 }} / {{ totalCategories }}</span>
                     <button @click="$emit('next-cat')" :disabled="navIndex === totalCategories - 1" class="p-3 bg-white/5 rounded-full disabled:opacity-20 hover:bg-white/10 transition-colors">➡️</button>
                 </div>
-                </div>
+            </div>
         </div>
     </div>
 </template>

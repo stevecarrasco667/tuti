@@ -1,4 +1,4 @@
-import { RoomState, GameConfig } from './types.js';
+import { RoomState, GameConfig, AnswerStatus } from './types.js';
 import { RoundAnswersSchema } from './schemas.js';
 
 import { ScoreSystem } from './systems/score-system.js';
@@ -269,10 +269,13 @@ export class GameEngine {
         if (this.state.status !== 'PLAYING') throw new Error("Game is not in PLAYING state");
 
         // Validate and Sanitize
-        const sanitizedAnswers = this.validateAndSanitizeAnswers(answers);
-        if (!sanitizedAnswers) return this.state; // Invalid payload
+        const validated = this.validateAndSanitizeAnswers(answers);
+        if (!validated) return this.state; // Invalid payload
 
-        this.state.answers[userId] = sanitizedAnswers;
+        this.state.answers[userId] = validated.answers;
+        // Propagate VALID_AUTO statuses for Escudo Dorado visibility during REVIEW
+        if (!this.state.answerStatuses[userId]) this.state.answerStatuses[userId] = {};
+        Object.assign(this.state.answerStatuses[userId], validated.statuses);
         this.state.stoppedBy = userId || 'SYSTEM';
 
         // Delegate Stop to Manager
@@ -336,9 +339,12 @@ export class GameEngine {
         }
 
         // Validate and Sanitize
-        const sanitizedAnswers = this.validateAndSanitizeAnswers(answers);
-        if (sanitizedAnswers) {
-            this.state.answers[userId] = sanitizedAnswers;
+        const validated = this.validateAndSanitizeAnswers(answers);
+        if (validated) {
+            this.state.answers[userId] = validated.answers;
+            // Propagate VALID_AUTO statuses for Escudo Dorado visibility during REVIEW
+            if (!this.state.answerStatuses[userId]) this.state.answerStatuses[userId] = {};
+            Object.assign(this.state.answerStatuses[userId], validated.statuses);
         }
         return this.state;
     }
@@ -412,7 +418,7 @@ export class GameEngine {
         this.voting.injectAutomatedVotes(this.state);
     }
 
-    private validateAndSanitizeAnswers(rawAnswers: any): Record<string, string> | null {
+    private validateAndSanitizeAnswers(rawAnswers: any): { answers: Record<string, string>; statuses: Record<string, AnswerStatus> } | null {
         // 1. Zod Validation
         const result = RoundAnswersSchema.safeParse(rawAnswers);
         if (!result.success) {
@@ -422,26 +428,25 @@ export class GameEngine {
 
         const answers = result.data;
         const sanitized: Record<string, string> = {};
+        const statuses: Record<string, AnswerStatus> = {};
         const allowedLetter = this.state.currentLetter || "";
 
         for (const [key, value] of Object.entries(answers)) {
             // DELEGATE TO VALIDATION MANAGER
             const valResult = this.validation.processAnswer(value, allowedLetter, key);
 
-            // If Invalid or Empty, we store empty string (as per previous logic essentially)
-            // Or we could store the text but mark it invalid in a separate structure?
-            // Current strict logic was: "processedValue = ""; // WIPE IT" if invalid start.
-
             if (valResult.status === 'INVALID' || valResult.status === 'EMPTY') {
                 if (valResult.status === 'INVALID') {
                     console.log(`[RULE BREACH] Word '${value}' invalid for letter '${allowedLetter}'. Cleared.`);
                 }
                 sanitized[key] = "";
+                statuses[key] = valResult.status;
             } else {
                 sanitized[key] = valResult.text;
+                statuses[key] = valResult.status; // VALID_AUTO or PENDING
             }
         }
 
-        return sanitized;
+        return { answers: sanitized, statuses };
     }
 }

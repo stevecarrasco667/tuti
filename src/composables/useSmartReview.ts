@@ -1,7 +1,7 @@
 import { Ref } from 'vue';
 import { RoomState } from '../../shared/types'; // Adjust path if needed
 
-export type ReviewState = 'VALID' | 'DUPLICATE' | 'REJECTED' | 'CONTESTED' | 'EMPTY';
+export type ReviewState = 'VALID' | 'VALID_AUTO' | 'DUPLICATE' | 'REJECTED' | 'CONTESTED' | 'EMPTY';
 
 export interface PlayerReviewStatus {
     playerId: string;
@@ -24,28 +24,37 @@ export function useSmartReview(gameState: Ref<RoomState>, currentCategory: Ref<s
         const answer = stateVal.answers[playerId]?.[category] || "";
         const votes = stateVal.votes[playerId]?.[category] || [];
 
+        // RETURN OBJECT HELPER
+        const buildStatus = (state: ReviewState, score: number) => ({
+            playerId,
+            answer,
+            state,
+            score,
+            voteCount: votes.length,
+            votesNeeded: 0,
+            votesReceived: votes
+        });
+
         // 1. Check Empty
         if (!answer || answer.trim() === "") {
-            return { playerId, answer, state: 'EMPTY', score: 0, voteCount: 0, votesNeeded: 0, votesReceived: [] };
+            return buildStatus('EMPTY', 0);
         }
 
-        // 2. Check Votes (Progressive Tolerance)
-        // Formula: Threshold = floor((active - 1) / 2) + 1
-        // We exclude the player being judged from the "Jury Pool".
+        // 2. Check Auto-Validation (Escudo Dorado 🛡️ — immune to votes)
+        const backendStatus = stateVal.answerStatuses?.[playerId]?.[category];
+        if (backendStatus === 'VALID_AUTO') {
+            return buildStatus('VALID_AUTO', 100);
+        }
 
+        // 3. Check Votes (Progressive Tolerance)
         const activePlayersCount = stateVal.players.filter(p => p.isConnected).length;
-        // Note: isSpectator check removed previously due to type error, assuming spectators are handled by logic or not in list. 
-        // If spectators are in list but not playing, we might need a better filter. For now relying on 'isConnected'.
-        // Wait, self is in stateVal.players.
-
-        const juryPoolSize = Math.max(1, activePlayersCount - 1); // Exclude self
+        const juryPoolSize = Math.max(1, activePlayersCount - 1);
         const rejectionThreshold = Math.floor(juryPoolSize / 2) + 1;
 
         const voteCount = votes.length;
         const isRejected = voteCount >= rejectionThreshold;
 
-        // RETURN OBJECT HELPER
-        const buildStatus = (state: ReviewState, score: number) => ({
+        const buildWithVotes = (state: ReviewState, score: number) => ({
             playerId,
             answer,
             state,
@@ -56,24 +65,15 @@ export function useSmartReview(gameState: Ref<RoomState>, currentCategory: Ref<s
         });
 
         if (isRejected) {
-            return buildStatus('REJECTED', 0);
+            return buildWithVotes('REJECTED', 0);
         }
 
-        if (voteCount > 0) {
-            // CONTESTED STATE (Warning but points kept)
-            // If it's a duplicate, it keeps 50pts. If unique, 100pts.
-            // We need to check duplicate status first to know the score.
-            // Let's reorganize.
-        }
-
-        // 3. Check Duplicates (Comparison)
+        // 4. Check Duplicates (Comparison)
         const normalizedAns = normalize(answer);
         let isDuplicate = false;
 
-        // Check against other players
         for (const player of stateVal.players) {
-            if (player.id === playerId) continue; // Skip self
-
+            if (player.id === playerId) continue;
             const otherAns = stateVal.answers[player.id]?.[currentCategory.value];
             if (otherAns && normalize(otherAns) === normalizedAns) {
                 isDuplicate = true;
@@ -82,11 +82,11 @@ export function useSmartReview(gameState: Ref<RoomState>, currentCategory: Ref<s
         }
 
         if (isDuplicate) {
-            return buildStatus('DUPLICATE', 50);
+            return buildWithVotes('DUPLICATE', 50);
         }
 
-        // 4. Default Valid
-        return buildStatus('VALID', 100);
+        // 5. Default Valid
+        return buildWithVotes('VALID', 100);
     };
 
     return {
