@@ -1,5 +1,6 @@
 import { RoomState } from '../types';
 import { normalizeAnswer } from '../utils';
+import { DictionaryManager } from '../dictionaries/manager';
 
 export class ScoreSystem {
 
@@ -23,6 +24,8 @@ export class ScoreSystem {
 
             // 1. Collect Valid Answers (Not empty, Not voted out)
             const validAnswersMap: Record<string, string[]> = {}; // Normalized Word -> [PlayerIds]
+            // Track auto-validated players for this category
+            const autoValidatedPlayers = new Set<string>();
 
             state.players.forEach(player => {
                 const rawAnswer = state.answers[player.id]?.[category];
@@ -33,13 +36,19 @@ export class ScoreSystem {
                     return;
                 }
 
-                // Check voting (Invalidation)
-                const negativeVotes = state.votes[player.id]?.[category]?.length || 0;
-                // [RULE] If >= 50% of players vote negative, it is rejected.
-                // This ensures 1vs1 (1 vote >= 1) works, and 2/4 works.
-                if (negativeVotes >= totalPlayers / 2) {
-                    state.answerStatuses[player.id][category] = 'INVALID';
-                    return;
+                // Check auto-validation (Escudo Dorado 🛡️ — immune to voting)
+                const isAutoValidated = DictionaryManager.hasExact(category, rawAnswer);
+
+                // Check voting (Invalidation) — skip for auto-validated answers
+                if (!isAutoValidated) {
+                    const negativeVotes = state.votes[player.id]?.[category]?.length || 0;
+                    // [RULE] If >= 50% of players vote negative, it is rejected.
+                    if (negativeVotes >= totalPlayers / 2) {
+                        state.answerStatuses[player.id][category] = 'INVALID';
+                        return;
+                    }
+                } else {
+                    autoValidatedPlayers.add(player.id);
                 }
 
                 // It is potentially valid. Add to frequency map.
@@ -54,10 +63,14 @@ export class ScoreSystem {
             Object.entries(validAnswersMap).forEach(([_word, playerIds]) => {
                 const isDuplicate = playerIds.length > 1;
                 const points = isDuplicate ? 50 : 100;
-                const status = isDuplicate ? 'DUPLICATE' : 'VALID';
 
                 playerIds.forEach(pid => {
-                    state.answerStatuses[pid][category] = status;
+                    // Use VALID_AUTO if auto-validated, else VALID/DUPLICATE
+                    if (autoValidatedPlayers.has(pid)) {
+                        state.answerStatuses[pid][category] = isDuplicate ? 'DUPLICATE' : 'VALID_AUTO';
+                    } else {
+                        state.answerStatuses[pid][category] = isDuplicate ? 'DUPLICATE' : 'VALID';
+                    }
 
                     // Add Score
                     state.roundScores[pid] = (state.roundScores[pid] || 0) + points;

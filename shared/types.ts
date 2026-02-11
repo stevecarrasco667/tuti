@@ -33,7 +33,7 @@ export interface GameConfig {
     customCategories: string[];
 }
 
-export type AnswerStatus = 'VALID' | 'DUPLICATE' | 'INVALID' | 'EMPTY' | 'PENDING';
+export type AnswerStatus = 'VALID' | 'VALID_AUTO' | 'DUPLICATE' | 'INVALID' | 'EMPTY' | 'PENDING';
 
 export interface RoomState {
     status: GameStatus;

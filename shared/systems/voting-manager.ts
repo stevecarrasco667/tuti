@@ -124,7 +124,7 @@ export class VotingManager {
 
             for (const category of state.categories) {
                 const answer = state.answers[player.id]?.[category] || "";
-                const valResult = this.validation.processAnswer(answer, currentLetter);
+                const valResult = this.validation.processAnswer(answer, currentLetter, category);
 
                 if (valResult.status === 'INVALID') {
                     // System Vote? Or Vote from "Everyone else"?

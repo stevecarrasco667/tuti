@@ -1,4 +1,5 @@
 import { AnswerStatus } from "../types";
+import { DictionaryManager } from "../dictionaries/manager";
 
 export interface ValidationResult {
     text: string;
@@ -12,8 +13,9 @@ export class ValidationManager {
      * 2. Remove Diacritics
      * 3. Trim & Uppercase
      * 4. Check Constraints (Empty, Starting Letter)
+     * 5. Dictionary Auto-Validation (Escudo Dorado)
      */
-    public processAnswer(input: string, currentLetter: string): ValidationResult {
+    public processAnswer(input: string, currentLetter: string, categoryId: string = ''): ValidationResult {
         if (!input) {
             return { text: "", status: "EMPTY" };
         }
@@ -40,10 +42,12 @@ export class ValidationManager {
             return { text: normalized, status: "INVALID" };
         }
 
-        // 4. Dictionary Check (Future Phase 4 placeholder)
-        // if (!this.checkDictionary(normalized)) return { ... "INVALID" }
+        // 4. Dictionary Auto-Validation (Escudo Dorado 🛡️)
+        if (categoryId && DictionaryManager.hasExact(categoryId, normalized)) {
+            return { text: normalized, status: "VALID_AUTO" };
+        }
 
-        // Default: Pending Review
+        // Default: Pending Review (votación manual)
         return { text: normalized, status: "PENDING" };
     }
 }

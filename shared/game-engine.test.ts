@@ -27,20 +27,20 @@ describe('GameEngine Core', () => {
 
         it('should normalize input (trim, uppercase, remove accents)', () => {
             // " Árbol " -> "ARBOL"
-            const result = engine.validation.processAnswer(' Árbol ', 'A');
+            const result = engine.validation.processAnswer(' Árbol ', 'A', 'Profesión');
             expect(result.text).toBe('ARBOL');
             expect(result.status).toBe('PENDING'); // Valid matching letter
         });
 
         it('should reject words starting with wrong letter', () => {
             // "Barco" vs "A" -> INVALID
-            const result = engine.validation.processAnswer('Barco', 'A');
+            const result = engine.validation.processAnswer('Barco', 'A', 'Profesión');
             expect(result.status).toBe('INVALID');
             expect(result.text).toBe('BARCO');
         });
 
         it('should handle empty strings as EMPTY', () => {
-            const result = engine.validation.processAnswer('   ', 'A');
+            const result = engine.validation.processAnswer('   ', 'A', 'Profesión');
             expect(result.status).toBe('EMPTY');
             expect(result.text).toBe('');
         });

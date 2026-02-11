@@ -426,7 +426,7 @@ export class GameEngine {
 
         for (const [key, value] of Object.entries(answers)) {
             // DELEGATE TO VALIDATION MANAGER
-            const valResult = this.validation.processAnswer(value, allowedLetter);
+            const valResult = this.validation.processAnswer(value, allowedLetter, key);
 
             // If Invalid or Empty, we store empty string (as per previous logic essentially)
             // Or we could store the text but mark it invalid in a separate structure?
