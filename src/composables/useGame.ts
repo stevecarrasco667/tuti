@@ -3,9 +3,11 @@ import { useSocket } from './useSocket';
 import { debounce } from '../utils/timing';
 import type { RoomState, ServerMessage, GameConfig } from '../../shared/types';
 import { EVENTS, APP_VERSION } from '../../shared/consts';
+import { applyPatch } from 'fast-json-patch';
 
 // Global state to persist across component mounts if needed
 const gameState = ref<RoomState>({
+    // ... initial state
     status: 'LOBBY',
     players: [],
     roomId: null,
@@ -41,6 +43,12 @@ export function useGame() {
     const isStopping = ref(false);
     const isUpdateAvailable = ref(false);
 
+    // Persistence Constants
+    const STORAGE_KEY_USER_ID = 'tuti-user-id';
+    const STORAGE_KEY_USER_NAME = 'tuti-user-name';
+    const STORAGE_KEY_USER_AVATAR = 'tuti-user-avatar';
+    const STORAGE_KEY_SESSION_TOKEN = 'tuti-session-token';
+
     // Watch for incoming messages
     watch(lastMessage, (newMsg) => {
         if (!newMsg) return;
@@ -53,6 +61,24 @@ export function useGame() {
                 // If we were stopping and state changed from PLAYING, reset flag
                 if (isStopping.value && gameState.value.status !== 'PLAYING') {
                     isStopping.value = false;
+                }
+            } else if (parsed.type === EVENTS.PATCH_STATE) {
+                // [Phoenix] Delta Sync
+                // console.log(`[Patch] Applying ${parsed.payload.length} ops.`);
+                applyPatch(gameState.value, parsed.payload);
+            } else if (parsed.type === EVENTS.AUTH_GRANTED) {
+                // [Phoenix] Anti-Spoofing Handshake
+                const { userId, sessionToken } = parsed.payload;
+
+                // 1. Persist Token
+                if (typeof localStorage !== 'undefined') {
+                    localStorage.setItem(STORAGE_KEY_SESSION_TOKEN, sessionToken);
+                }
+
+                // 2. Persist/Update ID (if server rejected our claim)
+                if (userId !== myUserId.value) {
+                    console.warn(`[Security] Server assigned new ID: ${userId}`);
+                    myUserId.value = userId; // Will trigger watcher to save
                 }
             } else if (parsed.type === EVENTS.RIVAL_UPDATE) {
                 // [SILENT UPDATE] Optimize rendering by only updating specific field
@@ -73,11 +99,6 @@ export function useGame() {
         }
     });
 
-    // Persistence Constants
-    const STORAGE_KEY_USER_ID = 'tuti-user-id';
-    const STORAGE_KEY_USER_NAME = 'tuti-user-name';
-    const STORAGE_KEY_USER_AVATAR = 'tuti-user-avatar';
-
     // 1. User ID Persistence
     const getStoredUserId = () => {
         if (typeof localStorage !== 'undefined') {
@@ -97,9 +118,10 @@ export function useGame() {
     const myUserId = ref<string>(getStoredUserId() || generateSafeId());
 
     // Ensure it's saved if we generated a new one or if it was missing
-    if (!getStoredUserId() && typeof localStorage !== 'undefined') {
-        localStorage.setItem(STORAGE_KEY_USER_ID, myUserId.value);
-    }
+    // [Phoenix] Added watcher for ID to support server re-assignment
+    watch(myUserId, (newId) => {
+        if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY_USER_ID, newId);
+    }, { immediate: true });
 
     // 2. User Name Persistence
     const getStoredUserName = () => typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY_USER_NAME) : '';
@@ -127,8 +149,11 @@ export function useGame() {
     const joinGame = async (name: string, roomId: string, avatar: string) => {
         const userId = myUserId.value; // Use the reactive myUserId
 
-        // 1. Connect to the specific room with identity
-        setRoomId(roomId, { userId, name, avatar });
+        // [Phoenix] Retrieve token
+        const token = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY_SESSION_TOKEN) || undefined : undefined;
+
+        // 1. Connect to the specific room with identity & token
+        setRoomId(roomId, { userId, name, avatar, token });
 
         // Update URL for deep linking
         const url = new URL(window.location.href);

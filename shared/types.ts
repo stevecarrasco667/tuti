@@ -79,6 +79,8 @@ export type ClientMessage =
 // Messages sent from Server to Client
 export type ServerMessage =
     | { type: typeof EVENTS.UPDATE_STATE; payload: RoomState }
+    | { type: typeof EVENTS.PATCH_STATE; payload: any[] } // [Phoenix] Delta Sync
+    | { type: typeof EVENTS.AUTH_GRANTED; payload: { userId: string; sessionToken: string } } // [Phoenix] Anti-Spoofing
     | { type: typeof EVENTS.RIVAL_UPDATE; payload: { playerId: string; filledCount: number } }
     | { type: typeof EVENTS.SYSTEM_MESSAGE; payload: string }
     | { type: typeof EVENTS.SYSTEM_VERSION; payload: { version: string } }

@@ -9,7 +9,12 @@ import { PlayerHandler } from "./handlers/player";
 import { GameHandler } from "./handlers/game";
 import { VotingHandler } from "./handlers/voting";
 
+import { compare } from "fast-json-patch";
+
+// ... imports
+
 const STORAGE_KEY = "room_state_v1";
+const AUTH_TOKENS_KEY = "auth_tokens_v1";
 
 export default class Server implements Party.Server {
     options: Party.ServerOptions = {
@@ -18,6 +23,12 @@ export default class Server implements Party.Server {
 
     room: Party.Room;
     engine: GameEngine;
+
+    // Security: Auth Tokens (UserId -> SessionToken)
+    authTokens = new Map<string, string>();
+
+    // Optimization: Delta Sync
+    lastBroadcastedState: RoomState | null = null;
 
     // Handlers
     connectionHandler: ConnectionHandler;
@@ -34,13 +45,12 @@ export default class Server implements Party.Server {
     constructor(room: Party.Room) {
         this.room = room;
         this.engine = new GameEngine(room.id, (newState) => {
-            // [Broadcast Bridge]
-            // When the engine changes state internally (e.g. timeout), notify all clients.
-            this.room.broadcast(JSON.stringify({ type: EVENTS.UPDATE_STATE, payload: newState }));
+            this.broadcastStateDelta(newState);
         });
 
         // Instantiate Handlers
-        this.connectionHandler = new ConnectionHandler(room, this.engine);
+        // Inject authTokens into ConnectionHandler for Anti-Spoofing
+        this.connectionHandler = new ConnectionHandler(room, this.engine, this.authTokens);
         this.playerHandler = new PlayerHandler(room, this.engine);
         this.gameHandler = new GameHandler(room, this.engine);
         this.votingHandler = new VotingHandler(room, this.engine);
@@ -48,17 +58,50 @@ export default class Server implements Party.Server {
 
     async onStart() {
         try {
+            // 1. Load Game State
             const stored = await this.room.storage.get<RoomState>(STORAGE_KEY);
             if (stored) {
                 console.log(`[Hydrate] Loaded state for room ${this.room.id}`);
                 this.engine['state'] = stored;
+                // Initialize lastBroadcastedState deep copy to avoid immediate diff
+                this.lastBroadcastedState = JSON.parse(JSON.stringify(stored));
+            }
+
+            // 2. Load Auth Tokens
+            const storedTokens = await this.room.storage.get<Record<string, string>>(AUTH_TOKENS_KEY);
+            if (storedTokens) {
+                console.log(`[Hydrate] Loaded ${Object.keys(storedTokens).length} auth tokens.`);
+                this.authTokens = new Map(Object.entries(storedTokens));
             }
         } catch (err) {
-            console.error(`[CRITICAL] Failed to load state for room ${this.room.id}. Resetting.`, err);
-            // Engine is already fresh from constructor, so we just don't hydrate it.
-            // Possibly persist the empty state to overwrite corrupt data?
-            // Safer to just let it start fresh and overwrite on next action.
+            console.error(`[CRITICAL] Failed to hydrate room ${this.room.id}.`, err);
         }
+    }
+
+    private broadcastStateDelta(newState: RoomState) {
+        if (!this.lastBroadcastedState) {
+            // First broadcast ever (shouldn't happen if hydrated, but safe fallback)
+            this.room.broadcast(JSON.stringify({ type: EVENTS.UPDATE_STATE, payload: newState }));
+            this.lastBroadcastedState = JSON.parse(JSON.stringify(newState));
+            return;
+        }
+
+        const patches = compare(this.lastBroadcastedState, newState);
+
+        if (patches.length > 0) {
+            // Check optimization: Is patch smaller than full state?
+            // Usually yes. But if it's a huge replace, maybe not? 
+            // JSON Patch is standard. Let's trust it.
+
+            // console.log(`[Delta] Broadcasting ${patches.length} changes.`);
+            this.room.broadcast(JSON.stringify({
+                type: EVENTS.PATCH_STATE,
+                payload: patches
+            }));
+        }
+
+        // Update baseline (Deep Copy crucial here)
+        this.lastBroadcastedState = JSON.parse(JSON.stringify(newState));
     }
 
     async onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
