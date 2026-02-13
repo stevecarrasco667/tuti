@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useGame } from '../composables/useGame';
-const { gameState, myUserId, resetGame } = useGame();
+const { gameState, myUserId, resetGame, leaveGame } = useGame();
 
 // Check if current user is host checking ID
 const amIHost = computed(() => {
@@ -16,10 +16,8 @@ const sortedPlayers = computed(() => {
 const top3 = computed(() => sortedPlayers.value.slice(0, 3));
 const rest = computed(() => sortedPlayers.value.slice(3));
 
-
-
 const exitGame = () => {
-    window.location.reload();
+    leaveGame();
 };
 </script>
 
