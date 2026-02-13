@@ -241,9 +241,17 @@ export function useGame() {
     };
 
     const leaveGame = () => {
-        // 1. Close socket FIRST to prevent reconnection race
+        // 1. Send Explicit Exit & Close Socket
         if (socket.value) {
-            socket.value.close();
+            // FIRE AND FORGET: Try to tell server we are leaving
+            // If network is down, it fails silently, but server watchdog cleans up anyway.
+            try {
+                socket.value.send(JSON.stringify({ type: EVENTS.EXIT_GAME }));
+            } catch (e) { /* ignore */ }
+
+            // EXECUTE PROTOCOL 66: Intentional Disconnect
+            const { disconnectIntentionally } = useSocket();
+            disconnectIntentionally();
         }
 
         // 2. Clear room reference

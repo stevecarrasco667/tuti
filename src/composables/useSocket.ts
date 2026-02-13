@@ -10,12 +10,15 @@ const PARTYKIT_HOST = import.meta.env.DEV
 const socket = ref<PartySocket | null>(null);
 const isConnected = ref(false);
 const lastMessage = ref<string>('');
+const isIntentionalDisconnect = ref(false);
 
 export function useSocket() {
     const setRoomId = (roomId: string | null, userInfo?: { userId: string, name: string, avatar: string }) => {
         // 1. Close existing connection if any
         if (socket.value) {
             console.log('🔌 Switching rooms... Closing old connection.');
+            // Allow immediate reconnection for room switch (unless intentional exit was called before, but here we want to connect to new room)
+            isIntentionalDisconnect.value = false;
             socket.value.close();
             socket.value = null;
             isConnected.value = false;
@@ -43,7 +46,11 @@ export function useSocket() {
 
             ws.addEventListener('close', () => {
                 isConnected.value = false;
-                console.log('❌ Disconnected from Mock Server');
+                if (!isIntentionalDisconnect.value) {
+                    console.log('❌ Disconnected from Mock Server (Unexpected)');
+                } else {
+                    console.log('🛑 Disconnected from Mock Server (Intentional)');
+                }
             });
 
             ws.addEventListener('message', (event) => {
@@ -67,7 +74,11 @@ export function useSocket() {
 
             socket.value.addEventListener('close', () => {
                 isConnected.value = false;
-                console.log('❌ Disconnected from PartyKit Cloud');
+                if (!isIntentionalDisconnect.value) {
+                    console.log('❌ Disconnected from PartyKit Cloud (Unexpected)');
+                } else {
+                    console.log('🛑 Disconnected from PartyKit Cloud (Intentional)');
+                }
             });
 
             socket.value.addEventListener('message', (event: MessageEvent) => {
@@ -76,10 +87,21 @@ export function useSocket() {
         }
     };
 
+    const disconnectIntentionally = () => {
+        if (socket.value) {
+            console.log('🛑 Closing connection intentionally via checkmate protocol.');
+            isIntentionalDisconnect.value = true;
+            socket.value.close();
+            socket.value = null;
+            isConnected.value = false;
+        }
+    };
+
     return {
         socket,
         isConnected,
         lastMessage,
-        setRoomId
+        setRoomId,
+        disconnectIntentionally
     };
 }

@@ -1,6 +1,7 @@
 import type * as Party from "partykit/server";
 import { BaseHandler } from "./base";
 import { broadcastState, sendError } from "../utils/broadcaster";
+import { EVENTS } from "../../shared/consts";
 
 const STORAGE_KEY = "room_state_v1";
 
@@ -43,7 +44,17 @@ export class ConnectionHandler extends BaseHandler {
     }
 
     async handleExitGame(connection: Party.Connection) {
-        // Explicit exit logic (same as close for now)
-        await this.handleClose(connection);
+        const state = this.engine.playerExited(connection.id);
+
+        // Persist & Broadcast
+        await this.room.storage.put("room_state_v1", state);
+
+        this.room.broadcast(JSON.stringify({
+            type: EVENTS.UPDATE_STATE,
+            payload: state
+        }));
+
+        // Close connection physically
+        connection.close();
     }
 }

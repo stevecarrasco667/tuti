@@ -159,6 +159,42 @@ export class GameEngine {
         return this.state;
     }
 
+    // [New] HARD DELETE (Active Destruction)
+    public playerExited(connectionId: string): RoomState {
+        const userId = this.players.getPlayerId(connectionId);
+        if (!userId) return this.state;
+
+        console.log(`[EXIT GAME] Hard destroying player ${userId}`);
+
+        // 1. Remove from players list
+        this.state.players = this.state.players.filter(p => p.id !== userId);
+
+        // 2. Clear from mappings
+        this.players.remove(this.state, connectionId);
+
+        // 3. Clear Game Data
+        delete this.state.answers[userId];
+        delete this.state.roundScores[userId];
+        this.voting.cleanupPlayerVotes(this.state, userId);
+
+        // 4. Check for Game Over (ABANDONED)
+        if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW') {
+            if (this.state.players.length < 2) {
+                console.log(`[GAME OVER] Abandonment (Exited).`);
+                this.state.status = 'GAME_OVER';
+                this.state.gameOverReason = 'ABANDONED';
+
+                // Clear timers
+                this.rounds.cancelTimer();
+                this.state.timers.roundEndsAt = null;
+                this.state.timers.votingEndsAt = null;
+                this.state.timers.resultsEndsAt = null;
+            }
+        }
+
+        return this.state;
+    }
+
     // CHECK ZOMBIES
     public checkInactivePlayers(): boolean {
         // Purge players disconnected > 60s
