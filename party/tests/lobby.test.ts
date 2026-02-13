@@ -39,14 +39,55 @@ describe('Server Integration - Lobby', () => {
         expect(server.engine['state'].players[1].name).toBe('Bob');
     });
 
-    it('should not duplicate player on reconnect', async () => {
+    it('should not duplicate player on reconnect (with valid token)', async () => {
         const conn = createMockConnection('u1');
 
+        // 1. First Connection
         await server.onConnect(conn, createMockContext('http://localhost/?name=Alice'));
-        await server.onConnect(conn, createMockContext('http://localhost/?name=Alice')); // Reconnect
 
+        // 2. Capture Token from PRIVATE HANDSHAKE (AUTH_GRANTED)
+        // Find the call that sends AUTH_GRANTED
+        const authCall = (conn.send as any).mock.calls.find((args: any[]) => {
+            const msg = JSON.parse(args[0]);
+            return msg.type === 'AUTH_GRANTED';
+        });
+
+        expect(authCall).toBeDefined();
+        const authMsg = JSON.parse(authCall![0]);
+        const token = authMsg.payload.sessionToken;
+        expect(token).toBeDefined();
+
+        // 3. Reconnect WITH Token
+        await server.onConnect(conn, createMockContext(`http://localhost/?name=Alice&token=${token}`));
+
+        // 4. Expect NO duplication (Same Session)
         expect(server.engine['state'].players).toHaveLength(1);
         expect(server.engine['state'].players[0].isConnected).toBe(true);
+    });
+
+    it('should reject spoofing attempt (connecting without token)', async () => {
+        const conn = createMockConnection('u1-spoof');
+
+        // 1. Valid User Connects
+        await server.onConnect(conn, createMockContext('http://localhost/?name=Alice&userId=u1'));
+
+        // 2. Attacker tries to connect as 'u1' WITHOUT token
+        // (Simulating a different connection ID or same, logic handles both by checking token)
+        const attackerConn = createMockConnection('attacker');
+        await server.onConnect(attackerConn, createMockContext('http://localhost/?name=Evil&userId=u1'));
+
+        // 3. Expect DUPLICATION (New Session created for attacker)
+        // The server assigns a NEW userId to the attacker, so they are added as a second player.
+        expect(server.engine['state'].players).toHaveLength(2);
+
+        const players = server.engine['state'].players;
+        const original = players.find(p => p.id === 'u1');
+        const attacker = players.find(p => p.id !== 'u1');
+
+        expect(original).toBeDefined();
+        expect(attacker).toBeDefined();
+        expect(original!.name).toBe('Alice');
+        expect(attacker!.name).toBe('Evil');
     });
 
     it('should mark player disconnected on close', async () => {
