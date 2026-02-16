@@ -3,6 +3,7 @@ import { BaseHandler } from "./base";
 import { broadcastState, sendError } from "../utils/broadcaster";
 import { EVENTS } from "../../shared/consts";
 import { GameEngine } from "../../shared/game-engine";
+import { logger } from "../../shared/utils/logger";
 
 const AUTH_TOKENS_KEY = "auth_tokens_v1";
 
@@ -28,7 +29,7 @@ export class ConnectionHandler extends BaseHandler {
             if (this.authTokens.has(userId)) {
                 const storedToken = this.authTokens.get(userId);
                 if (!token || token !== storedToken) {
-                    console.warn(`[Security] Spoof attempt on ${userId}. Assigning new ID.`);
+                    logger.warn('SPOOF_ATTEMPT', { userId, connectionId: connection.id });
                     userId = crypto.randomUUID(); // Hijacker gets a NEW identity
                     token = crypto.randomUUID(); // And a NEW token
                     isNewToken = true;
@@ -58,7 +59,7 @@ export class ConnectionHandler extends BaseHandler {
             // Guardar userId en el socket para que sobreviva a la hibernación
             connection.setState({ userId });
 
-            console.log(`[Connect] ${name} (${userId}) joined ${this.room.id}`);
+            logger.info('NEW_CONNECTION', { userId, roomId: this.room.id, connectionId: connection.id });
 
             // Join Player in Engine
             const state = this.engine.joinPlayer(userId, name, avatar, connection.id);
@@ -70,13 +71,13 @@ export class ConnectionHandler extends BaseHandler {
             // For now, let's keep robust full update for joiners (safest).
             broadcastState(this.room, state);
         } catch (err) {
-            console.error("[Connect Error]", err);
+            logger.error('CONNECT_FAILED', { connectionId: connection.id, roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
             sendError(connection, "Failed to join room: " + (err instanceof Error ? err.message : String(err)));
         }
     }
 
     async handleClose(connection: Party.Connection) {
-        console.log(`[Disconnect] ${connection.id} left ${this.room.id}`);
+        logger.info('DISCONNECTED', { connectionId: connection.id, roomId: this.room.id });
         // Engine handles logic (update presence, host protection)
         const state = this.engine.playerDisconnected(connection.id);
 

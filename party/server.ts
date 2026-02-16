@@ -2,7 +2,7 @@ import type * as Party from "partykit/server";
 import { GameEngine } from "../shared/game-engine.js";
 import { RoomState } from "../shared/types.js";
 import { EVENTS, APP_VERSION } from "../shared/consts.js"; // Import Consolidado
-import { sendError } from "./utils/broadcaster";
+import { logger } from "../shared/utils/logger";
 import { RateLimiter } from "./utils/rate-limiter";
 import { ConnectionHandler } from "./handlers/connection";
 import { PlayerHandler } from "./handlers/player";
@@ -117,30 +117,35 @@ export default class Server implements Party.Server {
     }
 
     async onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
-        // CANCEL AUTO-DESTRUCT if a human connects
-        await this.room.storage.deleteAlarm();
+        try {
+            // CANCEL AUTO-DESTRUCT if a human connects
+            await this.room.storage.deleteAlarm();
 
-        // 0. Send Version
-        const versionMsg = JSON.stringify({
-            type: EVENTS.SYSTEM_VERSION,
-            payload: { version: APP_VERSION }
-        });
-        conn.send(versionMsg);
+            // 0. Send Version
+            const versionMsg = JSON.stringify({
+                type: EVENTS.SYSTEM_VERSION,
+                payload: { version: APP_VERSION }
+            });
+            conn.send(versionMsg);
 
-        // 1. Send current Game State
-        conn.send(JSON.stringify({
-            type: EVENTS.UPDATE_STATE,
-            payload: this.engine.getState()
-        }));
+            // 1. Send current Game State
+            conn.send(JSON.stringify({
+                type: EVENTS.UPDATE_STATE,
+                payload: this.engine.getState()
+            }));
 
-        // 2. Send Chat History
-        conn.send(JSON.stringify({
-            type: EVENTS.CHAT_HISTORY,
-            payload: this.messages
-        }));
+            // 2. Send Chat History
+            conn.send(JSON.stringify({
+                type: EVENTS.CHAT_HISTORY,
+                payload: this.messages
+            }));
 
-        // 3. Handle Identity via ConnectionHandler
-        await this.connectionHandler.handleConnect(conn, ctx);
+            // 3. Handle Identity via ConnectionHandler
+            await this.connectionHandler.handleConnect(conn, ctx);
+        } catch (err) {
+            logger.error('ON_CONNECT_FAILED', { connectionId: conn.id, roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
+            conn.close(1011, 'Internal Server Error');
+        }
     }
 
     async onMessage(message: string, sender: Party.Connection) {
@@ -254,8 +259,12 @@ export default class Server implements Party.Server {
             await this.scheduleAlarms(this.engine['state']);
 
         } catch (err) {
-            console.error(`[CRITICAL ERROR] Message failed:`, err);
-            sendError(sender, (err as Error).message || "Unknown error processing request");
+            const error = err instanceof Error ? err : new Error(String(err));
+            logger.error('ON_MESSAGE_FAILED', { roomId: this.room.id, connectionId: sender.id }, error);
+            sender.send(JSON.stringify({
+                type: EVENTS.SERVER_ERROR,
+                payload: { message: 'Internal server error processing message' }
+            }));
         }
     }
 

@@ -94,6 +94,9 @@ export function useGame() {
                     console.warn(`[VERSION MISMATCH] Client: ${APP_VERSION}, Server: ${serverVersion}`);
                     isUpdateAvailable.value = true;
                 }
+            } else if (parsed.type === EVENTS.SERVER_ERROR) {
+                // [Phoenix P0] Server-side error — do not attempt to parse state
+                console.error('[Server Error]:', (parsed.payload as { message: string }).message);
             }
         } catch (e) {
             console.error('Failed to parse message:', e);

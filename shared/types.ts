@@ -86,4 +86,5 @@ export type ServerMessage =
     | { type: typeof EVENTS.SYSTEM_MESSAGE; payload: string }
     | { type: typeof EVENTS.SYSTEM_VERSION; payload: { version: string } }
     | { type: typeof EVENTS.CHAT_NEW; payload: ChatMessage }
-    | { type: typeof EVENTS.CHAT_HISTORY; payload: ChatMessage[] };
+    | { type: typeof EVENTS.CHAT_HISTORY; payload: ChatMessage[] }
+    | { type: typeof EVENTS.SERVER_ERROR; payload: { message: string } }; // [Phoenix P0] Error Telemetry

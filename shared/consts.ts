@@ -25,7 +25,10 @@ export const EVENTS = {
 
     // Chat Events (Server -> Client)
     CHAT_NEW: 'CHAT_NEW',
-    CHAT_HISTORY: 'CHAT_HISTORY'
+    CHAT_HISTORY: 'CHAT_HISTORY',
+
+    // [Phoenix P0] Error Telemetry
+    SERVER_ERROR: 'SERVER_ERROR'
 } as const;
 
 export const APP_VERSION = 'v0.5.0';
