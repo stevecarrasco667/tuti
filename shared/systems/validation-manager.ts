@@ -43,7 +43,7 @@ export class ValidationManager {
         }
 
         // 4. Dictionary Auto-Validation (Escudo Dorado 🛡️)
-        if (categoryId && DictionaryManager.hasExact(categoryId, normalized)) {
+        if (categoryId && DictionaryManager.isFuzzyValid(categoryId, normalized)) {
             return { text: normalized, status: "VALID_AUTO" };
         }
 
