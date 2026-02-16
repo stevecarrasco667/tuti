@@ -10,6 +10,7 @@ const gameState = ref<RoomState>({
     // ... initial state
     status: 'LOBBY',
     players: [],
+    spectators: [],
     roomId: null,
     currentLetter: null,
     categories: [],
@@ -286,6 +287,7 @@ export function useGame() {
         gameState.value = {
             status: 'LOBBY',
             players: [],
+            spectators: [],
             roomId: null,
             currentLetter: null,
             categories: [],

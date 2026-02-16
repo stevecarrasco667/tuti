@@ -86,6 +86,7 @@ export class GameEngine {
             status: 'LOBBY',
             roomId: roomId,
             players: [],
+            spectators: [],  // [Phoenix] Late joiners
             roundsPlayed: 0,
             currentLetter: null,
             categories: [],
@@ -124,24 +125,53 @@ export class GameEngine {
     // Now implicitly handled via joinPlayer which tries reconnect first
 
     public joinPlayer(userId: string, name: string, avatar: string, connectionId: string): RoomState {
-        // Try Reconnect First
+        // Try Reconnect First (check both players AND spectators)
         if (this.players.reconnect(this.state, connectionId, userId)) {
             return this.state;
         }
 
-        // Add New Player (Manager handles name handling & host assignment)
-        this.players.add(this.state, connectionId, { id: userId, name, avatar });
+        // [Phoenix] State Barrier: Route to spectators if game is active
+        if (this.state.status === 'LOBBY' || this.state.status === 'GAME_OVER') {
+            // Add New Player (Manager handles name handling & host assignment)
+            this.players.add(this.state, connectionId, { id: userId, name, avatar });
+        } else {
+            // Late joiner → Spectator
+            const newPlayer = {
+                id: userId,
+                name,
+                avatar,
+                score: 0,
+                isHost: false,
+                isConnected: true,
+                lastSeenAt: Date.now(),
+                filledCount: 0
+            };
+            this.state.spectators.push(newPlayer);
+            this.players.registerConnection(connectionId, userId);
+            console.log(`[Spectator] ${name} (${userId}) joined as spectator.`);
+        }
 
         return this.state;
     }
 
     // Formerly handleDisconnection
     public playerDisconnected(connectionId: string): RoomState {
+        // Check if the disconnecting player is a spectator
+        const userId = this.players.getPlayerId(connectionId);
+        if (userId) {
+            const spectatorIdx = this.state.spectators.findIndex(s => s.id === userId);
+            if (spectatorIdx !== -1) {
+                // Mark spectator as disconnected (or remove)
+                this.state.spectators[spectatorIdx].isConnected = false;
+                this.state.spectators[spectatorIdx].disconnectedAt = Date.now();
+                this.players.remove(this.state, connectionId);
+                return this.state;
+            }
+        }
+
         this.players.remove(this.state, connectionId);
 
         // ABANDONMENT CHECK (RELAXED)
-        // Only end if total players (connected + zombies) < 2
-        // This allows zombies to exist while timer is running.
         if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW') {
             if (this.state.players.length < 2) {
                 console.log(`[GAME OVER] Not enough players (Active+Zombie) to continue.`);
@@ -166,8 +196,9 @@ export class GameEngine {
 
         console.log(`[EXIT GAME] Hard destroying player ${userId}`);
 
-        // 1. Remove from players list
+        // 1. Remove from players list AND spectators
         this.state.players = this.state.players.filter(p => p.id !== userId);
+        this.state.spectators = this.state.spectators.filter(s => s.id !== userId);
 
         // 2. Clear from mappings
         this.players.remove(this.state, connectionId);
@@ -256,6 +287,13 @@ export class GameEngine {
 
         // CASE 1: Manual "Next Round" from Results screen
         if (this.state.status === 'RESULTS') {
+            // [Phoenix] Promote spectators before next round
+            if (this.state.spectators.length > 0) {
+                console.log(`[Spectator] Promoting ${this.state.spectators.length} spectators to players.`);
+                this.state.players.push(...this.state.spectators);
+                this.state.spectators = [];
+            }
+
             // Delegate Next Round Logic directly
             const continueGame = this.rounds.nextRound(this.state, this.state.config);
             if (continueGame) {
@@ -266,6 +304,13 @@ export class GameEngine {
 
         // CASE 2: Starting new game from Lobby/GameOver
         if (this.state.status === 'LOBBY' || this.state.status === 'GAME_OVER') {
+            // [Phoenix] Promote spectators before starting
+            if (this.state.spectators.length > 0) {
+                console.log(`[Spectator] Promoting ${this.state.spectators.length} spectators to players.`);
+                this.state.players.push(...this.state.spectators);
+                this.state.spectators = [];
+            }
+
             this.state.roundsPlayed = 0; // Explicit safety reset
 
             // Select categories based on mode

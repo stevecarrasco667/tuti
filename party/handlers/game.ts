@@ -5,14 +5,12 @@ import { broadcastState, sendError } from "../utils/broadcaster";
 import { StopRoundSchema, SubmitAnswersSchema, UpdateAnswersSchema } from "../../shared/schemas";
 import { EVENTS } from "../../shared/consts";
 
-const STORAGE_KEY = "room_state_v1";
-
 export class GameHandler extends BaseHandler {
 
     async handleStartGame(sender: Party.Connection) {
         try {
             const state = this.engine.startGame(sender.id);
-            await this.persistAndBroadcast(state);
+            broadcastState(this.room, state);
         } catch (err) {
             sendError(sender, (err as Error).message);
         }
@@ -24,7 +22,7 @@ export class GameHandler extends BaseHandler {
             const { answers } = StopRoundSchema.shape.payload.parse(rawPayload);
 
             const state = this.engine.stopRound(sender.id, answers);
-            await this.persistAndBroadcast(state);
+            broadcastState(this.room, state);
         } catch (err) {
             sendError(sender, (err as Error).message);
         }
@@ -41,19 +39,14 @@ export class GameHandler extends BaseHandler {
             if (!userId) return; // Ignore unmapped connections
 
             // 2. Update Engine (RAM)
-            const state = this.engine.updateAnswers(sender.id, answers);
+            this.engine.updateAnswers(sender.id, answers);
 
-            // 3. Persist to Disk (Silent)
-            await this.room.storage.put(STORAGE_KEY, state);
-
-            // 4. Calculate Delta (Filled Count)
+            // 3. Calculate Delta (Filled Count)
             const filledCount = Object.values(answers).filter((val: any) => val && val.trim().length > 0).length;
 
-            // 5. Lightweight Broadcast (Exclude Sender)
-            // Note: RIVAL_UPDATE is server-to-client, so we construct it manually (or use Schema if we want strict output too)
-            // Keep generic JSON.stringify for perf in hot path or import ServerMessage types
+            // 4. Lightweight Broadcast (Exclude Sender)
             const msg = JSON.stringify({
-                type: EVENTS.RIVAL_UPDATE, // We could use EVENTS.RIVAL_UPDATE but keeping string in JSON.stringify is same.
+                type: EVENTS.RIVAL_UPDATE,
                 payload: {
                     playerId: userId,
                     filledCount
@@ -73,15 +66,9 @@ export class GameHandler extends BaseHandler {
             const { answers } = SubmitAnswersSchema.shape.payload.parse(rawPayload);
 
             const state = this.engine.submitAnswers(sender.id, answers);
-            await this.persistAndBroadcast(state);
+            broadcastState(this.room, state);
         } catch (err) {
             sendError(sender, (err as Error).message);
         }
-    }
-
-    // Helper to keep DRY
-    private async persistAndBroadcast(state: any) {
-        await this.room.storage.put(STORAGE_KEY, state);
-        broadcastState(this.room, state);
     }
 }

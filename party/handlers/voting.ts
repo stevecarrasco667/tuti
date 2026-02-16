@@ -3,8 +3,6 @@ import { BaseHandler } from "./base";
 import { broadcastState, sendError } from "../utils/broadcaster";
 import { ToggleVoteSchema } from "../../shared/schemas";
 
-const STORAGE_KEY = "room_state_v1";
-
 export class VotingHandler extends BaseHandler {
 
     async handleVote(rawPayload: unknown, sender: Party.Connection) {
@@ -12,7 +10,7 @@ export class VotingHandler extends BaseHandler {
             const { targetUserId, category } = ToggleVoteSchema.shape.payload.parse(rawPayload);
 
             const state = this.engine.toggleVote(sender.id, targetUserId, category);
-            await this.persistAndBroadcast(state);
+            broadcastState(this.room, state);
         } catch (err) {
             sendError(sender, (err as Error).message);
         }
@@ -21,14 +19,9 @@ export class VotingHandler extends BaseHandler {
     async handleConfirmVotes(sender: Party.Connection) {
         try {
             const state = this.engine.confirmVotes(sender.id);
-            await this.persistAndBroadcast(state);
+            broadcastState(this.room, state);
         } catch (err) {
             sendError(sender, (err as Error).message);
         }
-    }
-
-    private async persistAndBroadcast(state: any) {
-        await this.room.storage.put(STORAGE_KEY, state);
-        broadcastState(this.room, state);
     }
 }

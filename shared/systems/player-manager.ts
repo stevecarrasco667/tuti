@@ -25,6 +25,7 @@ export class PlayerManager {
     }
 
     public reconnect(state: RoomState, connectionId: string, userId: string): boolean {
+        // Check players first
         const player = state.players.find(p => p.id === userId);
         if (player) {
             player.isConnected = true;
@@ -33,7 +34,21 @@ export class PlayerManager {
             this.connectionMap[connectionId] = userId;
             return true;
         }
+        // [Phoenix] Also check spectators
+        const spectator = state.spectators?.find(s => s.id === userId);
+        if (spectator) {
+            spectator.isConnected = true;
+            spectator.lastSeenAt = Date.now();
+            delete spectator.disconnectedAt;
+            this.connectionMap[connectionId] = userId;
+            return true;
+        }
         return false;
+    }
+
+    // [Phoenix] Register a connection mapping without adding to players array
+    public registerConnection(connectionId: string, userId: string) {
+        this.connectionMap[connectionId] = userId;
     }
 
     // SOFT DELETE: Mark as Zombie

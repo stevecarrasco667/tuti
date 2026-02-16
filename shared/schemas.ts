@@ -27,6 +27,7 @@ export const GameConfigSchema = z.object({
 export const RoomStateSchema = z.object({
     status: GameStatusSchema,
     players: z.array(PlayerSchema),
+    spectators: z.array(PlayerSchema).default([]),  // [Phoenix] Late joiners
     // We can't strictly validate everything easily since it's dynamic keys
     roomId: z.string().nullable(),
     currentLetter: z.string().nullable(),

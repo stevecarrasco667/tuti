@@ -4,7 +4,6 @@ import { broadcastState, sendError } from "../utils/broadcaster";
 import { EVENTS } from "../../shared/consts";
 import { GameEngine } from "../../shared/game-engine";
 
-const STORAGE_KEY = "room_state_v1";
 const AUTH_TOKENS_KEY = "auth_tokens_v1";
 
 export class ConnectionHandler extends BaseHandler {
@@ -64,8 +63,6 @@ export class ConnectionHandler extends BaseHandler {
             // Join Player in Engine
             const state = this.engine.joinPlayer(userId, name, avatar, connection.id);
 
-            // Save state
-            await this.room.storage.put(STORAGE_KEY, state);
 
             // Broadcast entire state (New players need full state, others get Delta via Broadcaster optimization if implemented there, but here we call broadcastState utility)
             // Wait, broadcastState utility usually sends UPDATE_STATE.
@@ -90,8 +87,7 @@ export class ConnectionHandler extends BaseHandler {
     async handleExitGame(connection: Party.Connection) {
         const state = this.engine.playerExited(connection.id);
 
-        // Persist & Broadcast
-        await this.room.storage.put("room_state_v1", state);
+        // Broadcast (Write-Behind handles persistence)
 
         this.room.broadcast(JSON.stringify({
             type: EVENTS.UPDATE_STATE,

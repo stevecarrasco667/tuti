@@ -38,6 +38,7 @@ export type AnswerStatus = 'VALID' | 'VALID_AUTO' | 'DUPLICATE' | 'INVALID' | 'E
 export interface RoomState {
     status: GameStatus;
     players: Player[];
+    spectators: Player[];  // [Phoenix] Late joiners waiting for next round
     roomId: string | null;
     currentLetter: string | null;
     categories: string[];

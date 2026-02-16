@@ -39,13 +39,25 @@ export default class Server implements Party.Server {
     // Utilites
     private rateLimiter = new RateLimiter(); // 5 burst, 1 refill/2s
 
+    // Write-Behind: Debounced Persistence
+    private saveTimeout: ReturnType<typeof setTimeout> | null = null;
+
     // Chat State
     messages: import('../shared/types').ChatMessage[] = [];
 
     constructor(room: Party.Room) {
         this.room = room;
         this.engine = new GameEngine(room.id, (newState) => {
+            // 1. Inmediato: Broadcast por Deltas (RAM a RAM)
             this.broadcastStateDelta(newState);
+
+            // 2. Diferido: Write-Behind a disco (max 1 vez cada 5s)
+            if (!this.saveTimeout) {
+                this.saveTimeout = setTimeout(async () => {
+                    await this.room.storage.put(STORAGE_KEY, this.engine.getState());
+                    this.saveTimeout = null;
+                }, 5000);
+            }
         });
 
         // Instantiate Handlers
@@ -271,6 +283,11 @@ export default class Server implements Party.Server {
         const activeConnections = [...this.room.getConnections()].length;
         if (activeConnections === 0) {
             console.log(`[Auto-Wipe] Room ${this.room.id} purged due to inactivity (10m).`);
+            // Clear Write-Behind timeout before destroying
+            if (this.saveTimeout) {
+                clearTimeout(this.saveTimeout);
+                this.saveTimeout = null;
+            }
             await this.room.storage.deleteAll();
             this.engine = new GameEngine(this.room.id); // Reset RAM
             return;
@@ -296,15 +313,19 @@ export default class Server implements Party.Server {
         this.connectionHandler.handleClose(connection);
 
         // ZOMBIE ALARM: Schedule cleanup check in 60s
-        // If they reconnect before this, they are restored.
-        // If they don't, this alarm will purge them.
         this.room.storage.setAlarm(Date.now() + 60000);
 
-        // START SELF-DESTRUCT TIMER if room is empty (override/add logic)
+        // Check if room is now empty
         const connections = [...this.room.getConnections()];
         if (connections.length === 0) {
+            // [WRITE-BEHIND FLUSH] Final synchronous save before self-destruct
+            if (this.saveTimeout) {
+                clearTimeout(this.saveTimeout);
+                this.saveTimeout = null;
+            }
+            this.room.storage.put(STORAGE_KEY, this.engine.getState());
+
             console.log(`[Auto-Wipe] Room ${this.room.id} is empty. Self-destruct in 10m.`);
-            // 10 minutes in milliseconds
             this.room.storage.setAlarm(Date.now() + 10 * 60 * 1000);
         }
     }

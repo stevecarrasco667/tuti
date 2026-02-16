@@ -21,6 +21,9 @@ const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVo
 const showCountdown = ref(false);
 const showStopSignal = ref(false);
 
+// [Phoenix] Spectator Mode
+const isSpectator = computed(() => !gameState.value.players.some(p => p.id === myUserId.value));
+
 const handleCountdownFinished = () => {
     showCountdown.value = false;
 };
@@ -135,6 +138,15 @@ const rivalsActivity = computed(() => {
         />
 
         <div class="flex-1 overflow-y-auto w-full scroll-smooth p-4 relative">
+            
+            <!-- [Phoenix] SPECTATOR MODE BANNER -->
+            <div v-if="isSpectator" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-md">
+                <div class="text-center space-y-4 animate-pulse">
+                    <span class="text-6xl">🍿</span>
+                    <h2 class="text-3xl font-black text-white tracking-tight">Modo Espectador</h2>
+                    <p class="text-slate-300 text-lg max-w-xs mx-auto">Partida en curso. Entrarás automáticamente en la siguiente ronda...</p>
+                </div>
+            </div>
             
             <CountdownOverlay v-if="showCountdown" @finished="handleCountdownFinished" />
             <StopSignal v-if="showStopSignal" @finished="showStopSignal = false" />
