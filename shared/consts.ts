@@ -31,7 +31,11 @@ export const EVENTS = {
     SERVER_ERROR: 'SERVER_ERROR',
 
     // [Phoenix CDN] Admin Commands
-    ADMIN_RELOAD_DICTS: 'ADMIN_RELOAD_DICTS'
+    ADMIN_RELOAD_DICTS: 'ADMIN_RELOAD_DICTS',
+
+    // [Phoenix Lobby] Hub-and-Spoke
+    LOBBY_STATE_UPDATE: 'LOBBY_STATE_UPDATE',
+    ROOM_HEARTBEAT: 'ROOM_HEARTBEAT'
 } as const;
 
 export const APP_VERSION = 'v0.5.0';

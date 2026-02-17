@@ -28,6 +28,7 @@ export const RoomStateSchema = z.object({
     status: GameStatusSchema,
     players: z.array(PlayerSchema),
     spectators: z.array(PlayerSchema).default([]),  // [Phoenix] Late joiners
+    isPublic: z.boolean().default(false),  // [Phoenix Lobby] Public room flag
     // We can't strictly validate everything easily since it's dynamic keys
     roomId: z.string().nullable(),
     currentLetter: z.string().nullable(),
@@ -44,6 +45,16 @@ export const RoomStateSchema = z.object({
         votingEndsAt: z.number().nullable(),
         resultsEndsAt: z.number().nullable()
     })
+});
+
+// [Phoenix Lobby] Lightweight public room metadata
+export const RoomSnapshotSchema = z.object({
+    id: z.string(),
+    hostName: z.string(),
+    currentPlayers: z.number(),
+    maxPlayers: z.number(),
+    status: GameStatusSchema,
+    lastUpdate: z.number()
 });
 
 export const JoinRoomSchema = z.object({

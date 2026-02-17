@@ -1,4 +1,6 @@
+import { z } from 'zod';
 import { EVENTS } from './consts';
+import { RoomSnapshotSchema } from './schemas';
 
 export type GameStatus = 'LOBBY' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER';
 
@@ -39,6 +41,7 @@ export interface RoomState {
     status: GameStatus;
     players: Player[];
     spectators: Player[];  // [Phoenix] Late joiners waiting for next round
+    isPublic: boolean;  // [Phoenix Lobby] Public room flag
     roomId: string | null;
     currentLetter: string | null;
     categories: string[];
@@ -59,6 +62,9 @@ export interface RoomState {
     stoppedBy: string | null;
     gameOverReason?: 'NORMAL' | 'ABANDONED';
 }
+
+// [Phoenix Lobby] Lightweight snapshot for lobby list
+export type RoomSnapshot = z.infer<typeof RoomSnapshotSchema>;
 
 // Messages sent from Client to Server
 export type RoundAnswers = Record<string, string>;
@@ -87,4 +93,5 @@ export type ServerMessage =
     | { type: typeof EVENTS.SYSTEM_VERSION; payload: { version: string } }
     | { type: typeof EVENTS.CHAT_NEW; payload: ChatMessage }
     | { type: typeof EVENTS.CHAT_HISTORY; payload: ChatMessage[] }
-    | { type: typeof EVENTS.SERVER_ERROR; payload: { message: string } }; // [Phoenix P0] Error Telemetry
+    | { type: typeof EVENTS.SERVER_ERROR; payload: { message: string } } // [Phoenix P0] Error Telemetry
+    | { type: typeof EVENTS.LOBBY_STATE_UPDATE; payload: RoomSnapshot[] }; // [Phoenix Lobby]

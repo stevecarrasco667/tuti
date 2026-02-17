@@ -105,7 +105,8 @@ export class GameEngine {
                 votingEndsAt: null,
                 resultsEndsAt: null
             },
-            stoppedBy: null
+            stoppedBy: null,
+            isPublic: false  // [Phoenix Lobby]
         };
     }
 
