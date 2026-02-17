@@ -163,7 +163,7 @@ export default class Server implements Party.Server {
                         status: state.status,
                         lastUpdate: Date.now()
                     };
-                    this.room.context.parties.lobby.get("global").fetch("http://127.0.0.1/heartbeat", {
+                    this.room.context.parties.lobby.get("global").fetch("/heartbeat", {
                         method: "POST",
                         body: JSON.stringify(snapshot),
                         headers: { "Content-Type": "application/json" }
