@@ -15,7 +15,19 @@ export class DictionaryManager {
     private static datasets: Record<string, Set<string>> = {};
     private static initialized = false;
 
-    // Initialize/Load mappings
+    // [Phoenix CDN] jsDelivr serves raw GitHub files
+    private static readonly CDN_BASE = 'https://cdn.jsdelivr.net/gh/stevecarrasco667/tuti@main/shared/dictionaries/data/';
+
+    // Map: category name → { file, fallback }
+    private static readonly CATEGORY_FILE_MAP: Record<string, { file: string; fallback: string[] }> = {
+        'Animal': { file: 'animales.json', fallback: animales },
+        'Color': { file: 'colores.json', fallback: colores },
+        'Fruta/Verdura': { file: 'frutas.json', fallback: frutas },
+        'Nombre': { file: 'nombres.json', fallback: nombres },
+        'País': { file: 'paises.json', fallback: paises },
+    };
+
+    // Initialize/Load mappings (local-only, synchronous fallback)
     private static initialize() {
         if (this.initialized) return;
 
@@ -34,6 +46,47 @@ export class DictionaryManager {
             set.add(normalize(word));
         }
         this.datasets[category] = set;
+    }
+
+    // [Phoenix CDN] Async hydration from CDN with local fallback
+    public static async hydrate(forceReload = false): Promise<void> {
+        const entries = Object.entries(this.CATEGORY_FILE_MAP);
+
+        const results = await Promise.allSettled(
+            entries.map(async ([category, { file }]) => {
+                const url = forceReload
+                    ? `${this.CDN_BASE}${file}?v=${Date.now()}`
+                    : `${this.CDN_BASE}${file}`;
+
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status} for ${file}`);
+                }
+
+                const words: string[] = await response.json();
+                return { category, words };
+            })
+        );
+
+        for (let i = 0; i < results.length; i++) {
+            const result = results[i];
+            const [category, { fallback }] = entries[i];
+
+            if (result.status === 'fulfilled') {
+                // CDN success — rebuild dataset from remote data
+                const set = new Set<string>();
+                for (const word of result.value.words) {
+                    set.add(normalize(word));
+                }
+                this.datasets[category] = set;
+            } else {
+                // CDN failed — use local static fallback
+                console.warn(`[CDN Fallback] ${category}: ${result.reason}`);
+                this.addDictionary(category, fallback);
+            }
+        }
+
+        this.initialized = true;
     }
 
     public static hasExact(category: string, word: string): boolean {
@@ -79,3 +132,4 @@ export class DictionaryManager {
         return this.datasets[category];
     }
 }
+

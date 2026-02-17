@@ -28,7 +28,10 @@ export const EVENTS = {
     CHAT_HISTORY: 'CHAT_HISTORY',
 
     // [Phoenix P0] Error Telemetry
-    SERVER_ERROR: 'SERVER_ERROR'
+    SERVER_ERROR: 'SERVER_ERROR',
+
+    // [Phoenix CDN] Admin Commands
+    ADMIN_RELOAD_DICTS: 'ADMIN_RELOAD_DICTS'
 } as const;
 
 export const APP_VERSION = 'v0.5.0';

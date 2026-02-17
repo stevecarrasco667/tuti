@@ -1,6 +1,7 @@
 import type * as Party from "partykit/server";
 import { GameEngine } from "../shared/game-engine.js";
 import { RoomState } from "../shared/types.js";
+import { DictionaryManager } from "../shared/dictionaries/manager";
 import { EVENTS, APP_VERSION } from "../shared/consts.js"; // Import Consolidado
 import { logger } from "../shared/utils/logger";
 import { RateLimiter } from "./utils/rate-limiter";
@@ -73,7 +74,7 @@ export default class Server implements Party.Server {
             // 1. Load Game State
             const stored = await this.room.storage.get<RoomState>(STORAGE_KEY);
             if (stored) {
-                console.log(`[Hydrate] Loaded state for room ${this.room.id}`);
+                logger.info('STATE_HYDRATED', { roomId: this.room.id });
                 this.engine['state'] = stored;
                 // Initialize lastBroadcastedState deep copy to avoid immediate diff
                 this.lastBroadcastedState = JSON.parse(JSON.stringify(stored));
@@ -82,11 +83,15 @@ export default class Server implements Party.Server {
             // 2. Load Auth Tokens
             const storedTokens = await this.room.storage.get<Record<string, string>>(AUTH_TOKENS_KEY);
             if (storedTokens) {
-                console.log(`[Hydrate] Loaded ${Object.keys(storedTokens).length} auth tokens.`);
+                logger.info('TOKENS_HYDRATED', { roomId: this.room.id, count: Object.keys(storedTokens).length });
                 this.authTokens = new Map(Object.entries(storedTokens));
             }
+
+            // 3. [Phoenix CDN] Hydrate dictionaries from CDN
+            await DictionaryManager.hydrate();
+            logger.info('DICTIONARIES_HYDRATED', { source: 'CDN', roomId: this.room.id });
         } catch (err) {
-            console.error(`[CRITICAL] Failed to hydrate room ${this.room.id}.`, err);
+            logger.error('ROOM_HYDRATION_FAILED', { roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
         }
     }
 
@@ -245,8 +250,16 @@ export default class Server implements Party.Server {
                     break;
                 }
 
-                case "PONG": // Keep PONG as string or add to consts? Usually keep PONG/PING separate/internal.
+                case "PONG":
                     return;
+
+                // [Phoenix CDN] Admin: Force reload dictionaries
+                case EVENTS.ADMIN_RELOAD_DICTS: {
+                    await DictionaryManager.hydrate(true);
+                    const adminUserId = (sender.state as any)?.userId || sender.id;
+                    logger.info('ADMIN_FORCED_DICTIONARY_RELOAD', { roomId: this.room.id, userId: adminUserId });
+                    return;
+                }
 
                 default:
                     console.warn(`Unknown message type: ${type}`);

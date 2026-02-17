@@ -269,6 +269,11 @@ export function useGame() {
         }));
     };
 
+    // [Phoenix CDN] Admin utility — callable from browser console
+    const forceDictionaryReload = () => {
+        socket.value?.send(JSON.stringify({ type: EVENTS.ADMIN_RELOAD_DICTS, userId: myUserId.value }));
+    };
+
     const leaveGame = () => {
         // 1. Send Explicit Exit & Close Socket
         if (socket.value) {
@@ -355,6 +360,7 @@ export function useGame() {
             return false;
         },
         leaveGame,
+        forceDictionaryReload,
         isConnected,
         isStopping,
         isUpdateAvailable
