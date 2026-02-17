@@ -84,6 +84,7 @@ export default class LobbyServer implements Party.Server {
 
             this.rooms.set(snapshot.id, snapshot);
             this.isDirty = true;
+            logger.info("ROOM_HEARTBEAT_REGISTERED", { roomId: snapshot.id, players: snapshot.currentPlayers });
 
             return new Response("OK", { status: 200 });
         } catch (err) {

@@ -42,6 +42,8 @@ export default class Server implements Party.Server {
 
     // Write-Behind: Debounced Persistence
     private saveTimeout: ReturnType<typeof setTimeout> | null = null;
+    // [Phoenix Lobby] True Heartbeat Interval
+    private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 
     // Chat State
     messages: import('../shared/types').ChatMessage[] = [];
@@ -70,7 +72,7 @@ export default class Server implements Party.Server {
                     status: newState.status,
                     lastUpdate: Date.now()
                 };
-                this.room.context.parties.lobby.get("global").fetch("http://internal/heartbeat", {
+                this.room.context.parties.lobby.get("global").fetch("http://127.0.0.1/heartbeat", {
                     method: "POST",
                     body: JSON.stringify(snapshot),
                     headers: { "Content-Type": "application/json" }
@@ -104,7 +106,10 @@ export default class Server implements Party.Server {
                 this.authTokens = new Map(Object.entries(storedTokens));
             }
 
-            // 3. [Phoenix CDN] Hydrate dictionaries from CDN
+            // 3. [Phoenix Lobby] Start True Heartbeat
+            this.startHeartbeat();
+
+            // 4. [Phoenix CDN] Hydrate dictionaries from CDN
             await DictionaryManager.hydrate();
             logger.info('DICTIONARIES_HYDRATED', { source: 'CDN', roomId: this.room.id });
         } catch (err) {
@@ -138,8 +143,37 @@ export default class Server implements Party.Server {
         this.lastBroadcastedState = JSON.parse(JSON.stringify(newState));
     }
 
+    // [Phoenix Lobby] True Heartbeat — Keeps room alive in Lobby
+    private startHeartbeat() {
+        if (this.heartbeatInterval) return;
+
+        logger.info('HEARTBEAT_STARTED', { roomId: this.room.id });
+
+        this.heartbeatInterval = setInterval(() => {
+            const state = this.engine.getState();
+            if (state.isPublic) {
+                const snapshot: RoomSnapshot = {
+                    id: this.room.id,
+                    hostName: state.players.find(p => p.isHost)?.name || 'Host',
+                    currentPlayers: state.players.length,
+                    maxPlayers: GAME_CONSTS.MAX_PLAYERS,
+                    status: state.status,
+                    lastUpdate: Date.now()
+                };
+                this.room.context.parties.lobby.get("global").fetch("http://127.0.0.1/heartbeat", {
+                    method: "POST",
+                    body: JSON.stringify(snapshot),
+                    headers: { "Content-Type": "application/json" }
+                }).catch(e => logger.error('HEARTBEAT_INTERVAL_FAILED', { error: String(e) }, e instanceof Error ? e : new Error(String(e))));
+            }
+        }, 10000); // Latido constante cada 10 segundos
+    }
+
     async onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
         try {
+            // [Phoenix Lobby] Ensure heartbeat is running (wakes up hibernated room)
+            this.startHeartbeat();
+
             // CANCEL AUTO-DESTRUCT if a human connects
             await this.room.storage.deleteAlarm();
 
@@ -363,6 +397,13 @@ export default class Server implements Party.Server {
                 this.saveTimeout = null;
             }
             this.room.storage.put(STORAGE_KEY, this.engine.getState());
+
+            // [Phoenix Lobby] Stop Heartbeat to allow hibernation
+            if (this.heartbeatInterval) {
+                clearInterval(this.heartbeatInterval);
+                this.heartbeatInterval = null;
+                logger.info('HEARTBEAT_STOPPED', { roomId: this.room.id });
+            }
 
             console.log(`[Auto-Wipe] Room ${this.room.id} is empty. Self-destruct in 10m.`);
             this.room.storage.setAlarm(Date.now() + 10 * 60 * 1000);
