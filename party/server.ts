@@ -150,21 +150,30 @@ export default class Server implements Party.Server {
         logger.info('HEARTBEAT_STARTED', { roomId: this.room.id });
 
         this.heartbeatInterval = setInterval(() => {
-            const state = this.engine.getState();
-            if (state.isPublic) {
-                const snapshot: RoomSnapshot = {
-                    id: this.room.id,
-                    hostName: state.players.find(p => p.isHost)?.name || 'Host',
-                    currentPlayers: state.players.length,
-                    maxPlayers: GAME_CONSTS.MAX_PLAYERS,
-                    status: state.status,
-                    lastUpdate: Date.now()
-                };
-                this.room.context.parties.lobby.get("global").fetch("http://127.0.0.1/heartbeat", {
-                    method: "POST",
-                    body: JSON.stringify(snapshot),
-                    headers: { "Content-Type": "application/json" }
-                }).catch(e => logger.error('HEARTBEAT_INTERVAL_FAILED', { error: String(e) }, e instanceof Error ? e : new Error(String(e))));
+            try {
+                const state = this.engine.getState();
+                if (state.isPublic) {
+                    logger.info('HEARTBEAT_SENDING', { roomId: this.room.id, players: state.players.length });
+
+                    const snapshot: RoomSnapshot = {
+                        id: this.room.id,
+                        hostName: state.players.find(p => p.isHost)?.name || 'Host',
+                        currentPlayers: state.players.length,
+                        maxPlayers: GAME_CONSTS.MAX_PLAYERS,
+                        status: state.status,
+                        lastUpdate: Date.now()
+                    };
+                    this.room.context.parties.lobby.get("global").fetch("http://127.0.0.1/heartbeat", {
+                        method: "POST",
+                        body: JSON.stringify(snapshot),
+                        headers: { "Content-Type": "application/json" }
+                    }).catch(e => logger.error('HEARTBEAT_FETCH_FAILED', { error: String(e) }, e instanceof Error ? e : new Error(String(e))));
+                } else {
+                    // Optional: Log skipped heartbeats for deep debugging
+                    // logger.debug('HEARTBEAT_SKIPPED_PRIVATE', { roomId: this.room.id });
+                }
+            } catch (err) {
+                logger.error('HEARTBEAT_CRASH', { roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
             }
         }, 10000); // Latido constante cada 10 segundos
     }
