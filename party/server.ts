@@ -70,7 +70,7 @@ export default class Server implements Party.Server {
                     status: newState.status,
                     lastUpdate: Date.now()
                 };
-                this.room.context.parties.lobby.get("global").fetch({
+                this.room.context.parties.lobby.get("global").fetch("http://internal/heartbeat", {
                     method: "POST",
                     body: JSON.stringify(snapshot),
                     headers: { "Content-Type": "application/json" }

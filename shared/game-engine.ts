@@ -187,6 +187,9 @@ export class GameEngine {
             }
         }
 
+        // [Phoenix Lobby] Succession: reassign host if needed
+        this.reassignHostIfNeeded();
+
         return this.state;
     }
 
@@ -224,7 +227,25 @@ export class GameEngine {
             }
         }
 
+        // [Phoenix Lobby] Succession: reassign host if needed
+        this.reassignHostIfNeeded();
+
         return this.state;
+    }
+
+    // [Phoenix Lobby] Dynamic Host Succession — assigns host to oldest connected player
+    private reassignHostIfNeeded(): void {
+        const activeHost = this.state.players.find(p => p.isHost && p.isConnected);
+        if (!activeHost) {
+            // Clear all host flags for safety
+            this.state.players.forEach(p => p.isHost = false);
+            // Assign to the first connected player (oldest in array)
+            const newHost = this.state.players.find(p => p.isConnected);
+            if (newHost) {
+                newHost.isHost = true;
+                console.log(`[HOST SUCCESSION] New host: ${newHost.name} (${newHost.id})`);
+            }
+        }
     }
 
     // CHECK ZOMBIES

@@ -6,11 +6,12 @@ import { useLobby } from '../composables/useLobby';
 
 const emit = defineEmits(['navigate']);
 const { joinGame, myUserName, myUserAvatar } = useGame();
-const { publicRooms, connect } = useLobby();
+const { publicRooms, connect, refreshRooms } = useLobby();
 
 const showJoinInput = ref(false);
 const joinCode = ref('');
 const isPublicRoom = ref(false);
+const isRefreshing = ref(false);
 // Initialize with persisted name, sync back on input
 const playerName = ref(myUserName.value);
 
@@ -70,6 +71,12 @@ const getStatusLabel = (status: string) => {
         'GAME_OVER': '🏁 Finalizado'
     };
     return map[status] || status;
+};
+
+const handleRefresh = () => {
+    isRefreshing.value = true;
+    refreshRooms();
+    setTimeout(() => isRefreshing.value = false, 500);
 };
 </script>
 
@@ -177,9 +184,16 @@ const getStatusLabel = (status: string) => {
             
             <h3 class="text-lg font-black text-white mb-4 flex items-center gap-2">
                 <span class="text-xl">🌐</span> Salas Públicas en Vivo
-                <span v-if="publicRooms.length > 0" class="ml-auto text-xs font-bold bg-emerald-500/20 text-emerald-300 px-2 py-1 rounded-full border border-emerald-500/30">
+                <span v-if="publicRooms.length > 0" class="text-xs font-bold bg-emerald-500/20 text-emerald-300 px-2 py-1 rounded-full border border-emerald-500/30">
                     {{ publicRooms.length }} activa{{ publicRooms.length !== 1 ? 's' : '' }}
                 </span>
+                <button
+                    @click="handleRefresh"
+                    class="ml-auto p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-indigo-300 hover:text-white transition-all border border-white/5"
+                    title="Refrescar salas"
+                >
+                    <span class="text-sm inline-block transition-transform" :class="{ 'animate-spin': isRefreshing }">🔄</span>
+                </button>
             </h3>
 
             <!-- Empty State -->

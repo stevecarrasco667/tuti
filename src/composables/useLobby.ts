@@ -53,6 +53,11 @@ export function useLobby() {
         }
     };
 
+    // [Phoenix Lobby] Manual refresh — bypasses tick engine
+    const refreshRooms = () => {
+        if (lobbySocket) lobbySocket.send('REFRESH');
+    };
+
     // Auto-cleanup on component unmount
     onUnmounted(() => {
         disconnect();
@@ -61,6 +66,7 @@ export function useLobby() {
     return {
         publicRooms,
         connect,
-        disconnect
+        disconnect,
+        refreshRooms
     };
 }

@@ -6,6 +6,7 @@ import { RoomSnapshotSchema } from "../shared/schemas";
 
 export default class LobbyServer implements Party.Server {
     private rooms = new Map<string, RoomSnapshot>();
+    private isDirty = false;
 
     constructor(readonly room: Party.Room) { }
 
@@ -24,9 +25,17 @@ export default class LobbyServer implements Party.Server {
             }
 
             if (reaped) {
-                this.broadcastState();
+                this.isDirty = true;
             }
         }, 10000);
+
+        // [Phoenix Lobby] Tick Engine — batch broadcast every 2s
+        setInterval(() => {
+            if (this.isDirty) {
+                this.broadcastState();
+                this.isDirty = false;
+            }
+        }, 2000);
     }
 
     onConnect(connection: Party.Connection, _ctx: Party.ConnectionContext) {
@@ -36,6 +45,14 @@ export default class LobbyServer implements Party.Server {
             payload: Array.from(this.rooms.values())
         }));
         logger.info('LOBBY_CLIENT_CONNECTED', { connectionId: connection.id });
+    }
+
+    // [Phoenix Lobby] Manual refresh — bypass tick engine
+    onMessage(_message: string, sender: Party.Connection) {
+        sender.send(JSON.stringify({
+            type: EVENTS.LOBBY_STATE_UPDATE,
+            payload: Array.from(this.rooms.values())
+        }));
     }
 
     async onRequest(req: Party.Request): Promise<Response> {
@@ -58,8 +75,15 @@ export default class LobbyServer implements Party.Server {
                 lastUpdate: Date.now()
             };
 
+            // [Phoenix Lobby] Anti-Ghost Filter: remove empty rooms
+            if (snapshot.currentPlayers === 0) {
+                this.rooms.delete(snapshot.id);
+                this.isDirty = true;
+                return new Response("OK", { status: 200 });
+            }
+
             this.rooms.set(snapshot.id, snapshot);
-            this.broadcastState();
+            this.isDirty = true;
 
             return new Response("OK", { status: 200 });
         } catch (err) {
