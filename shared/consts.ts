@@ -60,5 +60,8 @@ export const GAME_CONSTS = {
     MIN_VOTING_DURATION: 15,
     MAX_VOTING_DURATION: 120,
 
-    ZOMBIE_TIMEOUT_MS: 15000
+    ZOMBIE_TIMEOUT_MS: 15000,
+
+    // [Phoenix Lobby] Max players per room
+    MAX_PLAYERS: 8
 } as const;

@@ -151,14 +151,14 @@ export function useGame() {
         return me?.isHost || false;
     });
 
-    const joinGame = async (name: string, roomId: string, avatar: string) => {
+    const joinGame = async (name: string, roomId: string, avatar: string, isPublic?: boolean) => {
         const userId = myUserId.value; // Use the reactive myUserId
 
         // [Phoenix] Retrieve token
         const token = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY_SESSION_TOKEN) || undefined : undefined;
 
         // 1. Connect to the specific room with identity & token
-        setRoomId(roomId, { userId, name, avatar, token });
+        setRoomId(roomId, { userId, name, avatar, token, public: isPublic ? 'true' : undefined });
 
         // Update URL for deep linking
         const url = new URL(window.location.href);

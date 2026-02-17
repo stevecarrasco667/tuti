@@ -13,7 +13,7 @@ const lastMessage = ref<string>('');
 const isIntentionalDisconnect = ref(false);
 
 export function useSocket() {
-    const setRoomId = (roomId: string | null, userInfo?: { userId: string, name: string, avatar: string, token?: string }) => {
+    const setRoomId = (roomId: string | null, userInfo?: { userId: string, name: string, avatar: string, token?: string, public?: string }) => {
         // 1. Close existing connection if any
         if (socket.value) {
             console.log('🔌 Switching rooms... Closing old connection.');
@@ -37,6 +37,7 @@ export function useSocket() {
                 query.append('name', userInfo.name);
                 query.append('avatar', userInfo.avatar);
                 if (userInfo.token) query.append('token', userInfo.token);
+                if (userInfo.public) query.append('public', userInfo.public);
             }
             const ws = new WebSocket(`ws://${PARTYKIT_HOST}?${query.toString()}`);
 

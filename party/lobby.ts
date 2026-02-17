@@ -9,6 +9,26 @@ export default class LobbyServer implements Party.Server {
 
     constructor(readonly room: Party.Room) { }
 
+    onStart() {
+        // [Phoenix Lobby] Zombie TTL Reaper — every 10s, purge stale rooms
+        setInterval(() => {
+            const now = Date.now();
+            let reaped = false;
+
+            for (const [id, snapshot] of this.rooms.entries()) {
+                if (now - snapshot.lastUpdate > 30000) {
+                    this.rooms.delete(id);
+                    logger.info('ZOMBIE_ROOM_REAPED', { roomId: id, staleSince: snapshot.lastUpdate });
+                    reaped = true;
+                }
+            }
+
+            if (reaped) {
+                this.broadcastState();
+            }
+        }, 10000);
+    }
+
     onConnect(connection: Party.Connection, _ctx: Party.ConnectionContext) {
         // Send current lobby state to newly connected client
         connection.send(JSON.stringify({

@@ -1,8 +1,8 @@
 import type * as Party from "partykit/server";
 import { GameEngine } from "../shared/game-engine.js";
-import { RoomState } from "../shared/types.js";
+import { RoomState, RoomSnapshot } from "../shared/types.js";
 import { DictionaryManager } from "../shared/dictionaries/manager";
-import { EVENTS, APP_VERSION } from "../shared/consts.js"; // Import Consolidado
+import { EVENTS, APP_VERSION, GAME_CONSTS } from "../shared/consts.js";
 import { logger } from "../shared/utils/logger";
 import { RateLimiter } from "./utils/rate-limiter";
 import { ConnectionHandler } from "./handlers/connection";
@@ -58,6 +58,23 @@ export default class Server implements Party.Server {
                     await this.room.storage.put(STORAGE_KEY, this.engine.getState());
                     this.saveTimeout = null;
                 }, 5000);
+            }
+
+            // 3. [Phoenix Lobby] Heartbeat RPC to Orchestrator (fire-and-forget)
+            if (newState.isPublic) {
+                const snapshot: RoomSnapshot = {
+                    id: this.room.id,
+                    hostName: newState.players.find(p => p.isHost)?.name || 'Host',
+                    currentPlayers: newState.players.length,
+                    maxPlayers: GAME_CONSTS.MAX_PLAYERS,
+                    status: newState.status,
+                    lastUpdate: Date.now()
+                };
+                this.room.context.parties.lobby.get("global").fetch({
+                    method: "POST",
+                    body: JSON.stringify(snapshot),
+                    headers: { "Content-Type": "application/json" }
+                }).catch(e => logger.error('HEARTBEAT_FAILED', { roomId: this.room.id }, e instanceof Error ? e : new Error(String(e))));
             }
         });
 

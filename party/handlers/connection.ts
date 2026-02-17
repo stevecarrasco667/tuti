@@ -22,6 +22,7 @@ export class ConnectionHandler extends BaseHandler {
             let userId = url.searchParams.get("userId") || connection.id;
             const avatar = url.searchParams.get("avatar") || "👤";
             let token = url.searchParams.get("token");
+            const isPublicRequest = url.searchParams.get('public') === 'true';
 
             // --- ANTI-SPOOFING SECURITY ---
             let isNewToken = false;
@@ -60,6 +61,12 @@ export class ConnectionHandler extends BaseHandler {
             connection.setState({ userId });
 
             logger.info('NEW_CONNECTION', { userId, roomId: this.room.id, connectionId: connection.id });
+
+            // [Phoenix Lobby] Mark room as public if creator requested it
+            if (isPublicRequest && this.engine.getState().players.length === 0) {
+                this.engine.getState().isPublic = true;
+                logger.info('ROOM_MARKED_PUBLIC', { roomId: this.room.id, userId });
+            }
 
             // Join Player in Engine
             const state = this.engine.joinPlayer(userId, name, avatar, connection.id);
