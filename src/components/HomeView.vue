@@ -64,18 +64,7 @@ const handleJoinPublicRoom = (roomId: string) => {
     emit('navigate', 'LOBBY');
 };
 
-const handleQuickPlay = () => {
-    if (publicRooms.value.length > 0) {
-        // Join first available lobby room
-        const lobby = publicRooms.value.find(r => r.status === 'LOBBY');
-        if (lobby) {
-            handleJoinPublicRoom(lobby.id);
-            return;
-        }
-    }
-    // No rooms available — create a new public one
-    handleCreateRoom(true);
-};
+
 
 const getStatusLabel = (status: string) => {
     const map: Record<string, string> = {
