@@ -270,9 +270,12 @@ const handleRefresh = () => {
                         </div>
                         <button
                             @click="handleJoinPublicRoom(room.id)"
-                            class="ml-3 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-black rounded-xl transition-all shadow-lg active:scale-[0.95] group-hover:shadow-emerald-500/20"
+                            class="ml-3 px-4 py-2 text-white text-sm font-black rounded-xl transition-all shadow-lg active:scale-[0.95]"
+                            :class="room.currentPlayers >= room.maxPlayers
+                                ? 'bg-slate-600 hover:bg-slate-500 group-hover:shadow-slate-500/20'
+                                : 'bg-emerald-600 hover:bg-emerald-500 group-hover:shadow-emerald-500/20'"
                         >
-                            Unirse
+                            {{ room.currentPlayers >= room.maxPlayers ? 'Espectar 👁️' : 'Unirse' }}
                         </button>
                     </div>
                 </div>

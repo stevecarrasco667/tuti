@@ -19,6 +19,7 @@ export const GameConfigSchema = z.object({
     votingDuration: z.number().min(15).max(120),
     categoriesCount: z.number().min(4).max(8),
     totalRounds: z.number().min(1).max(20),
+    maxPlayers: z.number().min(2).max(10),
     mode: z.enum(['RANDOM', 'MANUAL']),
     selectedCategories: z.array(z.string()),
     customCategories: z.array(z.string())

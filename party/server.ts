@@ -2,7 +2,7 @@ import type * as Party from "partykit/server";
 import { GameEngine } from "../shared/game-engine.js";
 import { RoomState, RoomSnapshot } from "../shared/types.js";
 import { DictionaryManager } from "../shared/dictionaries/manager";
-import { EVENTS, APP_VERSION, GAME_CONSTS } from "../shared/consts.js";
+import { EVENTS, APP_VERSION } from "../shared/consts.js";
 import { logger } from "../shared/utils/logger";
 import { RateLimiter } from "./utils/rate-limiter";
 import { ConnectionHandler } from "./handlers/connection";
@@ -68,7 +68,7 @@ export default class Server implements Party.Server {
                     id: this.room.id,
                     hostName: newState.players.find(p => p.isHost)?.name || 'Host',
                     currentPlayers: newState.players.length,
-                    maxPlayers: GAME_CONSTS.MAX_PLAYERS,
+                    maxPlayers: newState.config.maxPlayers,
                     status: newState.status,
                     lastUpdate: Date.now()
                 };
@@ -159,7 +159,7 @@ export default class Server implements Party.Server {
                         id: this.room.id,
                         hostName: state.players.find(p => p.isHost)?.name || 'Host',
                         currentPlayers: state.players.length,
-                        maxPlayers: GAME_CONSTS.MAX_PLAYERS,
+                        maxPlayers: state.config.maxPlayers,
                         status: state.status,
                         lastUpdate: Date.now()
                     };

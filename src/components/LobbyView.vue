@@ -110,6 +110,15 @@ const decrementDuration = () => {
     if (idx > 0) handleConfigChange('roundDuration', options[idx - 1]);
 }
 
+const incrementMaxPlayers = () => {
+    const val = localConfig.value.maxPlayers || 8;
+    if (val < 10) handleConfigChange('maxPlayers', val + 1);
+};
+const decrementMaxPlayers = () => {
+    const val = localConfig.value.maxPlayers || 8;
+    if (val > 2) handleConfigChange('maxPlayers', val - 1);
+};
+
 
 // Start Logic
 const canStart = computed(() => {
@@ -252,6 +261,16 @@ const handleStart = () => {
                                     <button @click="decrementDuration" class="w-10 h-full rounded-lg bg-white/5 hover:bg-white/10 text-white transition-colors flex items-center justify-center text-lg font-bold active:scale-95">-</button>
                                     <span class="text-2xl font-black text-yellow-400 font-mono">{{ localConfig.roundDuration || 60 }}</span>
                                     <button @click="incrementDuration" class="w-10 h-full rounded-lg bg-white/5 hover:bg-white/10 text-white transition-colors flex items-center justify-center text-lg font-bold active:scale-95">+</button>
+                                 </div>
+                             </div>
+
+                             <!-- Max Players -->
+                             <div class="space-y-2">
+                                 <label class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest block">Límite de Jugadores</label>
+                                 <div class="flex items-center justify-between bg-black/20 rounded-xl border border-white/5 p-1 h-12">
+                                    <button @click="decrementMaxPlayers" class="w-10 h-full rounded-lg bg-white/5 hover:bg-white/10 text-white transition-colors flex items-center justify-center text-lg font-bold active:scale-95">-</button>
+                                    <span class="text-2xl font-black text-yellow-400 font-mono">{{ localConfig.maxPlayers || 8 }}</span>
+                                    <button @click="incrementMaxPlayers" class="w-10 h-full rounded-lg bg-white/5 hover:bg-white/10 text-white transition-colors flex items-center justify-center text-lg font-bold active:scale-95">+</button>
                                  </div>
                              </div>
                         </div>

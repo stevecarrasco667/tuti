@@ -30,6 +30,7 @@ export interface GameConfig {
     votingDuration: number;
     categoriesCount: number;
     totalRounds: number;
+    maxPlayers: number;
     mode: 'RANDOM' | 'MANUAL';
     selectedCategories: string[];
     customCategories: string[];

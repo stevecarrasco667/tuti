@@ -9,6 +9,7 @@ export class ConfigurationManager {
         roundDuration: 60,
         votingDuration: 30,
         categoriesCount: 5,
+        maxPlayers: 8,
         mode: 'RANDOM',
         selectedCategories: [],
         customCategories: []

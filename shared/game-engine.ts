@@ -131,12 +131,15 @@ export class GameEngine {
             return this.state;
         }
 
-        // [Phoenix] State Barrier: Route to spectators if game is active
-        if (this.state.status === 'LOBBY' || this.state.status === 'GAME_OVER') {
+        // [Phoenix] Dynamic Capacity Bouncer
+        const isFull = this.state.players.length >= this.state.config.maxPlayers;
+        const canJoinAsPlayer = (this.state.status === 'LOBBY' || this.state.status === 'GAME_OVER') && !isFull;
+
+        if (canJoinAsPlayer) {
             // Add New Player (Manager handles name handling & host assignment)
             this.players.add(this.state, connectionId, { id: userId, name, avatar });
         } else {
-            // Late joiner → Spectator
+            // Room full or game active → Spectator
             const newPlayer = {
                 id: userId,
                 name,
@@ -149,7 +152,7 @@ export class GameEngine {
             };
             this.state.spectators.push(newPlayer);
             this.players.registerConnection(connectionId, userId);
-            console.log(`[Spectator] ${name} (${userId}) joined as spectator.`);
+            console.log(`[Spectator] ${name} (${userId}) joined as spectator. Room ${isFull ? 'full' : 'in-game'}.`);
         }
 
         return this.state;
