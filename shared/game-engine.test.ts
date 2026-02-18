@@ -161,21 +161,21 @@ describe('GameEngine Core', () => {
 
         it('should use default config on init', () => {
             const config = engine.getState().config;
-            expect(config.categoriesCount).toBe(5);
-            expect(config.roundDuration).toBe(60);
+            expect(config.rounds).toBe(5);
+            expect(config.timeLimit).toBe(60);
         });
 
         it('should enforce limits on updateConfig', () => {
             // Mock Host
             engine.joinPlayer(hostId, 'Host', 'av', hostConn);
 
-            // Try setting -5 categories
-            engine.updateConfig(hostConn, { categoriesCount: -5 });
-            expect(engine.getState().config.categoriesCount).toBe(1); // Min 1
+            // Try setting -5 rounds
+            engine.updateConfig(hostConn, { rounds: -5 });
+            expect(engine.getState().config.rounds).toBe(1); // Min 1
 
-            // Try setting 100 categories
-            engine.updateConfig(hostConn, { categoriesCount: 100 });
-            expect(engine.getState().config.categoriesCount).toBe(10); // Max 10
+            // Try setting 100 rounds
+            engine.updateConfig(hostConn, { rounds: 100 });
+            expect(engine.getState().config.rounds).toBe(20); // Max 20
         });
     });
 

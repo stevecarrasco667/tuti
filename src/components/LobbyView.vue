@@ -9,6 +9,15 @@ const { playClick, playJoin, playAlarm, playSuccess } = useSound();
 
 // Local state
 const localConfig = computed(() => gameState.value.config);
+const copied = ref(false);
+const players = computed(() => gameState.value.players);
+
+// Empty slots for visual capacity
+const emptySlots = computed(() => {
+    const max = localConfig.value.maxPlayers || 8;
+    const current = players.value.length;
+    return Math.max(0, max - current);
+});
 
 // --- Audio Triggers ---
 watch(() => gameState.value.players.length, (newCount, oldCount) => {
@@ -20,16 +29,20 @@ const handleConfigChange = (field: string, value: any) => {
     playClick();
 };
 
+const handleMutatorChange = (mutator: string, value: boolean) => {
+    updateConfig({ mutators: { ...localConfig.value.mutators, [mutator]: value } } as any);
+    playClick();
+};
+
 const handleKick = (targetUserId: string, name: string) => {
-    if (confirm(`¿Estás seguro de que quieres expulsar a ${name}?`)) {
+    if (confirm(`¿Eliminar a ${name} de la sala?`)) {
         kickPlayer(targetUserId);
     }
 };
 
 const handleQuickDelete = (catName: string) => {
-    const current = localConfig.value.selectedCategories || [];
-    const newSelection = current.filter(c => c !== catName);
-    handleConfigChange('selectedCategories', newSelection);
+    const current = localConfig.value.categories || [];
+    handleConfigChange('categories', current.filter((c: string) => c !== catName));
 };
 
 // --- Manual Selection Modal ---
@@ -39,27 +52,24 @@ const activeFilterTag = ref<string | null>(null);
 const tempSelectedCategories = ref<string[]>([]);
 
 const openCategoryModal = () => {
-    tempSelectedCategories.value = [...(localConfig.value.selectedCategories || [])];
-    showCategoriesModal.value = true;
+    tempSelectedCategories.value = [...(localConfig.value.categories || [])];
     searchQuery.value = '';
     activeFilterTag.value = null;
-    playClick();
+    showCategoriesModal.value = true;
 };
 
 const toggleCategory = (catName: string) => {
-    const index = tempSelectedCategories.value.indexOf(catName);
-    if (index === -1) {
+    const idx = tempSelectedCategories.value.indexOf(catName);
+    if (idx === -1) {
         tempSelectedCategories.value.push(catName);
     } else {
-        tempSelectedCategories.value.splice(index, 1);
+        tempSelectedCategories.value.splice(idx, 1);
     }
-    playClick();
 };
 
 const saveCategories = () => {
-    handleConfigChange('selectedCategories', tempSelectedCategories.value);
+    handleConfigChange('categories', tempSelectedCategories.value);
     showCategoriesModal.value = false;
-    playSuccess();
 };
 
 // Extract unique tags and filter logic
@@ -80,266 +90,376 @@ const filteredCategories = computed(() => {
 
 // --- Steppers Logic ---
 const incrementRounds = () => {
-    const val = (localConfig.value.totalRounds || 5);
-    if (val < 20) handleConfigChange('totalRounds', val + 1);
+    const val = localConfig.value.rounds || 5;
+    if (val < 20) handleConfigChange('rounds', val + 1);
 };
 const decrementRounds = () => {
-     const val = (localConfig.value.totalRounds || 5);
-    if (val > 1) handleConfigChange('totalRounds', val - 1);
+    const val = localConfig.value.rounds || 5;
+    if (val > 1) handleConfigChange('rounds', val - 1);
 };
 
-const incrementCategories = () => {
-    const val = localConfig.value.categoriesCount;
-    if (val < 10) handleConfigChange('categoriesCount', val + 1);
+const timeLimitOptions = [30, 45, 60, 90, 120, 180];
+const incrementTimeLimit = () => {
+    const current = localConfig.value.timeLimit || 60;
+    const idx = timeLimitOptions.indexOf(current);
+    if (idx < timeLimitOptions.length - 1) handleConfigChange('timeLimit', timeLimitOptions[idx + 1]);
 };
-const decrementCategories = () => {
-     const val = localConfig.value.categoriesCount;
-    if (val > 1) handleConfigChange('categoriesCount', val - 1);
-};
-
-const incrementDuration = () => {
-    const current = localConfig.value.roundDuration || 60;
-    const options = [45, 60, 90, 120];
-    const idx = options.indexOf(current);
-    if (idx < options.length - 1) handleConfigChange('roundDuration', options[idx + 1]);
-}
-const decrementDuration = () => {
-    const current = localConfig.value.roundDuration || 60;
-    const options = [45, 60, 90, 120];
-    const idx = options.indexOf(current);
-    if (idx > 0) handleConfigChange('roundDuration', options[idx - 1]);
-}
-
-const incrementMaxPlayers = () => {
-    const val = localConfig.value.maxPlayers || 8;
-    if (val < 10) handleConfigChange('maxPlayers', val + 1);
-};
-const decrementMaxPlayers = () => {
-    const val = localConfig.value.maxPlayers || 8;
-    if (val > 2) handleConfigChange('maxPlayers', val - 1);
+const decrementTimeLimit = () => {
+    const current = localConfig.value.timeLimit || 60;
+    const idx = timeLimitOptions.indexOf(current);
+    if (idx > 0) handleConfigChange('timeLimit', timeLimitOptions[idx - 1]);
 };
 
+const votingOptions = [10, 15, 20, 30, 45, 60, 90, 120];
+const incrementVotingDuration = () => {
+    const current = localConfig.value.votingDuration || 30;
+    const idx = votingOptions.indexOf(current);
+    if (idx < votingOptions.length - 1) handleConfigChange('votingDuration', votingOptions[idx + 1]);
+};
+const decrementVotingDuration = () => {
+    const current = localConfig.value.votingDuration || 30;
+    const idx = votingOptions.indexOf(current);
+    if (idx > 0) handleConfigChange('votingDuration', votingOptions[idx - 1]);
+};
 
 // Start Logic
 const canStart = computed(() => {
     if (!amIHost.value) return false;
-    if (localConfig.value.mode === 'MANUAL') {
-        return (localConfig.value.selectedCategories?.length || 0) >= 3;
-    }
     return true;
 });
 
 const handleStart = () => {
-    if (canStart.value) {
+    if (!canStart.value) return;
+    playAlarm();
+    startGame();
+};
+
+const copyRoomLink = () => {
+    const code = gameState.value.roomId || '';
+    const link = `${window.location.origin}/?room=${code}`;
+    navigator.clipboard.writeText(link).then(() => {
+        copied.value = true;
         playSuccess();
-        startGame();
-    } else {
-        playAlarm();
-    }
+        setTimeout(() => copied.value = false, 2000);
+    });
 };
 </script>
 
 <template>
-    <div class="h-full w-full max-w-6xl mx-auto flex flex-col p-2 md:p-4 overflow-hidden">
-        
-        <!-- === TITLE === -->
-        <h1 class="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-100 to-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] mb-4 text-center tracking-tight flex-none">
-            CENTRO DE MANDO
-        </h1>
+    <div class="h-full w-full max-w-[1400px] mx-auto flex flex-col p-2 md:p-4 overflow-hidden">
 
-        <!-- === GRID LAYOUT === -->
-        <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 min-h-0">
-            
-            <!-- === LEFT PANEL: SOCIAL ZONE (4 cols) === -->
-            <div class="md:col-span-4 flex flex-col gap-4 min-h-0">
-                
-                <!-- ROOM CODE CARD -->
-                <div class="bg-indigo-900/40 backdrop-blur-xl border border-white/10 rounded-3xl p-4 shadow-2xl relative overflow-hidden group flex-none">
-                     <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-fuchsia-500 via-yellow-400 to-fuchsia-500 opacity-60"></div>
-                     <!-- Glowing Background -->
-                     <div class="absolute inset-0 bg-indigo-600/20 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+        <!-- === 3-PANEL GRID === -->
+        <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 min-h-0">
 
-                     <div class="relative z-10 flex flex-col items-center">
-                        <span class="text-indigo-300 text-[10px] font-bold tracking-[0.3em] uppercase mb-1">Código de Sala</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-5xl font-black text-white tracking-widest drop-shadow-[0_0_10px_rgba(255,255,255,0.2)] font-mono">
-                                {{ gameState.roomId || '----' }}
-                            </span>
-                        </div>
-                        <p class="text-white/30 text-[9px] mt-1 font-bold uppercase tracking-wider">Comparte este código para invitar</p>
-                     </div>
-                </div>
+            <!-- ================================ -->
+            <!-- LEFT PANEL: Players (col-span-3) -->
+            <!-- ================================ -->
+            <div class="lg:col-span-3 bg-indigo-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden min-h-0">
 
-                <!-- PLAYERS LIST CARD -->
-                <div class="bg-indigo-900/40 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl flex-1 flex flex-col overflow-hidden relative min-h-0">
-                    <div class="p-4 border-b border-white/5 flex justify-between items-center bg-black/20">
-                         <h3 class="text-indigo-200 text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                             Jugadores <span class="bg-indigo-500 px-2 py-0.5 rounded text-white text-[10px]">{{ gameState.players.length }}</span>
-                         </h3>
-                         <div v-if="amIHost" class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse shadow-[0_0_10px_rgba(250,204,21,0.5)]"></div>
+                <!-- Header: Title + MaxPlayers Dropdown -->
+                <div class="p-3 border-b border-white/5 bg-black/20 flex-none">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-white text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Jugadores {{ players.length }}/{{ localConfig.maxPlayers }}
+                        </h3>
                     </div>
-
-                    <div class="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin scrollbar-thumb-indigo-500/30 scrollbar-track-transparent">
-                        <div v-for="player in gameState.players" :key="player.id"
-                             class="flex items-center justify-between p-2 pl-3 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors group"
+                    <!-- Max Players Dropdown (Host only) -->
+                    <div v-if="amIHost" class="relative">
+                        <select
+                            :value="localConfig.maxPlayers"
+                            @change="handleConfigChange('maxPlayers', Number(($event.target as HTMLSelectElement).value))"
+                            class="w-full bg-black/30 border border-white/10 text-white text-xs font-black uppercase tracking-wider px-3 py-2 rounded-xl appearance-none cursor-pointer hover:bg-black/40 transition-colors focus:outline-none focus:border-indigo-400"
                         >
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-violet-700 flex items-center justify-center text-lg shadow-inner border border-white/10 relative">
-                                    {{ player.avatar || '👤' }}
-                                    <div v-if="player.isHost" class="absolute -top-1 -right-1 bg-yellow-400 text-black text-[7px] font-black px-1 rounded-full shadow-sm">HOST</div>
-                                </div>
-                                <div>
-                                    <div class="font-bold text-slate-100 text-xs flex items-center gap-1">
-                                        {{ player.name }}
-                                        <span v-if="player.id === myUserId" class="text-[8px] text-cyan-300 bg-cyan-950/50 px-1 rounded border border-cyan-800">YO</span>
-                                    </div>
-                                    <div class="text-[8px] uppercase font-bold tracking-wider" :class="player.isConnected ? 'text-green-400' : 'text-red-400'">
-                                        {{ player.isConnected ? 'Conectado' : 'Desconectado' }}
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <button v-if="amIHost && player.id !== myUserId" @click="handleKick(player.id, player.name)" class="opacity-0 group-hover:opacity-100 p-1.5 text-white/20 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all">
-                                🚫
-                            </button>
-                        </div>
+                            <option v-for="n in 9" :key="n+1" :value="n+1" class="bg-indigo-950">{{ n + 1 }} JUGADORES</option>
+                        </select>
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none text-[10px]">▼</span>
+                    </div>
+                    <div v-else class="bg-black/20 border border-white/5 text-white/50 text-xs font-black uppercase tracking-wider px-3 py-2 rounded-xl">
+                        {{ localConfig.maxPlayers }} JUGADORES
                     </div>
                 </div>
 
+                <!-- Player List + Empty Slots -->
+                <div class="flex-1 overflow-y-auto p-2 space-y-1.5 scrollbar-thin scrollbar-thumb-indigo-500/30 scrollbar-track-transparent">
+                    <!-- Connected Players -->
+                    <div v-for="player in players" :key="player.id"
+                         class="flex items-center gap-2.5 p-2 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors group"
+                    >
+                        <span class="text-xl flex-none">{{ player.avatar || '👤' }}</span>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-1.5 truncate">
+                                <span class="text-white font-bold text-xs truncate">{{ player.name }}</span>
+                                <span v-if="player.isHost" class="flex-none text-[8px]">👑</span>
+                                <span v-if="player.id === myUserId" class="flex-none text-[7px] font-black text-indigo-300 bg-indigo-500/20 px-1 py-0.5 rounded">TÚ</span>
+                            </div>
+                            <div class="text-[8px] font-bold uppercase tracking-wider" :class="player.isConnected ? 'text-emerald-400/60' : 'text-red-400/60'">
+                                {{ player.isConnected ? 'Conectado' : 'Reconectando...' }}
+                            </div>
+                        </div>
+                        <button v-if="amIHost && !player.isHost" @click="handleKick(player.id, player.name)"
+                            class="hidden group-hover:flex flex-none w-6 h-6 items-center justify-center rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all text-[10px]"
+                        >✕</button>
+                    </div>
+
+                    <!-- Spectators -->
+                    <div v-for="spec in gameState.spectators" :key="spec.id"
+                         class="flex items-center gap-2.5 p-2 bg-white/[0.02] rounded-xl border border-white/[0.03]">
+                        <span class="text-lg opacity-40 flex-none">{{ spec.avatar || '👤' }}</span>
+                        <div class="flex-1 min-w-0">
+                            <span class="text-white/30 font-bold text-xs truncate block">{{ spec.name }}</span>
+                            <span class="text-[8px] font-bold text-amber-400/50 uppercase">👁️ Espectador</span>
+                        </div>
+                    </div>
+
+                    <!-- Empty Slots -->
+                    <div v-for="i in emptySlots" :key="'empty-' + i"
+                         class="flex items-center gap-2.5 p-2 rounded-xl border-2 border-dashed border-white/[0.06]"
+                    >
+                        <span class="text-lg opacity-20 flex-none">👤</span>
+                        <span class="text-white/15 font-bold text-xs uppercase tracking-wider">Vacío</span>
+                    </div>
+                </div>
             </div>
 
-            <!-- === RIGHT PANEL: CONTROL ZONE (8 cols) === -->
-            <div class="md:col-span-8 flex flex-col gap-4 min-h-0">
-                
-                <!-- MAIN CONFIG CARD -->
-                <div class="bg-indigo-900/40 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col flex-1 relative">
-                    <!-- Host Only Overlay (if not host) -->
-                    <div v-if="!amIHost" class="absolute inset-0 z-20 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center text-center p-8">
-                        <span class="text-6xl mb-4">🔒</span>
-                        <h3 class="text-2xl font-black text-white mb-2">Configuración Bloqueada</h3>
-                        <p class="text-indigo-200 font-bold max-w-md">Solo el anfitrión ({{ gameState.players.find(p => p.isHost)?.name }}) puede modificar las reglas del juego.</p>
-                    </div>
+            <!-- =========================================== -->
+            <!-- CENTER PANEL: Game Mode + Categories (col-5) -->
+            <!-- =========================================== -->
+            <div class="lg:col-span-5 flex flex-col gap-3 min-h-0"
+                 :class="{ 'opacity-60 pointer-events-none': !amIHost }"
+            >
+                <!-- GAME MODE HEADER -->
+                <div class="bg-indigo-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-4 flex-none">
+                    <p class="text-indigo-300/70 text-[9px] font-black uppercase tracking-[0.2em] mb-3 text-center">Modo de Juego</p>
 
-                    <!-- Header -->
-                    <div class="p-4 border-b border-white/5 bg-black/20 flex flex-col md:flex-row md:items-center justify-between gap-4 flex-none">
-                        <div class="flex gap-4">
-                            <!-- Toggle Mode -->
-                            <div class="flex bg-black/40 rounded-xl p-1 border border-white/5">
-                                <button @click="handleConfigChange('mode', 'RANDOM')" 
-                                        class="px-5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all"
-                                        :class="localConfig.mode === 'RANDOM' ? 'bg-indigo-600 text-white shadow-lg' : 'text-white/40 hover:text-white'">
-                                    🎲 Aleatorio
-                                </button>
-                                <button @click="handleConfigChange('mode', 'MANUAL')" 
-                                        class="px-5 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all"
-                                        :class="localConfig.mode === 'MANUAL' ? 'bg-indigo-600 text-white shadow-lg' : 'text-white/40 hover:text-white'">
-                                    📝 Manual
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Body -->
-                    <div class="p-4 md:p-6 space-y-6 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-500/30">
-                        
-                        <!-- Row 1: Numbers (Steppers) -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                             <!-- Rounds -->
-                             <div class="space-y-2">
-                                 <label class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest block">Rondas Totales</label>
-                                 <div class="flex items-center justify-between bg-black/20 rounded-xl border border-white/5 p-1 h-12">
-                                    <button @click="decrementRounds" class="w-10 h-full rounded-lg bg-white/5 hover:bg-white/10 text-white transition-colors flex items-center justify-center text-lg font-bold active:scale-95">-</button>
-                                    <span class="text-2xl font-black text-yellow-400 font-mono">{{ localConfig.totalRounds || 5 }}</span>
-                                    <button @click="incrementRounds" class="w-10 h-full rounded-lg bg-white/5 hover:bg-white/10 text-white transition-colors flex items-center justify-center text-lg font-bold active:scale-95">+</button>
-                                 </div>
-                             </div>
-
-                             <!-- Duration -->
-                             <div class="space-y-2">
-                                 <label class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest block">Tiempo (Segundos)</label>
-                                 <div class="flex items-center justify-between bg-black/20 rounded-xl border border-white/5 p-1 h-12">
-                                    <button @click="decrementDuration" class="w-10 h-full rounded-lg bg-white/5 hover:bg-white/10 text-white transition-colors flex items-center justify-center text-lg font-bold active:scale-95">-</button>
-                                    <span class="text-2xl font-black text-yellow-400 font-mono">{{ localConfig.roundDuration || 60 }}</span>
-                                    <button @click="incrementDuration" class="w-10 h-full rounded-lg bg-white/5 hover:bg-white/10 text-white transition-colors flex items-center justify-center text-lg font-bold active:scale-95">+</button>
-                                 </div>
-                             </div>
-
-                             <!-- Max Players -->
-                             <div class="space-y-2">
-                                 <label class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest block">Límite de Jugadores</label>
-                                 <div class="flex items-center justify-between bg-black/20 rounded-xl border border-white/5 p-1 h-12">
-                                    <button @click="decrementMaxPlayers" class="w-10 h-full rounded-lg bg-white/5 hover:bg-white/10 text-white transition-colors flex items-center justify-center text-lg font-bold active:scale-95">-</button>
-                                    <span class="text-2xl font-black text-yellow-400 font-mono">{{ localConfig.maxPlayers || 8 }}</span>
-                                    <button @click="incrementMaxPlayers" class="w-10 h-full rounded-lg bg-white/5 hover:bg-white/10 text-white transition-colors flex items-center justify-center text-lg font-bold active:scale-95">+</button>
-                                 </div>
-                             </div>
-                        </div>
-
-                        <hr class="border-white/5" />
-
-                        <!-- Row 2: Categories -->
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-end">
-                                <label class="text-indigo-300 text-[10px] font-bold uppercase tracking-widest block">
-                                    {{ localConfig.mode === 'RANDOM' ? 'Cantidad de Categorías' : 'Categorías Seleccionadas' }}
-                                </label>
-                                <button v-if="localConfig.mode === 'MANUAL'" @click="openCategoryModal" class="text-[9px] bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-3 py-1.5 rounded-lg font-black tracking-wide transition-all shadow-lg border border-white/10 active:scale-95">
-                                    EDITAR +
-                                </button>
-                            </div>
-
-                            <!-- Random Mode: Just a Counter -->
-                            <div v-if="localConfig.mode === 'RANDOM'" class="bg-black/20 rounded-2xl border border-white/5 p-4 flex flex-col items-center justify-center">
-                                <span class="text-xs text-white/50 mb-2 font-bold">Se elegirán al azar en cada ronda</span>
-                                <div class="flex items-center gap-4">
-                                    <button @click="decrementCategories" class="w-12 h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center text-xl font-bold transition-colors shadow-lg active:scale-95">-</button>
-                                    <span class="text-4xl font-black text-white font-mono w-16 text-center">{{ localConfig.categoriesCount }}</span>
-                                    <button @click="incrementCategories" class="w-12 h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center text-xl font-bold transition-colors shadow-lg active:scale-95">+</button>
-                                </div>
-                            </div>
-
-                            <!-- Manual Mode: Pill Grid -->
-                            <div v-else class="min-h-[100px]">
-                                <div v-if="localConfig.selectedCategories?.length > 0" class="flex flex-wrap gap-2">
-                                    <TransitionGroup name="list">
-                                    <div v-for="cat in localConfig.selectedCategories" :key="cat" class="animate-in fade-in zoom-in duration-200 group flex items-center pl-3 pr-2 py-1.5 bg-indigo-500/20 hover:bg-indigo-500/30 rounded-full text-xs font-bold text-indigo-100 border border-indigo-500/20 transition-all hover:border-indigo-400/50">
-                                        <span>{{ cat }}</span>
-                                        <button @click.stop="handleQuickDelete(cat)" class="ml-1 w-4 h-4 flex items-center justify-center rounded-full bg-black/20 text-white/40 hover:text-white hover:bg-red-500/80 transition-colors">
-                                            &times;
-                                        </button>
-                                    </div>
-                                    </TransitionGroup>
-                                </div>
-                                <div v-else class="bg-black/10 border-2 border-dashed border-white/10 rounded-2xl p-6 text-center">
-                                    <p class="text-white/30 font-bold text-sm">No hay categorías seleccionadas.</p>
-                                    <p class="text-white/20 text-[10px] mt-1">Usa el botón "EDITAR" para agregar.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                    
-                    <!-- Footer: Start Button -->
-                    <div class="p-4 border-t border-white/5 bg-black/30 flex justify-end flex-none">
-                        <button 
-                            @click="handleStart"
-                            :disabled="!amIHost || !canStart"
-                            class="w-full md:w-auto px-8 py-3 bg-fuchsia-600 hover:bg-fuchsia-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale text-white font-black text-lg rounded-xl shadow-[0_0_20px_rgba(236,72,153,0.4)] transform transition-all active:scale-[0.98] border border-white/10 flex items-center justify-center gap-2"
+                    <div class="grid grid-cols-2 gap-3">
+                        <!-- CLASSIC Card -->
+                        <button
+                            @click="handleConfigChange('mode', 'CLASSIC')"
+                            class="relative p-5 rounded-2xl border-2 transition-all duration-300 text-center group"
+                            :class="localConfig.mode === 'CLASSIC'
+                                ? 'border-yellow-400/60 bg-gradient-to-b from-yellow-400/10 to-transparent shadow-[0_0_25px_rgba(250,204,21,0.1)]'
+                                : 'border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06]'"
                         >
-                            <span class="text-xl drop-shadow-md">🚀</span> INICIAR PARTIDA
+                            <div class="text-4xl mb-2 group-hover:scale-110 transition-transform">🎯</div>
+                            <h4 class="text-white font-black text-sm tracking-wide">TUTI CLÁSICO</h4>
+                            <p class="text-white/30 text-[9px] font-bold mt-1">Categorías · Letras · Velocidad</p>
+                            <div v-if="localConfig.mode === 'CLASSIC'" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-yellow-400 text-black flex items-center justify-center text-[10px] font-black shadow-lg">✓</div>
+                        </button>
+
+                        <!-- IMPOSTOR Card (Coming Soon) -->
+                        <div class="relative p-5 rounded-2xl border-2 border-white/5 bg-white/[0.01] opacity-40 cursor-not-allowed text-center">
+                            <div class="text-4xl mb-2">🕵️</div>
+                            <h4 class="text-white font-black text-sm tracking-wide">IMPOSTOR</h4>
+                            <p class="text-white/30 text-[9px] font-bold mt-1">¿Quién está mintiendo?</p>
+                            <span class="absolute top-2 right-2 text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/10 text-white/40 border border-white/5">Pronto</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CATEGORIES PANEL -->
+                <div class="bg-indigo-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex-1 flex flex-col overflow-hidden min-h-0">
+                    <div class="p-3 border-b border-white/5 bg-black/20 flex items-center justify-between flex-none">
+                        <p class="text-indigo-300/70 text-[9px] font-black uppercase tracking-[0.2em]">
+                            Categorías <span class="text-white/30">({{ localConfig.categories?.length || 0 }})</span>
+                        </p>
+                        <button @click="openCategoryModal" class="text-[8px] bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-3 py-1.5 rounded-lg font-black tracking-wider transition-all shadow-lg border border-white/10 active:scale-95 uppercase">
+                            Editar +
                         </button>
                     </div>
 
+                    <div class="flex-1 overflow-y-auto p-3 min-h-0">
+                        <div v-if="localConfig.categories?.length > 0" class="flex flex-wrap gap-1.5 content-start">
+                            <TransitionGroup name="list">
+                            <div v-for="cat in localConfig.categories" :key="cat"
+                                 class="group flex items-center pl-2.5 pr-1.5 py-1 bg-indigo-500/15 hover:bg-indigo-500/25 rounded-full text-[11px] font-bold text-indigo-200 border border-indigo-500/20 transition-all hover:border-indigo-400/40">
+                                <span>{{ cat }}</span>
+                                <button @click.stop="handleQuickDelete(cat)" class="ml-1 w-4 h-4 flex items-center justify-center rounded-full bg-black/20 text-white/30 hover:text-white hover:bg-red-500/80 transition-colors text-[10px]">
+                                    &times;
+                                </button>
+                            </div>
+                            </TransitionGroup>
+                        </div>
+                        <div v-else class="h-full flex flex-col items-center justify-center text-center py-8">
+                            <span class="text-4xl mb-3 opacity-30">🎲</span>
+                            <p class="text-white/25 font-bold text-sm">5 categorías aleatorias</p>
+                            <p class="text-white/15 text-[9px] font-bold mt-1">Personaliza con el botón "Editar"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================================= -->
+            <!-- RIGHT PANEL: Settings (col-span-4) -->
+            <!-- ================================= -->
+            <div class="lg:col-span-4 bg-indigo-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden min-h-0"
+                 :class="{ 'opacity-60 pointer-events-none': !amIHost }"
+            >
+                <div class="p-3 border-b border-white/5 bg-black/20 flex items-center justify-between flex-none">
+                    <h3 class="text-indigo-300/70 text-[9px] font-black uppercase tracking-[0.2em]">Ajustes</h3>
+                    <span v-if="!amIHost" class="text-amber-400/60 text-[8px] font-black uppercase tracking-wider animate-pulse">Solo lectura</span>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-3 space-y-3 scrollbar-thin scrollbar-thumb-indigo-500/30 min-h-0">
+
+                    <!-- Rounds Stepper -->
+                    <div class="bg-black/20 rounded-xl border border-white/5 p-3">
+                        <label class="text-indigo-300/50 text-[8px] font-black uppercase tracking-widest block mb-2">🔁 Rondas</label>
+                        <div class="flex items-center justify-between">
+                            <button @click="decrementRounds" class="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-lg">-</button>
+                            <span class="text-3xl font-black text-yellow-400 font-mono">{{ localConfig.rounds || 5 }}</span>
+                            <button @click="incrementRounds" class="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-lg">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Time Limit Stepper -->
+                    <div class="bg-black/20 rounded-xl border border-white/5 p-3">
+                        <label class="text-indigo-300/50 text-[8px] font-black uppercase tracking-widest block mb-2">⏱️ Tiempo de Escritura</label>
+                        <div class="flex items-center justify-between">
+                            <button @click="decrementTimeLimit" class="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-lg">-</button>
+                            <div class="text-center">
+                                <span class="text-3xl font-black text-yellow-400 font-mono">{{ localConfig.timeLimit || 60 }}</span>
+                                <span class="text-white/20 text-[9px] font-bold block">seg.</span>
+                            </div>
+                            <button @click="incrementTimeLimit" class="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-lg">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Voting Duration Stepper -->
+                    <div class="bg-black/20 rounded-xl border border-white/5 p-3">
+                        <label class="text-indigo-300/50 text-[8px] font-black uppercase tracking-widest block mb-2">🗳️ Tiempo de Votación</label>
+                        <div class="flex items-center justify-between">
+                            <button @click="decrementVotingDuration" class="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-lg">-</button>
+                            <div class="text-center">
+                                <span class="text-3xl font-black text-yellow-400 font-mono">{{ localConfig.votingDuration || 30 }}</span>
+                                <span class="text-white/20 text-[9px] font-bold block">seg.</span>
+                            </div>
+                            <button @click="incrementVotingDuration" class="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-lg">+</button>
+                        </div>
+                    </div>
+
+                    <hr class="border-white/5" />
+
+                    <!-- MUTATORS -->
+                    <div>
+                        <p class="text-indigo-300/50 text-[8px] font-black uppercase tracking-widest mb-2">⚡ Mutadores</p>
+
+                        <!-- Suicidal Stop -->
+                        <div class="bg-black/20 rounded-xl border border-white/5 p-3 mb-2 group relative">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-lg">💀</span>
+                                    <div>
+                                        <p class="text-white font-bold text-xs">Stop Suicida</p>
+                                        <p class="text-white/25 text-[8px] font-bold">Alto riesgo</p>
+                                    </div>
+                                </div>
+                                <button
+                                    @click="handleMutatorChange('suicidalStop', !localConfig.mutators.suicidalStop)"
+                                    class="relative w-12 h-6 rounded-full transition-all duration-300 border flex-none"
+                                    :class="localConfig.mutators.suicidalStop ? 'bg-red-600 border-red-400/50 shadow-[0_0_12px_rgba(220,38,38,0.3)]' : 'bg-white/10 border-white/15'"
+                                >
+                                    <span class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-all duration-300"
+                                          :class="localConfig.mutators.suicidalStop ? 'left-[calc(100%-1.375rem)]' : 'left-0.5'"></span>
+                                </button>
+                            </div>
+                            <!-- Tooltip -->
+                            <div class="hidden group-hover:block absolute left-0 bottom-full mb-1.5 bg-black/95 text-white/80 text-[9px] font-bold px-3 py-2 rounded-xl border border-white/10 shadow-xl z-20 w-56">
+                                Si presionas STOP y te rechazan una palabra, pierdes todos tus puntos.
+                            </div>
+                        </div>
+
+                        <!-- Anonymous Voting -->
+                        <div class="bg-black/20 rounded-xl border border-white/5 p-3 group relative">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-lg">🎭</span>
+                                    <div>
+                                        <p class="text-white font-bold text-xs">Voto Anónimo</p>
+                                        <p class="text-white/25 text-[8px] font-bold">Juicio imparcial</p>
+                                    </div>
+                                </div>
+                                <button
+                                    @click="handleMutatorChange('anonymousVoting', !localConfig.mutators.anonymousVoting)"
+                                    class="relative w-12 h-6 rounded-full transition-all duration-300 border flex-none"
+                                    :class="localConfig.mutators.anonymousVoting ? 'bg-purple-600 border-purple-400/50 shadow-[0_0_12px_rgba(147,51,234,0.3)]' : 'bg-white/10 border-white/15'"
+                                >
+                                    <span class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-all duration-300"
+                                          :class="localConfig.mutators.anonymousVoting ? 'left-[calc(100%-1.375rem)]' : 'left-0.5'"></span>
+                                </button>
+                            </div>
+                            <!-- Tooltip -->
+                            <div class="hidden group-hover:block absolute left-0 bottom-full mb-1.5 bg-black/95 text-white/80 text-[9px] font-bold px-3 py-2 rounded-xl border border-white/10 shadow-xl z-20 w-56">
+                                Las palabras se evalúan sin saber quién las escribió.
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="border-white/5" />
+
+                    <!-- PUBLIC / PRIVATE TOGGLE -->
+                    <div class="bg-black/20 rounded-xl border border-white/5 p-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-lg">{{ localConfig.isPublic ? '🌐' : '🔒' }}</span>
+                                <div>
+                                    <p class="text-white font-bold text-xs">{{ localConfig.isPublic ? 'Sala Pública' : 'Sala Privada' }}</p>
+                                    <p class="text-white/25 text-[8px] font-bold">{{ localConfig.isPublic ? 'Visible en el lobby' : 'Solo por código' }}</p>
+                                </div>
+                            </div>
+                            <button
+                                @click="handleConfigChange('isPublic', !localConfig.isPublic)"
+                                class="relative w-12 h-6 rounded-full transition-all duration-300 border flex-none"
+                                :class="localConfig.isPublic ? 'bg-emerald-600 border-emerald-400/50' : 'bg-white/10 border-white/15'"
+                            >
+                                <span class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-md transition-all duration-300"
+                                      :class="localConfig.isPublic ? 'left-[calc(100%-1.375rem)]' : 'left-0.5'"></span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
         </div>
 
-        <!-- === CATEGORY EDITOR MODAL (Compact) === -->
+        <!-- =============================== -->
+        <!-- BOTTOM BAR: Code + Actions       -->
+        <!-- =============================== -->
+        <div class="flex-none mt-3 bg-indigo-900/50 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-3 flex items-center justify-between gap-4">
+            <!-- Room Code -->
+            <div class="flex items-center gap-3">
+                <span class="text-white/30 text-[9px] font-black uppercase tracking-widest hidden sm:inline">Código:</span>
+                <span class="text-xl font-black text-white tracking-[0.2em] font-mono select-all">{{ gameState.roomId }}</span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center gap-2">
+                <button
+                    @click="copyRoomLink"
+                    class="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white text-xs font-black rounded-xl transition-all border border-white/10 flex items-center gap-2 active:scale-95"
+                >
+                    <span>{{ copied ? '✓' : '🔗' }}</span>
+                    {{ copied ? 'Copiado!' : 'Invitar' }}
+                </button>
+
+                <button v-if="amIHost"
+                    @click="handleStart"
+                    :disabled="!canStart"
+                    class="px-6 py-2.5 bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale text-white font-black text-sm rounded-xl shadow-[0_0_20px_rgba(236,72,153,0.3)] transition-all active:scale-[0.97] border border-white/10 flex items-center gap-2"
+                >
+                    <span class="text-base">▶</span> Empezar
+                </button>
+                <div v-else class="px-4 py-2.5 text-white/40 text-xs font-bold animate-pulse">
+                    ⏳ Esperando al anfitrión...
+                </div>
+            </div>
+        </div>
+
+        <!-- === CATEGORY EDITOR MODAL === -->
         <div v-if="showCategoriesModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
             <div class="bg-indigo-950 border border-white/10 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
                 <div class="p-4 border-b border-white/10 flex items-center justify-between bg-black/20 flex-none">
-                    <h3 class="text-xl font-black text-white">Selección Manual</h3>
+                    <h3 class="text-xl font-black text-white">Selección de Categorías</h3>
                     <div class="text-xs font-bold text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
                         {{ tempSelectedCategories.length }} elegidas
                     </div>
@@ -347,7 +467,7 @@ const handleStart = () => {
 
                 <div class="p-4 bg-white/5 space-y-3 flex-none">
                      <input v-model="searchQuery" type="text" placeholder="🔍 Buscar categoría..." class="w-full bg-black/30 border-b-2 border-white/10 px-4 py-2 text-white placeholder-white/30 focus:border-yellow-400 outline-none transition-colors font-bold text-base rounded-t-lg">
-                     
+
                      <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
                         <button @click="activeFilterTag = null" :class="['px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide transition-all border', !activeFilterTag ? 'bg-yellow-400 border-yellow-400 text-black' : 'border-white/10 bg-black/20 text-white/50 hover:text-white']">Todo</button>
                         <button v-for="tag in availableTags" :key="tag" @click="activeFilterTag = activeFilterTag === tag ? null : tag" :class="['px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide transition-all border whitespace-nowrap', activeFilterTag === tag ? 'bg-indigo-500 border-indigo-500 text-white shadow-lg' : 'border-white/10 bg-black/20 text-white/50 hover:text-white']">{{ tag }}</button>
@@ -356,7 +476,7 @@ const handleStart = () => {
 
                 <div class="flex-1 overflow-y-auto p-4 content-start bg-black/20 min-h-0">
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        <button v-for="cat in filteredCategories" :key="cat.name" @click="toggleCategory(cat.name)" 
+                        <button v-for="cat in filteredCategories" :key="cat.name" @click="toggleCategory(cat.name)"
                             class="text-left px-3 py-2 rounded-lg text-xs font-bold border transition-all duration-200 flex items-center justify-between group"
                             :class="tempSelectedCategories.includes(cat.name) ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-400 hover:bg-white/10 hover:text-white'"
                         >
@@ -378,19 +498,18 @@ const handleStart = () => {
 </template>
 
 <style scoped>
-/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.3);
+  background: rgba(99, 102, 241, 0.2);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.5);
+  background: rgba(99, 102, 241, 0.4);
 }
 </style>

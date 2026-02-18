@@ -63,7 +63,7 @@ export default class Server implements Party.Server {
             }
 
             // 3. [Phoenix Lobby] Heartbeat RPC to Orchestrator (fire-and-forget)
-            if (newState.isPublic) {
+            if (newState.config.isPublic) {
                 const snapshot: RoomSnapshot = {
                     id: this.room.id,
                     hostName: newState.players.find(p => p.isHost)?.name || 'Host',
@@ -152,7 +152,7 @@ export default class Server implements Party.Server {
         this.heartbeatInterval = setInterval(() => {
             try {
                 const state = this.engine.getState();
-                if (state.isPublic) {
+                if (state.config.isPublic) {
                     logger.info('HEARTBEAT_SENDING', { roomId: this.room.id, players: state.players.length });
 
                     const snapshot: RoomSnapshot = {

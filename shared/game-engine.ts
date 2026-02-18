@@ -106,7 +106,7 @@ export class GameEngine {
                 resultsEndsAt: null
             },
             stoppedBy: null,
-            isPublic: false  // [Phoenix Lobby]
+            // isPublic now lives inside config
         };
     }
 
@@ -338,13 +338,12 @@ export class GameEngine {
 
             this.state.roundsPlayed = 0; // Explicit safety reset
 
-            // Select categories based on mode
-            if (this.state.config.mode === 'MANUAL' && this.state.config.selectedCategories.length >= 3) {
-                this.state.categories = [...this.state.config.selectedCategories];
+            // Select categories: use configured list if >= 3, else pick 5 random
+            if (this.state.config.categories.length >= 3) {
+                this.state.categories = [...this.state.config.categories];
             } else {
-                // Random mode
                 const shuffled = [...MASTER_CATEGORIES].sort(() => 0.5 - Math.random());
-                this.state.categories = shuffled.slice(0, this.state.config.categoriesCount).map(c => c.name);
+                this.state.categories = shuffled.slice(0, 5).map(c => c.name);
             }
 
             // Delegate Round Start to Manager

@@ -24,7 +24,7 @@ export class RoundManager {
         state.currentLetter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.charAt(Math.floor(Math.random() * 26));
 
         // Start Timer
-        const durationMs = config.roundDuration * 1000;
+        const durationMs = config.timeLimit * 1000;
         state.timers.roundEndsAt = Date.now() + durationMs;
 
         // Clear previous timer if exists
@@ -63,7 +63,7 @@ export class RoundManager {
 
     public nextRound(state: RoomState, config: GameConfig): boolean {
         state.roundsPlayed++;
-        if (state.roundsPlayed >= config.totalRounds) {
+        if (state.roundsPlayed >= config.rounds) {
             state.status = 'GAME_OVER';
             state.gameOverReason = 'NORMAL';
             return false; // Game Over

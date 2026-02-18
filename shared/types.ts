@@ -26,14 +26,18 @@ export interface Player {
 }
 
 export interface GameConfig {
-    roundDuration: number;
-    votingDuration: number;
-    categoriesCount: number;
-    totalRounds: number;
+    mode: 'CLASSIC' | 'IMPOSTOR';
+    isPublic: boolean;
     maxPlayers: number;
-    mode: 'RANDOM' | 'MANUAL';
-    selectedCategories: string[];
+    rounds: number;
+    timeLimit: number;
+    votingDuration: number;
+    categories: string[];
     customCategories: string[];
+    mutators: {
+        suicidalStop: boolean;
+        anonymousVoting: boolean;
+    };
 }
 
 export type AnswerStatus = 'VALID' | 'VALID_AUTO' | 'DUPLICATE' | 'INVALID' | 'EMPTY' | 'PENDING';
@@ -42,7 +46,6 @@ export interface RoomState {
     status: GameStatus;
     players: Player[];
     spectators: Player[];  // [Phoenix] Late joiners waiting for next round
-    isPublic: boolean;  // [Phoenix Lobby] Public room flag
     roomId: string | null;
     currentLetter: string | null;
     categories: string[];

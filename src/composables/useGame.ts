@@ -11,7 +11,6 @@ const gameState = ref<RoomState>({
     status: 'LOBBY',
     players: [],
     spectators: [],
-    isPublic: false,
     roomId: null,
     currentLetter: null,
     categories: [],
@@ -22,14 +21,18 @@ const gameState = ref<RoomState>({
     whoFinishedVoting: [],
     roundScores: {},
     config: {
-        roundDuration: 60,
-        votingDuration: 45,
-        categoriesCount: 5,
-        totalRounds: 5,
+        mode: 'CLASSIC',
+        isPublic: false,
         maxPlayers: 8,
-        mode: 'RANDOM',
-        selectedCategories: [],
-        customCategories: []
+        rounds: 5,
+        timeLimit: 60,
+        votingDuration: 30,
+        categories: [],
+        customCategories: [],
+        mutators: {
+            suicidalStop: false,
+            anonymousVoting: false
+        }
     },
     timers: {
         roundEndsAt: null,
@@ -298,7 +301,6 @@ export function useGame() {
             status: 'LOBBY',
             players: [],
             spectators: [],
-            isPublic: false,
             roomId: null,
             currentLetter: null,
             categories: [],
@@ -309,14 +311,18 @@ export function useGame() {
             whoFinishedVoting: [],
             roundScores: {},
             config: {
-                roundDuration: 60,
-                votingDuration: 45,
-                categoriesCount: 5,
-                totalRounds: 5,
+                mode: 'CLASSIC',
+                isPublic: false,
                 maxPlayers: 8,
-                mode: 'RANDOM',
-                selectedCategories: [],
-                customCategories: []
+                rounds: 5,
+                timeLimit: 60,
+                votingDuration: 30,
+                categories: [],
+                customCategories: [],
+                mutators: {
+                    suicidalStop: false,
+                    anonymousVoting: false
+                }
             },
             timers: {
                 roundEndsAt: null,

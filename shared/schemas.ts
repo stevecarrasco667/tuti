@@ -15,21 +15,24 @@ export const GameStatusSchema = z.enum(['LOBBY', 'PLAYING', 'REVIEW', 'RESULTS',
 export const AnswerStatusSchema = z.enum(['VALID', 'DUPLICATE', 'INVALID']);
 
 export const GameConfigSchema = z.object({
-    roundDuration: z.number().min(30).max(180),
-    votingDuration: z.number().min(15).max(120),
-    categoriesCount: z.number().min(4).max(8),
-    totalRounds: z.number().min(1).max(20),
+    mode: z.enum(['CLASSIC', 'IMPOSTOR']),
+    isPublic: z.boolean(),
     maxPlayers: z.number().min(2).max(10),
-    mode: z.enum(['RANDOM', 'MANUAL']),
-    selectedCategories: z.array(z.string()),
-    customCategories: z.array(z.string())
+    rounds: z.number().min(1).max(20),
+    timeLimit: z.number().min(30).max(180),
+    votingDuration: z.number().min(10).max(120),
+    categories: z.array(z.string()),
+    customCategories: z.array(z.string()),
+    mutators: z.object({
+        suicidalStop: z.boolean(),
+        anonymousVoting: z.boolean()
+    })
 });
 
 export const RoomStateSchema = z.object({
     status: GameStatusSchema,
     players: z.array(PlayerSchema),
     spectators: z.array(PlayerSchema).default([]),  // [Phoenix] Late joiners
-    isPublic: z.boolean().default(false),  // [Phoenix Lobby] Public room flag
     // We can't strictly validate everything easily since it's dynamic keys
     roomId: z.string().nullable(),
     currentLetter: z.string().nullable(),

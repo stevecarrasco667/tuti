@@ -130,7 +130,7 @@ const rivalsActivity = computed(() => {
 
         <RoundStatusHeader 
             :round="gameState.roundsPlayed + 1"
-            :total-rounds="gameState.config?.totalRounds || 5"
+            :total-rounds="gameState.config?.rounds || 5"
             :current-letter="gameState.currentLetter"
             :time-left="timeRemaining"
             :timer-color="timerColor"
