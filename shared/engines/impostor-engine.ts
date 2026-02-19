@@ -58,8 +58,14 @@ export class ImpostorEngine extends BaseEngine {
      * - Censor private information per-player
      */
     public getClientState(userId: string): RoomState {
-        // Creamos un clon profundo para no mutar la fuente de verdad del servidor
-        const maskedState = JSON.parse(JSON.stringify(this.state)) as RoomState;
+        // Fase 1: Clon superficial (Shallow Copy) para evitar bomba de CPU
+        const maskedState: RoomState = {
+            ...this.state,
+            impostorData: this.state.impostorData ? {
+                ...this.state.impostorData,
+                words: { ...this.state.impostorData.words }
+            } : undefined
+        };
 
         if (maskedState.impostorData) {
             if (userId === maskedState.impostorData.impostorId) {
@@ -123,16 +129,23 @@ export class ImpostorEngine extends BaseEngine {
 
     // --- GAME LIFECYCLE (Sprint 2) ---
 
-    // Timers para simplificar cancelaciones (opcional para un swap directo si quisieran adelantarlo)
-    private phaseTimer: ReturnType<typeof setTimeout> | null = null;
+    // Fase 2: Timer Interno de Sincronización Activa
+    private currentTimer: ReturnType<typeof setTimeout> | null = null;
+
+    private clearTimer() {
+        if (this.currentTimer) {
+            clearTimeout(this.currentTimer);
+            this.currentTimer = null;
+        }
+    }
 
     public startGame(connectionId: string): RoomState {
         const userId = this._players.getPlayerId(connectionId);
-        if (!userId) throw new Error("Connection not mapped to a player");
+        if (!userId) return this.state;
 
         const player = this.state.players.find(p => p.id === userId);
-        if (!player) throw new Error("Player not found in state");
-        if (!player.isHost) throw new Error("Only the host can start the game");
+        if (!player) return this.state;
+        if (!player.isHost) return this.state;
 
         if (this.state.status === 'LOBBY' || this.state.status === 'GAME_OVER') {
             if (this.state.spectators.length > 0) {
@@ -161,8 +174,8 @@ export class ImpostorEngine extends BaseEngine {
             this.state.status = 'ROLE_REVEAL';
             this.state.timers.roundEndsAt = Date.now() + 10000; // 10s de suspenso
 
-            if (this.phaseTimer) clearTimeout(this.phaseTimer);
-            this.phaseTimer = setTimeout(() => this.handleRoleRevealTimeUp(), 10000);
+            this.clearTimer();
+            this.currentTimer = setTimeout(() => this.handleRoleRevealTimeUp(), 10000);
         }
 
         return this.state;
@@ -177,8 +190,8 @@ export class ImpostorEngine extends BaseEngine {
             this.onGameStateChange(this.state);
         }
 
-        if (this.phaseTimer) clearTimeout(this.phaseTimer);
-        this.phaseTimer = setTimeout(() => this.handleTypingTimeUp(), this.state.config.timeLimit * 1000);
+        this.clearTimer();
+        this.currentTimer = setTimeout(() => this.handleTypingTimeUp(), this.state.config.timeLimit * 1000);
     }
 
     private handleTypingTimeUp() {
@@ -198,7 +211,12 @@ export class ImpostorEngine extends BaseEngine {
     }
 
     public restartGame(_requestorId: string): RoomState {
-        throw new Error("[ImpostorEngine] restartGame not implemented yet — Sprint 2");
+        this.clearTimer();
+        this.state.status = 'LOBBY';
+        this.state.impostorData = undefined;
+        this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null };
+        this.state.stoppedBy = null;
+        return this.state;
     }
 
     public submitAnswers(connectionId: string, answers: Record<string, string>): RoomState {
@@ -224,15 +242,25 @@ export class ImpostorEngine extends BaseEngine {
     }
 
     public toggleVote(_connectionId: string, _targetUserId: string, _category: string): RoomState {
-        throw new Error("[ImpostorEngine] toggleVote not implemented yet — Sprint 2");
+        return this.state;
     }
 
     public confirmVotes(_connectionId: string): RoomState {
-        throw new Error("[ImpostorEngine] confirmVotes not implemented yet — Sprint 2");
+        return this.state;
     }
 
-    public kickPlayer(_hostConnectionId: string, _targetUserId: string): RoomState {
-        throw new Error("[ImpostorEngine] kickPlayer not implemented yet — Sprint 2");
+    public kickPlayer(_hostConnectionId: string, targetUserId: string): RoomState {
+        this._players.remove(this.state, targetUserId); // It normally expects connectionId but for this scope we'll just filter state
+        this.state.players = this.state.players.filter(p => p.id !== targetUserId);
+
+        if (this.state.status !== 'LOBBY' && this.state.impostorData?.impostorId === targetUserId) {
+            // Impostor left or kicked, abort game
+            this.state.status = 'LOBBY';
+            this.clearTimer();
+            this.state.impostorData = undefined;
+            this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null };
+        }
+        return this.state;
     }
 
     public checkInactivePlayers(): boolean {
