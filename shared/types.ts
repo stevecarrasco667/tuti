@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { EVENTS } from './consts';
 import { RoomSnapshotSchema } from './schemas';
 
-export type GameStatus = 'LOBBY' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER';
+export type GameStatus = 'LOBBY' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER' | 'ROLE_REVEAL' | 'TYPING' | 'EXPOSITION';
 
 export interface ChatMessage {
     id: string;
@@ -42,6 +42,13 @@ export interface GameConfig {
 
 export type AnswerStatus = 'VALID' | 'VALID_AUTO' | 'DUPLICATE' | 'INVALID' | 'EMPTY' | 'PENDING';
 
+export interface ImpostorData {
+    secretWord: string;
+    secretCategory: string;
+    impostorId: string;
+    words: Record<string, string>; // userId -> palabra escrita (camuflaje)
+}
+
 export interface RoomState {
     status: GameStatus;
     players: Player[];
@@ -56,6 +63,7 @@ export interface RoomState {
     votes: Record<string, Record<string, string[]>>; // targetPlayerId -> category -> voterIds[]
     whoFinishedVoting: string[];
     roundScores: Record<string, number>;
+    impostorData?: ImpostorData;
     // Time Controls
     config: GameConfig;
     timers: {

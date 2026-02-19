@@ -56,13 +56,22 @@ export class ImpostorEngine extends BaseEngine {
      * - Hide the impostor's role from non-impostors
      * - Hide the secret word from the impostor
      * - Censor private information per-player
-     * For now, returns full state (placeholder).
      */
-    public getClientState(_userId: string): RoomState {
-        // TODO: Sprint 2 — Implement role-based censorship
-        // const maskedState = structuredClone(this.state);
-        // maskedState.roles = maskedState.roles.map(r => r.userId === userId ? r : { ...r, role: 'HIDDEN' });
-        return this.state;
+    public getClientState(userId: string): RoomState {
+        // Creamos un clon profundo para no mutar la fuente de verdad del servidor
+        const maskedState = JSON.parse(JSON.stringify(this.state)) as RoomState;
+
+        if (maskedState.impostorData) {
+            if (userId === maskedState.impostorData.impostorId) {
+                // Tripulante Impostor: CENSURAR LA PALABRA SECRETA
+                maskedState.impostorData.secretWord = '???';
+            } else {
+                // Tripulante Honesto: CENSURAR LA IDENTIDAD DEL IMPOSTOR
+                maskedState.impostorData.impostorId = '???';
+            }
+        }
+
+        return maskedState;
     }
 
     public hydrate(newState: RoomState): void {
@@ -103,26 +112,106 @@ export class ImpostorEngine extends BaseEngine {
         return this.state;
     }
 
-    // --- GAME LIFECYCLE (Stubs — Sprint 2) ---
+    // --- GAME LIFECYCLE (Sprint 2) ---
 
-    public startGame(_connectionId: string): RoomState {
-        throw new Error("[ImpostorEngine] startGame not implemented yet — Sprint 2");
+    // Timers para simplificar cancelaciones (opcional para un swap directo si quisieran adelantarlo)
+    private phaseTimer: ReturnType<typeof setTimeout> | null = null;
+
+    public startGame(connectionId: string): RoomState {
+        const userId = this._players.getPlayerId(connectionId);
+        if (!userId) throw new Error("Connection not mapped to a player");
+
+        const player = this.state.players.find(p => p.id === userId);
+        if (!player) throw new Error("Player not found in state");
+        if (!player.isHost) throw new Error("Only the host can start the game");
+
+        if (this.state.status === 'LOBBY' || this.state.status === 'GAME_OVER') {
+            if (this.state.spectators.length > 0) {
+                this.state.players.push(...this.state.spectators);
+                this.state.spectators = [];
+            }
+
+            this.state.roundsPlayed = 0;
+            const activePlayers = this.state.players.filter(p => p.isConnected);
+
+            // Hardcodeo rápido para testing si estamos solos, pero requiere 2+ idealmente
+            // if (activePlayers.length < 2) throw new Error("Not enough players");
+
+            const secretCategory = 'Animales';
+            const secretWord = 'Pingüino';
+            const impostorIndex = Math.floor(Math.random() * activePlayers.length);
+            const impostorId = activePlayers[impostorIndex].id;
+
+            this.state.impostorData = {
+                secretCategory,
+                secretWord,
+                impostorId,
+                words: {} // Aquí se guardarán las respuestas
+            };
+
+            this.state.status = 'ROLE_REVEAL';
+            this.state.timers.roundEndsAt = Date.now() + 10000; // 10s de suspenso
+
+            if (this.phaseTimer) clearTimeout(this.phaseTimer);
+            this.phaseTimer = setTimeout(() => this.handleRoleRevealTimeUp(), 10000);
+        }
+
+        return this.state;
+    }
+
+    private handleRoleRevealTimeUp() {
+        if (this.state.status !== 'ROLE_REVEAL') return;
+        this.state.status = 'TYPING';
+        this.state.timers.roundEndsAt = Date.now() + this.state.config.timeLimit * 1000;
+
+        if (this.onGameStateChange) {
+            this.onGameStateChange(this.state);
+        }
+
+        if (this.phaseTimer) clearTimeout(this.phaseTimer);
+        this.phaseTimer = setTimeout(() => this.handleTypingTimeUp(), this.state.config.timeLimit * 1000);
+    }
+
+    private handleTypingTimeUp() {
+        if (this.state.status !== 'TYPING') return;
+        this.state.status = 'EXPOSITION';
+        this.state.timers.resultsEndsAt = Date.now() + this.state.config.votingDuration * 1000; // Reusamos resultsEndsAt para la vista de exposición
+
+        if (this.onGameStateChange) {
+            this.onGameStateChange(this.state);
+        }
     }
 
     public stopRound(_connectionId: string, _answers: Record<string, string>): RoomState {
-        throw new Error("[ImpostorEngine] stopRound not implemented yet — Sprint 2");
+        // En sprint 2, stopRound no hace nada si usamos transiciones por tiempo
+        // O podría hacer short-circuit de TYPING a EXPOSITION si todos envían.
+        return this.state;
     }
 
     public restartGame(_requestorId: string): RoomState {
         throw new Error("[ImpostorEngine] restartGame not implemented yet — Sprint 2");
     }
 
-    public submitAnswers(_connectionId: string, _answers: Record<string, string>): RoomState {
-        throw new Error("[ImpostorEngine] submitAnswers not implemented yet — Sprint 2");
+    public submitAnswers(connectionId: string, answers: Record<string, string>): RoomState {
+        const userId = this._players.getPlayerId(connectionId);
+        if (!userId) return this.state;
+
+        if (this.state.status !== 'TYPING') return this.state;
+
+        if (this.state.impostorData) {
+            // En Impostor mode se escribe solo 1 palabra por jugador
+            const values = Object.values(answers);
+            if (values.length > 0) {
+                this.state.impostorData.words[userId] = values[0];
+            }
+        }
+
+        return this.state;
     }
 
     public updateAnswers(_connectionId: string, _answers: Record<string, string>): RoomState {
-        throw new Error("[ImpostorEngine] updateAnswers not implemented yet — Sprint 2");
+        // Live updates no son críticos por privacidad del impostor
+        return this.state;
     }
 
     public toggleVote(_connectionId: string, _targetUserId: string, _category: string): RoomState {

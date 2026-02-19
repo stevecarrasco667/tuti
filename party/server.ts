@@ -65,40 +65,43 @@ export default class Server implements Party.Server {
     // Chat State
     messages: import('../shared/types').ChatMessage[] = [];
 
+    // Reusable state change callback for Engine Factory
+    private onStateChange = (newState: RoomState) => {
+        // 1. Inmediato: Per-connection broadcast with State Masking
+        this.broadcastStateDelta(newState);
+
+        // 2. Diferido: Write-Behind a disco (max 1 vez cada 5s)
+        if (!this.saveTimeout) {
+            this.saveTimeout = setTimeout(async () => {
+                await this.room.storage.put(STORAGE_KEY, this.engine.getState());
+                this.saveTimeout = null;
+            }, 5000);
+        }
+
+        // 3. [Phoenix Lobby] Heartbeat RPC to Orchestrator (fire-and-forget)
+        if (newState.config.isPublic) {
+            const snapshot: RoomSnapshot = {
+                id: this.room.id,
+                hostName: newState.players.find(p => p.isHost)?.name || 'Host',
+                currentPlayers: newState.players.length,
+                maxPlayers: newState.config.maxPlayers,
+                status: newState.status,
+                lastUpdate: Date.now()
+            };
+            this.room.context.parties.lobby.get("global").fetch("http://127.0.0.1/heartbeat", {
+                method: "POST",
+                body: JSON.stringify(snapshot),
+                headers: { "Content-Type": "application/json" }
+            }).catch(e => logger.error('HEARTBEAT_FAILED', { roomId: this.room.id }, e instanceof Error ? e : new Error(String(e))));
+        }
+    };
+
     constructor(room: Party.Room) {
         this.room = room;
 
         // Factory Pattern: Engine is created as TutiEngine by default.
         // If the stored state has mode='IMPOSTOR', it will be re-created in onStart().
-        this.engine = createEngine('CLASSIC', room.id, (newState) => {
-            // 1. Inmediato: Per-connection broadcast with State Masking
-            this.broadcastStateDelta(newState);
-
-            // 2. Diferido: Write-Behind a disco (max 1 vez cada 5s)
-            if (!this.saveTimeout) {
-                this.saveTimeout = setTimeout(async () => {
-                    await this.room.storage.put(STORAGE_KEY, this.engine.getState());
-                    this.saveTimeout = null;
-                }, 5000);
-            }
-
-            // 3. [Phoenix Lobby] Heartbeat RPC to Orchestrator (fire-and-forget)
-            if (newState.config.isPublic) {
-                const snapshot: RoomSnapshot = {
-                    id: this.room.id,
-                    hostName: newState.players.find(p => p.isHost)?.name || 'Host',
-                    currentPlayers: newState.players.length,
-                    maxPlayers: newState.config.maxPlayers,
-                    status: newState.status,
-                    lastUpdate: Date.now()
-                };
-                this.room.context.parties.lobby.get("global").fetch("http://127.0.0.1/heartbeat", {
-                    method: "POST",
-                    body: JSON.stringify(snapshot),
-                    headers: { "Content-Type": "application/json" }
-                }).catch(e => logger.error('HEARTBEAT_FAILED', { roomId: this.room.id }, e instanceof Error ? e : new Error(String(e))));
-            }
-        });
+        this.engine = createEngine('CLASSIC', room.id, this.onStateChange);
 
         // Instantiate Handlers (typed against BaseEngine)
         this.connectionHandler = new ConnectionHandler(room, this.engine, this.authTokens);
@@ -116,15 +119,7 @@ export default class Server implements Party.Server {
 
                 // Factory Pattern: Re-create engine if stored mode differs
                 if (stored.config.mode === 'IMPOSTOR') {
-                    this.engine = createEngine('IMPOSTOR', this.room.id, (newState) => {
-                        this.broadcastStateDelta(newState);
-                        if (!this.saveTimeout) {
-                            this.saveTimeout = setTimeout(async () => {
-                                await this.room.storage.put(STORAGE_KEY, this.engine.getState());
-                                this.saveTimeout = null;
-                            }, 5000);
-                        }
-                    });
+                    this.engine = createEngine('IMPOSTOR', this.room.id, this.onStateChange);
                     // Re-wire handlers to new engine
                     this.connectionHandler = new ConnectionHandler(this.room, this.engine, this.authTokens);
                     this.playerHandler = new PlayerHandler(this.room, this.engine);
@@ -292,9 +287,28 @@ export default class Server implements Party.Server {
                     break;
 
                 // --- Admin Logic ---
-                case EVENTS.UPDATE_CONFIG:
+                case EVENTS.UPDATE_CONFIG: {
+                    const oldMode = this.engine.getState().config.mode;
                     await this.playerHandler.handleUpdateSettings(payload, sender);
+                    const newMode = this.engine.getState().config.mode;
+
+                    if (oldMode !== newMode) {
+                        console.log(`[HOT-SWAP] Cambiando motor de ${oldMode} a ${newMode}`);
+                        const currentState = this.engine.getState();
+                        this.engine = createEngine(newMode, this.room.id, this.onStateChange);
+                        this.engine.hydrate(currentState);
+
+                        // Re-instanciar los handlers inyectando el nuevo motor
+                        this.connectionHandler = new ConnectionHandler(this.room, this.engine, this.authTokens);
+                        this.playerHandler = new PlayerHandler(this.room, this.engine);
+                        this.gameHandler = new GameHandler(this.room, this.engine);
+                        this.votingHandler = new VotingHandler(this.room, this.engine);
+
+                        // Forzar broadcast inmediato del estado (enmascarado por el nuevo motor)
+                        this.broadcastStateDelta(this.engine.getState());
+                    }
                     break;
+                }
 
                 case EVENTS.KICK_PLAYER:
                     await this.playerHandler.handleKick(payload, sender);
@@ -380,6 +394,13 @@ export default class Server implements Party.Server {
         } else if (state.status === 'REVIEW' && state.timers.votingEndsAt) {
             nextTarget = state.timers.votingEndsAt;
         } else if (state.status === 'RESULTS' && state.timers.resultsEndsAt) {
+            nextTarget = state.timers.resultsEndsAt;
+        } else if (state.status === 'ROLE_REVEAL' && state.timers.roundEndsAt) {
+            nextTarget = state.timers.roundEndsAt;
+        } else if (state.status === 'TYPING' && state.timers.roundEndsAt) {
+            nextTarget = state.timers.roundEndsAt;
+        } else if (state.status === 'EXPOSITION' && state.timers.resultsEndsAt) {
+            // We'll use resultsEndsAt for EXPOSITION duration, or we could add expositionEndsAt
             nextTarget = state.timers.resultsEndsAt;
         }
 
