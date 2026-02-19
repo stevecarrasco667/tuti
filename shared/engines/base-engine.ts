@@ -41,6 +41,10 @@ export abstract class BaseEngine {
     abstract kickPlayer(hostConnectionId: string, targetUserId: string): RoomState;
     abstract checkInactivePlayers(): boolean;
 
+    /** Rescues the engine from Worker Hibernation if a phase timer expired while sleeping.
+     *  Returns `true` if the state was mutated by forcing a timeout transition. */
+    abstract handleTimeUp(): boolean;
+
     // --- SUB-SYSTEMS (exposed for server.ts reconnection logic) ---
     abstract get players(): PlayerManager;
 }

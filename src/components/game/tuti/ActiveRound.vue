@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
-import { useGame } from '../../composables/useGame';
-import { useGameEffects } from '../../composables/useGameEffects';
+import { useGame } from '../../../composables/useGame';
+import { useGameEffects } from '../../../composables/useGameEffects';
 import ActiveBoard from '../game/ActiveBoard.vue';
 
 const props = defineProps<{
@@ -71,7 +71,7 @@ const handleInputFocus = (event: Event) => {
         :model-value="modelValue"
         :current-letter="currentLetter"
         :rivals-activity="rivalsActivity"
-        @update:model-value="(val) => emit('update:modelValue', val)"
+        @update:model-value="(val: Record<string, string>) => emit('update:modelValue', val)"
         @input-focus="handleInputFocus"
         @input-change="handleInput"
         :is-blocked="isBlocked"

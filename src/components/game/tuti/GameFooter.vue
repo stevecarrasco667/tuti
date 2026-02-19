@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RoomState } from '../../../shared/types';
+import { RoomState } from '../../../../shared/types';
 
 defineProps<{
     status: RoomState['status'];

@@ -69,6 +69,15 @@ export class ImpostorEngine extends BaseEngine {
                 // Tripulante Honesto: CENSURAR LA IDENTIDAD DEL IMPOSTOR
                 maskedState.impostorData.impostorId = '???';
             }
+
+            // VULNERABILITY FIX: Mask rival typed words during TYPING phase to prevent sniffer leakage
+            if (maskedState.status === 'TYPING' && maskedState.impostorData.words) {
+                for (const key of Object.keys(maskedState.impostorData.words)) {
+                    if (key !== userId) {
+                        maskedState.impostorData.words[key] = '***';
+                    }
+                }
+            }
         }
 
         return maskedState;
@@ -228,5 +237,22 @@ export class ImpostorEngine extends BaseEngine {
 
     public checkInactivePlayers(): boolean {
         return false; // No-op for now
+    }
+
+    public handleTimeUp(): boolean {
+        const now = Date.now();
+        let changed = false;
+
+        if (this.state.status === 'ROLE_REVEAL' && this.state.timers.roundEndsAt && now >= this.state.timers.roundEndsAt) {
+            this.handleRoleRevealTimeUp();
+            changed = true;
+        } else if (this.state.status === 'TYPING' && this.state.timers.roundEndsAt && now >= this.state.timers.roundEndsAt) {
+            this.handleTypingTimeUp();
+            changed = true;
+        } else if (this.state.status === 'EXPOSITION' && this.state.timers.resultsEndsAt && now >= this.state.timers.resultsEndsAt) {
+            // Future transition out of exposition (e.g. RESULTS/VOTING)
+        }
+
+        return changed;
     }
 }

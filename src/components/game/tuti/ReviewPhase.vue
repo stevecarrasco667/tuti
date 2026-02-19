@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import VoteSwitch from './VoteSwitch.vue';
-import type { Player } from '../../../shared/types';
+import type { Player } from '../../../../shared/types';
 
 const props = defineProps<{
     currentCategory: string;

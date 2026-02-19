@@ -1,27 +1,24 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import { useGame } from '../composables/useGame';
-import { useSmartReview } from '../composables/useSmartReview';
 import { useGameEffects } from '../composables/useGameEffects';
 import ReloadPrompt from './ReloadPrompt.vue';
 import CountdownOverlay from './overlays/CountdownOverlay.vue';
 import StopSignal from './overlays/StopSignal.vue';
-
-import RoundStatusHeader from './game/RoundStatusHeader.vue';
-import RivalsHeader from './game/RivalsHeader.vue';
-import ActiveRound from './game/ActiveRound.vue';
-import ReviewPhase from './game/ReviewPhase.vue';
-import ResultsRanking from './game/ResultsRanking.vue';
-import GameFooter from './game/GameFooter.vue';
-import ChatWidget from './chat/ChatWidget.vue';
 import MobileChatDrawer from './chat/MobileChatDrawer.vue';
+
+// --- GAME BOARDS ---
+import TutiBoard from './game/tuti/TutiBoard.vue';
+import ImpostorBoard from './game/impostor/ImpostorBoard.vue';
+
+// Use the activeBoard reference to expose internals
+const boardRef = ref<any>(null);
 
 const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVotes, myUserId, amIHost, startGame, leaveGame, isStopping } = useGame();
 
 const showCountdown = ref(false);
 const showStopSignal = ref(false);
 
-// [Phoenix] Spectator Mode
 const isSpectator = computed(() => !gameState.value.players.some(p => p.id === myUserId.value));
 
 const handleCountdownFinished = () => {
@@ -32,95 +29,47 @@ const {
     timeRemaining, timerColor, sessionToasts, addToast, showStopAlert, stopperPlayer, playClick, playAlarm
 } = useGameEffects(gameState, myUserId, amIHost);
 
-const answers = ref<Record<string, string>>({});
-const hasConfirmed = ref(false);
-
-const canStopRound = computed(() => {
-    return gameState.value.categories.every(cat => {
-        const val = answers.value[cat];
-        return val && val.trim().length > 0;
-    });
+// Polimorfismo del tablero
+const activeBoard = computed(() => {
+  return gameState.value.config.mode === 'IMPOSTOR' ? ImpostorBoard : TutiBoard;
 });
 
-const validationCooldown = ref(false);
-
-const handleStop = () => {
-    if (validationCooldown.value) return;
-    if (!canStopRound.value) {
-        addToast("⚠️ Completa todas las categorías para parar", 'stop-warning', 'stop-validation'); 
-        validationCooldown.value = true;
-        setTimeout(() => { validationCooldown.value = false; }, 800);
-        return;
+// Auto-submit en el orquestador global
+watch(shouldSubmit, (needsSubmit) => { 
+    if (needsSubmit && boardRef.value && typeof boardRef.value.getAnswers === 'function') {
+        submitAnswers(boardRef.value.getAnswers()); 
     }
-    stopRound(answers.value);
-    playAlarm();
-};
+});
 
-const activeCategoryIndex = ref(0);
-const currentCategory = computed(() => gameState.value.categories[activeCategoryIndex.value] || '');
-const { getPlayerStatus } = useSmartReview(gameState, currentCategory);
-const getReviewItem = (playerId: string) => getPlayerStatus(playerId);
-
-const nextCategory = () => { if (activeCategoryIndex.value < gameState.value.categories.length - 1) activeCategoryIndex.value++; };
-const prevCategory = () => { if (activeCategoryIndex.value > 0) activeCategoryIndex.value--; };
-
-const handleConfirmVotes = () => {
-    confirmVotes();
-    hasConfirmed.value = true;
-    playClick();
-};
-
-watch(shouldSubmit, (needsSubmit) => { if (needsSubmit) submitAnswers(answers.value); });
-
+// Global state overlays
 watch(() => gameState.value.status, (newStatus) => {
     if (newStatus === 'PLAYING') {
-        answers.value = {};
-        hasConfirmed.value = false;
-        activeCategoryIndex.value = 0;
         showCountdown.value = true;
     } else if (newStatus === 'REVIEW') {
         showStopSignal.value = true;
     }
 });
 
-const hydrateLocalState = () => {
-    if (!myUserId.value) return;
-    const myServerAnswers = gameState.value.answers[myUserId.value];
-    if (myServerAnswers) answers.value = { ...answers.value, ...myServerAnswers };
-};
-
-watch(() => gameState.value.roomId, (newRoomId) => { if (newRoomId) hydrateLocalState(); }, { immediate: true });
-
 const showExitModal = ref(false);
 const handleExit = () => { leaveGame(); showExitModal.value = false; };
 
-const sortedPlayers = computed(() => [...gameState.value.players].sort((a,b) => b.score - a.score));
-
-const getPlayerStatusForRanking = (playerId: string, category: string) => {
-    const votes = gameState.value.votes[playerId]?.[category] || [];
-    const isRejected = votes.length > (gameState.value.players.length / 2);
-    const status = gameState.value.answerStatuses?.[playerId]?.[category];
-    return { state: status || (isRejected ? 'REJECTED' : 'UNKNOWN') };
+const handleBoardStop = (answers: Record<string, string>) => {
+    stopRound(answers);
+    playAlarm();
 };
 
-const rivalsActivity = computed(() => {
-    const totalCategories = gameState.value.categories.length;
-    return gameState.value.players
-        .filter(p => p.id !== myUserId.value) // Show everyone, even disconnected
-        .map(p => {
-            const pAnswers = gameState.value.answers[p.id] || {};
-            // [SILENT UPDATE] Use specific field if available (O(1)), fallback to calculation (O(K))
-            const filledCount = p.filledCount !== undefined 
-                ? p.filledCount 
-                : Object.values(pAnswers).filter(val => val && val.trim().length > 0).length;
-            
-            return {
-                id: p.id, name: p.name, avatar: p.avatar, filledCount, totalCategories,
-                isFinished: filledCount === totalCategories, isActive: filledCount > 0 && filledCount < totalCategories,
-                isConnected: p.isConnected
-            };
-        });
-});
+const handleBoardVote = (playerId: string, category: string) => {
+    toggleVote(playerId, category);
+};
+
+const handleBoardConfirm = () => {
+    confirmVotes();
+    playClick();
+};
+
+const handleToast = (msg: string, style: 'join' | 'leave' | 'stop-warning', iconId: string) => {
+    addToast(msg, style, iconId);
+};
 </script>
 
 <template>
@@ -128,95 +77,39 @@ const rivalsActivity = computed(() => {
         
         <ReloadPrompt />
 
-        <RoundStatusHeader 
-            :round="gameState.roundsPlayed + 1"
-            :total-rounds="gameState.config?.rounds || 5"
-            :current-letter="gameState.currentLetter"
-            :time-left="timeRemaining"
-            :timer-color="timerColor"
-            @exit="showExitModal = true"
-        />
-
-        <div class="flex-1 overflow-y-auto w-full scroll-smooth p-4 relative">
-            
-            <!-- [Phoenix] SPECTATOR MODE BANNER -->
-            <div v-if="isSpectator" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-md">
-                <div class="text-center space-y-4 animate-pulse">
-                    <span class="text-6xl">🍿</span>
-                    <h2 class="text-3xl font-black text-white tracking-tight">Modo Espectador</h2>
-                    <p class="text-slate-300 text-lg max-w-xs mx-auto">Partida en curso. Entrarás automáticamente en la siguiente ronda...</p>
-                </div>
+        <!-- [Phoenix] SPECTATOR MODE BANNER -->
+        <div v-if="isSpectator" class="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-black/60 backdrop-blur-md pointer-events-none">
+            <div class="text-center space-y-4 animate-pulse">
+                <span class="text-6xl">🍿</span>
+                <h2 class="text-3xl font-black text-white tracking-tight">Modo Espectador</h2>
+                <p class="text-slate-300 text-lg max-w-xs mx-auto">Partida en curso. Entrarás automáticamente en la siguiente ronda...</p>
             </div>
-            
-            <CountdownOverlay v-if="showCountdown" @finished="handleCountdownFinished" />
-            <StopSignal v-if="showStopSignal" @finished="showStopSignal = false" />
-
-            <Transition name="fade" mode="out-in">
-                <!-- MAIN LAYOUT WRAPPER (Desktop Grid vs Mobile Flex) -->
-                <div :key="gameState.status" class="w-full h-full flex flex-col items-center lg:grid lg:grid-cols-[280px_1fr_200px] lg:gap-8 lg:items-start lg:max-w-[1600px] lg:mx-auto"> 
-                    
-                    <!-- COLUMN 1: RIVALS (Desktop Left) -->
-                    <div class="w-full lg:h-full lg:overflow-y-auto order-1 lg:order-1">
-                         <RivalsHeader 
-                            v-if="rivalsActivity.length > 0 && gameState.status === 'PLAYING'"
-                            :rivals="rivalsActivity" 
-                        />
-                    </div>
-
-                    <!-- COLUMN 2: GAME CENTER (Desktop Center) -->
-                    <div class="w-full flex justify-center order-2 lg:order-2 lg:h-full lg:overflow-y-auto">
-                        <ActiveRound 
-                            v-if="gameState.status === 'PLAYING'"
-                            :categories="gameState.categories"
-                            :current-letter="gameState.currentLetter"
-                            :rivals-activity="rivalsActivity"
-                            v-model="answers"
-                            :is-blocked="showCountdown || isStopping"
-                        />
-
-                        <ReviewPhase 
-                            v-else-if="gameState.status === 'REVIEW'"
-                            :current-category="currentCategory"
-                            :players="gameState.players"
-                            :votes="gameState.votes"
-                            :my-user-id="myUserId"
-                            :get-review-item="getReviewItem"
-                            :nav-index="activeCategoryIndex"
-                            :total-categories="gameState.categories.length"
-                            :show-stop-alert="showStopAlert"
-                            :stopper-player="stopperPlayer || undefined"
-                            @vote="(pid) => toggleVote(pid, currentCategory)"
-                            @prev-cat="prevCategory"
-                            @next-cat="nextCategory"
-                        />
-                        
-                        <ResultsRanking
-                            v-else-if="gameState.status === 'RESULTS'"
-                            :players="sortedPlayers"
-                            :my-answers="answers"
-                            :categories="gameState.categories"
-                            :my-user-id="myUserId"
-                            :get-player-status="getPlayerStatusForRanking"
-                        />
-                    </div>
-
-                    <!-- COLUMN 3: CHAT (Desktop Right) -->
-                    <ChatWidget class="hidden lg:flex order-3 lg:order-3 w-full h-full max-h-[calc(100vh-140px)]" />
-                </div>
-            </Transition>
         </div>
+        
+        <CountdownOverlay v-if="showCountdown" @finished="handleCountdownFinished" />
+        <StopSignal v-if="showStopSignal" @finished="showStopSignal = false" />
 
-        <GameFooter 
-            :status="gameState.status"
-            :am-i-host="amIHost"
-            :can-stop="canStopRound"
-            :cooldown="validationCooldown"
-            :has-confirmed="hasConfirmed"
-            :my-progress="{ current: Object.values(answers).filter(v => v?.trim()).length, total: gameState.categories.length }"
-            @stop="handleStop"
-            @confirm-votes="handleConfirmVotes"
+        <!-- ARCHITECTURE PROXY (El Renderizador Camaleónico) -->
+        <!-- CLEAN PROP DRILLING: Only passing agnostic props, the board resolves the rest -->
+        <component 
+            :is="activeBoard" 
+            ref="boardRef"
+            :gameState="gameState"
+            :myUserId="myUserId"
+            :amIHost="amIHost"
+            :isStopping="isStopping"
+            :timeRemaining="timeRemaining ?? 0"
+            :timerColor="timerColor"
+            :isSpectator="isSpectator"
+            :showStopAlert="showStopAlert"
+            :stopperPlayer="stopperPlayer"
+            @exit="showExitModal = true"
+            @stop="handleBoardStop"
+            @confirm-votes="handleBoardConfirm"
             @next-round="startGame"
-            :is-stopping="!!isStopping"
+            @submit-answers="(ans : Record<string, string>) => submitAnswers(ans)"
+            @toggle-vote="handleBoardVote"
+            @toast="handleToast"
         />
 
         <div class="fixed top-20 right-4 z-[60] flex flex-col items-end gap-2 pointer-events-none">
@@ -224,6 +117,7 @@ const rivalsActivity = computed(() => {
                 <div v-for="toast in sessionToasts" :key="toast.id" class="px-4 py-3 rounded-xl backdrop-blur-md border text-sm font-bold shadow-xl pointer-events-auto" :class="toast.type === 'stop-warning' ? 'bg-yellow-500/20 text-yellow-200 border-yellow-500/30' : 'bg-slate-900/80 text-white border-white/10'">{{ toast.text }}</div>
             </TransitionGroup>
         </div>
+
         <div v-if="showExitModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
              <div class="bg-indigo-950 border border-white/10 rounded-3xl p-6 shadow-2xl max-w-xs w-full text-center">
                  <h3 class="text-white font-black text-xl mb-6">¿Salir de la partida?</h3>
@@ -233,7 +127,9 @@ const rivalsActivity = computed(() => {
                  </div>
              </div>
         </div>
-        <MobileChatDrawer class="lg:hidden" />
+
+        <!-- Chat global en mobile sigue persistiendo fuera de los tableros si es requerido -->
+        <MobileChatDrawer v-if="activeBoard !== ImpostorBoard" class="lg:hidden" />
     </div>
 </template>
 

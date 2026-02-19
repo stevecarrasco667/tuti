@@ -248,7 +248,7 @@ export class TutiEngine extends BaseEngine {
 
             const continueGame = this.rounds.nextRound(this.state, this.state.config);
             if (continueGame) {
-                this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp());
+                this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
             }
             return this.state;
         }
@@ -271,13 +271,13 @@ export class TutiEngine extends BaseEngine {
                 this.state.categories = shuffled.slice(0, 5).map(c => c.name);
             }
 
-            this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp());
+            this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
         }
 
         return this.state;
     }
 
-    private handleTimeUp() {
+    private handleTimeUp_Internal() {
         console.log("[TutiEngine] auto-stop triggered by timer.");
         this.rounds.stopRound(this.state, this.state.config);
 
@@ -453,5 +453,30 @@ export class TutiEngine extends BaseEngine {
         }
 
         return { answers: sanitized, statuses };
+    }
+
+    public handleTimeUp(): boolean {
+        const now = Date.now();
+        let changed = false;
+
+        if (this.state.status === 'PLAYING' && this.state.timers.roundEndsAt && now >= this.state.timers.roundEndsAt) {
+            console.log("[TutiEngine] Anti-Freeze: Forcing round stop");
+            this.handleTimeUp_Internal(); // Reusing the existing timeout callback logic
+            changed = true;
+        } else if (this.state.status === 'REVIEW' && this.state.timers.votingEndsAt && now >= this.state.timers.votingEndsAt) {
+            console.log("[TutiEngine] Anti-Freeze: Forcing results calculation");
+            // If voting ends, we force calculation (auto-filling missing votes or resolving)
+            this.calculateResults();
+            changed = true;
+        } else if (this.state.status === 'RESULTS' && this.state.timers.resultsEndsAt && now >= this.state.timers.resultsEndsAt) {
+            console.log("[TutiEngine] Anti-Freeze: Forcing next round");
+            // Force next round
+            if (this.rounds.nextRound(this.state, this.state.config)) {
+                this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
+            }
+            changed = true;
+        }
+
+        return changed;
     }
 }

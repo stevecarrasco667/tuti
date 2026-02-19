@@ -428,8 +428,15 @@ export default class Server implements Party.Server {
         console.log(`⏰ Watchdog triggered for room ${this.room.id}.`);
 
         const zombiesPurged = this.engine.checkInactivePlayers();
-        if (zombiesPurged) {
-            console.log(`[SERVER] Zombies purged in ${this.room.id}`);
+        const stateMutatedByTimer = this.engine.handleTimeUp(); // Anti-Freeze: Execute late timeouts
+
+        if (zombiesPurged || stateMutatedByTimer) {
+            console.log(`[SERVER] State mutated by watchdog in ${this.room.id} (Zombies: ${zombiesPurged}, AntiFreeze: ${stateMutatedByTimer})`);
+
+            // Si el motor fue rescatado de la hibernación, forzamos un salvado y broadcast
+            if (stateMutatedByTimer) {
+                this.broadcastStateDelta(this.engine.getState());
+            }
             await this.room.storage.put(STORAGE_KEY, this.engine.getState());
         }
     }

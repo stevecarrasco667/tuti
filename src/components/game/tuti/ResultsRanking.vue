@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { Player } from '../../../shared/types';
-import { useSound } from '../../composables/useSound';
+import { Player } from '../../../../shared/types';
+import { useSound } from '../../../composables/useSound';
 
 const props = defineProps<{
     players: Player[]; // Assuming caller sorts this
