@@ -10,7 +10,7 @@ export class VotingHandler extends BaseHandler {
             const { targetUserId, category } = ToggleVoteSchema.shape.payload.parse(rawPayload);
 
             const state = this.engine.toggleVote(sender.id, targetUserId, category);
-            broadcastState(this.room, state);
+            broadcastState(this.room, state, this.engine);
         } catch (err) {
             sendError(sender, (err as Error).message);
         }
@@ -19,7 +19,7 @@ export class VotingHandler extends BaseHandler {
     async handleConfirmVotes(sender: Party.Connection) {
         try {
             const state = this.engine.confirmVotes(sender.id);
-            broadcastState(this.room, state);
+            broadcastState(this.room, state, this.engine);
         } catch (err) {
             sendError(sender, (err as Error).message);
         }

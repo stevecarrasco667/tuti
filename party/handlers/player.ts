@@ -9,11 +9,9 @@ export class PlayerHandler extends BaseHandler {
         try {
             const { targetUserId } = KickPlayerSchema.shape.payload.parse(rawPayload);
 
-            // Engine logic
             const state = this.engine.kickPlayer(sender.id, targetUserId);
 
-            // Broadcast (Write-Behind handles persistence)
-            broadcastState(this.room, state);
+            broadcastState(this.room, state, this.engine);
 
         } catch (err) {
             sendError(sender, (err as Error).message);
@@ -22,14 +20,11 @@ export class PlayerHandler extends BaseHandler {
 
     async handleUpdateSettings(rawPayload: unknown, sender: Party.Connection) {
         try {
-            // Strict Validation
             const payload = UpdateConfigSchema.shape.payload.parse(rawPayload);
 
-            // Engine logic
             const state = this.engine.updateConfig(sender.id, payload);
 
-            // Broadcast (Write-Behind handles persistence)
-            broadcastState(this.room, state);
+            broadcastState(this.room, state, this.engine);
 
         } catch (err) {
             sendError(sender, (err as Error).message);

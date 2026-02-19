@@ -1,8 +1,8 @@
 import type * as Party from "partykit/server";
-import { GameEngine } from "../shared/game-engine";
+import { BaseEngine } from "../shared/engines/base-engine";
 
 export interface HandlerContext {
-    engine: GameEngine;
+    engine: BaseEngine;
     room: Party.Room;
     sender?: Party.Connection;
 }

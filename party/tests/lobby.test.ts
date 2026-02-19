@@ -16,10 +16,13 @@ describe('Server Integration - Lobby', () => {
         const mockConn = createMockConnection('user1');
         const mockCtx = createMockContext('http://localhost/party/LOBBY_TEST?name=Alice');
 
+        // Register connection in room so per-connection broadcast can iterate it
+        (mockRoom as any).connections.set(mockConn.id, mockConn);
+
         await server.onConnect(mockConn, mockCtx);
 
-        // Verify broadcast was called (since broadcastState calls room.broadcast)
-        expect(mockRoom.broadcast).toHaveBeenCalled();
+        // With State Masking, broadcastState sends per-connection via conn.send()
+        expect(mockConn.send).toHaveBeenCalled();
 
         // Also verify storage put
         expect(mockRoom.storage.put).toHaveBeenCalled();
@@ -34,9 +37,9 @@ describe('Server Integration - Lobby', () => {
 
         // Check internal engine state via dirty access for verification
         // (In real integ test we might rely purely on broadcast output, but internal check is faster)
-        expect(server.engine['state'].players).toHaveLength(2);
-        expect(server.engine['state'].players[0].name).toBe('Alice');
-        expect(server.engine['state'].players[1].name).toBe('Bob');
+        expect(server.engine.getState().players).toHaveLength(2);
+        expect(server.engine.getState().players[0].name).toBe('Alice');
+        expect(server.engine.getState().players[1].name).toBe('Bob');
     });
 
     it('should not duplicate player on reconnect (with valid token)', async () => {
@@ -61,8 +64,8 @@ describe('Server Integration - Lobby', () => {
         await server.onConnect(conn, createMockContext(`http://localhost/?name=Alice&token=${token}`));
 
         // 4. Expect NO duplication (Same Session)
-        expect(server.engine['state'].players).toHaveLength(1);
-        expect(server.engine['state'].players[0].isConnected).toBe(true);
+        expect(server.engine.getState().players).toHaveLength(1);
+        expect(server.engine.getState().players[0].isConnected).toBe(true);
     });
 
     it('should reject spoofing attempt (connecting without token)', async () => {
@@ -78,9 +81,9 @@ describe('Server Integration - Lobby', () => {
 
         // 3. Expect DUPLICATION (New Session created for attacker)
         // The server assigns a NEW userId to the attacker, so they are added as a second player.
-        expect(server.engine['state'].players).toHaveLength(2);
+        expect(server.engine.getState().players).toHaveLength(2);
 
-        const players = server.engine['state'].players;
+        const players = server.engine.getState().players;
         const original = players.find(p => p.id === 'u1');
         const attacker = players.find(p => p.id !== 'u1');
 
@@ -96,7 +99,7 @@ describe('Server Integration - Lobby', () => {
 
         server.onClose(conn);
 
-        const player = server.engine['state'].players.find(p => p.id === 'u1');
+        const player = server.engine.getState().players.find(p => p.id === 'u1');
         expect(player?.isConnected).toBe(false);
     });
 });

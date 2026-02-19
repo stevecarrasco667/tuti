@@ -1,7 +1,7 @@
 import { WebSocketServer } from 'ws';
 import { randomUUID } from 'crypto';
 import { URL } from 'url';
-import { GameEngine } from '../shared/game-engine.js'; // Note .js extension for native ESM in Node if needed, or rely on bundler. Since this is run with node directly, might need .ts handler or compilation. 
+import { TutiEngine as GameEngine } from '../shared/engines/tuti-engine.js'; // Aliased for minimal mock-server changes
 // Wait, the user command is "npm run dev:mock" which runs "concurrently \"node party/mock-server.js\" \"vite\"".
 // "party/mock-server.js" is a JS file. It cannot import .ts files directly unless using ts-node or similar.
 // But wait, the shared folder has .ts files. 

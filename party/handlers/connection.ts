@@ -2,7 +2,7 @@ import type * as Party from "partykit/server";
 import { BaseHandler } from "./base";
 import { broadcastState, sendError } from "../utils/broadcaster";
 import { EVENTS } from "../../shared/consts";
-import { GameEngine } from "../../shared/game-engine";
+import { BaseEngine } from "../../shared/engines/base-engine";
 import { logger } from "../../shared/utils/logger";
 
 const AUTH_TOKENS_KEY = "auth_tokens_v1";
@@ -10,7 +10,7 @@ const AUTH_TOKENS_KEY = "auth_tokens_v1";
 export class ConnectionHandler extends BaseHandler {
     authTokens: Map<string, string>;
 
-    constructor(room: Party.Room, engine: GameEngine, authTokens: Map<string, string>) {
+    constructor(room: Party.Room, engine: BaseEngine, authTokens: Map<string, string>) {
         super(room, engine);
         this.authTokens = authTokens;
     }
@@ -31,23 +31,17 @@ export class ConnectionHandler extends BaseHandler {
                 const storedToken = this.authTokens.get(userId);
                 if (!token || token !== storedToken) {
                     logger.warn('SPOOF_ATTEMPT', { userId, connectionId: connection.id });
-                    userId = crypto.randomUUID(); // Hijacker gets a NEW identity
-                    token = crypto.randomUUID(); // And a NEW token
+                    userId = crypto.randomUUID();
+                    token = crypto.randomUUID();
                     isNewToken = true;
-                } else {
-                    // Valid credentials
-                    // token = storedToken; // Already matches
                 }
             } else {
-                // New User or Expiration
                 if (!token) token = crypto.randomUUID();
                 isNewToken = true;
             }
 
-            // Register & Persist if needed
             if (isNewToken || !this.authTokens.has(userId)) {
                 this.authTokens.set(userId, token!);
-                // [ARCHITECT VETO] Immediate Persistence
                 await this.room.storage.put(AUTH_TOKENS_KEY, Object.fromEntries(this.authTokens));
             }
 
@@ -57,7 +51,6 @@ export class ConnectionHandler extends BaseHandler {
                 payload: { userId, sessionToken: token }
             }));
 
-            // Guardar userId en el socket para que sobreviva a la hibernación
             connection.setState({ userId });
 
             logger.info('NEW_CONNECTION', { userId, roomId: this.room.id, connectionId: connection.id });
@@ -71,12 +64,8 @@ export class ConnectionHandler extends BaseHandler {
             // Join Player in Engine
             const state = this.engine.joinPlayer(userId, name, avatar, connection.id);
 
-
-            // Broadcast entire state (New players need full state, others get Delta via Broadcaster optimization if implemented there, but here we call broadcastState utility)
-            // Wait, broadcastState utility usually sends UPDATE_STATE.
-            // If we want Deltas, we should use the Server's method or update the utility.
-            // For now, let's keep robust full update for joiners (safest).
-            broadcastState(this.room, state);
+            // Broadcast entire state (per-connection masking)
+            broadcastState(this.room, state, this.engine);
         } catch (err) {
             logger.error('CONNECT_FAILED', { connectionId: connection.id, roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
             sendError(connection, "Failed to join room: " + (err instanceof Error ? err.message : String(err)));
@@ -85,22 +74,15 @@ export class ConnectionHandler extends BaseHandler {
 
     async handleClose(connection: Party.Connection) {
         logger.info('DISCONNECTED', { connectionId: connection.id, roomId: this.room.id });
-        // Engine handles logic (update presence, host protection)
         const state = this.engine.playerDisconnected(connection.id);
-
-        // Broadcast update
-        broadcastState(this.room, state);
+        broadcastState(this.room, state, this.engine);
     }
 
     async handleExitGame(connection: Party.Connection) {
         const state = this.engine.playerExited(connection.id);
 
-        // Broadcast (Write-Behind handles persistence)
-
-        this.room.broadcast(JSON.stringify({
-            type: EVENTS.UPDATE_STATE,
-            payload: state
-        }));
+        // Per-connection broadcast with masking
+        broadcastState(this.room, state, this.engine);
 
         // Close connection physically
         connection.close();

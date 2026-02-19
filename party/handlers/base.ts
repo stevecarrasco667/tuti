@@ -1,11 +1,11 @@
 import type * as Party from "partykit/server";
-import { GameEngine } from "../../shared/game-engine";
+import { BaseEngine } from "../../shared/engines/base-engine";
 
 export abstract class BaseHandler {
     protected room: Party.Room;
-    protected engine: GameEngine;
+    protected engine: BaseEngine;
 
-    constructor(room: Party.Room, engine: GameEngine) {
+    constructor(room: Party.Room, engine: BaseEngine) {
         this.room = room;
         this.engine = engine;
     }

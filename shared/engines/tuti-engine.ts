@@ -1,98 +1,43 @@
-import { RoomState, GameConfig, AnswerStatus } from './types.js';
-import { RoundAnswersSchema } from './schemas.js';
+// =============================================
+// TutiEngine — Classic Tuti Frutti Game Mode
+// =============================================
+// Migrated from shared/game-engine.ts → GameEngine
+// Implements BaseEngine contract.
 
-import { ScoreSystem } from './systems/score-system.js';
-import { RoundManager } from './systems/round-manager.js';
-import { PlayerManager } from './systems/player-manager.js';
-import { ValidationManager } from './systems/validation-manager.js';
-import { ConfigurationManager } from './systems/configuration-manager.js';
-import { VotingManager } from './systems/voting-manager.js';
+import { RoomState, GameConfig, AnswerStatus } from '../types.js';
+import { RoundAnswersSchema } from '../schemas.js';
+import { BaseEngine } from './base-engine.js';
+import { MASTER_CATEGORIES } from './categories.js';
 
-export interface CategoryItem {
-    id: string;
-    name: string;
-    tags: string[];
-}
+import { ScoreSystem } from '../systems/score-system.js';
+import { RoundManager } from '../systems/round-manager.js';
+import { PlayerManager } from '../systems/player-manager.js';
+import { ValidationManager } from '../systems/validation-manager.js';
+import { ConfigurationManager } from '../systems/configuration-manager.js';
+import { VotingManager } from '../systems/voting-manager.js';
 
-export const MASTER_CATEGORIES: CategoryItem[] = [
-    // CLASICOS
-    { id: '1', name: 'Nombre', tags: ['CLASICO', 'FACIL'] },
-    { id: '2', name: 'Apellido', tags: ['CLASICO'] },
-    { id: '3', name: 'País', tags: ['CLASICO', 'GEO'] },
-    { id: '4', name: 'Ciudad', tags: ['CLASICO', 'GEO'] },
-    { id: '5', name: 'Animal', tags: ['CLASICO', 'NATURALEZA'] },
-    { id: '6', name: 'Color', tags: ['CLASICO', 'FACIL'] },
-    { id: '7', name: 'Fruta/Verdura', tags: ['CLASICO', 'NATURALEZA'] },
-    { id: '8', name: 'Cosa', tags: ['CLASICO', 'FACIL'] },
-    { id: '9', name: 'Profesión', tags: ['CLASICO', 'SOCIEDAD'] },
-
-    // ENTERTAINMENT
-    { id: '10', name: 'Película', tags: ['CINE', 'FUN'] },
-    { id: '11', name: 'Serie de TV', tags: ['CINE', 'FUN'] },
-    { id: '12', name: 'Actor/Actriz', tags: ['CINE', 'FAMOSO'] },
-    { id: '13', name: 'Villano', tags: ['CINE', 'FUN'] },
-    { id: '14', name: 'Superhéroe', tags: ['CINE', 'FUN'] },
-    { id: '15', name: 'Personaje Ficticio', tags: ['CINE', 'FUN'] },
-    { id: '16', name: 'Videojuego', tags: ['GAMING', 'FUN'] },
-    { id: '17', name: 'Youtuber/Streamer', tags: ['INTERNET', 'MODERNO'] },
-
-    // MUSIC
-    { id: '20', name: 'Canción', tags: ['MUSICA', 'ARTE'] },
-    { id: '21', name: 'Cantante/Banda', tags: ['MUSICA', 'FAMOSO'] },
-    { id: '22', name: 'Instrumento Musical', tags: ['MUSICA', 'OBJETO'] },
-    { id: '23', name: 'Título de Canción de Reggaeton', tags: ['MUSICA', 'FUN', 'HARD'] },
-
-    // BRANDS & TECH
-    { id: '30', name: 'Marca', tags: ['MARCAS', 'CONSUMO'] },
-    { id: '31', name: 'Marca de Auto', tags: ['MARCAS', 'VEHICULO'] },
-    { id: '32', name: 'Marca de Ropa', tags: ['MARCAS', 'MODA'] },
-    { id: '33', name: 'Marca de Tecnología', tags: ['MARCAS', 'TECH'] },
-    { id: '34', name: 'App Móvil', tags: ['TECH', 'MODERNO'] },
-    { id: '35', name: 'Sitio Web', tags: ['TECH', 'INTERNET'] },
-
-    // FOOD
-    { id: '40', name: 'Comida', tags: ['COMIDA', 'FACIL'] },
-    { id: '41', name: 'Ingrediente de Cocina', tags: ['COMIDA', 'HOGAR'] },
-    { id: '42', name: 'Postre', tags: ['COMIDA', 'DULCE'] },
-    { id: '43', name: 'Bebida', tags: ['COMIDA', 'FACIL'] },
-
-    // SPORTS
-    { id: '50', name: 'Deporte', tags: ['DEPORTE', 'ACTIVIDAD'] },
-    { id: '51', name: 'Atleta/Deportista', tags: ['DEPORTE', 'FAMOSO'] },
-    { id: '52', name: 'Equipo Deportivo', tags: ['DEPORTE', 'GRUPO'] },
-
-    // RANDOM & FUN
-    { id: '60', name: 'Excusa para llegar tarde', tags: ['FUN', 'CREATIVO'] },
-    { id: '61', name: 'Motivo de ruptura', tags: ['FUN', 'SOCIAL'] },
-    { id: '62', name: 'Lo primero que harías si ganas la lotería', tags: ['FUN', 'CREATIVO'] },
-    { id: '63', name: 'Nombre de banda de rock', tags: ['FUN', 'MUSICA'] },
-    { id: '64', name: 'Insulto (suave)', tags: ['FUN', 'SOCIAL'] }, // Risky but fun
-    { id: '65', name: 'Palabra que rime con "Amor"', tags: ['LENGUAJE', 'FACIL'] },
-    { id: '66', name: 'Objeto en esta habitación', tags: ['ENTORNO', 'OBSERVACION'] },
-    { id: '67', name: 'Regalo terrible', tags: ['FUN', 'SOCIAL'] },
-];
-
-export class GameEngine {
+export class TutiEngine extends BaseEngine {
     private state: RoomState;
     public scoreSystem = new ScoreSystem();
     public rounds = new RoundManager();
-    public players = new PlayerManager();
+    private _players = new PlayerManager();
     public validation = new ValidationManager();
-    public configManager = new ConfigurationManager();
-    public voting = new VotingManager(this.validation);
+    private configManager = new ConfigurationManager();
+    private voting = new VotingManager(this.validation);
 
     constructor(roomId: string, private onGameStateChange?: (state: RoomState) => void) {
+        super();
         this.state = {
             status: 'LOBBY',
             roomId: roomId,
             players: [],
-            spectators: [],  // [Phoenix] Late joiners
+            spectators: [],
             roundsPlayed: 0,
             currentLetter: null,
             categories: [],
-            answers: {}, // UserId -> { Category -> Word }
+            answers: {},
             answerStatuses: {},
-            votes: {}, // TargetId -> { Category -> [VoterIds] } (Votos negativos)
+            votes: {},
             whoFinishedVoting: [],
             roundScores: {},
 
@@ -106,8 +51,12 @@ export class GameEngine {
                 resultsEndsAt: null
             },
             stoppedBy: null,
-            // isPublic now lives inside config
         };
+    }
+
+    // --- SUB-SYSTEMS ---
+    public get players(): PlayerManager {
+        return this._players;
     }
 
     // --- STATE ACCESS ---
@@ -115,19 +64,21 @@ export class GameEngine {
         return this.state;
     }
 
-    public hydrate(newState: RoomState): void {
-        this.state = newState;
-        console.log("[ENGINE] State hydrated from storage");
+    /** In Tuti Classic there are no secrets — everyone sees the same state. */
+    public getClientState(_userId: string): RoomState {
+        return this.state;
     }
 
-    // --- CONNECTION MANAGEMENT (Delegated to PlayerManager) ---
+    public hydrate(newState: RoomState): void {
+        this.state = newState;
+        console.log("[TutiEngine] State hydrated from storage");
+    }
 
-    // Formerly handleConnection / registerConnection
-    // Now implicitly handled via joinPlayer which tries reconnect first
+    // --- CONNECTION MANAGEMENT ---
 
     public joinPlayer(userId: string, name: string, avatar: string, connectionId: string): RoomState {
         // Try Reconnect First (check both players AND spectators)
-        if (this.players.reconnect(this.state, connectionId, userId)) {
+        if (this._players.reconnect(this.state, connectionId, userId)) {
             return this.state;
         }
 
@@ -136,8 +87,7 @@ export class GameEngine {
         const canJoinAsPlayer = (this.state.status === 'LOBBY' || this.state.status === 'GAME_OVER') && !isFull;
 
         if (canJoinAsPlayer) {
-            // Add New Player (Manager handles name handling & host assignment)
-            this.players.add(this.state, connectionId, { id: userId, name, avatar });
+            this._players.add(this.state, connectionId, { id: userId, name, avatar });
         } else {
             // Room full or game active → Spectator
             const newPlayer = {
@@ -151,29 +101,27 @@ export class GameEngine {
                 filledCount: 0
             };
             this.state.spectators.push(newPlayer);
-            this.players.registerConnection(connectionId, userId);
+            this._players.registerConnection(connectionId, userId);
             console.log(`[Spectator] ${name} (${userId}) joined as spectator. Room ${isFull ? 'full' : 'in-game'}.`);
         }
 
         return this.state;
     }
 
-    // Formerly handleDisconnection
     public playerDisconnected(connectionId: string): RoomState {
         // Check if the disconnecting player is a spectator
-        const userId = this.players.getPlayerId(connectionId);
+        const userId = this._players.getPlayerId(connectionId);
         if (userId) {
             const spectatorIdx = this.state.spectators.findIndex(s => s.id === userId);
             if (spectatorIdx !== -1) {
-                // Mark spectator as disconnected (or remove)
                 this.state.spectators[spectatorIdx].isConnected = false;
                 this.state.spectators[spectatorIdx].disconnectedAt = Date.now();
-                this.players.remove(this.state, connectionId);
+                this._players.remove(this.state, connectionId);
                 return this.state;
             }
         }
 
-        this.players.remove(this.state, connectionId);
+        this._players.remove(this.state, connectionId);
 
         // ABANDONMENT CHECK (RELAXED)
         if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW') {
@@ -182,7 +130,6 @@ export class GameEngine {
                 this.state.status = 'GAME_OVER';
                 this.state.gameOverReason = 'ABANDONED';
 
-                // Clear timers
                 this.rounds.cancelTimer();
                 this.state.timers.roundEndsAt = null;
                 this.state.timers.votingEndsAt = null;
@@ -190,39 +137,32 @@ export class GameEngine {
             }
         }
 
-        // [Phoenix Lobby] Succession: reassign host if needed
         this.reassignHostIfNeeded();
 
         return this.state;
     }
 
-    // [New] HARD DELETE (Active Destruction)
     public playerExited(connectionId: string): RoomState {
-        const userId = this.players.getPlayerId(connectionId);
+        const userId = this._players.getPlayerId(connectionId);
         if (!userId) return this.state;
 
         console.log(`[EXIT GAME] Hard destroying player ${userId}`);
 
-        // 1. Remove from players list AND spectators
         this.state.players = this.state.players.filter(p => p.id !== userId);
         this.state.spectators = this.state.spectators.filter(s => s.id !== userId);
 
-        // 2. Clear from mappings
-        this.players.remove(this.state, connectionId);
+        this._players.remove(this.state, connectionId);
 
-        // 3. Clear Game Data
         delete this.state.answers[userId];
         delete this.state.roundScores[userId];
         this.voting.cleanupPlayerVotes(this.state, userId);
 
-        // 4. Check for Game Over (ABANDONED)
         if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW') {
             if (this.state.players.length < 2) {
                 console.log(`[GAME OVER] Abandonment (Exited).`);
                 this.state.status = 'GAME_OVER';
                 this.state.gameOverReason = 'ABANDONED';
 
-                // Clear timers
                 this.rounds.cancelTimer();
                 this.state.timers.roundEndsAt = null;
                 this.state.timers.votingEndsAt = null;
@@ -230,19 +170,15 @@ export class GameEngine {
             }
         }
 
-        // [Phoenix Lobby] Succession: reassign host if needed
         this.reassignHostIfNeeded();
 
         return this.state;
     }
 
-    // [Phoenix Lobby] Dynamic Host Succession — assigns host to oldest connected player
     private reassignHostIfNeeded(): void {
         const activeHost = this.state.players.find(p => p.isHost && p.isConnected);
         if (!activeHost) {
-            // Clear all host flags for safety
             this.state.players.forEach(p => p.isHost = false);
-            // Assign to the first connected player (oldest in array)
             const newHost = this.state.players.find(p => p.isConnected);
             if (newHost) {
                 newHost.isHost = true;
@@ -251,24 +187,18 @@ export class GameEngine {
         }
     }
 
-    // CHECK ZOMBIES
     public checkInactivePlayers(): boolean {
-        // Purge players disconnected > 60s
-        const changed = this.players.removeInactive(this.state, 60000);
+        const changed = this._players.removeInactive(this.state, 60000);
 
         let stateChanged = changed;
 
-        // REAL "PULL PLUG" CHECK
-        // If after purging zombies we have < 2 players left, kill the game.
         if ((this.state.status === 'PLAYING' || this.state.status === 'REVIEW') && this.state.players.length < 2) {
             console.log(`[GAME OVER] Abandonment after Zombie Purge.`);
             this.state.status = 'GAME_OVER';
             this.state.gameOverReason = 'ABANDONED';
 
-            // Kill server timer
             this.rounds.cancelTimer();
 
-            // Clear UI timers
             this.state.timers.roundEndsAt = null;
             this.state.timers.votingEndsAt = null;
             this.state.timers.resultsEndsAt = null;
@@ -277,7 +207,6 @@ export class GameEngine {
         }
 
         if (stateChanged) {
-            // If anyone was purged OR game ended, we must broadcast
             if (this.onGameStateChange) {
                 this.onGameStateChange(this.state);
             }
@@ -288,22 +217,21 @@ export class GameEngine {
     // --- CONFIGURATION ---
 
     public updateConfig(connectionId: string, newConfig: Partial<GameConfig>): RoomState {
-        const userId = this.players.getPlayerId(connectionId);
+        const userId = this._players.getPlayerId(connectionId);
         if (!userId) return this.state;
 
         const player = this.state.players.find(p => p.id === userId);
 
-        // Only host can update config, and only in LOBBY
         if (player && player.isHost && this.state.status === 'LOBBY') {
             this.state.config = this.configManager.updateConfig(this.state.config, newConfig);
         }
         return this.state;
     }
 
-    // --- GAME LIFECYCLE (Delegated to RoundManager) ---
+    // --- GAME LIFECYCLE ---
 
     public startGame(connectionId: string): RoomState {
-        const userId = this.players.getPlayerId(connectionId);
+        const userId = this._players.getPlayerId(connectionId);
         if (!userId) throw new Error("Connection not mapped to a player");
 
         const player = this.state.players.find(p => p.id === userId);
@@ -312,14 +240,12 @@ export class GameEngine {
 
         // CASE 1: Manual "Next Round" from Results screen
         if (this.state.status === 'RESULTS') {
-            // [Phoenix] Promote spectators before next round
             if (this.state.spectators.length > 0) {
                 console.log(`[Spectator] Promoting ${this.state.spectators.length} spectators to players.`);
                 this.state.players.push(...this.state.spectators);
                 this.state.spectators = [];
             }
 
-            // Delegate Next Round Logic directly
             const continueGame = this.rounds.nextRound(this.state, this.state.config);
             if (continueGame) {
                 this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp());
@@ -329,14 +255,13 @@ export class GameEngine {
 
         // CASE 2: Starting new game from Lobby/GameOver
         if (this.state.status === 'LOBBY' || this.state.status === 'GAME_OVER') {
-            // [Phoenix] Promote spectators before starting
             if (this.state.spectators.length > 0) {
                 console.log(`[Spectator] Promoting ${this.state.spectators.length} spectators to players.`);
                 this.state.players.push(...this.state.spectators);
                 this.state.spectators = [];
             }
 
-            this.state.roundsPlayed = 0; // Explicit safety reset
+            this.state.roundsPlayed = 0;
 
             // Select categories: use configured list if >= 3, else pick 5 random
             if (this.state.config.categories.length >= 3) {
@@ -346,26 +271,23 @@ export class GameEngine {
                 this.state.categories = shuffled.slice(0, 5).map(c => c.name);
             }
 
-            // Delegate Round Start to Manager
             this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp());
         }
 
         return this.state;
     }
 
-    // [New] Callback for RoundManager when time is up
     private handleTimeUp() {
-        console.log("[GameEngine] auto-stop triggered by timer.");
+        console.log("[TutiEngine] auto-stop triggered by timer.");
         this.rounds.stopRound(this.state, this.state.config);
 
-        // BROADCAST BRIDGE: Notify server to send update
         if (this.onGameStateChange) {
             this.onGameStateChange(this.state);
         }
     }
 
     public stopRound(connectionId: string, answers: Record<string, string>): RoomState {
-        const userId = this.players.getPlayerId(connectionId);
+        const userId = this._players.getPlayerId(connectionId);
         if (!userId) throw new Error("Connection not mapped to a player");
 
         const player = this.state.players.find(p => p.id === userId);
@@ -373,17 +295,14 @@ export class GameEngine {
         if (!player) throw new Error("Player not found in state");
         if (this.state.status !== 'PLAYING') throw new Error("Game is not in PLAYING state");
 
-        // Validate and Sanitize
         const validated = this.validateAndSanitizeAnswers(answers);
-        if (!validated) return this.state; // Invalid payload
+        if (!validated) return this.state;
 
         this.state.answers[userId] = validated.answers;
-        // Propagate VALID_AUTO statuses for Escudo Dorado visibility during REVIEW
         if (!this.state.answerStatuses[userId]) this.state.answerStatuses[userId] = {};
         Object.assign(this.state.answerStatuses[userId], validated.statuses);
         this.state.stoppedBy = userId || 'SYSTEM';
 
-        // Delegate Stop to Manager
         this.rounds.stopRound(this.state, this.state.config);
 
         // --- 1vs1 GHOST VOTING ---
@@ -397,10 +316,9 @@ export class GameEngine {
     }
 
     public restartGame(requestorId: string): RoomState {
-        const userId = this.players.getPlayerId(requestorId);
+        const userId = this._players.getPlayerId(requestorId);
         const player = this.state.players.find(p => p.id === userId);
 
-        // Validate Host
         if (!player || !player.isHost) {
             console.warn(`[SECURITY] Restart denied. Requestor ${requestorId} is not host.`);
             return this.state;
@@ -416,12 +334,10 @@ export class GameEngine {
         this.state.whoFinishedVoting = [];
         this.state.roundScores = {};
 
-        // Reset scores
         this.state.players.forEach(p => {
             p.score = 0;
         });
 
-        // Clear timers
         this.state.timers.roundEndsAt = null;
         this.state.timers.votingEndsAt = null;
         this.state.timers.resultsEndsAt = null;
@@ -433,7 +349,7 @@ export class GameEngine {
     // --- GAMEPLAY ACTIONS ---
 
     public submitAnswers(connectionId: string, answers: Record<string, string>): RoomState {
-        const userId = this.players.getPlayerId(connectionId);
+        const userId = this._players.getPlayerId(connectionId);
         if (!userId) throw new Error("Connection not mapped to a player");
 
         const player = this.state.players.find(p => p.id === userId);
@@ -443,11 +359,9 @@ export class GameEngine {
             // Strict check? For now allow in review for corrections just in case
         }
 
-        // Validate and Sanitize
         const validated = this.validateAndSanitizeAnswers(answers);
         if (validated) {
             this.state.answers[userId] = validated.answers;
-            // Propagate VALID_AUTO statuses for Escudo Dorado visibility during REVIEW
             if (!this.state.answerStatuses[userId]) this.state.answerStatuses[userId] = {};
             Object.assign(this.state.answerStatuses[userId], validated.statuses);
         }
@@ -455,18 +369,15 @@ export class GameEngine {
     }
 
     public updateAnswers(connectionId: string, answers: Record<string, string>): RoomState {
-        const userId = this.players.getPlayerId(connectionId);
+        const userId = this._players.getPlayerId(connectionId);
         if (!userId) return this.state;
 
-        // Just update the storage (Partial updates during typing? No, full object)
-        // Ideally we validate here too but for speed, we trust client slightly or just store raw?
-        // Let's store raw for now or minimal sanitize
         this.state.answers[userId] = answers;
         return this.state;
     }
 
     public toggleVote(connectionId: string, targetUserId: string, category: string): RoomState {
-        const userId = this.players.getPlayerId(connectionId);
+        const userId = this._players.getPlayerId(connectionId);
         if (!userId) return this.state;
 
         this.voting.toggleVote(this.state, userId, targetUserId, category);
@@ -474,7 +385,7 @@ export class GameEngine {
     }
 
     public confirmVotes(connectionId: string): RoomState {
-        const userId = this.players.getPlayerId(connectionId);
+        const userId = this._players.getPlayerId(connectionId);
         if (!userId) return this.state;
 
         if (this.voting.confirmVotes(this.state, userId)) {
@@ -485,17 +396,14 @@ export class GameEngine {
     }
 
     public kickPlayer(hostConnectionId: string, targetUserId: string): RoomState {
-        const success = this.players.kick(this.state, hostConnectionId, targetUserId);
+        const success = this._players.kick(this.state, hostConnectionId, targetUserId);
 
         if (success) {
-            // Clean up state (Answers, Scores)
             delete this.state.answers[targetUserId];
             delete this.state.roundScores[targetUserId];
 
-            // Clean up votes via Manager
             this.voting.cleanupPlayerVotes(this.state, targetUserId);
 
-            // If kicking unblocked the game
             if (this.state.status === 'REVIEW') {
                 if (this.voting.checkConsensus(this.state)) {
                     this.calculateResults();
@@ -507,14 +415,8 @@ export class GameEngine {
 
     // --- SYSTEMS DELEGATION ---
 
-
-
     private calculateResults() {
-        // Delegate to ScoreSystem
         this.scoreSystem.calculate(this.state);
-
-        // Start "Results" phase timer? Or let ScoreSystem handle status?
-        // ScoreSystem.calculate sets status to 'RESULTS' and sets timers.resultsEndsAt
     }
 
     // --- HELPER LOGIC ---
@@ -524,7 +426,6 @@ export class GameEngine {
     }
 
     private validateAndSanitizeAnswers(rawAnswers: any): { answers: Record<string, string>; statuses: Record<string, AnswerStatus> } | null {
-        // 1. Zod Validation
         const result = RoundAnswersSchema.safeParse(rawAnswers);
         if (!result.success) {
             console.error('Invalid answers payload:', result.error);
@@ -537,7 +438,6 @@ export class GameEngine {
         const allowedLetter = this.state.currentLetter || "";
 
         for (const [key, value] of Object.entries(answers)) {
-            // DELEGATE TO VALIDATION MANAGER
             const valResult = this.validation.processAnswer(value, allowedLetter, key);
 
             if (valResult.status === 'INVALID' || valResult.status === 'EMPTY') {
@@ -548,7 +448,7 @@ export class GameEngine {
                 statuses[key] = valResult.status;
             } else {
                 sanitized[key] = valResult.text;
-                statuses[key] = valResult.status; // VALID_AUTO or PENDING
+                statuses[key] = valResult.status;
             }
         }
 

@@ -2,7 +2,7 @@
 import { ref, computed, watch } from 'vue';
 import { useGame } from '../composables/useGame';
 import { useSound } from '../composables/useSound';
-import { MASTER_CATEGORIES } from '../../shared/game-engine';
+import { MASTER_CATEGORIES } from '../../shared/engines/categories';
 
 const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer } = useGame();
 const { playClick, playJoin, playAlarm, playSuccess } = useSound();

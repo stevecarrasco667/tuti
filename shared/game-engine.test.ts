@@ -1,23 +1,23 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { GameEngine } from './game-engine';
+import { TutiEngine } from './engines/tuti-engine';
 
-describe('GameEngine Core', () => {
-    let engine: GameEngine;
+describe('TutiEngine Core', () => {
+    let engine: TutiEngine;
     const roomId = 'TEST_ROOM';
     const hostId = 'user-host';
     const hostConn = 'conn-host';
 
     beforeEach(() => {
-        engine = new GameEngine(roomId);
+        engine = new TutiEngine(roomId);
     });
 
 
     // --- 3.A: VALIDATION MANAGER INTEGRATION ---
-    describe('ValidationManager Integration within GameEngine', () => {
-        let engine: GameEngine;
+    describe('ValidationManager Integration within TutiEngine', () => {
+        let engine: TutiEngine;
 
         beforeEach(() => {
-            engine = new GameEngine('test-room');
+            engine = new TutiEngine('test-room');
             const state = engine.getState();
             state.status = 'PLAYING';
             state.currentLetter = 'A';
@@ -48,9 +48,9 @@ describe('GameEngine Core', () => {
 
     // --- 3.C: VOTING MANAGER INTEGRATION ---
     describe('VotingManager Integration', () => {
-        let engine: GameEngine;
+        let engine: TutiEngine;
         beforeEach(() => {
-            engine = new GameEngine('test-room');
+            engine = new TutiEngine('test-room');
             engine.joinPlayer('p1', 'P1', 'av', 'c1');
             engine.joinPlayer('p2', 'P2', 'av', 'c2');
             const state = engine.getState();
@@ -156,8 +156,8 @@ describe('GameEngine Core', () => {
 
     // --- 3.B: CONFIGURATION MANAGER INTEGRATION ---
     describe('ConfigurationManager Integration', () => {
-        let engine: GameEngine;
-        beforeEach(() => { engine = new GameEngine('test-room'); });
+        let engine: TutiEngine;
+        beforeEach(() => { engine = new TutiEngine('test-room'); });
 
         it('should use default config on init', () => {
             const config = engine.getState().config;
