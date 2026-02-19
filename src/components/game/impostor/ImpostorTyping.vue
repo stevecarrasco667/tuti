@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { ImpostorData, Player } from '../../../../shared/types';
-import PlayerAvatar from '../../ui/PlayerAvatar.vue';
 
 const props = defineProps<{
     impostorData: ImpostorData;
@@ -97,7 +96,9 @@ const hasPlayerTypingCompleted = (playerId: string) => {
             
             <div class="flex flex-wrap justify-center gap-6">
                 <div v-for="player in activePlayers" :key="player.id" class="flex flex-col items-center relative">
-                    <PlayerAvatar :seed="player.avatar" class="w-14 h-14 ring-2 ring-white/10 rounded-full" />
+                    <div class="w-14 h-14 rounded-full bg-gradient-to-b from-indigo-500 to-indigo-700 border-2 border-white/20 flex items-center justify-center text-2xl shadow-xl relative z-10 ring-2 ring-white/10">
+                        {{ player.avatar || '👤' }}
+                    </div>
                     <span class="text-xs text-white/50 mt-2 font-medium max-w-[80px] truncate">{{ player.id === myUserId ? 'Tú' : player.name }}</span>
                     
                     <!-- Checkmark Badge for submitted word -->

@@ -2,7 +2,7 @@
 
 import { useGame } from '../../../composables/useGame';
 import { useGameEffects } from '../../../composables/useGameEffects';
-import ActiveBoard from '../game/ActiveBoard.vue';
+import ActiveBoard from './ActiveBoard.vue';
 
 const props = defineProps<{
     categories: string[];
