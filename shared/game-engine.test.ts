@@ -240,7 +240,7 @@ describe('TutiEngine Core', () => {
             engine.submitAnswers(cE, { 'Fruta': 'Xylofono' });
 
             // Force End Round -> Review
-            (engine as any).handleTimeUp();
+            (engine as any).handleTimeUp_Internal();
 
             // Perform Voting: Reject Player E's "Xylofono"
             // Everyone votes against E
