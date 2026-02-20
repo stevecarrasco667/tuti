@@ -72,7 +72,11 @@ const getStatusLabel = (status: string) => {
         'PLAYING': '🎮 Jugando',
         'REVIEW': '📋 Revisión',
         'RESULTS': '📊 Resultados',
-        'GAME_OVER': '🏁 Finalizado'
+        'GAME_OVER': '🏁 Finalizado',
+        'ROLE_REVEAL': '🕵️ Impostor',
+        'TYPING': '🕵️ Impostor',
+        'EXPOSITION': '🕵️ Impostor',
+        'VOTING': '🕵️ Impostor'
     };
     return map[status] || status;
 };

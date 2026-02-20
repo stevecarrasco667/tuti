@@ -33,7 +33,8 @@ watch(
         }
 
         // Transiciones normales y reconexiones (solo con roomId válido)
-        if (newStatus === 'PLAYING' || newStatus === 'REVIEW') {
+        const gameStates = ['PLAYING', 'REVIEW', 'ROLE_REVEAL', 'TYPING', 'EXPOSITION', 'VOTING', 'RESULTS'];
+        if (gameStates.includes(newStatus)) {
             currentView.value = 'GAME';
         } else if (newStatus === 'LOBBY') {
             currentView.value = 'LOBBY';

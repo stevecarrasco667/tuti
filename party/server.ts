@@ -418,25 +418,25 @@ export default class Server implements Party.Server {
         // [AUTO-WIPE] Check for inactivity
         const activeConnections = [...this.room.getConnections()].length;
         if (activeConnections === 0) {
-            console.log(`[Auto-Wipe] Room ${this.room.id} purged due to inactivity (10m).`);
+            console.log('[Auto-Wipe] Room purged due to inactivity (10m).');
             if (this.saveTimeout) {
                 clearTimeout(this.saveTimeout);
                 this.saveTimeout = null;
             }
             await this.room.storage.deleteAll();
             // Reset engine via factory (default to CLASSIC for empty room)
-            this.engine = createEngine('CLASSIC', this.room.id);
+            this.engine = createEngine('CLASSIC', 'purged-room');
             this.previousStates.clear();
             return;
         }
 
-        console.log(`⏰ Watchdog triggered for room ${this.room.id}.`);
+        console.log('⏰ Watchdog triggered (Anti-Freeze routines).');
 
         const zombiesPurged = this.engine.checkInactivePlayers();
         const stateMutatedByTimer = this.engine.handleTimeUp(); // Anti-Freeze: Execute late timeouts
 
         if (zombiesPurged || stateMutatedByTimer) {
-            console.log(`[SERVER] State mutated by watchdog in ${this.room.id} (Zombies: ${zombiesPurged}, AntiFreeze: ${stateMutatedByTimer})`);
+            console.log(`[SERVER] State mutated by watchdog (Zombies: ${zombiesPurged}, AntiFreeze: ${stateMutatedByTimer})`);
 
             // Si el motor fue rescatado de la hibernación, forzamos un salvado y broadcast
             if (stateMutatedByTimer) {
