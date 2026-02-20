@@ -313,12 +313,18 @@ const copyRoomLink = () => {
                                     <div v-if="localConfig.mode === 'CLASSIC'" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-yellow-400 text-black flex items-center justify-center text-[10px] font-black shadow-lg">✓</div>
                                 </button>
 
-                                <div class="relative p-4 lg:p-5 rounded-2xl border-2 border-white/5 bg-white/[0.01] opacity-40 cursor-not-allowed text-center min-h-[110px] flex flex-col items-center justify-center">
-                                    <div class="text-3xl lg:text-4xl mb-1.5">🕵️</div>
+                                <button
+                                    @click="handleConfigChange('mode', 'IMPOSTOR')"
+                                    class="relative p-4 lg:p-5 rounded-2xl border-2 transition-all duration-300 text-center group min-h-[110px] flex flex-col items-center justify-center"
+                                    :class="localConfig.mode === 'IMPOSTOR'
+                                        ? 'border-indigo-400/60 bg-gradient-to-b from-indigo-500/10 to-transparent shadow-[0_0_25px_rgba(99,102,241,0.1)]'
+                                        : 'border-white/10 bg-white/[0.03] hover:border-white/20 hover:bg-white/[0.06]'"
+                                >
+                                    <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform">🕵️</div>
                                     <h4 class="text-white font-black text-xs lg:text-sm tracking-wide">IMPOSTOR</h4>
                                     <p class="text-white/30 text-[8px] font-bold mt-1">¿Quién está mintiendo?</p>
-                                    <span class="absolute top-2 right-2 text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-white/10 text-white/40 border border-white/5">Pronto</span>
-                                </div>
+                                    <div v-if="localConfig.mode === 'IMPOSTOR'" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-indigo-400 text-white flex items-center justify-center text-[10px] font-black shadow-lg">✓</div>
+                                </button>
                             </div>
                         </div>
 

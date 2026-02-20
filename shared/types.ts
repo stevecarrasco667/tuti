@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { EVENTS } from './consts';
 import { RoomSnapshotSchema } from './schemas';
 
-export type GameStatus = 'LOBBY' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER' | 'ROLE_REVEAL' | 'TYPING' | 'EXPOSITION';
+export type GameStatus = 'LOBBY' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER' | 'ROLE_REVEAL' | 'TYPING' | 'EXPOSITION' | 'VOTING';
 
 export interface ChatMessage {
     id: string;
@@ -47,6 +47,11 @@ export interface ImpostorData {
     secretCategory: string;
     impostorId: string;
     words: Record<string, string>; // userId -> palabra escrita (camuflaje)
+    votes: Record<string, string>; // voterId -> accusedId
+    result?: {
+        winner: 'IMPOSTOR' | 'CREW';
+        mostVotedId: string | null;
+    };
 }
 
 export interface RoomState {

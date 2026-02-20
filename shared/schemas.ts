@@ -10,7 +10,7 @@ export const PlayerSchema = z.object({
     lastSeenAt: z.number()
 });
 
-export const GameStatusSchema = z.enum(['LOBBY', 'PLAYING', 'REVIEW', 'RESULTS', 'GAME_OVER', 'ROLE_REVEAL', 'TYPING', 'EXPOSITION']);
+export const GameStatusSchema = z.enum(['LOBBY', 'PLAYING', 'REVIEW', 'RESULTS', 'GAME_OVER', 'ROLE_REVEAL', 'TYPING', 'EXPOSITION', 'VOTING']);
 
 export const AnswerStatusSchema = z.enum(['VALID', 'DUPLICATE', 'INVALID']);
 
@@ -33,7 +33,12 @@ export const ImpostorDataSchema = z.object({
     secretWord: z.string(),
     secretCategory: z.string(),
     impostorId: z.string(),
-    words: z.record(z.string(), z.string())
+    words: z.record(z.string(), z.string()),
+    votes: z.record(z.string(), z.string()),
+    result: z.object({
+        winner: z.enum(['IMPOSTOR', 'CREW']),
+        mostVotedId: z.string().nullable()
+    }).optional()
 });
 
 export const RoomStateSchema = z.object({

@@ -3,6 +3,9 @@ import { computed } from 'vue';
 import { RoomState } from '../../../../shared/types';
 import ImpostorReveal from './ImpostorReveal.vue';
 import ImpostorTyping from './ImpostorTyping.vue';
+import ImpostorExposition from './ImpostorExposition.vue';
+import ImpostorVoting from './ImpostorVoting.vue';
+import ImpostorResults from './ImpostorResults.vue';
 
 const props = defineProps<{
     gameState: RoomState;
@@ -57,15 +60,36 @@ const handleSubmit = (word: string) => {
                 @submit="handleSubmit"
             />
             
-            <!-- PHASE: EXPOSITION (Placeholder / Future sprint) -->
-            <div v-else-if="currentPhase === 'EXPOSITION'" class="text-center font-black animate-pulse text-white/80">
-                <h1 class="text-3xl text-red-500 mb-2 font-mono">FASE DE EXPOSICIÓN</h1>
-                <p>El impostor camina entre nosotros...</p>
-                <div class="mt-4 font-mono text-xl" :class="timerColor">{{ Math.max(0, timeRemaining) }}s</div>
-            </div>
+            <!-- PHASE: EXPOSITION -->
+            <ImpostorExposition
+                v-else-if="currentPhase === 'EXPOSITION' && impostorData"
+                :impostor-data="impostorData"
+                :players="gameState.players"
+                :time-remaining="timeRemaining"
+                :timer-color="timerColor"
+            />
+
+            <!-- PHASE: VOTING -->
+            <ImpostorVoting
+                v-else-if="currentPhase === 'VOTING' && impostorData"
+                :impostor-data="impostorData"
+                :players="gameState.players"
+                :my-user-id="myUserId"
+                :time-remaining="timeRemaining"
+                :timer-color="timerColor"
+            />
+            
+            <!-- PHASE: RESULTS -->
+            <ImpostorResults
+                v-else-if="currentPhase === 'RESULTS' && impostorData"
+                :impostor-data="impostorData"
+                :players="gameState.players"
+                :time-remaining="timeRemaining"
+                :timer-color="timerColor"
+            />
 
             <!-- FALLBACK LOBBY / INTERMISSION -->
-            <div v-else class="text-white/40 italic">Esperando inicio...</div>
+            <div v-else class="text-white/40 italic">Cargando modo Impostor...</div>
         </Transition>
     </div>
 </template>

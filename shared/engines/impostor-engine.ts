@@ -63,7 +63,8 @@ export class ImpostorEngine extends BaseEngine {
             ...this.state,
             impostorData: this.state.impostorData ? {
                 ...this.state.impostorData,
-                words: { ...this.state.impostorData.words }
+                words: { ...this.state.impostorData.words },
+                votes: { ...this.state.impostorData.votes }
             } : undefined
         };
 
@@ -81,6 +82,15 @@ export class ImpostorEngine extends BaseEngine {
                 for (const key of Object.keys(maskedState.impostorData.words)) {
                     if (key !== userId) {
                         maskedState.impostorData.words[key] = '***';
+                    }
+                }
+            }
+
+            // Mask rival votes during VOTING phase. Showing "who" voted but hiding "for whom"
+            if (maskedState.status === 'VOTING' && maskedState.impostorData.votes) {
+                for (const key of Object.keys(maskedState.impostorData.votes)) {
+                    if (key !== userId) {
+                        maskedState.impostorData.votes[key] = '***';
                     }
                 }
             }
@@ -168,7 +178,8 @@ export class ImpostorEngine extends BaseEngine {
                 secretCategory,
                 secretWord,
                 impostorId,
-                words: {} // Aquí se guardarán las respuestas
+                words: {}, // Aquí se guardarán las respuestas
+                votes: {} // Aquí se guardarán los targetIds de cada votante
             };
 
             this.state.status = 'ROLE_REVEAL';
@@ -197,11 +208,106 @@ export class ImpostorEngine extends BaseEngine {
     private handleTypingTimeUp() {
         if (this.state.status !== 'TYPING') return;
         this.state.status = 'EXPOSITION';
-        this.state.timers.resultsEndsAt = Date.now() + this.state.config.votingDuration * 1000; // Reusamos resultsEndsAt para la vista de exposición
+        this.state.timers.roundEndsAt = Date.now() + 10000; // 10s para exponer respuestas
 
         if (this.onGameStateChange) {
             this.onGameStateChange(this.state);
         }
+
+        this.clearTimer();
+        this.currentTimer = setTimeout(() => this.handleExpositionTimeUp(), 10000);
+    }
+
+    private handleExpositionTimeUp() {
+        if (this.state.status !== 'EXPOSITION') return;
+        this.state.status = 'VOTING';
+        this.state.timers.votingEndsAt = Date.now() + this.state.config.votingDuration * 1000;
+
+        if (this.onGameStateChange) {
+            this.onGameStateChange(this.state);
+        }
+
+        this.clearTimer();
+        this.currentTimer = setTimeout(() => this.handleVotingTimeUp(), this.state.config.votingDuration * 1000);
+    }
+
+    private handleVotingTimeUp() {
+        if (this.state.status !== 'VOTING') return;
+
+        // Calculate scoring and outcome
+        this.calculateResults();
+
+        this.state.status = 'RESULTS';
+        this.state.timers.resultsEndsAt = Date.now() + 10000;
+
+        if (this.onGameStateChange) {
+            this.onGameStateChange(this.state);
+        }
+
+        this.clearTimer();
+        this.currentTimer = setTimeout(() => this.handleResultsTimeUp(), 10000);
+    }
+
+    private handleResultsTimeUp() {
+        if (this.state.status !== 'RESULTS') return;
+        this.clearTimer();
+        this.state.status = 'LOBBY';
+        this.state.impostorData = undefined;
+        this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null };
+
+        if (this.onGameStateChange) {
+            this.onGameStateChange(this.state);
+        }
+    }
+
+    private calculateResults() {
+        if (!this.state.impostorData) return;
+
+        const votes = this.state.impostorData.votes;
+        const voteCounts: Record<string, number> = {};
+
+        let maxVotes = 0;
+        let mostVotedId: string | null = null;
+        let isTie = false;
+
+        // Count votes
+        for (const voterId in votes) {
+            const targetId = votes[voterId];
+            voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
+
+            if (voteCounts[targetId] > maxVotes) {
+                maxVotes = voteCounts[targetId];
+                mostVotedId = targetId;
+                isTie = false;
+            } else if (voteCounts[targetId] === maxVotes) {
+                isTie = true;
+            }
+        }
+
+        const impostorId = this.state.impostorData.impostorId;
+
+        let winner: 'IMPOSTOR' | 'CREW';
+        if (isTie || mostVotedId !== impostorId) {
+            // Impostor wins
+            winner = 'IMPOSTOR';
+            this.state.roundScores[impostorId] = (this.state.roundScores[impostorId] || 0) + 300;
+            const p = this.state.players.find(p => p.id === impostorId);
+            if (p) p.score += 300;
+        } else {
+            // Crew wins
+            winner = 'CREW';
+            for (const p of this.state.players) {
+                if (p.id !== impostorId) {
+                    this.state.roundScores[p.id] = (this.state.roundScores[p.id] || 0) + 100;
+                    p.score += 100;
+                }
+            }
+        }
+
+        this.state.impostorData.result = {
+            winner,
+            mostVotedId: isTie ? null : mostVotedId
+        };
     }
 
     public stopRound(_connectionId: string, _answers: Record<string, string>): RoomState {
@@ -241,7 +347,18 @@ export class ImpostorEngine extends BaseEngine {
         return this.state;
     }
 
-    public toggleVote(_connectionId: string, _targetUserId: string, _category: string): RoomState {
+    public toggleVote(connectionId: string, targetUserId: string, _category: string): RoomState {
+        const userId = this._players.getPlayerId(connectionId);
+        if (!userId) return this.state;
+
+        if (this.state.status === 'VOTING' && this.state.impostorData) {
+            this.state.impostorData.votes[userId] = targetUserId;
+            // Immediate broadcast when someone votes
+            if (this.onGameStateChange) {
+                this.onGameStateChange(this.state);
+            }
+        }
+
         return this.state;
     }
 
@@ -277,8 +394,15 @@ export class ImpostorEngine extends BaseEngine {
         } else if (this.state.status === 'TYPING' && this.state.timers.roundEndsAt && now >= this.state.timers.roundEndsAt) {
             this.handleTypingTimeUp();
             changed = true;
-        } else if (this.state.status === 'EXPOSITION' && this.state.timers.resultsEndsAt && now >= this.state.timers.resultsEndsAt) {
-            // Future transition out of exposition (e.g. RESULTS/VOTING)
+        } else if (this.state.status === 'EXPOSITION' && this.state.timers.roundEndsAt && now >= this.state.timers.roundEndsAt) {
+            this.handleExpositionTimeUp();
+            changed = true;
+        } else if (this.state.status === 'VOTING' && this.state.timers.votingEndsAt && now >= this.state.timers.votingEndsAt) {
+            this.handleVotingTimeUp();
+            changed = true;
+        } else if (this.state.status === 'RESULTS' && this.state.timers.resultsEndsAt && now >= this.state.timers.resultsEndsAt) {
+            this.handleResultsTimeUp();
+            changed = true;
         }
 
         return changed;
