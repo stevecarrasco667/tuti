@@ -22,14 +22,25 @@ export function useGameEffects(
 
     const updateTimer = () => {
         const now = Date.now();
+        const status = gameState.value.status;
         let targetTime: number | null = null;
 
-        if (gameState.value.status === 'PLAYING' && gameState.value.timers.roundEndsAt) {
+        // Classic mode timers
+        if (status === 'PLAYING' && gameState.value.timers.roundEndsAt) {
             targetTime = gameState.value.timers.roundEndsAt;
-        } else if (gameState.value.status === 'REVIEW' && gameState.value.timers.votingEndsAt) {
+        } else if (status === 'REVIEW' && gameState.value.timers.votingEndsAt) {
             targetTime = gameState.value.timers.votingEndsAt;
-        } else if (gameState.value.status === 'RESULTS' && gameState.value.timers.resultsEndsAt) {
+        } else if (status === 'RESULTS' && gameState.value.timers.resultsEndsAt) {
             targetTime = gameState.value.timers.resultsEndsAt;
+            // Impostor mode timers
+        } else if (status === 'ROLE_REVEAL' && gameState.value.timers.roundEndsAt) {
+            targetTime = gameState.value.timers.roundEndsAt;
+        } else if (status === 'TYPING' && gameState.value.timers.roundEndsAt) {
+            targetTime = gameState.value.timers.roundEndsAt;
+        } else if (status === 'EXPOSITION' && gameState.value.timers.roundEndsAt) {
+            targetTime = gameState.value.timers.roundEndsAt;
+        } else if (status === 'VOTING' && gameState.value.timers.votingEndsAt) {
+            targetTime = gameState.value.timers.votingEndsAt;
         }
 
         if (targetTime) {
@@ -52,7 +63,8 @@ export function useGameEffects(
 
         updateTimer();
 
-        if (gameState.value.status === 'PLAYING' || gameState.value.status === 'REVIEW' || gameState.value.status === 'RESULTS') {
+        const activeTimerStates = ['PLAYING', 'REVIEW', 'RESULTS', 'ROLE_REVEAL', 'TYPING', 'EXPOSITION', 'VOTING'];
+        if (activeTimerStates.includes(gameState.value.status)) {
             timerInterval = setInterval(updateTimer, 1000);
         }
     }, { immediate: true, deep: true });

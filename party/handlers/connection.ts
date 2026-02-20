@@ -1,6 +1,6 @@
 import type * as Party from "partykit/server";
 import { BaseHandler } from "./base";
-import { broadcastState, sendError } from "../utils/broadcaster";
+import { sendError } from "../utils/broadcaster";
 import { EVENTS } from "../../shared/consts";
 import { BaseEngine } from "../../shared/engines/base-engine";
 import { logger } from "../../shared/utils/logger";
@@ -61,11 +61,8 @@ export class ConnectionHandler extends BaseHandler {
                 logger.info('ROOM_MARKED_PUBLIC', { roomId: this.room.id, userId });
             }
 
-            // Join Player in Engine
-            const state = this.engine.joinPlayer(userId, name, avatar, connection.id);
-
-            // Broadcast entire state (per-connection masking)
-            broadcastState(this.room, state, this.engine);
+            // Join Player in Engine (state mutation only — server.ts broadcasts)
+            this.engine.joinPlayer(userId, name, avatar, connection.id);
         } catch (err) {
             logger.error('CONNECT_FAILED', { connectionId: connection.id, roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
             sendError(connection, "Failed to join room: " + (err instanceof Error ? err.message : String(err)));
@@ -74,15 +71,13 @@ export class ConnectionHandler extends BaseHandler {
 
     async handleClose(connection: Party.Connection) {
         logger.info('DISCONNECTED', { connectionId: connection.id, roomId: this.room.id });
-        const state = this.engine.playerDisconnected(connection.id);
-        broadcastState(this.room, state, this.engine);
+        // State mutation only — server.ts broadcasts
+        this.engine.playerDisconnected(connection.id);
     }
 
     async handleExitGame(connection: Party.Connection) {
-        const state = this.engine.playerExited(connection.id);
-
-        // Per-connection broadcast with masking
-        broadcastState(this.room, state, this.engine);
+        // State mutation only — server.ts broadcasts
+        this.engine.playerExited(connection.id);
 
         // Close connection physically
         connection.close();

@@ -1,6 +1,6 @@
 import type * as Party from "partykit/server";
 import { BaseHandler } from "./base";
-import { broadcastState, sendError } from "../utils/broadcaster";
+import { sendError } from "../utils/broadcaster";
 
 import { StopRoundSchema, SubmitAnswersSchema, UpdateAnswersSchema } from "../../shared/schemas";
 import { EVENTS } from "../../shared/consts";
@@ -9,8 +9,7 @@ export class GameHandler extends BaseHandler {
 
     async handleStartGame(sender: Party.Connection) {
         try {
-            const state = this.engine.startGame(sender.id);
-            broadcastState(this.room, state, this.engine);
+            this.engine.startGame(sender.id);
         } catch (err) {
             sendError(sender, (err as Error).message);
         }
@@ -19,9 +18,7 @@ export class GameHandler extends BaseHandler {
     async handleStopRound(rawPayload: unknown, sender: Party.Connection) {
         try {
             const { answers } = StopRoundSchema.shape.payload.parse(rawPayload);
-
-            const state = this.engine.stopRound(sender.id, answers);
-            broadcastState(this.room, state, this.engine);
+            this.engine.stopRound(sender.id, answers);
         } catch (err) {
             sendError(sender, (err as Error).message);
         }
@@ -56,9 +53,7 @@ export class GameHandler extends BaseHandler {
     async handleSubmitAnswers(rawPayload: unknown, sender: Party.Connection) {
         try {
             const { answers } = SubmitAnswersSchema.shape.payload.parse(rawPayload);
-
-            const state = this.engine.submitAnswers(sender.id, answers);
-            broadcastState(this.room, state, this.engine);
+            this.engine.submitAnswers(sender.id, answers);
         } catch (err) {
             sendError(sender, (err as Error).message);
         }

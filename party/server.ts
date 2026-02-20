@@ -239,6 +239,9 @@ export default class Server implements Party.Server {
 
             // 3. Handle Identity via ConnectionHandler
             await this.connectionHandler.handleConnect(conn, ctx);
+
+            // 4. Unified Delta Broadcast (single source of truth)
+            this.broadcastStateDelta(this.engine.getState());
         } catch (err) {
             logger.error('ON_CONNECT_FAILED', { connectionId: conn.id, roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
             conn.close(1011, 'Internal Server Error');
@@ -373,6 +376,11 @@ export default class Server implements Party.Server {
                     console.warn(`Unknown message type: ${type}`);
             }
 
+            // === UNIFIED DELTA SYNC ===
+            // After any handler mutates the engine, broadcast the delta to all clients.
+            // Exceptions: PONG (no-op), CHAT_SEND (uses its own chat broadcast), ADMIN_RELOAD_DICTS (no state change)
+            this.broadcastStateDelta(this.engine.getState());
+
             await this.scheduleAlarms(this.engine.getState());
 
         } catch (err) {
@@ -449,6 +457,9 @@ export default class Server implements Party.Server {
     onClose(connection: Party.Connection) {
         this.rateLimiter.cleanup(connection.id);
         this.connectionHandler.handleClose(connection);
+
+        // Unified Delta Broadcast (notify remaining players)
+        this.broadcastStateDelta(this.engine.getState());
 
         // Clean up per-connection state for State Masking
         this.previousStates.delete(connection.id);
