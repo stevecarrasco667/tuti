@@ -37,8 +37,6 @@ export function useGameEffects(
             targetTime = gameState.value.timers.roundEndsAt;
         } else if (status === 'TYPING' && gameState.value.timers.roundEndsAt) {
             targetTime = gameState.value.timers.roundEndsAt;
-        } else if (status === 'EXPOSITION' && gameState.value.timers.roundEndsAt) {
-            targetTime = gameState.value.timers.roundEndsAt;
         } else if (status === 'VOTING' && gameState.value.timers.votingEndsAt) {
             targetTime = gameState.value.timers.votingEndsAt;
         }
@@ -63,7 +61,7 @@ export function useGameEffects(
 
         updateTimer();
 
-        const activeTimerStates = ['PLAYING', 'REVIEW', 'RESULTS', 'ROLE_REVEAL', 'TYPING', 'EXPOSITION', 'VOTING'];
+        const activeTimerStates = ['PLAYING', 'REVIEW', 'RESULTS', 'ROLE_REVEAL', 'TYPING', 'VOTING'];
         if (activeTimerStates.includes(gameState.value.status)) {
             timerInterval = setInterval(updateTimer, 1000);
         }

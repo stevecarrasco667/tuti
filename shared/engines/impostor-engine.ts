@@ -207,28 +207,17 @@ export class ImpostorEngine extends BaseEngine {
 
     private handleTypingTimeUp() {
         if (this.state.status !== 'TYPING') return;
-        this.state.status = 'EXPOSITION';
-        this.state.timers.roundEndsAt = Date.now() + 10000; // 10s para exponer respuestas
-
-        if (this.onGameStateChange) {
-            this.onGameStateChange(this.state);
-        }
-
-        this.clearTimer();
-        this.currentTimer = setTimeout(() => this.handleExpositionTimeUp(), 10000);
-    }
-
-    private handleExpositionTimeUp() {
-        if (this.state.status !== 'EXPOSITION') return;
+        // TYPING → VOTING directly (EXPOSITION eliminated in Sprint 5)
         this.state.status = 'VOTING';
-        this.state.timers.votingEndsAt = Date.now() + this.state.config.votingDuration * 1000;
+        this.state.timers.roundEndsAt = null;
+        this.state.timers.votingEndsAt = Date.now() + 40000; // 40s for El Tribunal
 
         if (this.onGameStateChange) {
             this.onGameStateChange(this.state);
         }
 
         this.clearTimer();
-        this.currentTimer = setTimeout(() => this.handleVotingTimeUp(), this.state.config.votingDuration * 1000);
+        this.currentTimer = setTimeout(() => this.handleVotingTimeUp(), 40000);
     }
 
     private handleVotingTimeUp() {
@@ -394,9 +383,7 @@ export class ImpostorEngine extends BaseEngine {
         } else if (this.state.status === 'TYPING' && this.state.timers.roundEndsAt && now >= this.state.timers.roundEndsAt) {
             this.handleTypingTimeUp();
             changed = true;
-        } else if (this.state.status === 'EXPOSITION' && this.state.timers.roundEndsAt && now >= this.state.timers.roundEndsAt) {
-            this.handleExpositionTimeUp();
-            changed = true;
+
         } else if (this.state.status === 'VOTING' && this.state.timers.votingEndsAt && now >= this.state.timers.votingEndsAt) {
             this.handleVotingTimeUp();
             changed = true;

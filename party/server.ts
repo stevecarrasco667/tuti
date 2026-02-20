@@ -413,8 +413,6 @@ export default class Server implements Party.Server {
             nextTarget = state.timers.roundEndsAt;
         } else if (state.status === 'TYPING' && state.timers.roundEndsAt) {
             nextTarget = state.timers.roundEndsAt;
-        } else if (state.status === 'EXPOSITION' && state.timers.roundEndsAt) {
-            nextTarget = state.timers.roundEndsAt; // EXPOSITION uses roundEndsAt
         } else if (state.status === 'VOTING' && state.timers.votingEndsAt) {
             nextTarget = state.timers.votingEndsAt;
         }

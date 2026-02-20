@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { EVENTS } from './consts';
 import { RoomSnapshotSchema } from './schemas';
 
-export type GameStatus = 'LOBBY' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER' | 'ROLE_REVEAL' | 'TYPING' | 'EXPOSITION' | 'VOTING';
+export type GameStatus = 'LOBBY' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER' | 'ROLE_REVEAL' | 'TYPING' | 'VOTING';
 
 export interface ChatMessage {
     id: string;

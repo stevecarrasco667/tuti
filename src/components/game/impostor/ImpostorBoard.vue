@@ -3,7 +3,6 @@ import { computed } from 'vue';
 import { RoomState } from '../../../../shared/types';
 import ImpostorReveal from './ImpostorReveal.vue';
 import ImpostorTyping from './ImpostorTyping.vue';
-import ImpostorExposition from './ImpostorExposition.vue';
 import ImpostorVoting from './ImpostorVoting.vue';
 import ImpostorResults from './ImpostorResults.vue';
 
@@ -59,17 +58,8 @@ const handleSubmit = (word: string) => {
                 :timer-color="timerColor"
                 @submit="handleSubmit"
             />
-            
-            <!-- PHASE: EXPOSITION -->
-            <ImpostorExposition
-                v-else-if="currentPhase === 'EXPOSITION' && impostorData"
-                :impostor-data="impostorData"
-                :players="gameState.players"
-                :time-remaining="timeRemaining"
-                :timer-color="timerColor"
-            />
 
-            <!-- PHASE: VOTING -->
+            <!-- PHASE: VOTING (El Tribunal) -->
             <ImpostorVoting
                 v-else-if="currentPhase === 'VOTING' && impostorData"
                 :impostor-data="impostorData"

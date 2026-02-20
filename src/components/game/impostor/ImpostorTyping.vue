@@ -44,7 +44,7 @@ const hasPlayerTypingCompleted = (playerId: string) => {
     <div class="h-full w-full flex flex-col items-center p-4">
         
         <!-- HEADER: Timer & Info -->
-        <div class="w-full flex justify-between items-start mb-12 max-w-4xl">
+        <div class="w-full flex justify-between items-start mb-4 max-w-4xl">
             <div class="bg-black/40 border border-white/10 px-6 py-3 rounded-2xl backdrop-blur-md">
                 <span class="text-sm text-slate-400 uppercase tracking-widest block font-bold mb-1">Categoría</span>
                 <span class="text-xl text-white font-bold">{{ impostorData.secretCategory }}</span>
@@ -53,6 +53,26 @@ const hasPlayerTypingCompleted = (playerId: string) => {
             <div class="bg-black/60 border border-white/10 px-6 py-3 rounded-2xl backdrop-blur-md flex flex-col items-center min-w-[120px]">
                  <span class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Tiempo</span>
                  <span class="text-3xl font-mono font-black" :class="timerColor">{{ Math.max(0, timeRemaining) }}</span>
+            </div>
+        </div>
+
+        <!-- HUD DE IDENTIDAD -->
+        <div class="w-full max-w-4xl mb-8 px-2">
+            <div v-if="myUserId === impostorData.impostorId"
+                 class="bg-red-950/60 border border-red-500/30 rounded-2xl px-6 py-3 backdrop-blur-md flex items-center gap-3 shadow-[0_0_20px_rgba(239,68,68,0.15)]">
+                <span class="text-2xl">⚠️</span>
+                <div>
+                    <span class="text-red-400 font-black text-sm uppercase tracking-widest">Eres el Impostor</span>
+                    <span class="text-white/70 text-sm ml-2">Categoría: <strong class="text-red-300">{{ impostorData.secretCategory }}</strong></span>
+                </div>
+            </div>
+            <div v-else
+                 class="bg-cyan-950/40 border border-cyan-500/20 rounded-2xl px-6 py-3 backdrop-blur-md flex items-center gap-3 shadow-[0_0_20px_rgba(6,182,212,0.1)]">
+                <span class="text-2xl">💡</span>
+                <div>
+                    <span class="text-cyan-400 font-black text-sm uppercase tracking-widest">Eres Tripulante</span>
+                    <span class="text-white/70 text-sm ml-2">La palabra es: <strong class="text-cyan-300">{{ impostorData.secretWord }}</strong></span>
+                </div>
             </div>
         </div>
 

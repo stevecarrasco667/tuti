@@ -10,7 +10,7 @@ export const PlayerSchema = z.object({
     lastSeenAt: z.number()
 });
 
-export const GameStatusSchema = z.enum(['LOBBY', 'PLAYING', 'REVIEW', 'RESULTS', 'GAME_OVER', 'ROLE_REVEAL', 'TYPING', 'EXPOSITION', 'VOTING']);
+export const GameStatusSchema = z.enum(['LOBBY', 'PLAYING', 'REVIEW', 'RESULTS', 'GAME_OVER', 'ROLE_REVEAL', 'TYPING', 'VOTING']);
 
 export const AnswerStatusSchema = z.enum(['VALID', 'DUPLICATE', 'INVALID']);
 
