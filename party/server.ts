@@ -88,7 +88,7 @@ export default class Server implements Party.Server {
                 status: newState.status,
                 lastUpdate: Date.now()
             };
-            this.room.context.parties.lobby.get("global").fetch("http://127.0.0.1/heartbeat", {
+            this.room.context.parties.lobby.get("global").fetch("/heartbeat", {
                 method: "POST",
                 body: JSON.stringify(snapshot),
                 headers: { "Content-Type": "application/json" }
@@ -389,20 +389,25 @@ export default class Server implements Party.Server {
         const now = Date.now();
         let nextTarget: number | null = null;
 
+        // Classic mode phases
         if (state.status === 'PLAYING' && state.timers.roundEndsAt) {
             nextTarget = state.timers.roundEndsAt;
         } else if (state.status === 'REVIEW' && state.timers.votingEndsAt) {
             nextTarget = state.timers.votingEndsAt;
         } else if (state.status === 'RESULTS' && state.timers.resultsEndsAt) {
             nextTarget = state.timers.resultsEndsAt;
+
+            // Impostor mode phases
         } else if (state.status === 'ROLE_REVEAL' && state.timers.roundEndsAt) {
             nextTarget = state.timers.roundEndsAt;
         } else if (state.status === 'TYPING' && state.timers.roundEndsAt) {
             nextTarget = state.timers.roundEndsAt;
-        } else if (state.status === 'EXPOSITION' && state.timers.resultsEndsAt) {
-            // We'll use resultsEndsAt for EXPOSITION duration, or we could add expositionEndsAt
-            nextTarget = state.timers.resultsEndsAt;
+        } else if (state.status === 'EXPOSITION' && state.timers.roundEndsAt) {
+            nextTarget = state.timers.roundEndsAt; // EXPOSITION uses roundEndsAt
+        } else if (state.status === 'VOTING' && state.timers.votingEndsAt) {
+            nextTarget = state.timers.votingEndsAt;
         }
+        // Note: RESULTS for Impostor also uses resultsEndsAt, already covered above
 
         if (nextTarget && nextTarget > now) {
             await this.room.storage.setAlarm(nextTarget);
