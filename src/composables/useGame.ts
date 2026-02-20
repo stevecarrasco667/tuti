@@ -70,8 +70,18 @@ export function useGame() {
                 }
             } else if (parsed.type === EVENTS.PATCH_STATE) {
                 // [Phoenix] Delta Sync
-                // console.log(`[Patch] Applying ${parsed.payload.length} ops.`);
                 applyPatch(gameState.value, parsed.payload);
+
+                // [SAFETY NET] Deduplicate players array after patch application
+                // Prevents ghost players if baselines desync between server and client
+                if (gameState.value.players) {
+                    const seen = new Set<string>();
+                    gameState.value.players = gameState.value.players.filter(p => {
+                        if (seen.has(p.id)) return false;
+                        seen.add(p.id);
+                        return true;
+                    });
+                }
             } else if (parsed.type === EVENTS.AUTH_GRANTED) {
                 // [Phoenix] Anti-Spoofing Handshake
                 const { userId, sessionToken } = parsed.payload;

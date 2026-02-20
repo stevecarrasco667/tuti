@@ -224,23 +224,26 @@ export default class Server implements Party.Server {
             });
             conn.send(versionMsg);
 
-            // 1. Send current Game State (personalized via State Masking)
+            // 1. Handle Identity FIRST (adds/reconnects player in engine)
+            await this.connectionHandler.handleConnect(conn, ctx);
+
+            // 2. Send current Game State to NEW client (AFTER player is added)
+            //    AND register the baseline to prevent duplicate UPDATE_STATE from broadcastStateDelta
             const userId = (conn.state as any)?.userId || conn.id;
+            const initialClientState = this.engine.getClientState(userId);
             conn.send(JSON.stringify({
                 type: EVENTS.UPDATE_STATE,
-                payload: this.engine.getClientState(userId)
+                payload: initialClientState
             }));
+            this.previousStates.set(conn.id, JSON.parse(JSON.stringify(initialClientState)));
 
-            // 2. Send Chat History
+            // 3. Send Chat History
             conn.send(JSON.stringify({
                 type: EVENTS.CHAT_HISTORY,
                 payload: this.messages
             }));
 
-            // 3. Handle Identity via ConnectionHandler
-            await this.connectionHandler.handleConnect(conn, ctx);
-
-            // 4. Unified Delta Broadcast (single source of truth)
+            // 4. Unified Delta Broadcast — sends PATCHES (not full state) to existing clients
             this.broadcastStateDelta(this.engine.getState());
         } catch (err) {
             logger.error('ON_CONNECT_FAILED', { connectionId: conn.id, roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
