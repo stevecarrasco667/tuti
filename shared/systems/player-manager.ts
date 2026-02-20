@@ -6,6 +6,34 @@ export class PlayerManager {
     private connectionMap: Record<string, string> = {};
 
     public add(state: RoomState, connectionId: string, profile: { id: string; name: string; avatar: string }) {
+        // === IDEMPOTENCY GATE ===
+        // If userId already exists in the room, update in-place instead of pushing a duplicate.
+        // This prevents ghost players on page reload or worker hibernation wake-up.
+        const existingPlayer = state.players.find(p => p.id === profile.id);
+        if (existingPlayer) {
+            existingPlayer.isConnected = true;
+            existingPlayer.lastSeenAt = Date.now();
+            existingPlayer.name = profile.name;
+            existingPlayer.avatar = profile.avatar;
+            delete existingPlayer.disconnectedAt;
+            // Preserve isHost and score — don't reset them
+            this.connectionMap[connectionId] = profile.id;
+            return;
+        }
+
+        // Also check spectators to prevent cross-array duplication
+        const existingSpectator = state.spectators?.find(s => s.id === profile.id);
+        if (existingSpectator) {
+            existingSpectator.isConnected = true;
+            existingSpectator.lastSeenAt = Date.now();
+            existingSpectator.name = profile.name;
+            existingSpectator.avatar = profile.avatar;
+            delete existingSpectator.disconnectedAt;
+            this.connectionMap[connectionId] = profile.id;
+            return;
+        }
+
+        // === TRULY NEW PLAYER ===
         // Handle name duplicates
         const existingName = state.players.some(p => p.name.toLowerCase() === profile.name.toLowerCase());
         const finalName = existingName ? `${profile.name} ${Math.floor(Math.random() * 100)}` : profile.name;

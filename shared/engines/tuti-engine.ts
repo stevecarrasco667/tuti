@@ -89,18 +89,27 @@ export class TutiEngine extends BaseEngine {
         if (canJoinAsPlayer) {
             this._players.add(this.state, connectionId, { id: userId, name, avatar });
         } else {
-            // Room full or game active → Spectator
-            const newPlayer = {
-                id: userId,
-                name,
-                avatar,
-                score: 0,
-                isHost: false,
-                isConnected: true,
-                lastSeenAt: Date.now(),
-                filledCount: 0
-            };
-            this.state.spectators.push(newPlayer);
+            // Room full or game active → Spectator (with idempotency guard)
+            const existingSpec = this.state.spectators.find(s => s.id === userId);
+            if (existingSpec) {
+                existingSpec.isConnected = true;
+                existingSpec.lastSeenAt = Date.now();
+                existingSpec.name = name;
+                existingSpec.avatar = avatar;
+                delete existingSpec.disconnectedAt;
+            } else {
+                const newPlayer = {
+                    id: userId,
+                    name,
+                    avatar,
+                    score: 0,
+                    isHost: false,
+                    isConnected: true,
+                    lastSeenAt: Date.now(),
+                    filledCount: 0
+                };
+                this.state.spectators.push(newPlayer);
+            }
             this._players.registerConnection(connectionId, userId);
             console.log(`[Spectator] ${name} (${userId}) joined as spectator. Room ${isFull ? 'full' : 'in-game'}.`);
         }
