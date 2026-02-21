@@ -133,7 +133,7 @@ export const ConfirmVotesSchema = z.object({
 
 export const UpdateConfigSchema = z.object({
     type: z.literal(EVENTS.UPDATE_CONFIG),
-    payload: GameConfigSchema.partial()
+    payload: GameConfigSchema.deepPartial()
 });
 
 export const RestartGameSchema = z.object({
