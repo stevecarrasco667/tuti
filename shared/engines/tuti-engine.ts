@@ -273,8 +273,8 @@ export class TutiEngine extends BaseEngine {
             this.state.roundsPlayed = 0;
 
             // Select categories: use configured list if >= 3, else pick 5 random
-            if (this.state.config.categories.length >= 3) {
-                this.state.categories = [...this.state.config.categories];
+            if (this.state.config.classic.categories.length >= 3) {
+                this.state.categories = [...this.state.config.classic.categories];
             } else {
                 const shuffled = [...MASTER_CATEGORIES].sort(() => 0.5 - Math.random());
                 this.state.categories = shuffled.slice(0, 5).map(c => c.name);

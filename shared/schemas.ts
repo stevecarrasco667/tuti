@@ -18,14 +18,21 @@ export const GameConfigSchema = z.object({
     mode: z.enum(['CLASSIC', 'IMPOSTOR']),
     isPublic: z.boolean(),
     maxPlayers: z.number().min(2).max(10),
-    rounds: z.number().min(1).max(20),
-    timeLimit: z.number().min(30).max(180),
-    votingDuration: z.number().min(10).max(120),
-    categories: z.array(z.string()),
-    customCategories: z.array(z.string()),
-    mutators: z.object({
-        suicidalStop: z.boolean(),
-        anonymousVoting: z.boolean()
+    classic: z.object({
+        rounds: z.number().min(1).max(20),
+        timeLimit: z.number().min(30).max(180),
+        votingDuration: z.number().min(10).max(120),
+        categories: z.array(z.string()),
+        customCategories: z.array(z.string()),
+        mutators: z.object({
+            suicidalStop: z.boolean(),
+            anonymousVoting: z.boolean()
+        })
+    }),
+    impostor: z.object({
+        rounds: z.number().min(1).max(10),
+        typingTime: z.number().min(10).max(60),
+        votingTime: z.number().min(15).max(120)
     })
 });
 

@@ -135,7 +135,7 @@ const rivalsActivity = computed(() => {
     <div class="flex flex-col h-full w-full">
         <RoundStatusHeader 
             :round="gameState.roundsPlayed + 1"
-            :total-rounds="gameState.config?.rounds || 5"
+            :total-rounds="gameState.config?.classic?.rounds || 5"
             :current-letter="gameState.currentLetter"
             :time-left="timeRemaining"
             :timer-color="timerColor"

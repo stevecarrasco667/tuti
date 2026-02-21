@@ -26,12 +26,18 @@ watch(() => gameState.value.players.length, (newCount, oldCount) => {
 });
 
 const handleConfigChange = (field: string, value: any) => {
-    updateConfig({ [field]: value });
+    // Support nested paths like 'classic.rounds' or flat like 'mode'
+    const parts = field.split('.');
+    if (parts.length === 2) {
+        updateConfig({ [parts[0]]: { [parts[1]]: value } } as any);
+    } else {
+        updateConfig({ [field]: value });
+    }
     playClick();
 };
 
 const handleMutatorChange = (mutator: string, value: boolean) => {
-    updateConfig({ mutators: { ...localConfig.value.mutators, [mutator]: value } } as any);
+    updateConfig({ classic: { mutators: { [mutator]: value } } } as any);
     playClick();
 };
 
@@ -42,8 +48,8 @@ const handleKick = (targetUserId: string, name: string) => {
 };
 
 const handleQuickDelete = (catName: string) => {
-    const current = localConfig.value.categories || [];
-    handleConfigChange('categories', current.filter((c: string) => c !== catName));
+    const current = localConfig.value.classic?.categories || [];
+    handleConfigChange('classic.categories', current.filter((c: string) => c !== catName));
 };
 
 // --- Manual Selection Modal ---
@@ -53,7 +59,7 @@ const activeFilterTag = ref<string | null>(null);
 const tempSelectedCategories = ref<string[]>([]);
 
 const openCategoryModal = () => {
-    tempSelectedCategories.value = [...(localConfig.value.categories || [])];
+    tempSelectedCategories.value = [...(localConfig.value.classic?.categories || [])];
     searchQuery.value = '';
     activeFilterTag.value = null;
     showCategoriesModal.value = true;
@@ -69,7 +75,7 @@ const toggleCategory = (catName: string) => {
 };
 
 const saveCategories = () => {
-    handleConfigChange('categories', tempSelectedCategories.value);
+    handleConfigChange('classic.categories', tempSelectedCategories.value);
     showCategoriesModal.value = false;
 };
 
@@ -88,38 +94,48 @@ const filteredCategories = computed(() => {
     });
 });
 
-// --- Steppers Logic ---
+// --- Classic Steppers ---
 const incrementRounds = () => {
-    const val = localConfig.value.rounds || 5;
-    if (val < 20) handleConfigChange('rounds', val + 1);
+    const val = localConfig.value.classic?.rounds || 5;
+    if (val < 20) handleConfigChange('classic.rounds', val + 1);
 };
 const decrementRounds = () => {
-    const val = localConfig.value.rounds || 5;
-    if (val > 1) handleConfigChange('rounds', val - 1);
+    const val = localConfig.value.classic?.rounds || 5;
+    if (val > 1) handleConfigChange('classic.rounds', val - 1);
 };
 
 const timeLimitOptions = [30, 45, 60, 90, 120, 180];
 const incrementTimeLimit = () => {
-    const current = localConfig.value.timeLimit || 60;
+    const current = localConfig.value.classic?.timeLimit || 60;
     const idx = timeLimitOptions.indexOf(current);
-    if (idx < timeLimitOptions.length - 1) handleConfigChange('timeLimit', timeLimitOptions[idx + 1]);
+    if (idx < timeLimitOptions.length - 1) handleConfigChange('classic.timeLimit', timeLimitOptions[idx + 1]);
 };
 const decrementTimeLimit = () => {
-    const current = localConfig.value.timeLimit || 60;
+    const current = localConfig.value.classic?.timeLimit || 60;
     const idx = timeLimitOptions.indexOf(current);
-    if (idx > 0) handleConfigChange('timeLimit', timeLimitOptions[idx - 1]);
+    if (idx > 0) handleConfigChange('classic.timeLimit', timeLimitOptions[idx - 1]);
 };
 
 const votingOptions = [10, 15, 20, 30, 45, 60, 90, 120];
 const incrementVotingDuration = () => {
-    const current = localConfig.value.votingDuration || 30;
+    const current = localConfig.value.classic?.votingDuration || 30;
     const idx = votingOptions.indexOf(current);
-    if (idx < votingOptions.length - 1) handleConfigChange('votingDuration', votingOptions[idx + 1]);
+    if (idx < votingOptions.length - 1) handleConfigChange('classic.votingDuration', votingOptions[idx + 1]);
 };
 const decrementVotingDuration = () => {
-    const current = localConfig.value.votingDuration || 30;
+    const current = localConfig.value.classic?.votingDuration || 30;
     const idx = votingOptions.indexOf(current);
-    if (idx > 0) handleConfigChange('votingDuration', votingOptions[idx - 1]);
+    if (idx > 0) handleConfigChange('classic.votingDuration', votingOptions[idx - 1]);
+};
+
+// --- Impostor Steppers ---
+const incrementImpostorRounds = () => {
+    const val = localConfig.value.impostor?.rounds || 3;
+    if (val < 10) handleConfigChange('impostor.rounds', val + 1);
+};
+const decrementImpostorRounds = () => {
+    const val = localConfig.value.impostor?.rounds || 3;
+    if (val > 1) handleConfigChange('impostor.rounds', val - 1);
 };
 
 const canStart = computed(() => {
@@ -332,16 +348,16 @@ const copyRoomLink = () => {
                         <div class="bg-indigo-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex-1 flex flex-col overflow-hidden min-h-[120px] lg:min-h-0">
                             <div class="p-3 border-b border-white/5 bg-black/20 flex items-center justify-between flex-none">
                                 <p class="text-indigo-300/70 text-[9px] font-black uppercase tracking-[0.2em]">
-                                    Categorías <span class="text-white/30">({{ localConfig.categories?.length || 0 }})</span>
+                                    Categorías <span class="text-white/30">({{ localConfig.classic?.categories?.length || 0 }})</span>
                                 </p>
                                 <button @click="openCategoryModal" class="text-[8px] bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-3 py-1.5 rounded-lg font-black tracking-wider transition-all shadow-lg border border-white/10 active:scale-95 uppercase">
                                     Editar +
                                 </button>
                             </div>
                             <div class="flex-1 overflow-y-auto p-3 min-h-0">
-                                <div v-if="localConfig.categories?.length > 0" class="flex flex-wrap gap-1.5 content-start">
+                                <div v-if="localConfig.classic?.categories?.length > 0" class="flex flex-wrap gap-1.5 content-start">
                                     <TransitionGroup name="list">
-                                    <div v-for="cat in localConfig.categories" :key="cat"
+                                    <div v-for="cat in localConfig.classic?.categories" :key="cat"
                                          class="group flex items-center pl-2.5 pr-1.5 py-1.5 bg-indigo-500/15 hover:bg-indigo-500/25 rounded-full text-[11px] font-bold text-indigo-200 border border-indigo-500/20 transition-all hover:border-indigo-400/40">
                                         <span>{{ cat }}</span>
                                         <button @click.stop="handleQuickDelete(cat)" class="ml-1 w-4 h-4 flex items-center justify-center rounded-full bg-black/20 text-white/30 hover:text-white hover:bg-red-500/80 transition-colors text-[10px]">
@@ -372,12 +388,15 @@ const copyRoomLink = () => {
 
                         <div class="flex-1 overflow-y-auto p-3 space-y-4 scrollbar-thin min-h-0">
 
+                            <!-- ===== CLASSIC MODE SETTINGS ===== -->
+                            <template v-if="localConfig.mode === 'CLASSIC'">
+
                             <!-- Rounds -->
                             <div class="bg-black/20 rounded-xl border border-white/5 p-3">
                                 <label class="text-indigo-300/50 text-[8px] font-black uppercase tracking-widest block mb-2">🔁 Rondas</label>
                                 <div class="flex items-center justify-between">
                                     <button @click="decrementRounds" class="w-11 h-11 rounded-xl bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-xl">-</button>
-                                    <span class="text-3xl font-black text-yellow-400 font-mono">{{ localConfig.rounds || 5 }}</span>
+                                    <span class="text-3xl font-black text-yellow-400 font-mono">{{ localConfig.classic?.rounds || 5 }}</span>
                                     <button @click="incrementRounds" class="w-11 h-11 rounded-xl bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-xl">+</button>
                                 </div>
                             </div>
@@ -388,7 +407,7 @@ const copyRoomLink = () => {
                                 <div class="flex items-center justify-between">
                                     <button @click="decrementTimeLimit" class="w-11 h-11 rounded-xl bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-xl">-</button>
                                     <div class="text-center">
-                                        <span class="text-3xl font-black text-yellow-400 font-mono">{{ localConfig.timeLimit || 60 }}</span>
+                                        <span class="text-3xl font-black text-yellow-400 font-mono">{{ localConfig.classic?.timeLimit || 60 }}</span>
                                         <span class="text-white/20 text-[9px] font-bold block -mt-1">seg</span>
                                     </div>
                                     <button @click="incrementTimeLimit" class="w-11 h-11 rounded-xl bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-xl">+</button>
@@ -401,7 +420,7 @@ const copyRoomLink = () => {
                                 <div class="flex items-center justify-between">
                                     <button @click="decrementVotingDuration" class="w-11 h-11 rounded-xl bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-xl">-</button>
                                     <div class="text-center">
-                                        <span class="text-3xl font-black text-yellow-400 font-mono">{{ localConfig.votingDuration || 30 }}</span>
+                                        <span class="text-3xl font-black text-yellow-400 font-mono">{{ localConfig.classic?.votingDuration || 30 }}</span>
                                         <span class="text-white/20 text-[9px] font-bold block -mt-1">seg</span>
                                     </div>
                                     <button @click="incrementVotingDuration" class="w-11 h-11 rounded-xl bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-xl">+</button>
@@ -422,12 +441,12 @@ const copyRoomLink = () => {
                                             <span class="text-white font-bold text-xs">Stop Suicida</span>
                                         </div>
                                         <button
-                                            @click="handleMutatorChange('suicidalStop', !localConfig.mutators.suicidalStop)"
+                                            @click="handleMutatorChange('suicidalStop', !localConfig.classic?.mutators?.suicidalStop)"
                                             class="relative w-12 h-7 rounded-full transition-all duration-300 border flex-none"
-                                            :class="localConfig.mutators.suicidalStop ? 'bg-red-600 border-red-400/50 shadow-[0_0_12px_rgba(220,38,38,0.3)]' : 'bg-white/10 border-white/15'"
+                                            :class="localConfig.classic?.mutators?.suicidalStop ? 'bg-red-600 border-red-400/50 shadow-[0_0_12px_rgba(220,38,38,0.3)]' : 'bg-white/10 border-white/15'"
                                         >
                                             <span class="absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300"
-                                                  :class="localConfig.mutators.suicidalStop ? 'left-[calc(100%-1.625rem)]' : 'left-0.5'"></span>
+                                                  :class="localConfig.classic?.mutators?.suicidalStop ? 'left-[calc(100%-1.625rem)]' : 'left-0.5'"></span>
                                         </button>
                                     </div>
                                     <p class="text-white/25 text-[9px] font-bold mt-1.5 ml-8">Si presionas STOP y te rechazan una palabra, pierdes todos tus puntos.</p>
@@ -441,17 +460,35 @@ const copyRoomLink = () => {
                                             <span class="text-white font-bold text-xs">Voto Anónimo</span>
                                         </div>
                                         <button
-                                            @click="handleMutatorChange('anonymousVoting', !localConfig.mutators.anonymousVoting)"
+                                            @click="handleMutatorChange('anonymousVoting', !localConfig.classic?.mutators?.anonymousVoting)"
                                             class="relative w-12 h-7 rounded-full transition-all duration-300 border flex-none"
-                                            :class="localConfig.mutators.anonymousVoting ? 'bg-purple-600 border-purple-400/50 shadow-[0_0_12px_rgba(147,51,234,0.3)]' : 'bg-white/10 border-white/15'"
+                                            :class="localConfig.classic?.mutators?.anonymousVoting ? 'bg-purple-600 border-purple-400/50 shadow-[0_0_12px_rgba(147,51,234,0.3)]' : 'bg-white/10 border-white/15'"
                                         >
                                             <span class="absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300"
-                                                  :class="localConfig.mutators.anonymousVoting ? 'left-[calc(100%-1.625rem)]' : 'left-0.5'"></span>
+                                                  :class="localConfig.classic?.mutators?.anonymousVoting ? 'left-[calc(100%-1.625rem)]' : 'left-0.5'"></span>
                                         </button>
                                     </div>
                                     <p class="text-white/25 text-[9px] font-bold mt-1.5 ml-8">Las palabras se evalúan sin saber quién las escribió.</p>
                                 </div>
                             </div>
+
+                            </template>
+
+                            <!-- ===== IMPOSTOR MODE SETTINGS ===== -->
+                            <template v-else-if="localConfig.mode === 'IMPOSTOR'">
+                            <div class="bg-black/20 rounded-xl border border-white/5 p-3">
+                                <label class="text-indigo-300/50 text-[8px] font-black uppercase tracking-widest block mb-2">🔁 Rondas</label>
+                                <div class="flex items-center justify-between">
+                                    <button @click="decrementImpostorRounds" class="w-11 h-11 rounded-xl bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-xl">-</button>
+                                    <span class="text-3xl font-black text-yellow-400 font-mono">{{ localConfig.impostor?.rounds || 3 }}</span>
+                                    <button @click="incrementImpostorRounds" class="w-11 h-11 rounded-xl bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-xl">+</button>
+                                </div>
+                            </div>
+
+                            <div class="bg-black/20 rounded-xl border border-white/5 p-3">
+                                <p class="text-white/30 text-[9px] font-bold text-center">⏱️ Escritura: {{ localConfig.impostor?.typingTime || 15 }}s · 🗳️ Tribunal: {{ localConfig.impostor?.votingTime || 40 }}s</p>
+                            </div>
+                            </template>
                         </div>
                     </div>
                 </div>

@@ -24,7 +24,7 @@ export class RoundManager {
         state.currentLetter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.charAt(Math.floor(Math.random() * 26));
 
         // Start Timer
-        const durationMs = config.timeLimit * 1000;
+        const durationMs = config.classic.timeLimit * 1000;
         state.timers.roundEndsAt = Date.now() + durationMs;
 
         // Clear previous timer if exists
@@ -58,12 +58,12 @@ export class RoundManager {
         // But for this refactor, we just switch status.
         // Wait, the original code initialized voting timer in 'initReviewPhase'. 
         // Let's replicate that minimal logic here:
-        state.timers.votingEndsAt = Date.now() + (config.votingDuration * 1000);
+        state.timers.votingEndsAt = Date.now() + (config.classic.votingDuration * 1000);
     }
 
     public nextRound(state: RoomState, config: GameConfig): boolean {
         state.roundsPlayed++;
-        if (state.roundsPlayed >= config.rounds) {
+        if (state.roundsPlayed >= config.classic.rounds) {
             state.status = 'GAME_OVER';
             state.gameOverReason = 'NORMAL';
             return false; // Game Over

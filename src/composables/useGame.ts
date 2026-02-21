@@ -24,14 +24,21 @@ const gameState = ref<RoomState>({
         mode: 'CLASSIC',
         isPublic: false,
         maxPlayers: 8,
-        rounds: 5,
-        timeLimit: 60,
-        votingDuration: 30,
-        categories: [],
-        customCategories: [],
-        mutators: {
-            suicidalStop: false,
-            anonymousVoting: false
+        classic: {
+            rounds: 5,
+            timeLimit: 60,
+            votingDuration: 30,
+            categories: [],
+            customCategories: [],
+            mutators: {
+                suicidalStop: false,
+                anonymousVoting: false
+            }
+        },
+        impostor: {
+            rounds: 3,
+            typingTime: 15,
+            votingTime: 40
         }
     },
     timers: {
@@ -324,14 +331,21 @@ export function useGame() {
                 mode: 'CLASSIC',
                 isPublic: false,
                 maxPlayers: 8,
-                rounds: 5,
-                timeLimit: 60,
-                votingDuration: 30,
-                categories: [],
-                customCategories: [],
-                mutators: {
-                    suicidalStop: false,
-                    anonymousVoting: false
+                classic: {
+                    rounds: 5,
+                    timeLimit: 60,
+                    votingDuration: 30,
+                    categories: [],
+                    customCategories: [],
+                    mutators: {
+                        suicidalStop: false,
+                        anonymousVoting: false
+                    }
+                },
+                impostor: {
+                    rounds: 3,
+                    typingTime: 15,
+                    votingTime: 40
                 }
             },
             timers: {

@@ -163,67 +163,74 @@ export class ImpostorEngine extends BaseEngine {
                 this.state.spectators = [];
             }
 
+            // Reset scores for new game
+            this.state.players.forEach(p => p.score = 0);
             this.state.roundsPlayed = 0;
-            const activePlayers = this.state.players.filter(p => p.isConnected);
-
-            // Hardcodeo rápido para testing si estamos solos, pero requiere 2+ idealmente
-            // if (activePlayers.length < 2) throw new Error("Not enough players");
-
-            const secretCategory = 'Animales';
-            const secretWord = 'Pingüino';
-            const impostorIndex = Math.floor(Math.random() * activePlayers.length);
-            const impostorId = activePlayers[impostorIndex].id;
-
-            this.state.impostorData = {
-                secretCategory,
-                secretWord,
-                impostorId,
-                words: {}, // Aquí se guardarán las respuestas
-                votes: {} // Aquí se guardarán los targetIds de cada votante
-            };
-
-            this.state.status = 'ROLE_REVEAL';
-            this.state.timers.roundEndsAt = Date.now() + 10000; // 10s de suspenso
-
-            this.clearTimer();
-            this.currentTimer = setTimeout(() => this.handleRoleRevealTimeUp(), 10000);
+            this.startNewRound();
         }
 
         return this.state;
     }
 
+    /**
+     * Initializes a new round: picks impostor, word, cleans words/votes, transitions to ROLE_REVEAL.
+     * Called by startGame() and handleResultsTimeUp() for multi-round support.
+     */
+    private startNewRound() {
+        const activePlayers = this.state.players.filter(p => p.isConnected);
+
+        const secretCategory = 'Animales';
+        const secretWord = 'Pingüino';
+        const impostorIndex = Math.floor(Math.random() * activePlayers.length);
+        const impostorId = activePlayers[impostorIndex].id;
+
+        this.state.impostorData = {
+            secretCategory,
+            secretWord,
+            impostorId,
+            words: {},
+            votes: {}
+        };
+
+        this.state.status = 'ROLE_REVEAL';
+        this.state.timers.roundEndsAt = Date.now() + 10000;
+
+        this.clearTimer();
+        this.currentTimer = setTimeout(() => this.handleRoleRevealTimeUp(), 10000);
+    }
+
     private handleRoleRevealTimeUp() {
         if (this.state.status !== 'ROLE_REVEAL') return;
         this.state.status = 'TYPING';
-        this.state.timers.roundEndsAt = Date.now() + this.state.config.timeLimit * 1000;
+        const typingMs = this.state.config.impostor.typingTime * 1000;
+        this.state.timers.roundEndsAt = Date.now() + typingMs;
 
         if (this.onGameStateChange) {
             this.onGameStateChange(this.state);
         }
 
         this.clearTimer();
-        this.currentTimer = setTimeout(() => this.handleTypingTimeUp(), this.state.config.timeLimit * 1000);
+        this.currentTimer = setTimeout(() => this.handleTypingTimeUp(), typingMs);
     }
 
     private handleTypingTimeUp() {
         if (this.state.status !== 'TYPING') return;
-        // TYPING → VOTING directly (EXPOSITION eliminated in Sprint 5)
         this.state.status = 'VOTING';
         this.state.timers.roundEndsAt = null;
-        this.state.timers.votingEndsAt = Date.now() + 40000; // 40s for El Tribunal
+        const votingMs = this.state.config.impostor.votingTime * 1000;
+        this.state.timers.votingEndsAt = Date.now() + votingMs;
 
         if (this.onGameStateChange) {
             this.onGameStateChange(this.state);
         }
 
         this.clearTimer();
-        this.currentTimer = setTimeout(() => this.handleVotingTimeUp(), 40000);
+        this.currentTimer = setTimeout(() => this.handleVotingTimeUp(), votingMs);
     }
 
     private handleVotingTimeUp() {
         if (this.state.status !== 'VOTING') return;
 
-        // Calculate scoring and outcome
         this.calculateResults();
 
         this.state.status = 'RESULTS';
@@ -240,9 +247,18 @@ export class ImpostorEngine extends BaseEngine {
     private handleResultsTimeUp() {
         if (this.state.status !== 'RESULTS') return;
         this.clearTimer();
-        this.state.status = 'LOBBY';
-        this.state.impostorData = undefined;
+
+        this.state.roundsPlayed++;
         this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null };
+
+        if (this.state.roundsPlayed < this.state.config.impostor.rounds) {
+            // More rounds to play — start next round
+            this.startNewRound();
+        } else {
+            // Game Over — DO NOT delete impostorData (Vue needs it for final screen)
+            this.state.status = 'GAME_OVER';
+            this.state.gameOverReason = 'NORMAL';
+        }
 
         if (this.onGameStateChange) {
             this.onGameStateChange(this.state);

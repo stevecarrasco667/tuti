@@ -161,8 +161,8 @@ describe('TutiEngine Core', () => {
 
         it('should use default config on init', () => {
             const config = engine.getState().config;
-            expect(config.rounds).toBe(5);
-            expect(config.timeLimit).toBe(60);
+            expect(config.classic.rounds).toBe(5);
+            expect(config.classic.timeLimit).toBe(60);
         });
 
         it('should enforce limits on updateConfig', () => {
@@ -170,12 +170,12 @@ describe('TutiEngine Core', () => {
             engine.joinPlayer(hostId, 'Host', 'av', hostConn);
 
             // Try setting -5 rounds
-            engine.updateConfig(hostConn, { rounds: -5 });
-            expect(engine.getState().config.rounds).toBe(1); // Min 1
+            engine.updateConfig(hostConn, { classic: { rounds: -5 } } as any);
+            expect(engine.getState().config.classic.rounds).toBe(1); // Min 1
 
             // Try setting 100 rounds
-            engine.updateConfig(hostConn, { rounds: 100 });
-            expect(engine.getState().config.rounds).toBe(20); // Max 20
+            engine.updateConfig(hostConn, { classic: { rounds: 100 } } as any);
+            expect(engine.getState().config.classic.rounds).toBe(20); // Max 20
         });
     });
 

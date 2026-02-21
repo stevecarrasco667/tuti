@@ -29,14 +29,21 @@ export interface GameConfig {
     mode: 'CLASSIC' | 'IMPOSTOR';
     isPublic: boolean;
     maxPlayers: number;
-    rounds: number;
-    timeLimit: number;
-    votingDuration: number;
-    categories: string[];
-    customCategories: string[];
-    mutators: {
-        suicidalStop: boolean;
-        anonymousVoting: boolean;
+    classic: {
+        rounds: number;
+        timeLimit: number;
+        votingDuration: number;
+        categories: string[];
+        customCategories: string[];
+        mutators: {
+            suicidalStop: boolean;
+            anonymousVoting: boolean;
+        };
+    };
+    impostor: {
+        rounds: number;
+        typingTime: number;
+        votingTime: number;
     };
 }
 
