@@ -70,6 +70,9 @@ export default class Server implements Party.Server {
         // 1. Inmediato: Per-connection broadcast with State Masking
         this.broadcastStateDelta(newState);
 
+        // 2. Schedule backup alarm for next phase (critical for hibernate recovery)
+        this.scheduleAlarms(newState);
+
         // 2. Diferido: Write-Behind a disco (max 1 vez cada 5s)
         if (!this.saveTimeout) {
             this.saveTimeout = setTimeout(async () => {
