@@ -37,7 +37,7 @@ const gameState = ref<RoomState>({
         },
         impostor: {
             rounds: 3,
-            typingTime: 15,
+            typingTime: 30,
             votingTime: 40
         }
     },
@@ -344,7 +344,7 @@ export function useGame() {
                 },
                 impostor: {
                     rounds: 3,
-                    typingTime: 15,
+                    typingTime: 30,
                     votingTime: 40
                 }
             },

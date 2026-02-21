@@ -138,6 +138,24 @@ const decrementImpostorRounds = () => {
     if (val > 1) handleConfigChange('impostor.rounds', val - 1);
 };
 
+const incrementImpostorTypingTime = () => {
+    const val = localConfig.value.impostor?.typingTime || 30;
+    if (val < 60) handleConfigChange('impostor.typingTime', val + 5);
+};
+const decrementImpostorTypingTime = () => {
+    const val = localConfig.value.impostor?.typingTime || 30;
+    if (val > 10) handleConfigChange('impostor.typingTime', val - 5);
+};
+
+const incrementImpostorVotingTime = () => {
+    const val = localConfig.value.impostor?.votingTime || 40;
+    if (val < 120) handleConfigChange('impostor.votingTime', val + 5);
+};
+const decrementImpostorVotingTime = () => {
+    const val = localConfig.value.impostor?.votingTime || 40;
+    if (val > 15) handleConfigChange('impostor.votingTime', val - 5);
+};
+
 const canStart = computed(() => {
     if (!amIHost.value) return false;
     return true;
@@ -486,7 +504,27 @@ const copyRoomLink = () => {
                             </div>
 
                             <div class="bg-black/20 rounded-xl border border-white/5 p-3">
-                                <p class="text-white/30 text-[9px] font-bold text-center">⏱️ Escritura: {{ localConfig.impostor?.typingTime || 15 }}s · 🗳️ Tribunal: {{ localConfig.impostor?.votingTime || 40 }}s</p>
+                                <label class="text-indigo-300/50 text-[8px] font-black uppercase tracking-widest block mb-2">⏱️ Tiempo de Escritura</label>
+                                <div class="flex items-center justify-between">
+                                    <button @click="decrementImpostorTypingTime" class="w-11 h-11 rounded-xl bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-xl">-</button>
+                                    <div class="text-center">
+                                        <span class="text-3xl font-black text-yellow-400 font-mono">{{ localConfig.impostor?.typingTime || 30 }}</span>
+                                        <span class="text-white/20 text-[9px] font-bold block -mt-1">seg</span>
+                                    </div>
+                                    <button @click="incrementImpostorTypingTime" class="w-11 h-11 rounded-xl bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-xl">+</button>
+                                </div>
+                            </div>
+
+                            <div class="bg-black/20 rounded-xl border border-white/5 p-3">
+                                <label class="text-indigo-300/50 text-[8px] font-black uppercase tracking-widest block mb-2">🗳️ Tiempo del Tribunal</label>
+                                <div class="flex items-center justify-between">
+                                    <button @click="decrementImpostorVotingTime" class="w-11 h-11 rounded-xl bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-xl">-</button>
+                                    <div class="text-center">
+                                        <span class="text-3xl font-black text-yellow-400 font-mono">{{ localConfig.impostor?.votingTime || 40 }}</span>
+                                        <span class="text-white/20 text-[9px] font-bold block -mt-1">seg</span>
+                                    </div>
+                                    <button @click="incrementImpostorVotingTime" class="w-11 h-11 rounded-xl bg-white/5 hover:bg-white/15 text-white flex items-center justify-center font-bold active:scale-90 transition-all text-xl">+</button>
+                                </div>
                             </div>
                             </template>
                         </div>
