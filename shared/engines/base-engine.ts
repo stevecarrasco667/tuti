@@ -4,7 +4,7 @@
 // Every game mode (Tuti, Impostor, future modes) must implement this interface.
 // Handlers type against BaseEngine. Only the Factory (server.ts) knows concrete classes.
 
-import { RoomState, GameConfig } from '../types.js';
+import { RoomState, GameConfig, DeepPartial } from '../types.js';
 import { PlayerManager } from '../systems/player-manager.js';
 
 export abstract class BaseEngine {
@@ -24,7 +24,7 @@ export abstract class BaseEngine {
     abstract playerExited(connectionId: string): RoomState;
 
     // --- CONFIGURATION ---
-    abstract updateConfig(connectionId: string, newConfig: Partial<GameConfig>): RoomState;
+    abstract updateConfig(connectionId: string, newConfig: DeepPartial<GameConfig>): RoomState;
 
     // --- GAME LIFECYCLE ---
     abstract startGame(connectionId: string): RoomState;

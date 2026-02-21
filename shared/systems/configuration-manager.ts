@@ -1,4 +1,4 @@
-import { GameConfig } from "../types";
+import { GameConfig, DeepPartial } from "../types";
 
 export class ConfigurationManager {
     public static readonly DEFAULT_CONFIG: GameConfig = {
@@ -27,7 +27,7 @@ export class ConfigurationManager {
      * Validates and merges new config into existing config.
      * Supports deep merge for classic and impostor sub-objects.
      */
-    public updateConfig(current: GameConfig, updates: Partial<GameConfig>): GameConfig {
+    public updateConfig(current: GameConfig, updates: DeepPartial<GameConfig>): GameConfig {
         // Deep merge classic namespace
         const mergedClassic = updates.classic
             ? {
@@ -35,12 +35,12 @@ export class ConfigurationManager {
                 mutators: updates.classic.mutators
                     ? { ...current.classic.mutators, ...updates.classic.mutators }
                     : current.classic.mutators
-            }
+            } as GameConfig['classic']
             : current.classic;
 
         // Deep merge impostor namespace
         const mergedImpostor = updates.impostor
-            ? { ...current.impostor, ...updates.impostor }
+            ? { ...current.impostor, ...updates.impostor } as GameConfig['impostor']
             : current.impostor;
 
         const next: GameConfig = {

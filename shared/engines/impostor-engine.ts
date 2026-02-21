@@ -4,7 +4,7 @@
 // Sprint 2 will implement the full logic.
 // For now, this is a placeholder that satisfies the BaseEngine contract.
 
-import { RoomState, GameConfig } from '../types.js';
+import { RoomState, GameConfig, DeepPartial } from '../types.js';
 import { BaseEngine } from './base-engine.js';
 import { PlayerManager } from '../systems/player-manager.js';
 import { ConfigurationManager } from '../systems/configuration-manager.js';
@@ -127,7 +127,7 @@ export class ImpostorEngine extends BaseEngine {
         return this.state;
     }
 
-    public updateConfig(connectionId: string, newConfig: Partial<GameConfig>): RoomState {
+    public updateConfig(connectionId: string, newConfig: DeepPartial<GameConfig>): RoomState {
         const userId = this._players.getPlayerId(connectionId);
         if (!userId) return this.state;
         const player = this.state.players.find(p => p.id === userId);

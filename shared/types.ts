@@ -4,6 +4,10 @@ import { RoomSnapshotSchema } from './schemas';
 
 export type GameStatus = 'LOBBY' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER' | 'ROLE_REVEAL' | 'TYPING' | 'VOTING';
 
+export type DeepPartial<T> = T extends object ? {
+    [P in keyof T]?: DeepPartial<T[P]>;
+} : T;
+
 export interface ChatMessage {
     id: string;
     senderId: string;

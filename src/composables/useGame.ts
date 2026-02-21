@@ -1,7 +1,7 @@
 import { ref, watch, computed } from 'vue';
 import { useSocket } from './useSocket';
 import { debounce } from '../utils/timing';
-import type { RoomState, ServerMessage, GameConfig } from '../../shared/types';
+import { RoomState, ServerMessage, GameConfig, DeepPartial } from '../../shared/types';
 import { EVENTS, APP_VERSION } from '../../shared/consts';
 import { applyPatch } from 'fast-json-patch';
 
@@ -268,7 +268,7 @@ export function useGame() {
         }));
     };
 
-    const updateConfig = (config: Partial<GameConfig>) => {
+    const updateConfig = (config: DeepPartial<GameConfig>) => {
         if (!socket.value) return;
         socket.value.send(JSON.stringify({
             type: EVENTS.UPDATE_CONFIG,

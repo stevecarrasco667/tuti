@@ -4,7 +4,7 @@
 // Migrated from shared/game-engine.ts → GameEngine
 // Implements BaseEngine contract.
 
-import { RoomState, GameConfig, AnswerStatus } from '../types.js';
+import { RoomState, GameConfig, AnswerStatus, DeepPartial } from '../types.js';
 import { RoundAnswersSchema } from '../schemas.js';
 import { BaseEngine } from './base-engine.js';
 import { MASTER_CATEGORIES } from './categories.js';
@@ -225,7 +225,7 @@ export class TutiEngine extends BaseEngine {
 
     // --- CONFIGURATION ---
 
-    public updateConfig(connectionId: string, newConfig: Partial<GameConfig>): RoomState {
+    public updateConfig(connectionId: string, newConfig: DeepPartial<GameConfig>): RoomState {
         const userId = this._players.getPlayerId(connectionId);
         if (!userId) return this.state;
 
