@@ -39,12 +39,15 @@ export const GameConfigSchema = z.object({
 export const ImpostorDataSchema = z.object({
     secretWord: z.string(),
     secretCategory: z.string(),
-    impostorId: z.string(),
+    impostorIds: z.array(z.string()),
+    alivePlayers: z.array(z.string()),
     words: z.record(z.string(), z.string()),
     votes: z.record(z.string(), z.string()),
-    result: z.object({
-        winner: z.enum(['IMPOSTOR', 'CREW']),
-        mostVotedId: z.string().nullable()
+    voteCounts: z.record(z.string(), z.number()).optional(),
+    cycleResult: z.object({
+        eliminatedId: z.string().nullable(),
+        matchOver: z.boolean(),
+        winner: z.enum(['IMPOSTOR', 'CREW']).optional()
     }).optional()
 });
 

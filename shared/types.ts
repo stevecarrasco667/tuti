@@ -56,12 +56,15 @@ export type AnswerStatus = 'VALID' | 'VALID_AUTO' | 'DUPLICATE' | 'INVALID' | 'E
 export interface ImpostorData {
     secretWord: string;
     secretCategory: string;
-    impostorId: string;
-    words: Record<string, string>; // userId -> palabra escrita (camuflaje)
+    impostorIds: string[];
+    alivePlayers: string[];
+    words: Record<string, string>; // userId -> palabra
     votes: Record<string, string>; // voterId -> accusedId
-    result?: {
-        winner: 'IMPOSTOR' | 'CREW';
-        mostVotedId: string | null;
+    voteCounts?: Record<string, number>; // targetUserId -> count
+    cycleResult?: {
+        eliminatedId: string | null;
+        matchOver: boolean;
+        winner?: 'IMPOSTOR' | 'CREW';
     };
 }
 

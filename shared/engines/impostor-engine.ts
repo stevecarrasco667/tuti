@@ -69,12 +69,13 @@ export class ImpostorEngine extends BaseEngine {
         };
 
         if (maskedState.impostorData) {
-            if (userId === maskedState.impostorData.impostorId) {
-                // Tripulante Impostor: CENSURAR LA PALABRA SECRETA
+            if (maskedState.impostorData.impostorIds.includes(userId)) {
+                // Tripulante Impostor: CENSURAR LA PALABRA SECRETA (para no delatarse accidentalmente),
+                // pero NO CENSURAMOS LAS IDENTIDADES DE LOS MÚLTIPLES IMPOSTORES
                 maskedState.impostorData.secretWord = '???';
             } else {
-                // Tripulante Honesto: CENSURAR LA IDENTIDAD DEL IMPOSTOR
-                maskedState.impostorData.impostorId = '???';
+                // Tripulante Honesto: CENSURAR LA IDENTIDAD DE LOS IMPOSTORES
+                maskedState.impostorData.impostorIds = [];
             }
 
             // VULNERABILITY FIX: Mask rival typed words during TYPING phase to prevent sniffer leakage
@@ -178,18 +179,27 @@ export class ImpostorEngine extends BaseEngine {
      */
     private startNewRound() {
         const activePlayers = this.state.players.filter(p => p.isConnected);
+        const playerCount = activePlayers.length;
+
+        let numImpostors = 1;
+        if (playerCount >= 6 && playerCount <= 8) numImpostors = 2;
+        else if (playerCount >= 9) numImpostors = 3;
 
         const secretCategory = 'Animales';
         const secretWord = 'Pingüino';
-        const impostorIndex = Math.floor(Math.random() * activePlayers.length);
-        const impostorId = activePlayers[impostorIndex].id;
+
+        const shuffled = [...activePlayers].sort(() => Math.random() - 0.5);
+        const impostorIds = shuffled.slice(0, numImpostors).map(p => p.id);
+        const alivePlayers = activePlayers.map(p => p.id);
 
         this.state.impostorData = {
             secretCategory,
             secretWord,
-            impostorId,
+            impostorIds,
+            alivePlayers,
             words: {},
-            votes: {}
+            votes: {},
+            voteCounts: {}
         };
 
         this.state.status = 'ROLE_REVEAL';
@@ -248,16 +258,34 @@ export class ImpostorEngine extends BaseEngine {
         if (this.state.status !== 'RESULTS') return;
         this.clearTimer();
 
-        this.state.roundsPlayed++;
         this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null };
 
-        if (this.state.roundsPlayed < this.state.config.impostor.rounds) {
-            // More rounds to play — start next round
-            this.startNewRound();
+        const result = this.state.impostorData?.cycleResult;
+
+        if (result?.matchOver) {
+            // Ciclo terminó en victoria de un grupo
+            this.state.roundsPlayed++;
+
+            if (this.state.roundsPlayed < this.state.config.impostor.rounds) {
+                // More rounds to play — start next round
+                this.startNewRound();
+            } else {
+                // Game Over — DO NOT delete impostorData (Vue needs it for final screen)
+                this.state.status = 'GAME_OVER';
+                this.state.gameOverReason = 'NORMAL';
+            }
         } else {
-            // Game Over — DO NOT delete impostorData (Vue needs it for final screen)
-            this.state.status = 'GAME_OVER';
-            this.state.gameOverReason = 'NORMAL';
+            // Ciclo terminó en empate o eliminación parcial, el juego continúa
+            if (this.state.impostorData) {
+                this.state.impostorData.words = {};
+                this.state.impostorData.votes = {};
+                this.state.impostorData.voteCounts = {};
+                this.state.impostorData.cycleResult = undefined;
+            }
+            this.state.status = 'TYPING';
+            const typingMs = this.state.config.impostor.typingTime * 1000;
+            this.state.timers.roundEndsAt = Date.now() + typingMs;
+            this.currentTimer = setTimeout(() => this.handleTypingTimeUp(), typingMs);
         }
 
         if (this.onGameStateChange) {
@@ -268,50 +296,75 @@ export class ImpostorEngine extends BaseEngine {
     private calculateResults() {
         if (!this.state.impostorData) return;
 
-        const votes = this.state.impostorData.votes;
-        const voteCounts: Record<string, number> = {};
+        const counts = this.state.impostorData.voteCounts || {};
 
         let maxVotes = 0;
         let mostVotedId: string | null = null;
         let isTie = false;
 
         // Count votes
-        for (const voterId in votes) {
-            const targetId = votes[voterId];
-            voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
-
-            if (voteCounts[targetId] > maxVotes) {
-                maxVotes = voteCounts[targetId];
+        for (const targetId in counts) {
+            if (counts[targetId] > maxVotes) {
+                maxVotes = counts[targetId];
                 mostVotedId = targetId;
                 isTie = false;
-            } else if (voteCounts[targetId] === maxVotes) {
+            } else if (counts[targetId] === maxVotes) {
                 isTie = true;
             }
         }
 
-        const impostorId = this.state.impostorData.impostorId;
+        let eliminatedId: string | null = null;
+        if (!isTie && mostVotedId) {
+            eliminatedId = mostVotedId;
+            // Eliminar al más votado
+            this.state.impostorData.alivePlayers = this.state.impostorData.alivePlayers.filter(id => id !== eliminatedId);
+        }
 
-        let winner: 'IMPOSTOR' | 'CREW';
-        if (isTie || mostVotedId !== impostorId) {
-            // Impostor wins
-            winner = 'IMPOSTOR';
-            this.state.roundScores[impostorId] = (this.state.roundScores[impostorId] || 0) + 300;
-            const p = this.state.players.find(p => p.id === impostorId);
-            if (p) p.score += 300;
-        } else {
-            // Crew wins
+        let aliveImpostors = 0;
+        let aliveCrew = 0;
+
+        for (const id of this.state.impostorData.alivePlayers) {
+            if (this.state.impostorData.impostorIds.includes(id)) {
+                aliveImpostors++;
+            } else {
+                aliveCrew++;
+            }
+        }
+
+        let matchOver = false;
+        let winner: 'IMPOSTOR' | 'CREW' | undefined = undefined;
+
+        if (aliveImpostors === 0) {
+            // Todos los impostores han sido eliminados
+            matchOver = true;
             winner = 'CREW';
+        } else if (aliveImpostors >= aliveCrew) {
+            // ¡Los impostores han superado en número a la tripulación!
+            matchOver = true;
+            winner = 'IMPOSTOR';
+        }
+
+        // Asignar puntajes finales si terminó
+        if (matchOver && winner === 'IMPOSTOR') {
+            for (const impId of this.state.impostorData.impostorIds) {
+                this.state.roundScores[impId] = (this.state.roundScores[impId] || 0) + 300;
+                const p = this.state.players.find(pl => pl.id === impId);
+                if (p) p.score += 300;
+            }
+        } else if (matchOver && winner === 'CREW') {
             for (const p of this.state.players) {
-                if (p.id !== impostorId) {
+                // Tripulantes que no sean impostores ganan puntaje, incluso si murieron heroicamente
+                if (!this.state.impostorData.impostorIds.includes(p.id)) {
                     this.state.roundScores[p.id] = (this.state.roundScores[p.id] || 0) + 100;
                     p.score += 100;
                 }
             }
         }
 
-        this.state.impostorData.result = {
-            winner,
-            mostVotedId: isTie ? null : mostVotedId
+        this.state.impostorData.cycleResult = {
+            eliminatedId,
+            matchOver,
+            winner
         };
     }
 
@@ -337,6 +390,8 @@ export class ImpostorEngine extends BaseEngine {
         if (this.state.status !== 'TYPING') return this.state;
 
         if (this.state.impostorData) {
+            if (!this.state.impostorData.alivePlayers.includes(userId)) return this.state; // Dead men type no tales
+
             // En Impostor mode se escribe solo 1 palabra por jugador
             const values = Object.values(answers);
             if (values.length > 0) {
@@ -357,7 +412,18 @@ export class ImpostorEngine extends BaseEngine {
         if (!userId) return this.state;
 
         if (this.state.status === 'VOTING' && this.state.impostorData) {
+            if (!this.state.impostorData.alivePlayers.includes(userId)) return this.state; // Dead men vote no tales
+            if (!this.state.impostorData.alivePlayers.includes(targetUserId)) return this.state; // Cannot vote a dead body
+
             this.state.impostorData.votes[userId] = targetUserId;
+
+            // Recalculate live voteCounts
+            const counts: Record<string, number> = {};
+            for (const vTarget of Object.values(this.state.impostorData.votes)) {
+                counts[vTarget] = (counts[vTarget] || 0) + 1;
+            }
+            this.state.impostorData.voteCounts = counts;
+
             // Immediate broadcast when someone votes
             if (this.onGameStateChange) {
                 this.onGameStateChange(this.state);
@@ -375,12 +441,11 @@ export class ImpostorEngine extends BaseEngine {
         this._players.remove(this.state, targetUserId); // It normally expects connectionId but for this scope we'll just filter state
         this.state.players = this.state.players.filter(p => p.id !== targetUserId);
 
-        if (this.state.status !== 'LOBBY' && this.state.impostorData?.impostorId === targetUserId) {
-            // Impostor left or kicked, abort game
-            this.state.status = 'LOBBY';
-            this.clearTimer();
-            this.state.impostorData = undefined;
-            this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null };
+        if (this.state.status !== 'LOBBY' && this.state.impostorData) {
+            // Si el jugador aborta o lo kickean, lo descartamos de los vivos
+            this.state.impostorData.alivePlayers = this.state.impostorData.alivePlayers.filter(id => id !== targetUserId);
+            // La victoria no se testea asíncronamente en el momento del desconecte,
+            // pero en el próximo RESULTS se evaluará matemáticamente.
         }
         return this.state;
     }

@@ -9,7 +9,11 @@ const props = defineProps<{
     timerColor: string;
 }>();
 
-const isImpostor = computed(() => props.myUserId === props.impostorData.impostorId);
+const isImpostor = computed(() => props.impostorData.impostorIds.includes(props.myUserId));
+const allies = computed(() => {
+    if (!isImpostor.value) return 0;
+    return props.impostorData.impostorIds.length - 1;
+});
 </script>
 
 <template>
@@ -24,7 +28,7 @@ const isImpostor = computed(() => props.myUserId === props.impostorData.impostor
             
             <h1 class="text-5xl md:text-7xl font-black uppercase tracking-tighter drop-shadow-2xl"
                 :class="isImpostor ? 'text-red-500 [text-shadow:0_0_30px_rgba(239,68,68,0.8)]' : 'text-cyan-400 [text-shadow:0_0_30px_rgba(34,211,238,0.8)]'">
-                {{ isImpostor ? 'Eres el Impostor' : 'Eres un Tripulante' }}
+                {{ isImpostor ? (allies > 0 ? 'Son los Impostores' : 'Eres el Impostor') : 'Eres un Tripulante' }}
             </h1>
 
             <div class="bg-black/40 border border-white/10 p-6 rounded-xl backdrop-blur-xl mt-8">

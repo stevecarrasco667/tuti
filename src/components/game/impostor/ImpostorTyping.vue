@@ -17,9 +17,20 @@ const emit = defineEmits<{
 const inputWord = ref('');
 const hasSubmitted = ref(false);
 
+const isDead = computed(() => !props.impostorData.alivePlayers.includes(props.myUserId));
+const isImpostor = computed(() => props.impostorData.impostorIds.includes(props.myUserId));
+
+const impostorAllies = computed(() => {
+    if (!isImpostor.value) return [];
+    const myId = props.myUserId;
+    return props.impostorData.impostorIds
+        .filter(id => id !== myId)
+        .map(id => props.players.find(p => p.id === id)?.name || 'Desconocido');
+});
+
 const isLocked = computed(() => {
-    // UX Locking rule: if time is 0 or less, disable immediately
-    return props.timeRemaining <= 0 || hasSubmitted.value;
+    // UX Locking rule: if time is 0 or less, disable immediately, or if dead
+    return props.timeRemaining <= 0 || hasSubmitted.value || isDead.value;
 });
 
 const submitWord = () => {
@@ -56,22 +67,37 @@ const hasPlayerTypingCompleted = (playerId: string) => {
             </div>
         </div>
 
+        <!-- BANNER DE FANTASMA -->
+        <div v-if="isDead" class="w-full max-w-4xl mb-6 bg-slate-900/80 border border-slate-500/30 rounded-2xl px-6 py-4 backdrop-blur-md flex items-center justify-center gap-3">
+            <span class="text-3xl animate-bounce">💀</span>
+            <div class="text-center">
+                <span class="text-slate-300 font-black text-sm uppercase tracking-widest block">Eres un Fantasma</span>
+                <span class="text-slate-400 text-xs text-left">Observa el caos. Tus acciones ya no afectan este mundo.</span>
+            </div>
+        </div>
+
         <!-- HUD DE IDENTIDAD -->
-        <div class="w-full max-w-4xl mb-8 px-2">
-            <div v-if="myUserId === impostorData.impostorId"
-                 class="bg-red-950/60 border border-red-500/30 rounded-2xl px-6 py-3 backdrop-blur-md flex items-center gap-3 shadow-[0_0_20px_rgba(239,68,68,0.15)]">
-                <span class="text-2xl">⚠️</span>
-                <div>
-                    <span class="text-red-400 font-black text-sm uppercase tracking-widest">Eres el Impostor</span>
-                    <span class="text-white/70 text-sm ml-2">Categoría: <strong class="text-red-300">{{ impostorData.secretCategory }}</strong></span>
+        <div class="w-full max-w-4xl mb-8 px-2 transition-opacity duration-500" :class="{ 'opacity-50 grayscale pointer-events-none': isDead }">
+            <div v-if="isImpostor"
+                 class="bg-red-950/60 border border-red-500/30 rounded-2xl px-6 py-3 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_0_20px_rgba(239,68,68,0.15)]">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">⚠️</span>
+                    <div>
+                        <span class="text-red-400 font-black text-sm uppercase tracking-widest block text-left">Eres Impostor</span>
+                        <span class="text-white/70 text-sm ml-2" v-if="!isDead">Categoría: <strong class="text-red-300">{{ impostorData.secretCategory }}</strong></span>
+                    </div>
+                </div>
+                <div v-if="impostorAllies.length > 0" class="flex flex-col items-end">
+                    <span class="text-red-500/80 text-[10px] uppercase font-black tracking-widest">Tus Aliados:</span>
+                    <span class="text-red-300 font-bold text-sm">{{ impostorAllies.join(', ') }}</span>
                 </div>
             </div>
             <div v-else
                  class="bg-cyan-950/40 border border-cyan-500/20 rounded-2xl px-6 py-3 backdrop-blur-md flex items-center gap-3 shadow-[0_0_20px_rgba(6,182,212,0.1)]">
                 <span class="text-2xl">💡</span>
                 <div>
-                    <span class="text-cyan-400 font-black text-sm uppercase tracking-widest">Eres Tripulante</span>
-                    <span class="text-white/70 text-sm ml-2">La palabra es: <strong class="text-cyan-300">{{ impostorData.secretWord }}</strong></span>
+                    <span class="text-cyan-400 font-black text-sm uppercase tracking-widest text-left block">Eres Tripulante</span>
+                    <span class="text-white/70 text-sm ml-2" v-if="!isDead">La palabra es: <strong class="text-cyan-300">{{ impostorData.secretWord }}</strong></span>
                 </div>
             </div>
         </div>
