@@ -47,7 +47,11 @@ const gameState = ref<RoomState>({
         resultsEndsAt: null
     },
     stoppedBy: null,
-    gameOverReason: undefined
+    gameOverReason: undefined,
+    uiMetadata: {
+        activeView: 'LOBBY',
+        showTimer: false
+    }
 });
 
 export function useGame() {
@@ -354,7 +358,11 @@ export function useGame() {
                 resultsEndsAt: null
             },
             stoppedBy: null,
-            gameOverReason: undefined
+            gameOverReason: undefined,
+            uiMetadata: {
+                activeView: 'LOBBY',
+                showTimer: false
+            }
         };
 
         // 4. Clear URL
