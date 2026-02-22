@@ -92,6 +92,11 @@ export interface RoomState {
     };
     stoppedBy: string | null;
     gameOverReason?: 'NORMAL' | 'ABANDONED';
+    // Frontend Agnosticism
+    uiMetadata: {
+        activeView: 'LOBBY' | 'GAME' | 'GAME_OVER';
+        showTimer: boolean;
+    };
 }
 
 // [Phoenix Lobby] Lightweight snapshot for lobby list

@@ -41,7 +41,7 @@ export function useGameEffects(
             targetTime = gameState.value.timers.votingEndsAt;
         }
 
-        if (targetTime) {
+        if (gameState.value?.uiMetadata?.showTimer && targetTime) {
             const remaining = Math.max(0, Math.ceil((targetTime - now) / 1000));
             timeRemaining.value = remaining;
 
@@ -61,8 +61,7 @@ export function useGameEffects(
 
         updateTimer();
 
-        const activeTimerStates = ['PLAYING', 'REVIEW', 'RESULTS', 'ROLE_REVEAL', 'TYPING', 'VOTING'];
-        if (activeTimerStates.includes(gameState.value.status)) {
+        if (gameState.value?.uiMetadata?.showTimer) {
             timerInterval = setInterval(updateTimer, 1000);
         }
     }, { immediate: true, deep: true });
