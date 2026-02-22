@@ -22,23 +22,14 @@ export function useGameEffects(
 
     const updateTimer = () => {
         const now = Date.now();
-        const status = gameState.value.status;
+        const ui = gameState.value.uiMetadata;
         let targetTime: number | null = null;
 
-        // Classic mode timers
-        if (status === 'PLAYING' && gameState.value.timers.roundEndsAt) {
-            targetTime = gameState.value.timers.roundEndsAt;
-        } else if (status === 'REVIEW' && gameState.value.timers.votingEndsAt) {
-            targetTime = gameState.value.timers.votingEndsAt;
-        } else if (status === 'RESULTS' && gameState.value.timers.resultsEndsAt) {
-            targetTime = gameState.value.timers.resultsEndsAt;
-            // Impostor mode timers
-        } else if (status === 'ROLE_REVEAL' && gameState.value.timers.roundEndsAt) {
-            targetTime = gameState.value.timers.roundEndsAt;
-        } else if (status === 'TYPING' && gameState.value.timers.roundEndsAt) {
-            targetTime = gameState.value.timers.roundEndsAt;
-        } else if (status === 'VOTING' && gameState.value.timers.votingEndsAt) {
-            targetTime = gameState.value.timers.votingEndsAt;
+        if (ui?.showTimer) {
+            // Pick any active timer from the state
+            targetTime = gameState.value.timers.roundEndsAt ||
+                gameState.value.timers.votingEndsAt ||
+                gameState.value.timers.resultsEndsAt;
         }
 
         if (targetTime) {
@@ -54,15 +45,14 @@ export function useGameEffects(
         }
     };
 
-    watch(() => [gameState.value.status, gameState.value.timers], () => {
+    watch(() => [gameState.value?.uiMetadata, gameState.value?.timers], () => {
         if (timerInterval) {
             clearInterval(timerInterval);
         }
 
         updateTimer();
 
-        const activeTimerStates = ['PLAYING', 'REVIEW', 'RESULTS', 'ROLE_REVEAL', 'TYPING', 'VOTING'];
-        if (activeTimerStates.includes(gameState.value.status)) {
+        if (gameState.value?.uiMetadata?.showTimer) {
             timerInterval = setInterval(updateTimer, 1000);
         }
     }, { immediate: true, deep: true });

@@ -39,6 +39,7 @@ export class ImpostorEngine extends BaseEngine {
                 resultsEndsAt: null
             },
             stoppedBy: null,
+            uiMetadata: { activeView: 'LOBBY', showTimer: false }
         };
     }
 
@@ -203,6 +204,7 @@ export class ImpostorEngine extends BaseEngine {
         };
 
         this.state.status = 'ROLE_REVEAL';
+        this.syncUIMetadata();
         this.state.timers.roundEndsAt = Date.now() + 10000;
 
         this.clearTimer();
@@ -212,6 +214,7 @@ export class ImpostorEngine extends BaseEngine {
     private handleRoleRevealTimeUp() {
         if (this.state.status !== 'ROLE_REVEAL') return;
         this.state.status = 'TYPING';
+        this.syncUIMetadata();
         const typingMs = this.state.config.impostor.typingTime * 1000;
         this.state.timers.roundEndsAt = Date.now() + typingMs;
 
@@ -226,6 +229,7 @@ export class ImpostorEngine extends BaseEngine {
     private handleTypingTimeUp() {
         if (this.state.status !== 'TYPING') return;
         this.state.status = 'VOTING';
+        this.syncUIMetadata();
         this.state.timers.roundEndsAt = null;
         const votingMs = this.state.config.impostor.votingTime * 1000;
         this.state.timers.votingEndsAt = Date.now() + votingMs;
@@ -244,6 +248,7 @@ export class ImpostorEngine extends BaseEngine {
         this.calculateResults();
 
         this.state.status = 'RESULTS';
+        this.syncUIMetadata();
         this.state.timers.resultsEndsAt = Date.now() + 10000;
 
         if (this.onGameStateChange) {
@@ -272,6 +277,7 @@ export class ImpostorEngine extends BaseEngine {
             } else {
                 // Game Over — DO NOT delete impostorData (Vue needs it for final screen)
                 this.state.status = 'GAME_OVER';
+                this.syncUIMetadata();
                 this.state.gameOverReason = 'NORMAL';
             }
         } else {
@@ -283,6 +289,7 @@ export class ImpostorEngine extends BaseEngine {
                 this.state.impostorData.cycleResult = undefined;
             }
             this.state.status = 'TYPING';
+            this.syncUIMetadata();
             const typingMs = this.state.config.impostor.typingTime * 1000;
             this.state.timers.roundEndsAt = Date.now() + typingMs;
             this.currentTimer = setTimeout(() => this.handleTypingTimeUp(), typingMs);
@@ -377,6 +384,7 @@ export class ImpostorEngine extends BaseEngine {
     public restartGame(_requestorId: string): RoomState {
         this.clearTimer();
         this.state.status = 'LOBBY';
+        this.syncUIMetadata();
         this.state.impostorData = undefined;
         this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null };
         this.state.stoppedBy = null;
@@ -473,6 +481,20 @@ export class ImpostorEngine extends BaseEngine {
             changed = true;
         }
 
+        if (changed) {
+            this.syncUIMetadata();
+        }
         return changed;
+    }
+
+    private syncUIMetadata() {
+        if (this.state.status === 'LOBBY') {
+            this.state.uiMetadata = { activeView: 'LOBBY', showTimer: false };
+        } else if (this.state.status === 'GAME_OVER') {
+            this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false };
+        } else {
+            // ROLE_REVEAL, TYPING, VOTING, RESULTS
+            this.state.uiMetadata = { activeView: 'GAME', showTimer: true };
+        }
     }
 }

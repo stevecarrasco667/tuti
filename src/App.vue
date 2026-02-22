@@ -24,22 +24,16 @@ const handleNavigate = (view: 'HOME' | 'LOBBY' | 'GAME' | 'GAME_OVER') => {
 
 // Auto-switch views based on game state changes
 watch(
-    () => [gameState.value.status, gameState.value.roomId] as const,
-    ([newStatus, newRoomId]) => {
+    () => [gameState.value?.uiMetadata, gameState.value?.roomId] as const,
+    ([uiMetadata, newRoomId]) => {
         // GUARDIA: Si no hay sala, cualquier status → HOME (previene bucle de salida)
         if (!newRoomId) {
             currentView.value = 'HOME';
             return;
         }
 
-        // Transiciones normales y reconexiones (solo con roomId válido)
-        const gameStates = ['PLAYING', 'REVIEW', 'ROLE_REVEAL', 'TYPING', 'VOTING', 'RESULTS'];
-        if (gameStates.includes(newStatus)) {
-            currentView.value = 'GAME';
-        } else if (newStatus === 'LOBBY') {
-            currentView.value = 'LOBBY';
-        } else if (newStatus === 'GAME_OVER') {
-            currentView.value = 'GAME_OVER';
+        if (uiMetadata) {
+            currentView.value = uiMetadata.activeView;
         }
     }
 );

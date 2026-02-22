@@ -51,6 +51,7 @@ export class TutiEngine extends BaseEngine {
                 resultsEndsAt: null
             },
             stoppedBy: null,
+            uiMetadata: { activeView: 'LOBBY', showTimer: false }
         };
     }
 
@@ -138,6 +139,7 @@ export class TutiEngine extends BaseEngine {
                 console.log(`[GAME OVER] Not enough players (Active+Zombie) to continue.`);
                 this.state.status = 'GAME_OVER';
                 this.state.gameOverReason = 'ABANDONED';
+                this.syncUIMetadata();
 
                 this.rounds.cancelTimer();
                 this.state.timers.roundEndsAt = null;
@@ -171,6 +173,7 @@ export class TutiEngine extends BaseEngine {
                 console.log(`[GAME OVER] Abandonment (Exited).`);
                 this.state.status = 'GAME_OVER';
                 this.state.gameOverReason = 'ABANDONED';
+                this.syncUIMetadata();
 
                 this.rounds.cancelTimer();
                 this.state.timers.roundEndsAt = null;
@@ -205,6 +208,7 @@ export class TutiEngine extends BaseEngine {
             console.log(`[GAME OVER] Abandonment after Zombie Purge.`);
             this.state.status = 'GAME_OVER';
             this.state.gameOverReason = 'ABANDONED';
+            this.syncUIMetadata();
 
             this.rounds.cancelTimer();
 
@@ -283,6 +287,7 @@ export class TutiEngine extends BaseEngine {
             this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
         }
 
+        this.syncUIMetadata();
         return this.state;
     }
 
@@ -321,6 +326,7 @@ export class TutiEngine extends BaseEngine {
             this.injectAutomatedVotes();
         }
 
+        this.syncUIMetadata();
         return this.state;
     }
 
@@ -352,6 +358,7 @@ export class TutiEngine extends BaseEngine {
         this.state.timers.resultsEndsAt = null;
         this.state.stoppedBy = null;
 
+        this.syncUIMetadata();
         return this.state;
     }
 
@@ -399,6 +406,7 @@ export class TutiEngine extends BaseEngine {
 
         if (this.voting.confirmVotes(this.state, userId)) {
             this.calculateResults();
+            this.syncUIMetadata();
         }
 
         return this.state;
@@ -426,6 +434,18 @@ export class TutiEngine extends BaseEngine {
 
     private calculateResults() {
         this.scoreSystem.calculate(this.state);
+        this.syncUIMetadata();
+    }
+
+    private syncUIMetadata() {
+        if (this.state.status === 'LOBBY') {
+            this.state.uiMetadata = { activeView: 'LOBBY', showTimer: false };
+        } else if (this.state.status === 'GAME_OVER') {
+            this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false };
+        } else {
+            // PLAYING, REVIEW, RESULTS
+            this.state.uiMetadata = { activeView: 'GAME', showTimer: true };
+        }
     }
 
     // --- HELPER LOGIC ---
@@ -486,6 +506,9 @@ export class TutiEngine extends BaseEngine {
             changed = true;
         }
 
+        if (changed) {
+            this.syncUIMetadata();
+        }
         return changed;
     }
 }
