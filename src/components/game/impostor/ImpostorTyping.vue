@@ -49,6 +49,11 @@ const hasPlayerTypingCompleted = (playerId: string) => {
     // This object has { "uuid": "***", "myUuid": "myword" }
     return props.impostorData.words && props.impostorData.words[playerId] !== undefined;
 };
+
+const isPlayerDead = (playerId: string) => {
+    if (!props.impostorData) return false;
+    return !props.impostorData.alivePlayers.includes(playerId);
+};
 </script>
 
 <template>
@@ -141,14 +146,21 @@ const hasPlayerTypingCompleted = (playerId: string) => {
             <h3 class="text-xs uppercase tracking-[0.2em] text-slate-500 font-bold text-center mb-6">Estado de la Tripulación</h3>
             
             <div class="flex flex-wrap justify-center gap-6">
-                <div v-for="player in activePlayers" :key="player.id" class="flex flex-col items-center relative">
-                    <div class="w-14 h-14 rounded-full bg-gradient-to-b from-indigo-500 to-indigo-700 border-2 border-white/20 flex items-center justify-center text-2xl shadow-xl relative z-10 ring-2 ring-white/10">
+                <div v-for="player in activePlayers" :key="player.id" 
+                     class="flex flex-col items-center relative transition-all duration-300"
+                     :class="{ 'opacity-40 grayscale pointer-events-none': isPlayerDead(player.id) }">
+                    <div class="w-14 h-14 rounded-full bg-gradient-to-b from-indigo-500 to-indigo-700 border-2 border-white/20 flex items-center justify-center text-2xl shadow-xl relative z-10 ring-2 ring-white/10 overflow-hidden">
                         {{ player.avatar || '👤' }}
+                        
+                        <!-- Ícono de Calavera para muertos -->
+                        <div v-if="isPlayerDead(player.id)" class="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[1px]">
+                            <span class="text-2xl drop-shadow-md">💀</span>
+                        </div>
                     </div>
                     <span class="text-xs text-white/50 mt-2 font-medium max-w-[80px] truncate">{{ player.id === myUserId ? 'Tú' : player.name }}</span>
                     
                     <!-- Checkmark Badge for submitted word -->
-                    <div v-if="hasPlayerTypingCompleted(player.id)" 
+                    <div v-if="!isPlayerDead(player.id) && hasPlayerTypingCompleted(player.id)" 
                          class="absolute -top-2 -right-2 bg-green-500 text-black w-6 h-6 rounded-full flex items-center justify-center ring-2 ring-black shadow-[0_0_10px_rgba(34,197,94,0.6)] z-10 scale-in">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
                           <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />

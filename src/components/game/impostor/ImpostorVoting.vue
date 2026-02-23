@@ -168,8 +168,8 @@ const suspects = computed(() => {
                     </div>
 
                     <!-- Indicador MUERTO adicional si es pertinente (opcional, aunque con la opacidad bajada se entiende) -->
-                    <div v-if="s.isPlayerDead" class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 mix-blend-overlay">
-                        <span class="text-4xl">❌</span>
+                    <div v-if="s.isPlayerDead" class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 mix-blend-overlay text-shadow-xl bg-black/20">
+                        <span class="text-4xl drop-shadow-[0_0_8px_rgba(0,0,0,0.8)]">💀</span>
                     </div>
                 </div>
             </div>
