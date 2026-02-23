@@ -5,8 +5,8 @@ import ImpostorReveal from './ImpostorReveal.vue';
 import ImpostorTyping from './ImpostorTyping.vue';
 import ImpostorVoting from './ImpostorVoting.vue';
 import ImpostorResults from './ImpostorResults.vue';
-import ChatWidget from '../chat/ChatWidget.vue';
-import MobileChatDrawer from '../chat/MobileChatDrawer.vue';
+import ChatWidget from '../../chat/ChatWidget.vue';
+import MobileChatDrawer from '../../chat/MobileChatDrawer.vue';
 
 const props = defineProps<{
     gameState: RoomState;
