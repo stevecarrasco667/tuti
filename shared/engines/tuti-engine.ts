@@ -28,6 +28,7 @@ export class TutiEngine extends BaseEngine {
     constructor(roomId: string, private onGameStateChange?: (state: RoomState) => void) {
         super();
         this.state = {
+            stateVersion: 0,
             status: 'LOBBY',
             roomId: roomId,
             players: [],
@@ -52,7 +53,8 @@ export class TutiEngine extends BaseEngine {
             stoppedBy: null,
             uiMetadata: {
                 activeView: 'LOBBY',
-                showTimer: false
+                showTimer: false,
+                targetTime: null
             }
         };
     }
@@ -141,7 +143,7 @@ export class TutiEngine extends BaseEngine {
                 console.log(`[GAME OVER] Not enough players (Active+Zombie) to continue.`);
                 this.state.status = 'GAME_OVER';
                 this.state.gameOverReason = 'ABANDONED';
-                this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false };
+                this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
 
                 this.rounds.cancelTimer();
                 this.state.timers.roundEndsAt = null;
@@ -175,7 +177,7 @@ export class TutiEngine extends BaseEngine {
                 console.log(`[GAME OVER] Abandonment (Exited).`);
                 this.state.status = 'GAME_OVER';
                 this.state.gameOverReason = 'ABANDONED';
-                this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false };
+                this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
 
                 this.rounds.cancelTimer();
                 this.state.timers.roundEndsAt = null;
@@ -210,7 +212,7 @@ export class TutiEngine extends BaseEngine {
             console.log(`[GAME OVER] Abandonment after Zombie Purge.`);
             this.state.status = 'GAME_OVER';
             this.state.gameOverReason = 'ABANDONED';
-            this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false };
+            this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
 
             this.rounds.cancelTimer();
 
@@ -263,10 +265,10 @@ export class TutiEngine extends BaseEngine {
 
             const continueGame = this.rounds.nextRound(this.state, this.state.config);
             if (continueGame) {
-                this.state.uiMetadata = { activeView: 'GAME', showTimer: true };
                 this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
+                this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
             } else {
-                this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false };
+                this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
             }
             return this.state;
         }
@@ -289,8 +291,8 @@ export class TutiEngine extends BaseEngine {
                 this.state.categories = shuffled.slice(0, 5).map(c => c.name);
             }
 
-            this.state.uiMetadata = { activeView: 'GAME', showTimer: true };
             this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
+            this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
         }
 
         return this.state;
@@ -344,7 +346,7 @@ export class TutiEngine extends BaseEngine {
         }
 
         this.state.status = 'LOBBY';
-        this.state.uiMetadata = { activeView: 'LOBBY', showTimer: false };
+        this.state.uiMetadata = { activeView: 'LOBBY', showTimer: false, targetTime: null };
         this.state.roundsPlayed = 0;
         this.state.currentLetter = null;
         this.state.categories = [];
@@ -438,9 +440,11 @@ export class TutiEngine extends BaseEngine {
     private calculateResults() {
         this.scoreSystem.calculate(this.state);
         if (this.state.status === 'GAME_OVER') {
-            this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false };
+            this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
         } else {
-            this.state.uiMetadata = { activeView: 'GAME', showTimer: true };
+            // In RESULTS phase, the round-manager sets RESULTS and assigns resultsEndsAt inside checkConsensus,
+            // then calls calculateResults().
+            this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.resultsEndsAt };
         }
     }
 

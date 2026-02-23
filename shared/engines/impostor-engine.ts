@@ -20,6 +20,7 @@ export class ImpostorEngine extends BaseEngine {
         super();
         this.onGameStateChange = onGameStateChange;
         this.state = {
+            stateVersion: 0,
             status: 'LOBBY',
             roomId: roomId,
             players: [],
@@ -41,7 +42,8 @@ export class ImpostorEngine extends BaseEngine {
             stoppedBy: null,
             uiMetadata: {
                 activeView: 'LOBBY',
-                showTimer: false
+                showTimer: false,
+                targetTime: null
             }
         };
     }
@@ -207,8 +209,8 @@ export class ImpostorEngine extends BaseEngine {
         };
 
         this.state.status = 'ROLE_REVEAL';
-        this.state.uiMetadata = { activeView: 'GAME', showTimer: true };
         this.state.timers.roundEndsAt = Date.now() + 10000;
+        this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
 
         this.clearTimer();
         this.currentTimer = setTimeout(() => this.handleRoleRevealTimeUp(), 10000);
@@ -217,9 +219,9 @@ export class ImpostorEngine extends BaseEngine {
     private handleRoleRevealTimeUp() {
         if (this.state.status !== 'ROLE_REVEAL') return;
         this.state.status = 'TYPING';
-        this.state.uiMetadata = { activeView: 'GAME', showTimer: true };
         const typingMs = this.state.config.impostor.typingTime * 1000;
         this.state.timers.roundEndsAt = Date.now() + typingMs;
+        this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
 
         if (this.onGameStateChange) {
             this.onGameStateChange(this.state);
@@ -232,10 +234,10 @@ export class ImpostorEngine extends BaseEngine {
     private handleTypingTimeUp() {
         if (this.state.status !== 'TYPING') return;
         this.state.status = 'VOTING';
-        this.state.uiMetadata = { activeView: 'GAME', showTimer: true };
         this.state.timers.roundEndsAt = null;
         const votingMs = this.state.config.impostor.votingTime * 1000;
         this.state.timers.votingEndsAt = Date.now() + votingMs;
+        this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.votingEndsAt };
 
         if (this.onGameStateChange) {
             this.onGameStateChange(this.state);
@@ -251,8 +253,8 @@ export class ImpostorEngine extends BaseEngine {
         this.calculateResults();
 
         this.state.status = 'RESULTS';
-        this.state.uiMetadata = { activeView: 'GAME', showTimer: true };
         this.state.timers.resultsEndsAt = Date.now() + 10000;
+        this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.resultsEndsAt };
 
         if (this.onGameStateChange) {
             this.onGameStateChange(this.state);
@@ -281,7 +283,7 @@ export class ImpostorEngine extends BaseEngine {
                 // Game Over — DO NOT delete impostorData (Vue needs it for final screen)
                 this.state.status = 'GAME_OVER';
                 this.state.gameOverReason = 'NORMAL';
-                this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false };
+                this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
             }
         } else {
             // Ciclo terminó en empate o eliminación parcial, el juego continúa
@@ -292,9 +294,9 @@ export class ImpostorEngine extends BaseEngine {
                 this.state.impostorData.cycleResult = undefined;
             }
             this.state.status = 'TYPING';
-            this.state.uiMetadata = { activeView: 'GAME', showTimer: true };
             const typingMs = this.state.config.impostor.typingTime * 1000;
             this.state.timers.roundEndsAt = Date.now() + typingMs;
+            this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
             this.currentTimer = setTimeout(() => this.handleTypingTimeUp(), typingMs);
         }
 
@@ -387,7 +389,7 @@ export class ImpostorEngine extends BaseEngine {
     public restartGame(_requestorId: string): RoomState {
         this.clearTimer();
         this.state.status = 'LOBBY';
-        this.state.uiMetadata = { activeView: 'LOBBY', showTimer: false };
+        this.state.uiMetadata = { activeView: 'LOBBY', showTimer: false, targetTime: null };
         this.state.impostorData = undefined;
         this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null };
         this.state.stoppedBy = null;

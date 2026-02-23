@@ -52,6 +52,7 @@ export const ImpostorDataSchema = z.object({
 });
 
 export const RoomStateSchema = z.object({
+    stateVersion: z.number(),
     status: GameStatusSchema,
     players: z.array(PlayerSchema),
     spectators: z.array(PlayerSchema).default([]),  // [Phoenix] Late joiners
@@ -74,7 +75,8 @@ export const RoomStateSchema = z.object({
     }),
     uiMetadata: z.object({
         activeView: z.enum(['LOBBY', 'GAME', 'GAME_OVER']),
-        showTimer: z.boolean()
+        showTimer: z.boolean(),
+        targetTime: z.number().nullable()
     })
 });
 
@@ -153,3 +155,38 @@ export const KickPlayerSchema = z.object({
         targetUserId: z.string()
     })
 });
+
+export const StartGameSchema = z.object({
+    type: z.literal(EVENTS.START_GAME)
+});
+
+export const ExitGameSchema = z.object({
+    type: z.literal(EVENTS.EXIT_GAME)
+});
+
+export const RequestFullSyncSchema = z.object({
+    type: z.literal(EVENTS.REQUEST_FULL_SYNC)
+});
+
+export const ChatSendSchema = z.object({
+    type: z.literal(EVENTS.CHAT_SEND),
+    payload: z.object({
+        text: z.string().min(1).max(250)
+    })
+});
+
+export const ClientMessageSchema = z.discriminatedUnion('type', [
+    JoinRoomSchema,
+    StartGameSchema,
+    StopRoundSchema,
+    SubmitAnswersSchema,
+    UpdateAnswersSchema,
+    ToggleVoteSchema,
+    ConfirmVotesSchema,
+    UpdateConfigSchema,
+    RestartGameSchema,
+    KickPlayerSchema,
+    ExitGameSchema,
+    RequestFullSyncSchema,
+    ChatSendSchema
+]);

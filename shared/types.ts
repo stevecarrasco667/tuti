@@ -69,6 +69,7 @@ export interface ImpostorData {
 }
 
 export interface RoomState {
+    stateVersion: number; // Integrity vector
     status: GameStatus;
     players: Player[];
     spectators: Player[];  // [Phoenix] Late joiners waiting for next round
@@ -92,10 +93,10 @@ export interface RoomState {
     };
     stoppedBy: string | null;
     gameOverReason?: 'NORMAL' | 'ABANDONED';
-    // Frontend Agnosticism
     uiMetadata: {
         activeView: 'LOBBY' | 'GAME' | 'GAME_OVER';
         showTimer: boolean;
+        targetTime: number | null;
     };
 }
 
@@ -117,12 +118,13 @@ export type ClientMessage =
     | { type: typeof EVENTS.RESTART_GAME }
     | { type: typeof EVENTS.KICK_PLAYER; payload: { targetUserId: string } }
     | { type: typeof EVENTS.EXIT_GAME }
+    | { type: typeof EVENTS.REQUEST_FULL_SYNC }
     | { type: typeof EVENTS.CHAT_SEND; payload: { text: string } };
 
 // Messages sent from Server to Client
 export type ServerMessage =
     | { type: typeof EVENTS.UPDATE_STATE; payload: RoomState }
-    | { type: typeof EVENTS.PATCH_STATE; payload: any[] } // [Phoenix] Delta Sync
+    | { type: typeof EVENTS.PATCH_STATE; payload: { stateVersion: number, patches: any[] } } // [Phoenix] Checked Delta Sync
     | { type: typeof EVENTS.AUTH_GRANTED; payload: { userId: string; sessionToken: string } } // [Phoenix] Anti-Spoofing
     | { type: typeof EVENTS.RIVAL_UPDATE; payload: { playerId: string; filledCount: number } }
     | { type: typeof EVENTS.SYSTEM_MESSAGE; payload: string }

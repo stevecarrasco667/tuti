@@ -8,6 +8,7 @@ import { applyPatch } from 'fast-json-patch';
 // Global state to persist across component mounts if needed
 const gameState = ref<RoomState>({
     // ... initial state
+    stateVersion: 0,
     status: 'LOBBY',
     players: [],
     spectators: [],
@@ -50,7 +51,8 @@ const gameState = ref<RoomState>({
     gameOverReason: undefined,
     uiMetadata: {
         activeView: 'LOBBY',
-        showTimer: false
+        showTimer: false,
+        targetTime: null
     }
 });
 
@@ -80,8 +82,23 @@ export function useGame() {
                     isStopping.value = false;
                 }
             } else if (parsed.type === EVENTS.PATCH_STATE) {
-                // [Phoenix] Delta Sync
-                applyPatch(gameState.value, parsed.payload);
+                // [Refactor C] Checked Delta Sync (Zero-Trust Integrity)
+                const { stateVersion, patches } = parsed.payload;
+
+                if (stateVersion === gameState.value.stateVersion + 1) {
+                    // Secuencia perfecta: aplicar parche
+                    applyPatch(gameState.value, patches);
+                    gameState.value.stateVersion = stateVersion; // Safety net enforce
+                } else if (stateVersion > gameState.value.stateVersion + 1) {
+                    // Paquete perdido o salto asíncrono. Curar estado forzosamente.
+                    console.warn(`[Red] Desfase Crítico (Local: ${gameState.value.stateVersion} vs Requerido: ${stateVersion}). Solicitando FULL SYNC...`);
+                    if (socket.value && socket.value.readyState === WebSocket.OPEN) {
+                        socket.value.send(JSON.stringify({ type: EVENTS.REQUEST_FULL_SYNC }));
+                    }
+                } else {
+                    // Paquetes viejos/retrasados: Drop silencioso.
+                    console.debug(`[Red] Ignorando parche obsoleto: ${stateVersion}`);
+                }
 
                 // [SAFETY NET] Deduplicate players array after patch application
                 // Prevents ghost players if baselines desync between server and client
@@ -319,6 +336,7 @@ export function useGame() {
 
         // 3. Reset state to initial
         gameState.value = {
+            stateVersion: 0,
             status: 'LOBBY',
             players: [],
             spectators: [],
@@ -361,7 +379,8 @@ export function useGame() {
             gameOverReason: undefined,
             uiMetadata: {
                 activeView: 'LOBBY',
-                showTimer: false
+                showTimer: false,
+                targetTime: null
             }
         };
 

@@ -22,24 +22,7 @@ export function useGameEffects(
 
     const updateTimer = () => {
         const now = Date.now();
-        const status = gameState.value.status;
-        let targetTime: number | null = null;
-
-        // Classic mode timers
-        if (status === 'PLAYING' && gameState.value.timers.roundEndsAt) {
-            targetTime = gameState.value.timers.roundEndsAt;
-        } else if (status === 'REVIEW' && gameState.value.timers.votingEndsAt) {
-            targetTime = gameState.value.timers.votingEndsAt;
-        } else if (status === 'RESULTS' && gameState.value.timers.resultsEndsAt) {
-            targetTime = gameState.value.timers.resultsEndsAt;
-            // Impostor mode timers
-        } else if (status === 'ROLE_REVEAL' && gameState.value.timers.roundEndsAt) {
-            targetTime = gameState.value.timers.roundEndsAt;
-        } else if (status === 'TYPING' && gameState.value.timers.roundEndsAt) {
-            targetTime = gameState.value.timers.roundEndsAt;
-        } else if (status === 'VOTING' && gameState.value.timers.votingEndsAt) {
-            targetTime = gameState.value.timers.votingEndsAt;
-        }
+        const targetTime = gameState.value?.uiMetadata?.targetTime;
 
         if (gameState.value?.uiMetadata?.showTimer && targetTime) {
             const remaining = Math.max(0, Math.ceil((targetTime - now) / 1000));

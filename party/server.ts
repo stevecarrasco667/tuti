@@ -3,6 +3,7 @@ import { BaseEngine } from "../shared/engines/base-engine.js";
 import { TutiEngine } from "../shared/engines/tuti-engine.js";
 import { ImpostorEngine } from "../shared/engines/impostor-engine.js";
 import { RoomState, RoomSnapshot } from "../shared/types.js";
+import { ClientMessageSchema } from "../shared/schemas.js";
 import { DictionaryManager } from "../shared/dictionaries/manager";
 import { EVENTS, APP_VERSION } from "../shared/consts.js";
 import { logger } from "../shared/utils/logger";
@@ -157,6 +158,9 @@ export default class Server implements Party.Server {
      * and send personalized JSON Patches via engine.getClientState(userId).
      */
     private broadcastStateDelta(_newState: RoomState) {
+        // [Refactor C] - Versionado Estricto: Avanzar vector de integridad siempre que se emite.
+        this.engine.getState().stateVersion++;
+
         for (const conn of this.room.getConnections()) {
             const userId = (conn.state as any)?.userId || conn.id;
             const clientState = this.engine.getClientState(userId);
@@ -170,7 +174,10 @@ export default class Server implements Party.Server {
                 if (patches.length > 0) {
                     conn.send(JSON.stringify({
                         type: EVENTS.PATCH_STATE,
-                        payload: patches
+                        payload: {
+                            stateVersion: clientState.stateVersion,
+                            patches: patches
+                        }
                     }));
                 }
             }
@@ -256,8 +263,30 @@ export default class Server implements Party.Server {
 
     async onMessage(message: string, sender: Party.Connection) {
         try {
-            const data = JSON.parse(message);
-            const { type, payload } = data;
+            // [ZOD SHIELD] - Zero-Trust Network Validation
+            const rawData = JSON.parse(message);
+
+            // Bypass PONG heartbeats locally to prevent zod bloat on pings
+            if (rawData.type === 'PONG') return;
+
+            // [Phoenix CDN] Admin: Force reload dictionaries
+            if (rawData.type === EVENTS.ADMIN_RELOAD_DICTS) {
+                await DictionaryManager.hydrate(true);
+                const adminUserId = (sender.state as any)?.userId || sender.id;
+                logger.info('ADMIN_FORCED_DICTIONARY_RELOAD', { roomId: this.room.id, userId: adminUserId });
+                return;
+            }
+
+            const result = ClientMessageSchema.safeParse(rawData);
+
+            if (!result.success) {
+                logger.warn('ZERO_TRUST_DROP', { sender: sender.id, type: rawData.type, error: result.error.message });
+                return;
+            }
+
+            const messageContext = result.data;
+            const type = messageContext.type;
+            const payload = 'payload' in messageContext ? messageContext.payload : undefined;
 
             // 1. Recuperar identidad
             const state = sender.state as { userId: string } | null;
@@ -275,20 +304,20 @@ export default class Server implements Party.Server {
                     break;
 
                 case EVENTS.STOP_ROUND:
-                    await this.gameHandler.handleStopRound(payload, sender);
+                    await this.gameHandler.handleStopRound(payload as any, sender);
                     break;
 
                 case EVENTS.UPDATE_ANSWERS:
-                    await this.gameHandler.handleUpdateAnswers(payload, sender);
+                    await this.gameHandler.handleUpdateAnswers(payload as any, sender);
                     break;
 
                 case EVENTS.SUBMIT_ANSWERS:
-                    await this.gameHandler.handleSubmitAnswers(payload, sender);
+                    await this.gameHandler.handleSubmitAnswers(payload as any, sender);
                     break;
 
                 // --- Voting Logic ---
                 case EVENTS.TOGGLE_VOTE:
-                    await this.votingHandler.handleVote(payload, sender);
+                    await this.votingHandler.handleVote(payload as any, sender);
                     break;
 
                 case EVENTS.CONFIRM_VOTES:
@@ -298,7 +327,7 @@ export default class Server implements Party.Server {
                 // --- Admin Logic ---
                 case EVENTS.UPDATE_CONFIG: {
                     const oldMode = this.engine.getState().config.mode;
-                    await this.playerHandler.handleUpdateSettings(payload, sender);
+                    await this.playerHandler.handleUpdateSettings(payload as any, sender);
                     const newMode = this.engine.getState().config.mode;
 
                     if (oldMode !== newMode) {
@@ -320,12 +349,20 @@ export default class Server implements Party.Server {
                 }
 
                 case EVENTS.KICK_PLAYER:
-                    await this.playerHandler.handleKick(payload, sender);
+                    await this.playerHandler.handleKick(payload as any, sender);
                     break;
 
                 case EVENTS.EXIT_GAME:
                     this.connectionHandler.handleExitGame(sender);
                     break;
+
+                case EVENTS.REQUEST_FULL_SYNC: {
+                    const userId = (sender.state as any)?.userId || sender.id;
+                    const fullState = this.engine.getClientState(userId);
+                    sender.send(JSON.stringify({ type: EVENTS.UPDATE_STATE, payload: fullState }));
+                    this.previousStates.set(sender.id, JSON.parse(JSON.stringify(fullState)));
+                    break;
+                }
 
                 // --- CHAT SYSTEM (Phase 2.A + 2.E Security) ---
                 case EVENTS.CHAT_SEND: {
@@ -334,10 +371,8 @@ export default class Server implements Party.Server {
                         return;
                     }
 
-                    const rawText = (payload as { text?: string }).text;
-                    if (!rawText || typeof rawText !== 'string') return;
-
-                    // 2. Sanitization (The Filter)
+                    // 2. Guaranteed Zod Sanitization (The Filter)
+                    const rawText = (payload as any).text;
                     const trimmed = rawText.trim();
                     if (trimmed.length === 0) return;
                     const finalText = trimmed.slice(0, 140);
@@ -365,17 +400,6 @@ export default class Server implements Party.Server {
                         payload: chatMsg
                     }));
                     break;
-                }
-
-                case "PONG":
-                    return;
-
-                // [Phoenix CDN] Admin: Force reload dictionaries
-                case EVENTS.ADMIN_RELOAD_DICTS: {
-                    await DictionaryManager.hydrate(true);
-                    const adminUserId = (sender.state as any)?.userId || sender.id;
-                    logger.info('ADMIN_FORCED_DICTIONARY_RELOAD', { roomId: this.room.id, userId: adminUserId });
-                    return;
                 }
 
                 default:
