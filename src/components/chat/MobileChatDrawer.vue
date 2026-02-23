@@ -3,6 +3,10 @@ import { ref, watch } from 'vue';
 import { useChat } from '../../composables/useChat';
 import ChatWidget from './ChatWidget.vue';
 
+const props = defineProps<{
+    isDisabled?: boolean;
+}>();
+
 const isOpen = ref(false);
 const { unreadCount, resetUnread } = useChat();
 
@@ -71,7 +75,7 @@ const close = () => {
                 </div>
 
                 <!-- Chat Content -->
-                <ChatWidget class="flex-1 w-full" />
+                <ChatWidget class="flex-1 w-full" :is-disabled="isDisabled" />
             </div>
         </Transition>
     </div>

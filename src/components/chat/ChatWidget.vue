@@ -4,6 +4,10 @@ import { useChat } from '../../composables/useChat';
 import { useGame } from '../../composables/useGame';
 import ChatBubble from './ChatBubble.vue';
 
+const props = defineProps<{
+    isDisabled?: boolean;
+}>();
+
 const { messages, sendMessage, unreadCount, resetUnread } = useChat();
 const { myUserId } = useGame();
 
@@ -77,12 +81,14 @@ const handleFocus = () => {
             <input 
                 v-model="inputValue"
                 type="text" 
-                placeholder="Escribe un mensaje..." 
-                class="w-full bg-white/5 rounded-full px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-indigo-500/50 outline-none placeholder-white/20 transition-all border border-white/5 focus:bg-white/10"
+                :placeholder="isDisabled ? '👻 Los fantasmas no hablan...' : 'Escribe un mensaje...'" 
+                :disabled="isDisabled"
+                class="w-full bg-white/5 rounded-full px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all border border-white/5 focus:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                :class="isDisabled ? 'placeholder-red-300/50' : 'placeholder-white/20'"
                 @keydown.enter.prevent="handleSend"
                 @focus="handleFocus"
             />
-            <div class="text-[10px] text-white/20 mt-1.5 text-center">
+            <div class="text-[10px] text-white/20 mt-1.5 text-center" v-if="!isDisabled">
                 Presiona <span class="font-bold text-white/30">Enter</span> para enviar
             </div>
         </div>

@@ -12,6 +12,7 @@ import { ConnectionHandler } from "./handlers/connection";
 import { PlayerHandler } from "./handlers/player";
 import { GameHandler } from "./handlers/game";
 import { VotingHandler } from "./handlers/voting";
+import { ChatHandler } from "./handlers/chat";
 
 import { compare } from "fast-json-patch";
 
@@ -54,6 +55,7 @@ export default class Server implements Party.Server {
     playerHandler: PlayerHandler;
     gameHandler: GameHandler;
     votingHandler: VotingHandler;
+    chatHandler: ChatHandler;
 
     // Utilites
     private rateLimiter = new RateLimiter();
@@ -112,6 +114,7 @@ export default class Server implements Party.Server {
         this.playerHandler = new PlayerHandler(room, this.engine);
         this.gameHandler = new GameHandler(room, this.engine);
         this.votingHandler = new VotingHandler(room, this.engine);
+        this.chatHandler = new ChatHandler(this.engine, this.rateLimiter, this.messages, this.room);
     }
 
     async onStart() {
@@ -129,6 +132,7 @@ export default class Server implements Party.Server {
                     this.playerHandler = new PlayerHandler(this.room, this.engine);
                     this.gameHandler = new GameHandler(this.room, this.engine);
                     this.votingHandler = new VotingHandler(this.room, this.engine);
+                    this.chatHandler = new ChatHandler(this.engine, this.rateLimiter, this.messages, this.room);
                 }
 
                 this.engine.hydrate(stored);
@@ -366,39 +370,7 @@ export default class Server implements Party.Server {
 
                 // --- CHAT SYSTEM (Phase 2.A + 2.E Security) ---
                 case EVENTS.CHAT_SEND: {
-                    // 1. Rate Limiting (The Wall)
-                    if (!this.rateLimiter.checkLimit(sender.id)) {
-                        return;
-                    }
-
-                    // 2. Guaranteed Zod Sanitization (The Filter)
-                    const rawText = (payload as any).text;
-                    const trimmed = rawText.trim();
-                    if (trimmed.length === 0) return;
-                    const finalText = trimmed.slice(0, 140);
-
-                    const senderId = (sender.state as any)?.userId || sender.id;
-                    const player = this.engine.getState().players.find(p => p.id === senderId);
-                    const senderName = player ? player.name : 'Voz Misteriosa';
-
-                    const chatMsg: import('../shared/types').ChatMessage = {
-                        id: `${senderId}-${Date.now()}`,
-                        senderId,
-                        senderName,
-                        text: finalText,
-                        type: 'USER',
-                        timestamp: Date.now()
-                    };
-
-                    // Store & Limit
-                    this.messages.push(chatMsg);
-                    if (this.messages.length > 50) this.messages.shift();
-
-                    // Broadcast chat (no masking needed for chat messages)
-                    this.room.broadcast(JSON.stringify({
-                        type: EVENTS.CHAT_NEW,
-                        payload: chatMsg
-                    }));
+                    await this.chatHandler.handleChat(payload as any, sender);
                     break;
                 }
 
