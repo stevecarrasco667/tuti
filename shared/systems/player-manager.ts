@@ -139,6 +139,8 @@ export class PlayerManager {
 
         state.players = state.players.filter(p => p.id !== targetUserId);
 
+        this.ensureActiveHost(state);
+
         return true;
     }
 

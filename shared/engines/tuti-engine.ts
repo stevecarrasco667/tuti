@@ -152,8 +152,6 @@ export class TutiEngine extends BaseEngine {
             }
         }
 
-        this.reassignHostIfNeeded();
-
         return this.state;
     }
 
@@ -186,21 +184,7 @@ export class TutiEngine extends BaseEngine {
             }
         }
 
-        this.reassignHostIfNeeded();
-
         return this.state;
-    }
-
-    private reassignHostIfNeeded(): void {
-        const activeHost = this.state.players.find(p => p.isHost && p.isConnected);
-        if (!activeHost) {
-            this.state.players.forEach(p => p.isHost = false);
-            const newHost = this.state.players.find(p => p.isConnected);
-            if (newHost) {
-                newHost.isHost = true;
-                console.log(`[HOST SUCCESSION] New host: ${newHost.name} (${newHost.id})`);
-            }
-        }
     }
 
     public checkInactivePlayers(): boolean {

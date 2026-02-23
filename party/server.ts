@@ -454,7 +454,7 @@ export default class Server implements Party.Server {
         // [AUTO-WIPE] Check for inactivity
         const activeConnections = [...this.room.getConnections()].length;
         if (activeConnections === 0) {
-            console.log('[Auto-Wipe] Room purged due to inactivity (10m).');
+            console.log('💥 Protocolo de autodestrucción: Sala vacía eliminada del disco.');
             if (this.saveTimeout) {
                 clearTimeout(this.saveTimeout);
                 this.saveTimeout = null;
@@ -514,8 +514,8 @@ export default class Server implements Party.Server {
             // Clear all per-connection baselines
             this.previousStates.clear();
 
-            console.log(`[Auto-Wipe] Room ${this.room.id} is empty. Self-destruct in 10m.`);
-            this.room.storage.setAlarm(Date.now() + 10 * 60 * 1000);
+            console.log(`[Auto-Wipe] Room ${this.room.id} is empty. Self-destruct in 120s.`);
+            this.room.storage.setAlarm(Date.now() + 120 * 1000);
         }
     }
 }
