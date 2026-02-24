@@ -5,7 +5,7 @@ import type { RoomSnapshot } from '../../shared/types';
 
 const PARTYKIT_HOST = import.meta.env.DEV
     ? '127.0.0.1:1999'
-    : window.location.host;
+    : import.meta.env.VITE_PARTYKIT_HOST || window.location.host;
 
 // Shared state across component mounts
 const publicRooms = ref<RoomSnapshot[]>([]);
