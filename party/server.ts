@@ -86,10 +86,11 @@ export default class Server implements Party.Server {
 
         // 3. [Phoenix Lobby] Heartbeat RPC to Orchestrator (fire-and-forget)
         if (newState.config.isPublic) {
+            const activeConnCount = Array.from(this.room.getConnections()).length;
             const snapshot: RoomSnapshot = {
                 id: this.room.id,
                 hostName: newState.players.find(p => p.isHost)?.name || 'Host',
-                currentPlayers: newState.players.length,
+                currentPlayers: activeConnCount,
                 maxPlayers: newState.config.maxPlayers,
                 status: newState.status,
                 lastUpdate: Date.now()
@@ -110,7 +111,7 @@ export default class Server implements Party.Server {
         this.engine = createEngine('CLASSIC', room.id, this.onStateChange);
 
         // Instantiate Handlers (typed against BaseEngine)
-        this.connectionHandler = new ConnectionHandler(room, this.engine, this.authTokens);
+        this.connectionHandler = new ConnectionHandler(room, this.engine, this.authTokens, this.messages);
         this.playerHandler = new PlayerHandler(room, this.engine);
         this.gameHandler = new GameHandler(room, this.engine);
         this.votingHandler = new VotingHandler(room, this.engine);
@@ -128,7 +129,7 @@ export default class Server implements Party.Server {
                 if (stored.config.mode === 'IMPOSTOR') {
                     this.engine = createEngine('IMPOSTOR', this.room.id, this.onStateChange);
                     // Re-wire handlers to new engine
-                    this.connectionHandler = new ConnectionHandler(this.room, this.engine, this.authTokens);
+                    this.connectionHandler = new ConnectionHandler(this.room, this.engine, this.authTokens, this.messages);
                     this.playerHandler = new PlayerHandler(this.room, this.engine);
                     this.gameHandler = new GameHandler(this.room, this.engine);
                     this.votingHandler = new VotingHandler(this.room, this.engine);
@@ -341,10 +342,11 @@ export default class Server implements Party.Server {
                         this.engine.hydrate(currentState);
 
                         // Re-instanciar los handlers inyectando el nuevo motor
-                        this.connectionHandler = new ConnectionHandler(this.room, this.engine, this.authTokens);
+                        this.connectionHandler = new ConnectionHandler(this.room, this.engine, this.authTokens, this.messages);
                         this.playerHandler = new PlayerHandler(this.room, this.engine);
                         this.gameHandler = new GameHandler(this.room, this.engine);
                         this.votingHandler = new VotingHandler(this.room, this.engine);
+                        this.chatHandler = new ChatHandler(this.engine, this.rateLimiter, this.messages, this.room);
 
                         // Forzar broadcast inmediato del estado (enmascarado por el nuevo motor)
                         this.broadcastStateDelta(this.engine.getState());

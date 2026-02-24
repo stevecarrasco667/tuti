@@ -10,7 +10,16 @@ export default class LobbyServer implements Party.Server {
 
     constructor(readonly room: Party.Room) { }
 
-    onStart() {
+    async onStart() {
+        // [Cura de la Amnesia] Rehydrate from memory
+        const stored = await this.room.storage.get<RoomSnapshot[]>('public_rooms');
+        if (stored) {
+            for (const room of stored) {
+                this.rooms.set(room.id, room);
+            }
+            logger.info('LOBBY_STATE_HYDRATED', { count: this.rooms.size });
+        }
+
         // [Phoenix Lobby] Zombie TTL Reaper — every 10s, purge stale rooms
         setInterval(() => {
             const now = Date.now();
@@ -30,9 +39,10 @@ export default class LobbyServer implements Party.Server {
         }, 10000);
 
         // [Phoenix Lobby] Tick Engine — batch broadcast every 2s
-        setInterval(() => {
+        setInterval(async () => {
             if (this.isDirty) {
                 this.broadcastState();
+                await this.room.storage.put('public_rooms', Array.from(this.rooms.values()));
                 this.isDirty = false;
             }
         }, 2000);

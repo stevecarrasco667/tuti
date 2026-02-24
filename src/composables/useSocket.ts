@@ -105,6 +105,7 @@ export function useSocket() {
         isConnected,
         lastMessage,
         setRoomId,
-        disconnectIntentionally
+        disconnectIntentionally,
+        isIntentionalDisconnect
     };
 }

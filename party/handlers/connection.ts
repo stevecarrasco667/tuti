@@ -5,14 +5,18 @@ import { EVENTS } from "../../shared/consts";
 import { BaseEngine } from "../../shared/engines/base-engine";
 import { logger } from "../../shared/utils/logger";
 
+import type { ChatMessage } from "../../shared/types";
+
 const AUTH_TOKENS_KEY = "auth_tokens_v1";
 
 export class ConnectionHandler extends BaseHandler {
     authTokens: Map<string, string>;
+    messages: ChatMessage[];
 
-    constructor(room: Party.Room, engine: BaseEngine, authTokens: Map<string, string>) {
+    constructor(room: Party.Room, engine: BaseEngine, authTokens: Map<string, string>, messages: ChatMessage[]) {
         super(room, engine);
         this.authTokens = authTokens;
+        this.messages = messages;
     }
 
     async handleConnect(connection: Party.Connection, ctx: Party.ConnectionContext) {
@@ -52,6 +56,19 @@ export class ConnectionHandler extends BaseHandler {
             }));
 
             connection.setState({ userId });
+
+            // [SPRINT 10+11] COLD SYNC: Rehidratación Total de Retorno
+            connection.send(JSON.stringify({
+                type: EVENTS.UPDATE_STATE,
+                payload: this.engine.getClientState(userId)
+            }));
+
+            if (this.messages.length > 0) {
+                connection.send(JSON.stringify({
+                    type: EVENTS.CHAT_HISTORY,
+                    payload: this.messages
+                }));
+            }
 
             logger.info('NEW_CONNECTION', { userId, roomId: this.room.id, connectionId: connection.id });
 
