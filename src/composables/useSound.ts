@@ -1,10 +1,10 @@
 
 const SFX = {
-    click: 'https://cdn.freesound.org/previews/256/256113_3263906-lq.mp3',
-    stop: 'https://cdn.freesound.org/previews/337/337049_3232293-lq.mp3',
-    error: 'https://cdn.freesound.org/previews/142/142608_1840739-lq.mp3',
-    win: 'https://cdn.freesound.org/previews/270/270402_5123851-lq.mp3',
-    tally: 'https://cdn.freesound.org/previews/320/320655_5260872-lq.mp3'
+    click: '/sounds/click.mp3',
+    stop: '/sounds/stop.mp3',
+    error: '/sounds/error.mp3',
+    win: '/sounds/win.mp3',
+    tally: '/sounds/tally.mp3'
 };
 
 const audioCache: Record<string, HTMLAudioElement> = {};
