@@ -6,6 +6,7 @@ import ReloadPrompt from './ReloadPrompt.vue';
 import CountdownOverlay from './overlays/CountdownOverlay.vue';
 import StopSignal from './overlays/StopSignal.vue';
 import MobileChatDrawer from './chat/MobileChatDrawer.vue';
+import ConnectionBanner from './overlays/ConnectionBanner.vue';
 
 // --- GAME BOARDS ---
 import TutiBoard from './game/tuti/TutiBoard.vue';
@@ -74,7 +75,7 @@ const handleToast = (msg: string, style: 'join' | 'leave' | 'stop-warning', icon
 
 <template>
     <div class="h-full w-full flex flex-col bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-900 via-indigo-950 to-black text-slate-100 overflow-hidden font-sans">
-        
+        <ConnectionBanner />
         <ReloadPrompt />
 
         <!-- [Phoenix] SPECTATOR MODE BANNER -->
