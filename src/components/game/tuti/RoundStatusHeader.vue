@@ -13,21 +13,21 @@ defineEmits<{
 </script>
 
 <template>
-    <div class="flex-none h-20 bg-indigo-950/20 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 z-40 relative">
+    <div class="flex-none h-20 bg-panel-card/80 backdrop-blur-md border-[3px] border-white/50 flex items-center justify-between px-4 z-40 relative rounded-b-3xl shadow-game-panel mx-2 mt-0">
             
         <!-- Left: Exit & Round -->
         <div class="flex items-center gap-4 w-[120px]">
             <!-- Exit Button -->
-            <button @click="$emit('exit')" class="text-white/60 hover:text-white transition-colors p-1" title="Salir">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
+            <button @click="$emit('exit')" class="text-ink-soft hover:text-ink-main transition-colors p-2 bg-white rounded-xl shadow-sm border-2 border-panel-card active:scale-95" title="Salir">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="size-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
                 </svg>
             </button>
 
             <div class="flex flex-col">
-                <span class="text-[10px] uppercase font-bold text-indigo-300 tracking-widest">Ronda</span>
-                <span class="text-xl font-black text-yellow-400 leading-none">
-                    {{ round }}<span class="text-xs text-white/40 ml-0.5">/{{ totalRounds }}</span>
+                <span class="text-[10px] uppercase font-black text-ink-muted tracking-widest">Ronda</span>
+                <span class="text-xl font-black text-ink-main leading-none">
+                    {{ round }}<span class="text-xs text-ink-soft ml-0.5">/{{ totalRounds }}</span>
                 </span>
             </div>
         </div>
@@ -49,10 +49,10 @@ defineEmits<{
                   or keep the Letter in the Center and put the Button to the immediate right of it?
              -->
              <!-- Let's keep the Badge in the exact center. -->
-            <div class="relative group">
-                <div class="absolute inset-0 bg-fuchsia-500 rounded-xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                <div class="relative bg-gradient-to-br from-indigo-600 to-violet-700 w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg border border-white/10 transform transition-transform group-hover:scale-105">
-                    <span class="text-4xl font-black text-white drop-shadow-md">{{ currentLetter }}</span>
+            <div class="relative group mt-3">
+                <div class="absolute inset-0 bg-action-blue rounded-xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity"></div>
+                <div class="relative bg-gradient-to-br from-action-blue to-tuti-base w-16 h-16 rounded-2xl flex items-center justify-center shadow-game-btn border-4 border-white transform transition-transform group-hover:scale-105">
+                    <span class="text-4xl font-black text-white drop-shadow-sm">{{ currentLetter }}</span>
                 </div>
             </div>
         </div>
@@ -60,12 +60,12 @@ defineEmits<{
         <!-- Right: Timer -->
         <div class="flex flex-col items-end w-[50px] md:w-[60px]">
             <span v-if="timeLeft !== null" 
-                class="font-mono text-xl font-bold leading-none tabular-nums"
+                class="font-mono text-xl font-black leading-none tabular-nums bg-white px-2 py-1 rounded-lg border-2 border-panel-card shadow-sm"
                 :class="timerColor"
             >
                 {{ timeLeft }}
             </span>
-            <span v-else class="text-xl font-bold text-white/20">--</span>
+            <span v-else class="text-xl font-black text-ink-muted">--</span>
         </div>
     </div>
 </template>

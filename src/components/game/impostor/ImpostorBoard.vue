@@ -39,10 +39,10 @@ const handleSubmit = (word: string) => {
     <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 w-full h-full overflow-hidden p-4 relative">
         
         <!-- JUEGO (Columna Izquierda 1fr) -->
-        <div class="h-full w-full flex flex-col items-center justify-center relative rounded-2xl overflow-hidden bg-black/20 shadow-inner">
+        <div class="h-full w-full flex flex-col items-center justify-center relative rounded-3xl overflow-hidden shadow-inner">
             <!-- TOP: Botón rápido de salida transparente en la cabecera -->
             <div class="absolute top-4 right-4 z-[90]">
-            <button @click="emit('exit')" class="text-white/50 hover:text-white/90 p-2 text-sm font-bold bg-black/20 rounded-lg backdrop-blur-sm transition-colors cursor-pointer">
+            <button @click="emit('exit')" class="text-white bg-action-error/80 hover:bg-red-500 p-2 text-sm font-black uppercase tracking-widest rounded-xl shadow-game-btn border-2 border-white/50 backdrop-blur-sm transition-all active:scale-95 cursor-pointer">
                 SALIR
             </button>
         </div>
@@ -88,12 +88,12 @@ const handleSubmit = (word: string) => {
             />
 
             <!-- FALLBACK LOBBY / INTERMISSION -->
-            <div v-else class="text-white/40 italic">Cargando modo Impostor...</div>
+            <div v-else class="text-ink-main/40 font-black uppercase tracking-widest animate-pulse">Cargando modo Impostor...</div>
         </Transition>
         </div>
 
         <!-- SOCIAL (Columna Derecha 320px Desktop Only) -->
-        <div class="hidden lg:flex flex-col h-full rounded-2xl overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.5)] border border-white/5">
+        <div class="hidden lg:flex flex-col h-full rounded-3xl overflow-hidden shadow-game-panel border-[3px] border-white/50 bg-panel-base/30">
             <ChatWidget :is-disabled="isDead" />
         </div>
 

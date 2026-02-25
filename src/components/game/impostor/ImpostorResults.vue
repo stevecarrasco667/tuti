@@ -36,11 +36,12 @@ if (matchOver.value) {
 </script>
 
 <template>
-    <div class="h-full w-full flex flex-col items-center justify-center p-4 text-center transition-all duration-700"
-         :class="matchOver && winner === 'IMPOSTOR' ? 'bg-red-950/40 text-red-500' : 'bg-emerald-950/40 text-emerald-400'">
+    <div class="h-full w-full flex flex-col items-center justify-center p-4 text-center transition-all duration-700 bg-white/40 border-[4px] shadow-game-panel rounded-3xl m-2 md:m-4"
+         :class="matchOver && winner === 'IMPOSTOR' ? 'border-red-300/80 shadow-[0_0_40px_rgba(239,68,68,0.2)]' : 'border-green-300/80 shadow-[0_0_40px_rgba(46,204,113,0.2)]'">
         
         <!-- HEADER DE RESULTADO -->
-        <h1 class="text-4xl md:text-6xl font-black tracking-widest uppercase animate-pulse mb-6 drop-shadow-2xl">
+        <h1 class="text-4xl md:text-6xl font-black tracking-tighter uppercase animate-pulse mb-6 drop-shadow-sm"
+            :class="matchOver && winner === 'IMPOSTOR' ? 'text-action-error' : (matchOver && winner === 'CREW' || isEliminatedImpostor ? 'text-action-primary' : 'text-ink-main')">
             <template v-if="matchOver && winner === 'IMPOSTOR'">¡IMPOSTORES GANAN!</template>
             <template v-else-if="matchOver && winner === 'CREW'">¡TRIPULACIÓN GANA!</template>
             <template v-else-if="!eliminatedPlayer">EMPATE EN EL TRIBUNAL</template>
@@ -48,12 +49,12 @@ if (matchOver.value) {
             <template v-else>¡INOCENTE EXPULSADO!</template>
         </h1>
         
-        <p class="text-lg md:text-xl text-white/80 font-bold mb-8">
+        <p class="text-lg md:text-xl text-ink-soft font-black mb-8 uppercase tracking-widest max-w-lg">
             <template v-if="matchOver">
                 El ecosistema de supervivencia ha colapsado.
             </template>
             <template v-else-if="eliminatedPlayer">
-                El tribunal ha expulsado a <span class="text-white font-black underline decoration-4 underline-offset-4" :class="isEliminatedImpostor ? 'decoration-emerald-400' : 'decoration-red-500'">{{ eliminatedPlayer.name }}</span>
+                El tribunal ha expulsado a <span class="text-ink-main font-black underline decoration-4 underline-offset-4" :class="isEliminatedImpostor ? 'decoration-action-primary' : 'decoration-action-error'">{{ eliminatedPlayer.name }}</span>
             </template>
             <template v-else>
                 Nadie ha sido expulsado hoy. La tensión continúa.
@@ -61,18 +62,18 @@ if (matchOver.value) {
         </p>
 
         <!-- DETALLES DE VOTACIÓN -->
-        <div class="bg-black/30 backdrop-blur-xl border-2 p-6 md:p-8 rounded-3xl shadow-2xl flex flex-col items-center max-w-xl w-full"
-             :class="(!eliminatedPlayer || isEliminatedImpostor) ? 'border-emerald-500/50' : 'border-red-500/50'">
+        <div class="bg-panel-card border-4 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col items-center max-w-xl w-[95%]"
+             :class="(!eliminatedPlayer || isEliminatedImpostor) ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'">
             
             <template v-if="matchOver">
-                <span class="text-6xl mb-4">{{ winner === 'IMPOSTOR' ? '🦇' : '🎯' }}</span>
-                <p class="text-lg text-white/70 mb-2">{{ winner === 'IMPOSTOR' ? 'Los impostores controlan la nave.' : 'La tripulación purificó la nave.' }}</p>
+                <span class="text-6xl mb-4 drop-shadow-md">{{ winner === 'IMPOSTOR' ? '🦇' : '🎯' }}</span>
+                <p class="text-lg text-ink-main font-black uppercase tracking-widest">{{ winner === 'IMPOSTOR' ? 'Los impostores controlan la nave.' : 'La tripulación purificó la nave.' }}</p>
             </template>
             <template v-else>
-                <div v-if="!eliminatedPlayer" class="text-sm font-bold text-slate-300 bg-slate-900/50 px-4 py-3 rounded-xl">
+                <div v-if="!eliminatedPlayer" class="text-sm font-black text-ink-muted bg-white px-4 py-3 rounded-2xl shadow-inner border-2 border-white/50 w-full uppercase tracking-widest">
                     Los votos se dividieron. Todos sobreviven a esta ronda.
                 </div>
-                <div v-else class="text-sm font-bold w-full rounded-xl px-4 py-3" :class="isEliminatedImpostor ? 'bg-emerald-950/50 text-emerald-300' : 'bg-red-950/50 text-red-300'">
+                <div v-else class="text-sm font-black w-full rounded-2xl px-4 py-3 border-2 shadow-inner uppercase tracking-wide" :class="isEliminatedImpostor ? 'bg-white border-green-200 text-green-700' : 'bg-white border-red-200 text-red-700'">
                     {{ isEliminatedImpostor ? 'Un impostor menos en la nave.' : 'Han sacrificado a un tripulante inocente.' }}
                 </div>
             </template>
@@ -80,9 +81,9 @@ if (matchOver.value) {
         </div>
         
         <!-- TIMER -->
-        <div class="mt-8 text-center text-white/40">
-            <p class="text-xs uppercase tracking-widest font-black mb-2">{{ matchOver ? 'Fin de la Partida' : 'Siguiente Deducción en' }}</p>
-            <div class="text-3xl font-mono font-black transition-colors" :class="timerColor">{{ Math.max(0, timeRemaining) }}</div>
+        <div class="mt-8 text-center bg-white/80 p-4 rounded-3xl border-[3px] border-white shadow-sm inline-block">
+            <p class="text-[10px] uppercase tracking-widest font-black mb-1 text-ink-muted">{{ matchOver ? 'Fin de la Partida' : 'Siguiente Deducción en' }}</p>
+            <div class="text-3xl font-mono font-black transition-colors leading-none" :class="timerColor">{{ Math.max(0, timeRemaining) }}</div>
         </div>
     </div>
 </template>

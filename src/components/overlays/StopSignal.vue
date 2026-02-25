@@ -20,14 +20,14 @@ onMounted(() => {
 <template>
     <div class="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
         <!-- Backdrop flash -->
-        <div class="absolute inset-0 bg-fuchsia-900/40 animate-flash"></div>
+        <div class="absolute inset-0 bg-action-error/40 animate-flash"></div>
         
         <!-- Stamp -->
-        <div class="relative transform rotate-[-12deg] border-8 border-current text-fuchsia-500 p-8 rounded-xl bg-black/80 shadow-[0_0_100px_rgba(236,72,153,0.6)] animate-stamp">
-            <h1 class="text-8xl md:text-9xl font-black tracking-tighter uppercase drop-shadow-lg">
+        <div class="relative transform rotate-[-12deg] border-8 border-action-error text-action-error p-8 rounded-3xl bg-panel-card/95 shadow-game-panel backdrop-blur-sm animate-stamp">
+            <h1 class="text-8xl md:text-9xl font-black tracking-tighter uppercase drop-shadow-sm">
                 ¡BASTA!
             </h1>
-            <div class="absolute -bottom-4 -right-4 text-6xl">✋</div>
+            <div class="absolute -bottom-4 -right-4 text-6xl drop-shadow-md">✋</div>
         </div>
     </div>
 </template>

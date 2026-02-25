@@ -23,11 +23,11 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <div v-if="!showGo" class="text-[12rem] font-black text-white drop-shadow-[0_0_50px_rgba(255,255,255,0.5)] animate-ping-slow">
+    <div class="fixed inset-0 z-[100] flex items-center justify-center bg-tuti-base/40 backdrop-blur-md">
+        <div v-if="!showGo" class="text-[12rem] font-black text-white drop-shadow-md animate-ping-slow text-stroke z-10">
             {{ count }}
         </div>
-        <div v-else class="text-[8rem] font-black text-yellow-400 drop-shadow-[0_0_50px_rgba(250,204,21,0.8)] animate-bounce-in">
+        <div v-else class="text-[8rem] font-black text-action-warning drop-shadow-md animate-bounce-in text-stroke z-10">
             ¡YA!
         </div>
     </div>

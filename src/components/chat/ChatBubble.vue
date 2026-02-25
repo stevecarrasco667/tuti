@@ -17,22 +17,23 @@ const formattedTime = computed(() => {
         <div class="flex flex-col max-w-[85%]" :class="isMine ? 'items-end' : 'items-start'">
             
             <!-- Sender Name (Only for others) -->
-            <span v-if="!isMine" class="text-[10px] font-bold text-white/50 mb-1 ml-1 truncate max-w-[120px]">
+            <span v-if="!isMine" class="text-[10px] font-black text-ink-muted mb-1 ml-2 truncate max-w-[120px] uppercase tracking-wider">
                 {{ message.senderName }}
             </span>
 
             <!-- Bubble -->
-            <div class="px-3 py-2 text-sm shadow-md break-words relative min-w-[60px]"
+            <div class="px-3 py-2 text-sm shadow-sm break-words relative min-w-[60px] font-bold"
                 :class="[
                     isMine 
-                        ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-sm' 
-                        : 'bg-white/10 text-indigo-100 rounded-2xl rounded-tl-sm backdrop-blur-sm border border-white/5'
+                        ? 'bg-action-primary border-[3px] border-green-300 text-white rounded-[1.2rem] rounded-tr-[4px]' 
+                        : 'bg-white border-[3px] border-slate-200 text-ink-main rounded-[1.2rem] rounded-tl-[4px]'
                 ]"
             >
                 <div>{{ message.text }}</div>
                 
                 <!-- Timestamp -->
-                <div class="text-[9px] mt-1 text-right w-full opacity-60 mix-blend-plus-lighter">
+                <div class="text-[9px] mt-1 text-right w-full mix-blend-normal font-black"
+                     :class="isMine ? 'text-green-100' : 'text-slate-400'">
                     {{ formattedTime }}
                 </div>
             </div>

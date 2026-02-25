@@ -46,111 +46,116 @@ const selfStatusIcon = (playerId: string, category: string) => {
     return '—';
 };
 
-const cardClasses = (playerId: string, category: string) => {
-    if (isAutoValidated(playerId, category)) return 'bg-amber-500/10 border-amber-500/30 shadow-[0_0_12px_rgba(245,158,11,0.15)]';
-    if (isRejected(playerId, category)) return 'bg-red-500/5 border-red-500/30 shadow-[0_0_12px_rgba(239,68,68,0.15)]';
-    if (!isApproved(playerId, category)) return 'bg-red-500/5 border-red-500/30';
-    return 'bg-white/5 border-white/10 hover:bg-white/10';
-};
+
 </script>
 
 <template>
-    <div class="w-full max-w-4xl pb-28 relative">
+    <div class="w-full max-w-4xl pb-28 relative mx-auto">
 
         <!-- Stop Alert -->
-        <div v-if="showStopAlert && stopperPlayer" class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-center gap-4 mb-6 animate-in fade-in slide-in-from-top duration-300">
-            <div class="text-4xl animate-bounce">{{ stopperPlayer.avatar || '🛑' }}</div>
-            <div>
-                <h3 class="font-black text-red-100 text-xl uppercase italic">¡BASTA!</h3>
-                <p class="text-red-200/60 text-xs font-bold uppercase tracking-wider">Detenido por {{ stopperPlayer.name }}</p>
+        <div v-if="showStopAlert && stopperPlayer" class="bg-red-500 border-4 border-red-300 rounded-3xl shadow-[0_4px_20px_rgba(239,68,68,0.4)] p-4 flex items-center justify-center gap-4 mb-8 animate-in fade-in slide-in-from-top duration-300 mx-2">
+            <div class="text-5xl animate-bounce drop-shadow-md">{{ stopperPlayer.avatar || '🛑' }}</div>
+            <div class="flex flex-col items-center md:items-start text-center md:text-left gap-1">
+                <h3 class="font-black text-white text-3xl md:text-4xl uppercase tracking-tighter drop-shadow-sm leading-none">¡BASTA PARA MÍ!</h3>
+                <p class="text-red-100 text-xs font-black uppercase tracking-widest bg-red-900/40 px-3 py-1 rounded-full">Detenido por {{ stopperPlayer.name }}</p>
             </div>
         </div>
 
         <!-- VERTICAL FEED: LOOP POR CATEGORÍA -->
-        <div v-for="category in categories" :key="category" class="mb-6">
+        <div v-for="category in categories" :key="category" class="mb-8">
 
             <!-- Sticky Category Header -->
-            <h2 class="sticky top-0 z-10 bg-gray-900/95 backdrop-blur-md py-3 px-4 -mx-2 rounded-lg
-                        text-lg font-black uppercase tracking-widest text-indigo-300
-                        border-b border-indigo-500/20 shadow-lg shadow-black/30">
-                {{ category }}
-            </h2>
+            <div class="sticky top-0 z-10 px-2 py-2">
+                <h2 class="bg-panel-base/90 backdrop-blur-xl py-3 px-5 rounded-2xl
+                            text-sm md:text-base font-black uppercase tracking-widest text-ink-main
+                            border-[3px] border-white shadow-game-panel mx-auto w-fit">
+                    {{ category }}
+                </h2>
+            </div>
 
             <!-- Grid de Tarjetas por Jugador -->
-            <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 mt-4 px-1">
+            <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 mt-4 px-2">
                 <div v-for="player in players" :key="player.id"
-                    class="rounded-xl border p-3 flex flex-col gap-2 transition-all duration-200"
-                    :class="cardClasses(player.id, category)"
+                    class="rounded-3xl border-4 p-4 flex flex-col gap-3 transition-all duration-200"
+                    :class="[
+                        isAutoValidated(player.id, category) 
+                            ? 'bg-amber-100 border-amber-300 shadow-[0_4px_12px_rgba(251,191,36,0.3)]' 
+                            : isRejected(player.id, category) 
+                                ? 'bg-red-50 border-red-200 shadow-sm opacity-80' 
+                                : !isApproved(player.id, category)
+                                    ? 'bg-red-50 border-red-300 shadow-sm'
+                                    : 'bg-panel-card border-white shadow-sm hover:shadow-md'
+                    ]"
                 >
                     <!-- Avatar + Nombre (pequeño, arriba) -->
-                    <div class="flex items-center gap-2">
-                        <span class="text-xl shrink-0">{{ player.avatar || '👤' }}</span>
+                    <div class="flex items-center gap-2 bg-white/60 p-1.5 pr-3 rounded-full border-2 border-white shadow-sm w-fit max-w-full">
+                        <span class="text-xl shrink-0 leading-none">{{ player.avatar || '👤' }}</span>
                         <div class="flex items-center gap-1.5 min-w-0 overflow-hidden">
-                            <span class="text-[10px] font-bold uppercase tracking-wider truncate"
-                                :class="isAutoValidated(player.id, category) ? 'text-amber-400/80' : 'text-white/40'">
+                            <span class="text-[10px] font-black uppercase tracking-widest truncate"
+                                :class="isAutoValidated(player.id, category) ? 'text-amber-600' : 'text-ink-soft'">
                                 {{ player.name }}
                             </span>
                             <span v-if="isAutoValidated(player.id, category)"
-                                class="inline-flex items-center gap-0.5 bg-amber-500/20 text-amber-300 px-1 py-0.5 rounded-full text-[8px] font-bold shrink-0">
+                                class="inline-flex items-center justify-center shrink-0">
                                 🛡️
                             </span>
                         </div>
                     </div>
 
                     <!-- Palabra Escrita (grande, centro) -->
-                    <p class="text-base font-black text-center py-1 min-h-[28px] transition-all duration-200"
+                    <p class="text-lg md:text-xl font-black text-center py-2 min-h-[40px] transition-all duration-200 break-words leading-tight"
                         :class="[
                             isAutoValidated(player.id, category)
-                                ? 'text-amber-300'
+                                ? 'text-amber-700'
                                 : isRejected(player.id, category) || !isApproved(player.id, category)
-                                    ? 'line-through opacity-50 text-red-400'
+                                    ? 'line-through opacity-40 text-red-600'
                                     : getReviewItem(player.id, category).state === 'DUPLICATE'
-                                        ? 'text-yellow-400'
-                                        : 'text-white'
+                                        ? 'text-action-warning'
+                                        : 'text-action-blue'
                         ]">
                         {{ getReviewItem(player.id, category).answer || '—' }}
                     </p>
 
                     <!-- Vote Counter Badge + VoteSwitch / Self Indicator -->
-                    <div class="flex items-center justify-between mt-auto pt-1 border-t border-white/5">
+                    <div class="flex items-center justify-between mt-auto pt-3 border-t-2 border-white/50 relative">
                         <!-- Vote Counter -->
                         <span v-if="getVoteCount(player.id, category) > 0 && !isAutoValidated(player.id, category)"
-                            class="bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded text-[10px] font-bold">
-                            {{ getVoteCount(player.id, category) }}👎
+                            class="absolute -top-3 left-1/2 -translate-x-1/2 bg-action-warning text-ink-main border-2 border-white px-2 py-0.5 rounded-full text-[10px] font-black shadow-sm z-10 whitespace-nowrap">
+                            {{ getVoteCount(player.id, category) }} 👎
                         </span>
-                        <span v-else></span>
-
-                        <!-- VoteSwitch for OTHER players -->
-                        <VoteSwitch
-                            v-if="player.id !== myUserId"
-                            :model-value="isApproved(player.id, category)"
-                            :is-auto-validated="isAutoValidated(player.id, category)"
-                            :label="`Voto ${player.name}`"
-                            @update:model-value="emit('vote', player.id, category)"
-                        />
-
-                        <!-- Self indicator -->
-                        <span v-else class="text-xl">{{ selfStatusIcon(player.id, category) }}</span>
+                        
+                        <div class="w-full flex justify-center h-10">
+                            <!-- VoteSwitch for OTHER players -->
+                            <VoteSwitch
+                                v-if="player.id !== myUserId"
+                                :model-value="isApproved(player.id, category)"
+                                :is-auto-validated="isAutoValidated(player.id, category)"
+                                :label="`Voto ${player.name}`"
+                                @update:model-value="emit('vote', player.id, category)"
+                            />
+                            <!-- Self indicator -->
+                            <span v-else class="text-2xl drop-shadow-sm flex items-center justify-center bg-white/80 w-11 h-11 rounded-full border-2 border-panel-card">{{ selfStatusIcon(player.id, category) }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- STICKY FOOTER: ¡Terminé de Revisar! -->
-        <div class="fixed bottom-0 left-0 w-full p-4 pb-6 z-20
-                    bg-gradient-to-t from-gray-950 via-gray-950/95 to-transparent
+        <div class="fixed bottom-0 left-0 w-full p-4 pb-safe z-40
+                    bg-gradient-to-t from-tuti-base via-tuti-base/95 to-transparent
                     pointer-events-none">
             <button
                 @click="emit('submit-votes')"
                 :disabled="hasConfirmed"
-                class="pointer-events-auto w-full max-w-lg mx-auto block py-4 rounded-2xl font-black text-lg uppercase tracking-widest
-                       transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]
-                       border border-white/20"
+                class="pointer-events-auto w-full max-w-[95%] sm:max-w-lg mx-auto block py-5 rounded-3xl font-black text-lg md:text-xl uppercase tracking-widest
+                       transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]
+                       border-[4px] shadow-game-btn"
                 :class="hasConfirmed
-                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed shadow-none'
-                    : 'bg-gradient-to-r from-emerald-500 to-green-400 text-white shadow-[0_0_30px_rgba(52,211,153,0.4)]'"
+                    ? 'bg-panel-input text-ink-muted border-white cursor-not-allowed shadow-none translate-y-1'
+                    : 'bg-action-primary border-green-300 text-white'"
             >
-                {{ hasConfirmed ? 'Enviado ✅' : '¡Terminé de Revisar!' }}
+                {{ hasConfirmed ? '¡ENVIADO! ✅' : '¡COMPLETADO!' }}
             </button>
         </div>
     </div>

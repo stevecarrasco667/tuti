@@ -25,25 +25,25 @@ const toggle = () => {
         role="switch"
         :disabled="isAutoValidated"
         @click="toggle"
-        class="relative inline-flex h-10 w-16 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 disabled:cursor-not-allowed"
+        class="relative inline-flex h-11 w-[4.5rem] shrink-0 cursor-pointer rounded-full border-[3px] border-white transition-colors duration-200 ease-in-out focus-visible:outline-none shadow-sm disabled:cursor-not-allowed"
         :class="[
             isAutoValidated 
-                ? 'bg-amber-500/80 shadow-lg shadow-amber-500/30' 
+                ? 'bg-action-warning shadow-inner' 
                 : modelValue 
-                    ? 'bg-emerald-500 shadow-lg shadow-emerald-500/20' 
-                    : 'bg-red-500/70 shadow-lg shadow-red-500/20'
+                    ? 'bg-action-primary shadow-inner' 
+                    : 'bg-action-error shadow-inner'
         ]"
     >
         <!-- Knob -->
         <span 
-            class="pointer-events-none inline-flex h-9 w-9 transform rounded-full bg-white shadow-md ring-0 transition-transform duration-200 ease-in-out items-center justify-center text-sm"
+            class="pointer-events-none inline-flex h-9 w-9 my-auto transform rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out items-center justify-center text-sm border-2 border-panel-card"
             :class="[
-                modelValue || isAutoValidated ? 'translate-x-6' : 'translate-x-0'
+                modelValue || isAutoValidated ? 'translate-x-[2.1rem]' : 'translate-x-[0.15rem]'
             ]"
         >
-            <span v-if="isAutoValidated">🛡️</span>
-            <span v-else-if="modelValue" class="text-emerald-500 text-sm font-black">✓</span>
-            <span v-else class="text-red-500 text-sm font-black">✕</span>
+            <span v-if="isAutoValidated" class="text-base drop-shadow-sm leading-none">🛡️</span>
+            <span v-else-if="modelValue" class="text-action-primary text-base font-black leading-none mt-1">✓</span>
+            <span v-else class="text-action-error text-base font-black leading-none mt-1">✕</span>
         </span>
     </button>
 </template>

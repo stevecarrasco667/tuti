@@ -48,12 +48,12 @@ const handleFocus = () => {
 </script>
 
 <template>
-    <div class="flex flex-col h-full overflow-hidden bg-gray-900/40 backdrop-blur-md border-l border-white/5 rounded-r-2xl border-y-0 lg:border-r-0">
+    <div class="flex flex-col h-full overflow-hidden bg-panel-base border-l-[4px] border-white rounded-r-[2rem] border-y-0 lg:border-r-0 shadow-game-panel">
         
         <!-- Header -->
-        <div class="h-12 flex items-center px-4 bg-black/20 border-b border-white/5 shrink-0 justify-between">
-            <h3 class="text-xs font-bold text-white/50 uppercase tracking-widest">Sala de Chat</h3>
-            <div v-if="unreadCount > 0" class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-bounce">
+        <div class="h-12 flex items-center px-4 bg-white/60 backdrop-blur-md border-b-[3px] border-white/50 shrink-0 justify-between">
+            <h3 class="text-[11px] font-black text-ink-muted uppercase tracking-[0.2em] drop-shadow-sm">Sala de Chat</h3>
+            <div v-if="unreadCount > 0" class="bg-action-error text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm animate-bounce">
                 {{ unreadCount }}
             </div>
         </div>
@@ -77,19 +77,19 @@ const handleFocus = () => {
         </div>
 
         <!-- Input Area -->
-        <div class="p-3 bg-black/40 border-t border-white/5 shrink-0">
+        <div class="p-4 bg-white/60 backdrop-blur-md border-t-[3px] border-white/50 shrink-0">
             <input 
                 v-model="inputValue"
                 type="text" 
                 :placeholder="isDisabled ? '👻 Los fantasmas no hablan...' : 'Escribe un mensaje...'" 
                 :disabled="isDisabled"
-                class="w-full bg-white/5 rounded-full px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all border border-white/5 focus:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                :class="isDisabled ? 'placeholder-red-300/50' : 'placeholder-white/20'"
+                class="w-full bg-white rounded-full px-5 py-3 text-sm text-ink-main font-bold outline-none transition-all border-2 border-slate-200 focus:border-action-cyan focus:shadow-inner shadow-sm disabled:opacity-50 disabled:bg-slate-100 disabled:cursor-not-allowed"
+                :class="isDisabled ? 'placeholder-red-300' : 'placeholder-ink-muted/50'"
                 @keydown.enter.prevent="handleSend"
                 @focus="handleFocus"
             />
-            <div class="text-[10px] text-white/20 mt-1.5 text-center" v-if="!isDisabled">
-                Presiona <span class="font-bold text-white/30">Enter</span> para enviar
+            <div class="text-[10px] font-bold text-ink-soft mt-2 text-center uppercase tracking-widest" v-if="!isDisabled">
+                Presiona <span class="text-ink-main">Enter</span> para enviar
             </div>
         </div>
     </div>

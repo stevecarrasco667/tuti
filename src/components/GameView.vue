@@ -74,16 +74,16 @@ const handleToast = (msg: string, style: 'join' | 'leave' | 'stop-warning', icon
 </script>
 
 <template>
-    <div class="h-full w-full flex flex-col bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-violet-900 via-indigo-950 to-black text-slate-100 overflow-hidden font-sans">
+    <div class="h-full w-full flex flex-col bg-gradient-to-br from-tuti-base to-tuti-soft text-ink-main overflow-hidden font-sans">
         <ConnectionBanner />
         <ReloadPrompt />
 
         <!-- [Phoenix] SPECTATOR MODE BANNER -->
-        <div v-if="isSpectator" class="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-black/60 backdrop-blur-md pointer-events-none">
+        <div v-if="isSpectator" class="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-ink-main/60 backdrop-blur-md pointer-events-none">
             <div class="text-center space-y-4 animate-pulse">
                 <span class="text-6xl">🍿</span>
-                <h2 class="text-3xl font-black text-white tracking-tight">Modo Espectador</h2>
-                <p class="text-slate-300 text-lg max-w-xs mx-auto">Partida en curso. Entrarás automáticamente en la siguiente ronda...</p>
+                <h2 class="text-3xl font-black text-ink-inverse tracking-tight uppercase">Modo Espectador</h2>
+                <p class="text-ink-inverse/80 font-bold text-lg max-w-xs mx-auto">Partida en curso. Entrarás automáticamente en la siguiente ronda...</p>
             </div>
         </div>
         
@@ -115,16 +115,16 @@ const handleToast = (msg: string, style: 'join' | 'leave' | 'stop-warning', icon
 
         <div class="fixed top-20 right-4 z-[60] flex flex-col items-end gap-2 pointer-events-none">
             <TransitionGroup name="toast">
-                <div v-for="toast in sessionToasts" :key="toast.id" class="px-4 py-3 rounded-xl backdrop-blur-md border text-sm font-bold shadow-xl pointer-events-auto" :class="toast.type === 'stop-warning' ? 'bg-yellow-500/20 text-yellow-200 border-yellow-500/30' : 'bg-slate-900/80 text-white border-white/10'">{{ toast.text }}</div>
+                <div v-for="toast in sessionToasts" :key="toast.id" class="px-5 py-3.5 rounded-2xl backdrop-blur-md border-[3px] text-xs font-black uppercase tracking-wider shadow-game-panel pointer-events-auto" :class="toast.type === 'stop-warning' ? 'bg-yellow-400 text-ink-main border-white' : 'bg-panel-base text-ink-main border-white/50'">{{ toast.text }}</div>
             </TransitionGroup>
         </div>
 
-        <div v-if="showExitModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-             <div class="bg-indigo-950 border border-white/10 rounded-3xl p-6 shadow-2xl max-w-xs w-full text-center">
-                 <h3 class="text-white font-black text-xl mb-6">¿Salir de la partida?</h3>
-                 <div class="flex gap-4">
-                     <button @click="showExitModal = false" class="flex-1 py-3 rounded-xl bg-white/10 text-white font-bold hover:bg-white/20 transition-colors">Cancelar</button>
-                     <button @click="handleExit" class="flex-1 py-3 rounded-xl bg-red-600 text-white font-bold hover:bg-red-500 shadow-lg transition-colors">Salir</button>
+        <div v-if="showExitModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-ink-main/50 backdrop-blur-sm p-4">
+             <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl p-6 shadow-game-panel max-w-xs w-full text-center">
+                 <h3 class="text-ink-main font-black uppercase tracking-widest text-lg mb-6">¿Salir de la partida?</h3>
+                 <div class="flex gap-3">
+                     <button @click="showExitModal = false" class="flex-1 py-3 rounded-2xl bg-panel-input border-2 border-panel-card text-ink-soft font-black uppercase tracking-wide hover:bg-white text-xs shadow-inner active:scale-95 transition-all">Cancelar</button>
+                     <button @click="handleExit" class="flex-1 py-3 rounded-2xl bg-action-error border-[3px] border-red-400 text-white font-black uppercase tracking-wide hover:bg-red-500 shadow-game-btn active:scale-95 transition-all text-xs">Salir</button>
                  </div>
              </div>
         </div>

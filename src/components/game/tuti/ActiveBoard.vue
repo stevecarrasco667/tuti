@@ -74,9 +74,9 @@ onUnmounted(() => {
 <template>
     <div class="w-full max-w-[95%] xl:max-w-7xl mx-auto transition-all duration-500 ease-out">
         
-        <div class="bg-indigo-900/40 backdrop-blur-xl border border-white/10 rounded-3xl shadow-[0_0_40px_-10px_rgba(139,92,246,0.3)] overflow-hidden relative transition-all">
+        <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-game-panel overflow-hidden relative transition-all">
             
-            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-fuchsia-500 via-yellow-400 to-fuchsia-500 opacity-70"></div>
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-action-blue via-tuti-teal to-action-blue opacity-90"></div>
 
             <!-- Rivals Header REMOVED (Moved to GameView) -->
 
@@ -91,7 +91,7 @@ onUnmounted(() => {
                      ]"
                 >
                     <div v-for="(category, index) in categories" :key="category" class="group">
-                        <label class="block font-bold text-indigo-200 mb-1.5 transition-colors group-focus-within:text-yellow-400 truncate tracking-wide text-sm md:text-xs uppercase">
+                        <label class="block font-black text-ink-soft mb-1.5 transition-colors group-focus-within:text-action-blue truncate tracking-widest text-sm md:text-xs uppercase">
                             {{ category }}
                         </label>
                         <div class="relative">
@@ -103,11 +103,11 @@ onUnmounted(() => {
                                 :ref="(el) => setInputRef(el, index)"
                                 type="text"
                                 autocomplete="off"
-                                class="w-full bg-black/20 border-b-2 border-white/10 text-white rounded-t-lg focus:bg-black/40 focus:border-yellow-400 focus:shadow-[0_4px_15px_-5px_rgba(250,204,21,0.4)] outline-none transition-all placeholder-white/10 font-medium h-14 md:h-12 py-3 md:py-2 px-3 text-2xl md:text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                class="w-full bg-panel-input border-[3px] border-white text-ink-main rounded-xl focus:bg-white focus:border-action-cyan focus:shadow-[0_0_0_4px_rgba(56,189,248,0.2)] outline-none transition-all placeholder-ink-muted/50 font-black h-14 md:h-12 py-3 md:py-2 px-4 text-2xl md:text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
                                 :placeholder="(currentLetter || '') + '...'"
                                 :disabled="isBlocked"
                             >
-                            <div v-if="modelValue[category]?.trim().length > 0" class="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)] pointer-events-none"></div>
+                            <div v-if="modelValue[category]?.trim().length > 0" class="absolute right-4 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-action-primary shadow-[0_0_8px_rgba(46,204,113,0.8)] pointer-events-none"></div>
                         </div>
                     </div>
                 </div>
