@@ -38,7 +38,6 @@ const emit = defineEmits<{
 // Internal Tuti State
 const answers = ref<Record<string, string>>({});
 const hasConfirmed = ref(false);
-const activeCategoryIndex = ref(0);
 const validationCooldown = ref(false);
 
 const canStopRound = computed(() => {
@@ -48,14 +47,9 @@ const canStopRound = computed(() => {
     });
 });
 
-const currentCategory = computed(() => props.gameState.categories[activeCategoryIndex.value] || '');
-// We mock a getter since useSmartReview technically accesses the ref'd state directly in GameView. 
-// For better refactoring, we proxy the getter:
-const { getPlayerStatus } = useSmartReview(computed(() => props.gameState), currentCategory);
-const getReviewItem = (playerId: string) => getPlayerStatus(playerId);
-
-const nextCategory = () => { if (activeCategoryIndex.value < props.gameState.categories.length - 1) activeCategoryIndex.value++; };
-const prevCategory = () => { if (activeCategoryIndex.value > 0) activeCategoryIndex.value--; };
+// Smart Review — no longer bound to a single category index
+const { getPlayerStatus } = useSmartReview(computed(() => props.gameState), ref(''));
+const getReviewItem = (playerId: string, category: string) => getPlayerStatus(playerId, category);
 
 const handleStop = () => {
     if (validationCooldown.value) return;
@@ -78,7 +72,6 @@ watch(() => props.gameState.status, (newStatus) => {
     if (newStatus === 'PLAYING') {
         answers.value = {};
         hasConfirmed.value = false;
-        activeCategoryIndex.value = 0;
     }
 });
 
@@ -167,18 +160,16 @@ const rivalsActivity = computed(() => {
 
                         <ReviewPhase 
                             v-else-if="gameState.status === 'REVIEW'"
-                            :current-category="currentCategory"
+                            :categories="gameState.categories"
                             :players="gameState.players"
                             :votes="gameState.votes"
                             :my-user-id="myUserId"
                             :get-review-item="getReviewItem"
-                            :nav-index="activeCategoryIndex"
-                            :total-categories="gameState.categories.length"
                             :show-stop-alert="showStopAlert"
                             :stopper-player="stopperPlayer || undefined"
-                            @vote="(pid) => emit('toggle-vote', pid, currentCategory)"
-                            @prev-cat="prevCategory"
-                            @next-cat="nextCategory"
+                            :has-confirmed="hasConfirmed"
+                            @vote="(pid: string, cat: string) => emit('toggle-vote', pid, cat)"
+                            @submit-votes="handleConfirmVotes"
                         />
                         
                         <ResultsRanking

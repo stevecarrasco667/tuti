@@ -42,15 +42,7 @@ defineEmits<{
                 <span class="tracking-widest drop-shadow-md">{{ isStopping ? 'ENVIANDO...' : 'BASTA' }}</span>
             </button>
 
-             <!-- CONFIRM -->
-            <button 
-                v-if="status === 'REVIEW'"
-                @click="$emit('confirm-votes')"
-                class="flex-1 max-w-sm bg-green-600 hover:bg-green-500 text-white font-black text-lg py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98] mx-auto"
-                :disabled="hasConfirmed"
-            >
-                {{ hasConfirmed ? 'Enviado ✅' : 'Confirmar Votos' }}
-            </button>
+             <!-- CONFIRM: Now handled by ReviewPhase's sticky footer -->
 
              <!-- NEXT -->
             <button 
