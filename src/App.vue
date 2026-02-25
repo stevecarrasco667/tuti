@@ -67,8 +67,8 @@ watch(() => gameState.value.players, (newPlayers) => {
 </script>
 
 <template>
-  <div class="h-[100dvh] w-screen overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 flex flex-col items-center relative transition-all duration-500"
-       :class="currentView === 'GAME' ? 'p-0' : 'p-4'">
+  <div class="h-[100dvh] w-screen overflow-y-auto bg-mesh-gradient flex flex-col items-center relative transition-all duration-500"
+       :class="currentView === 'GAME' ? 'p-0 overflow-hidden' : 'p-4'">
     
     <!-- MAIN TITLE (Header) - Hidden in Game Mode -->
     <header v-if="currentView !== 'GAME'" class="flex-none flex flex-col items-center mb-4 z-10 transition-all duration-500">
