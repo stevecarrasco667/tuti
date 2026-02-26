@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { generateRoomId, generateRandomName } from '../utils/random';
 import { useGame } from '../composables/useGame';
 import { useLobby } from '../composables/useLobby';
+import TCard from './ui/TCard.vue';
+import TButton from './ui/TButton.vue';
+import TInput from './ui/TInput.vue';
 
 const emit = defineEmits(['navigate']);
 const { joinGame, myUserName, myUserAvatar } = useGame();
@@ -17,13 +20,17 @@ const isEditingProfile = ref(false);
 // Avatar Pool
 const AVATARS = ['🦁', '🐯', '🐼', '🐸', '🐙', '🤖', '👽', '👻', '🤡', '💀', '🤠', '🎃'];
 
-// Initialize with persisted name, sync back on input
-const playerName = ref(myUserName.value);
-const selectedAvatar = myUserAvatar;
-
-watch(playerName, (val: string) => {
-    myUserName.value = val;
+// ─── FASE 3: FIX DE REACTIVIDAD ───────────────────────────────────────────────
+// Computed bidireccional sobre el ref original de useGame.
+// Si el backend hidrata la sesión, myUserName.value cambia y la UI reacciona.
+// Se elimina el ref local aislado y su watch unidireccional.
+const playerName = computed({
+    get: () => myUserName.value,
+    set: (val: string) => { myUserName.value = val; },
 });
+
+const selectedAvatar = myUserAvatar;
+// ──────────────────────────────────────────────────────────────────────────────
 
 // [Phoenix Lobby] Connect + Zero Friction Identity
 onMounted(() => {
@@ -31,13 +38,10 @@ onMounted(() => {
 
     // Auto-assign identity if empty
     if (!myUserName.value.trim()) {
-        const randomName = generateRandomName();
-        playerName.value = randomName;
-        myUserName.value = randomName;
+        myUserName.value = generateRandomName();
     }
     if (!myUserAvatar.value || myUserAvatar.value === '🦁') {
-        const randomAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
-        selectedAvatar.value = randomAvatar;
+        selectedAvatar.value = AVATARS[Math.floor(Math.random() * AVATARS.length)];
     }
 });
 
@@ -63,8 +67,6 @@ const handleJoinPublicRoom = (roomId: string) => {
     joinGame(playerName.value, roomId, selectedAvatar.value);
     emit('navigate', 'LOBBY');
 };
-
-
 
 const getStatusLabel = (status: string) => {
     const map: Record<string, string> = {
@@ -96,7 +98,7 @@ const handleRefresh = () => {
         <div class="lg:col-span-4 space-y-5">
 
             <!-- HERO: Logo + Quick Play -->
-            <div class="bg-panel-base rounded-3xl p-8 shadow-game-panel border-[3px] border-white/50 relative overflow-hidden">
+            <TCard padding="lg">
                 <!-- Logo -->
                 <h1 class="text-4xl sm:text-5xl font-black text-center mb-2 tracking-tight">
                     <span class="text-white drop-shadow-md">
@@ -110,47 +112,37 @@ const handleRefresh = () => {
 
                 <!-- PRIMARY ACTION BUTTONS -->
                 <div class="grid grid-cols-2 gap-3">
-                    <button
-                        @click="handleCreateRoom(true)"
-                        class="py-5 px-4 bg-action-blue hover:bg-blue-500 text-white font-black text-lg rounded-2xl transform transition-all hover:scale-[1.02] active:scale-[0.98] shadow-game-btn flex items-center justify-center gap-2 border-[3px] border-blue-400"
-                    >
+                    <TButton variant="blue" size="lg" @click="handleCreateRoom(true)">
                         <span class="text-xl">🌐</span> Sala Pública
-                    </button>
-                    <button
-                        @click="handleCreateRoom(false)"
-                        class="py-5 px-4 bg-tuti-teal hover:bg-teal-300 text-ink-main font-black text-lg rounded-2xl transform transition-all hover:scale-[1.02] active:scale-[0.98] shadow-game-btn flex items-center justify-center gap-2 border-[3px] border-white/60"
-                    >
+                    </TButton>
+                    <TButton variant="teal" size="lg" @click="handleCreateRoom(false)">
                         <span class="text-xl">🔒</span> Sala Privada
-                    </button>
+                    </TButton>
                 </div>
 
                 <!-- Tertiary: Join by Code -->
-                <button
-                    @click="showJoinInput = !showJoinInput"
-                    class="w-full mt-4 py-3 px-4 bg-panel-card hover:bg-white text-action-blue font-bold text-sm rounded-xl transition-all border-2 border-white flex items-center justify-center gap-2 shadow-sm"
-                >
+                <TButton variant="secondary" size="md" class="w-full mt-4" @click="showJoinInput = !showJoinInput">
                     <span class="text-base">🔑</span> Tengo un Código de Sala
-                </button>
+                </TButton>
 
                 <!-- JOIN CODE INPUT (Collapsible) -->
                 <div v-if="showJoinInput" class="mt-4 space-y-3 animate-in fade-in zoom-in-95 duration-200">
                     <div>
                         <label class="block text-xs font-bold text-ink-soft mb-2 text-left uppercase tracking-widest">Código de Sala</label>
-                        <input
+                        <TInput
                             v-model="joinCode"
-                            @keyup.enter="handleJoinRoom"
-                            type="text"
-                            maxlength="4"
-                            class="w-full px-4 py-4 bg-panel-input border-2 border-panel-card focus:border-action-cyan rounded-xl text-ink-main placeholder-ink-muted transition-all text-center text-3xl font-mono tracking-[0.2em] font-black uppercase outline-none shadow-inner"
+                            variant="code"
                             placeholder="ABCD"
-                        >
+                            :maxlength="4"
+                            @keyup.enter="handleJoinRoom"
+                        />
                     </div>
                     <div class="flex gap-3">
-                        <button @click="showJoinInput = false" class="flex-1 py-3 bg-panel-modal hover:bg-white text-ink-soft font-bold rounded-xl transition-all border-2 border-white">Cancelar</button>
-                        <button @click="handleJoinRoom" class="flex-1 py-3 bg-action-primary hover:bg-action-hover text-white font-black rounded-xl shadow-game-btn transition-all active:scale-[0.98] border-2 border-green-400/50">Unirse</button>
+                        <TButton variant="ghost" size="md" class="flex-1" @click="showJoinInput = false">Cancelar</TButton>
+                        <TButton variant="primary" size="md" class="flex-1" @click="handleJoinRoom">Unirse</TButton>
                     </div>
                 </div>
-            </div>
+            </TCard>
         </div>
 
         <!-- ═══════════════════════════════════════════════ -->
@@ -159,7 +151,7 @@ const handleRefresh = () => {
         <div class="lg:col-span-3 space-y-5">
             
             <!-- IDENTITY CARD -->
-            <div class="bg-panel-base rounded-3xl p-5 shadow-game-panel border-[3px] border-white/50">
+            <TCard padding="md">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xs font-black text-ink-main uppercase tracking-widest">Tu Identidad</h3>
                     <button @click="isEditingProfile = !isEditingProfile" class="text-[10px] font-bold text-action-blue bg-white/50 hover:bg-white px-2 py-1 rounded border border-white/60 transition-colors uppercase">
@@ -178,18 +170,18 @@ const handleRefresh = () => {
                     <!-- Name Display/Input -->
                     <div class="flex-1 min-w-0">
                         <p class="text-ink-soft text-[10px] font-bold tracking-wider uppercase mb-1">Nombre Público</p>
-                        <input v-if="isEditingProfile"
+                        <TInput
+                            v-if="isEditingProfile"
                             v-model="playerName"
-                            type="text"
-                            class="w-full bg-panel-input border-2 border-panel-card rounded-lg px-3 py-2 text-ink-main font-black text-lg focus:outline-none focus:border-action-cyan shadow-inner"
                             placeholder="Tu nombre..."
-                            maxlength="12"
-                        >
+                            :maxlength="12"
+                            input-class="rounded-lg py-2 text-lg"
+                        />
                         <p v-else class="text-2xl sm:text-3xl font-black text-ink-main truncate tracking-tight">{{ playerName }}</p>
                     </div>
                 </div>
 
-                <!-- Avatar Grid Selection (Hidden by default) -->
+                <!-- Avatar Grid Selection -->
                 <div v-show="isEditingProfile" class="mt-4 pt-4 border-t border-white/50 grid grid-cols-6 gap-2 animate-in fade-in slide-in-from-top-2">
                     <button v-for="avatar in AVATARS" :key="avatar"
                         @click="selectedAvatar = avatar"
@@ -199,10 +191,10 @@ const handleRefresh = () => {
                         {{ avatar }}
                     </button>
                 </div>
-            </div>
+            </TCard>
 
             <!-- ACTIVE ROOMS RADAR -->
-            <div class="bg-panel-base rounded-3xl border-[3px] border-white/50 shadow-game-panel flex flex-col overflow-hidden max-h-[400px]">
+            <TCard padding="none" class="flex flex-col overflow-hidden max-h-[400px]">
                 <div class="p-4 border-b border-white/50 bg-panel-card/50 flex items-center justify-between sticky top-0 z-10">
                     <h3 class="text-xs font-black text-ink-main uppercase tracking-widest flex items-center gap-2">
                         📡 Radar de Salas
@@ -255,7 +247,7 @@ const handleRefresh = () => {
                     <!-- /Room Item -->
 
                 </div>
-            </div>
+            </TCard>
 
         </div>
     </div>

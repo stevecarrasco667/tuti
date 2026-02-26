@@ -3,6 +3,8 @@ import { ref, computed, watch } from 'vue';
 import { useGame } from '../composables/useGame';
 import { useSound } from '../composables/useSound';
 import { MASTER_CATEGORIES } from '../../shared/engines/categories';
+import TCard from './ui/TCard.vue';
+import TButton from './ui/TButton.vue';
 
 const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer } = useGame();
 const { playClick, playJoin, playAlarm, playSuccess } = useSound();
@@ -185,7 +187,7 @@ const copyRoomLink = () => {
         <!-- STICKY HEADER: Room Code + Pub/Priv -->
         <!-- =================================== -->
         <div class="flex-none px-3 pt-3 pb-2 lg:px-4 lg:pt-4">
-            <div class="bg-panel-base border-[3px] border-white/50 rounded-2xl p-3 flex items-center justify-between gap-3 shadow-game-panel">
+            <TCard padding="none" class="p-3 flex items-center justify-between gap-3 rounded-2xl">
                 <!-- Left: Pub/Priv + Code -->
                 <div class="flex items-center gap-3 min-w-0">
                     <!-- Public/Private Toggle (Host) -->
@@ -206,14 +208,11 @@ const copyRoomLink = () => {
                 </div>
 
                 <!-- Right: Copy Link -->
-                <button
-                    @click="copyRoomLink"
-                    class="flex-none px-3 py-2 bg-panel-card hover:bg-white text-action-blue text-[10px] font-black rounded-xl transition-all border-2 border-white flex items-center gap-1.5 active:scale-95 shadow-sm"
-                >
+                <TButton variant="secondary" size="sm" class="flex-none" @click="copyRoomLink">
                     <span>{{ copied ? '✓' : '🔗' }}</span>
                     <span class="hidden sm:inline">{{ copied ? 'Copiado' : 'Invitar' }}</span>
-                </button>
-            </div>
+                </TButton>
+            </TCard>
         </div>
 
         <!-- ============================= -->
@@ -368,9 +367,7 @@ const copyRoomLink = () => {
                                 <p class="text-ink-main text-[9px] font-black uppercase tracking-[0.2em]">
                                     Categorías <span class="text-ink-soft">({{ localConfig.classic?.categories?.length || 0 }})</span>
                                 </p>
-                                <button @click="openCategoryModal" class="text-[9px] bg-tuti-teal hover:bg-teal-300 text-ink-main px-3 py-1.5 rounded-lg font-black tracking-wider transition-all shadow-sm border-2 border-white active:scale-95 uppercase">
-                                    Editar +
-                                </button>
+                                <TButton variant="teal" size="sm" @click="openCategoryModal">Editar +</TButton>
                             </div>
                             <div class="flex-1 overflow-y-auto p-4 min-h-0">
                                 <div v-if="localConfig.classic?.categories?.length > 0" class="flex flex-wrap gap-2 content-start">
@@ -540,13 +537,15 @@ const copyRoomLink = () => {
         <!-- ================================ -->
         <div class="fixed bottom-0 left-0 w-full p-4 bg-panel-base/90 backdrop-blur-xl border-t-[3px] border-white/50 z-50 lg:relative lg:bg-transparent lg:border-0 lg:backdrop-blur-none lg:p-4 lg:pt-0 flex-none pb-safe shadow-game-panel lg:shadow-none">
             <div class="max-w-[1400px] mx-auto">
-                <button v-if="amIHost"
-                    @click="handleStart"
+                <TButton v-if="amIHost"
+                    variant="primary"
+                    size="lg"
+                    class="w-full text-xl md:text-2xl"
                     :disabled="!canStart"
-                    class="w-full py-5 bg-action-primary hover:bg-action-hover disabled:bg-panel-input disabled:text-ink-muted disabled:border-panel-card disabled:shadow-none text-white font-black text-xl md:text-2xl tracking-wide rounded-2xl shadow-game-btn transition-transform hover:scale-[1.01] active:scale-[0.98] border-[3px] border-green-400 flex items-center justify-center gap-3"
+                    @click="handleStart"
                 >
                     <span class="text-2xl md:text-3xl">⚡</span> EMPEZAR PARTIDA
-                </button>
+                </TButton>
                 <div v-else class="w-full py-5 text-center bg-panel-card rounded-2xl border-[3px] border-white text-ink-main text-sm font-black uppercase shadow-sm flex flex-col items-center justify-center">
                     <span class="animate-pulse flex items-center gap-2">⏳ Esperando al anfitrión...</span>
                 </div>
@@ -591,8 +590,8 @@ const copyRoomLink = () => {
                 </div>
 
                 <div class="p-4 border-t-2 border-white/50 bg-panel-base flex gap-3 flex-none">
-                    <button @click="showCategoriesModal = false" class="flex-1 py-4 rounded-2xl font-black text-ink-soft bg-panel-card border-2 border-white hover:bg-white hover:text-ink-main transition-colors uppercase tracking-wide text-sm shadow-sm">Cancelar</button>
-                    <button @click="saveCategories" class="flex-1 py-4 rounded-2xl font-black bg-action-primary hover:bg-action-hover text-white shadow-game-btn transition-all active:scale-[0.98] uppercase tracking-wide text-sm border-[3px] border-green-400/50">Guardar</button>
+                    <TButton variant="secondary" size="md" class="flex-1 py-4" @click="showCategoriesModal = false">Cancelar</TButton>
+                    <TButton variant="primary" size="md" class="flex-1 py-4" @click="saveCategories">Guardar</TButton>
                 </div>
             </div>
         </div>
