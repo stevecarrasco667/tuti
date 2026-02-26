@@ -12,12 +12,12 @@ withDefaults(defineProps<{
 });
 
 const VARIANT_MAP = {
-    primary:   'bg-action-primary hover:bg-action-hover text-white shadow-game-btn border-[3px] border-green-400 disabled:bg-panel-input disabled:text-ink-muted disabled:border-panel-card disabled:shadow-none',
-    secondary: 'bg-panel-card hover:bg-white text-action-blue border-2 border-white shadow-sm',
-    blue:      'bg-action-blue hover:bg-blue-500 text-white shadow-game-btn border-[3px] border-blue-400',
-    teal:      'bg-tuti-teal hover:bg-teal-300 text-ink-main shadow-game-btn border-[3px] border-white/60',
-    ghost:     'bg-panel-modal hover:bg-white text-ink-soft border-2 border-white',
-    danger:    'bg-action-error hover:bg-red-600 text-white shadow-game-btn border-[3px] border-red-400',
+    primary:   'bg-action-primary hover:bg-action-primary-hover text-white shadow-warm disabled:opacity-50',
+    secondary: 'bg-action-secondary hover:bg-action-secondary-hover text-white',
+    blue:      'bg-action-secondary hover:bg-action-secondary-hover text-white',
+    teal:      'bg-action-accent hover:opacity-90 text-white shadow-warm',
+    ghost:     'bg-transparent hover:bg-panel-input text-ink-main',
+    danger:    'bg-action-error text-white',
 } as const;
 
 const SIZE_MAP = {
@@ -31,7 +31,7 @@ const SIZE_MAP = {
     <button
         :type="type"
         :disabled="disabled"
-        class="font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed"
+        class="font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-95 cursor-pointer disabled:cursor-not-allowed"
         :class="[VARIANT_MAP[variant], SIZE_MAP[size]]"
     >
         <slot />

@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply bg-panel-base text-ink-main antialiased selection:bg-action-primary selection:text-white;
+  }
+}
+
 /* Mobile Chat Animations */
 .slide-up-enter-active,
 .slide-up-leave-active {

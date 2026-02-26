@@ -18,7 +18,7 @@ const PADDING_MAP = {
 <template>
     <div
         v-bind="$attrs"
-        class="bg-panel-base rounded-3xl shadow-game-panel border-[3px] border-white/50 relative overflow-hidden"
+        class="bg-panel-card rounded-3xl shadow-warm border border-white/20 transition-all duration-300 relative overflow-hidden"
         :class="PADDING_MAP[padding]"
     >
         <slot />
