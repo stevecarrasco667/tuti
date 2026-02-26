@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue';
-import { useSocket } from './composables/useSocket';
+
 import { useGame } from './composables/useGame';
 import LobbyView from './components/LobbyView.vue';
 import HomeView from './components/HomeView.vue';
 import GameView from './components/GameView.vue';
 import GameOverView from './components/GameOverView.vue';
 
-const { isConnected } = useSocket();
+
 const { gameState, myUserId, tryRestoreSession } = useGame();
 
 onMounted(() => {
@@ -67,7 +67,7 @@ watch(() => gameState.value.players, (newPlayers) => {
 </script>
 
 <template>
-  <div class="h-[100dvh] w-screen overflow-hidden bg-gradient-to-br from-tuti-base to-tuti-soft flex flex-col items-center relative transition-all duration-500 font-sans text-ink-main"
+  <div class="h-[100dvh] w-screen overflow-hidden bg-panel-base text-ink-main flex flex-col items-center relative transition-all duration-500 font-sans"
        :class="currentView === 'GAME' ? 'p-0' : 'p-4'">
     
     <!-- MAIN TITLE (Header) - Hidden in Game Mode -->
@@ -78,16 +78,7 @@ watch(() => gameState.value.players, (newPlayers) => {
         <p class="text-ink-inverse/80 text-sm font-light tracking-wide mt-1">Project Phoenix</p>
     </header>
 
-    <!-- CONNECTION STATUS (Top Right) -->
-    <div class="fixed top-4 right-4 flex items-center gap-2 bg-panel-card/90 px-3 py-1.5 rounded-full backdrop-blur-md shadow-game-card z-50">
-      <div 
-        class="w-2.5 h-2.5 rounded-full transition-colors duration-500"
-        :class="isConnected ? 'bg-action-primary shadow-[0_0_8px_rgba(46,204,113,0.5)]' : 'bg-action-error shadow-[0_0_8px_rgba(239,68,68,0.5)]'"
-      ></div>
-      <span class="text-xs font-bold tracking-wide" :class="isConnected ? 'text-ink-soft' : 'text-action-error'">
-        {{ isConnected ? 'Connected' : 'Disconnected' }}
-      </span>
-    </div>
+
 
     <!-- MAIN CONTENT (Flex Child) -->
     <main class="flex-1 w-full relative overflow-hidden flex flex-col min-h-0">

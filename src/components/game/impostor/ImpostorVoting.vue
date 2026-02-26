@@ -97,8 +97,8 @@ const suspects = computed(() => {
 
         <!-- TARJETAS DE SOSPECHOSOS -->
         <div class="flex-1 overflow-y-auto px-2 pb-8 w-full max-w-5xl mx-auto scrollbar-thin">
-            <!-- 1. GRILLA RESPONSIVA -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 p-1">
+            <!-- 1. GRILLA RESPONSIVA DINÁMICA -->
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-3 md:gap-4 p-1 w-full h-full">
                 
                 <div v-for="s in suspects" :key="s.id"
                      class="relative overflow-hidden bg-panel-card backdrop-blur-md border-[4px] rounded-3xl flex flex-col transition-colors duration-300 shadow-sm"
