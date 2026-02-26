@@ -76,7 +76,7 @@ onUnmounted(() => {
         
         <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-game-panel overflow-hidden relative transition-all">
             
-            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-action-blue via-tuti-teal to-action-blue opacity-90"></div>
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-action-primary via-action-accent to-action-primary opacity-90"></div>
 
             <!-- Rivals Header REMOVED (Moved to GameView) -->
 

@@ -20,7 +20,7 @@ const allies = computed(() => {
     <div class="h-full w-full flex flex-col items-center justify-center p-6 text-center bg-panel-base backdrop-blur-md rounded-3xl border-[4px] border-white/50 relative overflow-hidden shadow-game-panel">
         <!-- Fondo Animado FX -->
         <div class="absolute inset-0 z-0 opacity-40 pointer-events-none"
-             :class="isImpostor ? 'bg-gradient-to-br from-action-error/40 via-transparent' : 'bg-gradient-to-br from-action-cyan/40 via-transparent'">
+             :class="isImpostor ? 'bg-gradient-to-br from-action-error/40 via-transparent' : 'bg-gradient-to-br from-action-secondary/40 via-transparent'">
         </div>
 
         <div class="z-10 flex flex-col items-center max-w-2xl space-y-6">

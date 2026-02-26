@@ -73,7 +73,7 @@ const handleToast = (msg: string, style: 'join' | 'leave' | 'stop-warning', icon
 </script>
 
 <template>
-    <div class="h-full w-full flex flex-col bg-gradient-to-br from-tuti-base to-tuti-soft text-ink-main overflow-hidden font-sans">
+    <div class="h-full w-full flex flex-col bg-panel-base text-ink-main overflow-hidden font-sans">
         <ReloadPrompt />
 
         <!-- [Phoenix] SPECTATOR MODE BANNER -->

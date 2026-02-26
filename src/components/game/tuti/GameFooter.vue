@@ -19,7 +19,7 @@ defineEmits<{
 </script>
 
 <template>
-    <div class="flex-none bg-gradient-to-t from-tuti-base via-tuti-base/90 to-transparent p-4 pb-safe pt-12 -mt-8 z-30 pointer-events-none">
+    <div class="flex-none bg-gradient-to-t from-panel-base via-panel-base/90 to-transparent p-4 pb-safe pt-12 -mt-8 z-30 pointer-events-none">
         <div class="w-full max-w-[95%] xl:max-w-7xl mx-auto flex items-center justify-between gap-4 pointer-events-auto mt-4 px-2">
             
             <!-- My Progress (Left) -->

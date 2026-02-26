@@ -51,7 +51,7 @@ defineEmits<{
              <!-- Let's keep the Badge in the exact center. -->
             <div class="relative group mt-3">
                 <div class="absolute inset-0 bg-action-blue rounded-xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity"></div>
-                <div class="relative bg-gradient-to-br from-action-blue to-tuti-base w-16 h-16 rounded-2xl flex items-center justify-center shadow-game-btn border-4 border-white transform transition-transform group-hover:scale-105">
+                <div class="relative bg-panel-card text-ink-main w-16 h-16 rounded-2xl flex items-center justify-center shadow-warm border border-white/50 transform transition-transform group-hover:scale-105">
                     <span class="text-4xl font-black text-white drop-shadow-sm">{{ currentLetter }}</span>
                 </div>
             </div>

@@ -36,7 +36,7 @@ defineEmits<{
         <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <div class="relative group">
                 <div class="absolute inset-0 bg-fuchsia-500 rounded-xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                <div class="relative bg-gradient-to-br from-indigo-600 to-violet-700 w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg border border-white/10 transform transition-transform group-hover:scale-105">
+                <div class="relative bg-action-secondary w-14 h-14 rounded-2xl flex items-center justify-center shadow-warm border border-white/50 transform transition-transform group-hover:scale-105">
                     <span class="text-4xl font-black text-white drop-shadow-md">{{ currentLetter }}</span>
                 </div>
             </div>

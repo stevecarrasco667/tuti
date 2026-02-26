@@ -15,7 +15,7 @@ const reload = () => {
             <h2 class="text-2xl font-black text-white mb-2">¡Actualización Disponible!</h2>
             <p class="text-indigo-200 mb-6">Hemos mejorado el juego. Necesitas recargar para continuar sin errores.</p>
             
-            <button @click="reload" class="w-full py-4 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-black text-lg shadow-lg hover:scale-105 transition-transform">
+            <button @click="reload" class="w-full py-4 rounded-xl bg-action-primary hover:bg-action-primary-hover text-white font-black text-lg shadow-warm hover:scale-105 transition-transform border-[3px] border-white/50">
                 ACTUALIZAR AHORA
             </button>
         </div>

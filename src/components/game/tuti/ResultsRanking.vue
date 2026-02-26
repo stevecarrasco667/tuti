@@ -89,7 +89,7 @@ onMounted(() => {
                     <div class="absolute inset-0 bg-panel-input z-0"></div>
                     
                     <!-- ANIMATED PROGRESS BAR -->
-                    <div class="absolute top-0 bottom-0 left-0 bg-gradient-to-r transition-all duration-1000 ease-out z-0 opacity-80"
+                    <div class="absolute top-0 bottom-0 left-0 bg-panel-card transition-all duration-1000 ease-out z-0 opacity-80"
                          :class="idx === 0 ? 'from-yellow-400 to-amber-300' : 'from-action-blue to-tuti-teal'"
                          :style="{ width: (barWidths[player.id] || 0) + '%' }"
                     ></div>

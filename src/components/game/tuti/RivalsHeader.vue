@@ -27,7 +27,7 @@ defineProps<{
         >
             <!-- Avatar -->
             <div class="relative transition-transform group-hover:scale-110 flex-shrink-0">
-                 <div class="w-16 h-16 lg:w-12 lg:h-12 rounded-full bg-gradient-to-b from-indigo-500 to-indigo-700 border-2 border-white/20 flex items-center justify-center text-3xl lg:text-xl shadow-xl relative z-10">
+                 <div class="w-16 h-16 lg:w-12 lg:h-12 rounded-full bg-panel-card border-2 border-white flex items-center justify-center text-3xl lg:text-xl shadow-sm relative z-10">
                     {{ rival.isConnected ? (rival.avatar || '👤') : '🔌' }}
                 </div>
                 <!-- Status Ring -->

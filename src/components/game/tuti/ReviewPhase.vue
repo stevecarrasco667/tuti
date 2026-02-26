@@ -143,7 +143,7 @@ const selfStatusIcon = (playerId: string, category: string) => {
 
         <!-- STICKY FOOTER: ¡Terminé de Revisar! -->
         <div class="fixed bottom-0 left-0 w-full p-4 pb-safe z-40
-                    bg-gradient-to-t from-tuti-base via-tuti-base/95 to-transparent
+                    bg-gradient-to-t from-panel-base via-panel-base/95 to-transparent
                     pointer-events-none">
             <button
                 @click="emit('submit-votes')"
