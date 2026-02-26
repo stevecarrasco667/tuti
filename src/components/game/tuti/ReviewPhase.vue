@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import VoteSwitch from './VoteSwitch.vue';
+import VotingCard from './VotingCard.vue';
 import type { Player } from '../../../../shared/types';
 
 const props = defineProps<{
@@ -73,71 +73,23 @@ const selfStatusIcon = (playerId: string, category: string) => {
                 </h2>
             </div>
 
-            <!-- Grid de Tarjetas por Jugador -->
-            <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 mt-4 px-2">
-                <div v-for="player in players" :key="player.id"
-                    class="rounded-3xl border-4 p-4 flex flex-col gap-3 transition-all duration-200"
-                    :class="[
-                        isAutoValidated(player.id, category) 
-                            ? 'bg-amber-100 border-amber-300 shadow-[0_4px_12px_rgba(251,191,36,0.3)]' 
-                            : isRejected(player.id, category) 
-                                ? 'bg-red-50 border-red-200 shadow-sm opacity-80' 
-                                : !isApproved(player.id, category)
-                                    ? 'bg-red-50 border-red-300 shadow-sm'
-                                    : 'bg-panel-card border-white shadow-sm hover:shadow-md'
-                    ]"
-                >
-                    <!-- Avatar + Nombre (pequeño, arriba) -->
-                    <div class="flex items-center gap-2 bg-white/60 p-1.5 pr-3 rounded-full border-2 border-white shadow-sm w-fit max-w-full">
-                        <span class="text-xl shrink-0 leading-none">{{ player.avatar || '👤' }}</span>
-                        <div class="flex items-center gap-1.5 min-w-0 overflow-hidden">
-                            <span class="text-[10px] font-black uppercase tracking-widest truncate"
-                                :class="isAutoValidated(player.id, category) ? 'text-amber-600' : 'text-ink-soft'">
-                                {{ player.name }}
-                            </span>
-                            <span v-if="isAutoValidated(player.id, category)"
-                                class="inline-flex items-center justify-center shrink-0">
-                                🛡️
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Palabra Escrita (grande, centro) -->
-                    <p class="text-lg md:text-xl font-black text-center py-2 min-h-[40px] transition-all duration-200 break-words leading-tight"
-                        :class="[
-                            isAutoValidated(player.id, category)
-                                ? 'text-amber-700'
-                                : isRejected(player.id, category) || !isApproved(player.id, category)
-                                    ? 'line-through opacity-40 text-red-600'
-                                    : getReviewItem(player.id, category).state === 'DUPLICATE'
-                                        ? 'text-action-warning'
-                                        : 'text-action-blue'
-                        ]">
-                        {{ getReviewItem(player.id, category).answer || '—' }}
-                    </p>
-
-                    <!-- Vote Counter Badge + VoteSwitch / Self Indicator -->
-                    <div class="flex items-center justify-between mt-auto pt-3 border-t-2 border-white/50 relative">
-                        <!-- Vote Counter -->
-                        <span v-if="getVoteCount(player.id, category) > 0 && !isAutoValidated(player.id, category)"
-                            class="absolute -top-3 left-1/2 -translate-x-1/2 bg-action-warning text-ink-main border-2 border-white px-2 py-0.5 rounded-full text-[10px] font-black shadow-sm z-10 whitespace-nowrap">
-                            {{ getVoteCount(player.id, category) }} 👎
-                        </span>
-                        
-                        <div class="w-full flex justify-center h-10">
-                            <!-- VoteSwitch for OTHER players -->
-                            <VoteSwitch
-                                v-if="player.id !== myUserId"
-                                :model-value="isApproved(player.id, category)"
-                                :is-auto-validated="isAutoValidated(player.id, category)"
-                                :label="`Voto ${player.name}`"
-                                @update:model-value="emit('vote', player.id, category)"
-                            />
-                            <!-- Self indicator -->
-                            <span v-else class="text-2xl drop-shadow-sm flex items-center justify-center bg-white/80 w-11 h-11 rounded-full border-2 border-panel-card">{{ selfStatusIcon(player.id, category) }}</span>
-                        </div>
-                    </div>
-                </div>
+            <!-- Grid de Tarjetas Fluido por Jugador -->
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6 w-full px-2 py-4 mb-8">
+                <VotingCard 
+                    v-for="player in players" :key="player.id"
+                    :player-name="player.name"
+                    :player-avatar="player.avatar || ''"
+                    :word="getReviewItem(player.id, category).answer"
+                    :is-duplicate="getReviewItem(player.id, category).state === 'DUPLICATE'"
+                    :is-auto-validated="isAutoValidated(player.id, category)"
+                    :is-rejected="isRejected(player.id, category)"
+                    :is-approved="isApproved(player.id, category)"
+                    :vote-count="getVoteCount(player.id, category)"
+                    :is-me="player.id === myUserId"
+                    :self-status-icon="selfStatusIcon(player.id, category)"
+                    :model-value="isApproved(player.id, category)"
+                    @update:model-value="emit('vote', player.id, category)"
+                />
             </div>
         </div>
 
