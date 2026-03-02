@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { ref, computed } from 'vue';
 import VotingCard from './VotingCard.vue';
+import TButton from '../../ui/TButton.vue';
 import type { Player } from '../../../../shared/types';
 
 const props = defineProps<{
@@ -18,19 +20,25 @@ const emit = defineEmits<{
     (e: 'submit-votes'): void;
 }>();
 
-// "Innocent until proven guilty" — switch is ON (valid) by default
-// Toggling OFF = casting a negative vote
-const isApproved = (playerId: string, category: string) => {
-    return !props.votes[playerId]?.[category]?.includes(props.myUserId);
-};
+// ─── Wizard Navigation ───────────────────────────────────────────────────────
+const currentCategoryIndex = ref(0);
 
-const isAutoValidated = (playerId: string, category: string) => {
-    return props.getReviewItem(playerId, category).state === 'VALID_AUTO';
-};
+const activeCategory   = computed(() => props.categories[currentCategoryIndex.value]);
+const isFirstCategory  = computed(() => currentCategoryIndex.value === 0);
+const isLastCategory   = computed(() => currentCategoryIndex.value === props.categories.length - 1);
 
-const getVoteCount = (playerId: string, category: string) => {
-    return props.votes[playerId]?.[category]?.length || 0;
-};
+const nextCategory = () => { if (!isLastCategory.value)  currentCategoryIndex.value++; };
+const prevCategory = () => { if (!isFirstCategory.value) currentCategoryIndex.value--; };
+
+// ─── Vote helpers (sin cambios) ───────────────────────────────────────────────
+const isApproved = (playerId: string, category: string) =>
+    !props.votes[playerId]?.[category]?.includes(props.myUserId);
+
+const isAutoValidated = (playerId: string, category: string) =>
+    props.getReviewItem(playerId, category).state === 'VALID_AUTO';
+
+const getVoteCount = (playerId: string, category: string) =>
+    props.votes[playerId]?.[category]?.length || 0;
 
 const isRejected = (playerId: string, category: string) => {
     const review = props.getReviewItem(playerId, category);
@@ -40,20 +48,19 @@ const isRejected = (playerId: string, category: string) => {
 const selfStatusIcon = (playerId: string, category: string) => {
     const review = props.getReviewItem(playerId, category);
     if (review.state === 'VALID_AUTO') return '🛡️';
-    if (review.state === 'VALID') return '✅';
-    if (review.state === 'REJECTED') return '❌';
-    if (review.state === 'DUPLICATE') return '⚠️';
+    if (review.state === 'VALID')      return '✅';
+    if (review.state === 'REJECTED')   return '❌';
+    if (review.state === 'DUPLICATE')  return '⚠️';
     return '—';
 };
-
-
 </script>
 
 <template>
-    <div class="w-full max-w-4xl pb-28 relative mx-auto">
+    <div class="h-full flex flex-col w-full max-w-4xl mx-auto px-2 pt-4">
 
         <!-- Stop Alert -->
-        <div v-if="showStopAlert && stopperPlayer" class="bg-red-500 border-4 border-red-300 rounded-3xl shadow-[0_4px_20px_rgba(239,68,68,0.4)] p-4 flex items-center justify-center gap-4 mb-8 animate-in fade-in slide-in-from-top duration-300 mx-2">
+        <div v-if="showStopAlert && stopperPlayer"
+             class="flex-none bg-red-500 border-4 border-red-300 rounded-3xl shadow-[0_4px_20px_rgba(239,68,68,0.4)] p-4 flex items-center justify-center gap-4 mb-4 mx-2">
             <div class="text-5xl animate-bounce drop-shadow-md">{{ stopperPlayer.avatar || '🛑' }}</div>
             <div class="flex flex-col items-center md:items-start text-center md:text-left gap-1">
                 <h3 class="font-black text-white text-3xl md:text-4xl uppercase tracking-tighter drop-shadow-sm leading-none">¡BASTA PARA MÍ!</h3>
@@ -61,54 +68,80 @@ const selfStatusIcon = (playerId: string, category: string) => {
             </div>
         </div>
 
-        <!-- VERTICAL FEED: LOOP POR CATEGORÍA -->
-        <div v-for="category in categories" :key="category" class="mb-8">
+        <!-- HEADER DE PROGRESO + CATEGORÍA ACTIVA -->
+        <div class="flex-none text-center mb-4">
+            <p class="text-xs font-black uppercase tracking-widest text-ink-muted mb-2">
+                Categoría {{ currentCategoryIndex + 1 }} de {{ categories.length }}
+            </p>
+            <h2 class="bg-panel-card/90 backdrop-blur-xl py-3 px-6 rounded-2xl
+                        text-lg md:text-xl font-black uppercase tracking-widest text-ink-main
+                        border-[3px] border-white shadow-game-panel w-fit mx-auto">
+                {{ activeCategory }}
+            </h2>
+        </div>
 
-            <!-- Sticky Category Header -->
-            <div class="sticky top-0 z-10 px-2 py-2">
-                <h2 class="bg-panel-base/90 backdrop-blur-xl py-3 px-5 rounded-2xl
-                            text-sm md:text-base font-black uppercase tracking-widest text-ink-main
-                            border-[3px] border-white shadow-game-panel mx-auto w-fit">
-                    {{ category }}
-                </h2>
-            </div>
-
-            <!-- Grid de Tarjetas Fluido por Jugador -->
-            <div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6 w-full px-2 py-4 mb-8">
-                <VotingCard 
+        <!-- ARENA: CSS Grid Fluido (Sprint 2.3 preservado) -->
+        <div class="flex-1 overflow-y-auto">
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6 w-full px-2 py-4">
+                <VotingCard
                     v-for="player in players" :key="player.id"
                     :player-name="player.name"
                     :player-avatar="player.avatar || ''"
-                    :word="getReviewItem(player.id, category).answer"
-                    :is-duplicate="getReviewItem(player.id, category).state === 'DUPLICATE'"
-                    :is-auto-validated="isAutoValidated(player.id, category)"
-                    :is-rejected="isRejected(player.id, category)"
-                    :is-approved="isApproved(player.id, category)"
-                    :vote-count="getVoteCount(player.id, category)"
+                    :word="getReviewItem(player.id, activeCategory).answer"
+                    :is-duplicate="getReviewItem(player.id, activeCategory).state === 'DUPLICATE'"
+                    :is-auto-validated="isAutoValidated(player.id, activeCategory)"
+                    :is-rejected="isRejected(player.id, activeCategory)"
+                    :is-approved="isApproved(player.id, activeCategory)"
+                    :vote-count="getVoteCount(player.id, activeCategory)"
                     :is-me="player.id === myUserId"
-                    :self-status-icon="selfStatusIcon(player.id, category)"
-                    :model-value="isApproved(player.id, category)"
-                    @update:model-value="emit('vote', player.id, category)"
+                    :self-status-icon="selfStatusIcon(player.id, activeCategory)"
+                    :model-value="isApproved(player.id, activeCategory)"
+                    @update:model-value="emit('vote', player.id, activeCategory)"
                 />
             </div>
         </div>
 
-        <!-- STICKY FOOTER: ¡Terminé de Revisar! -->
-        <div class="fixed bottom-0 left-0 w-full p-4 pb-safe z-40
-                    bg-gradient-to-t from-panel-base via-panel-base/95 to-transparent
-                    pointer-events-none">
-            <button
-                @click="emit('submit-votes')"
-                :disabled="hasConfirmed"
-                class="pointer-events-auto w-full max-w-[95%] sm:max-w-lg mx-auto block py-5 rounded-3xl font-black text-lg md:text-xl uppercase tracking-widest
-                       transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]
-                       border-[4px] shadow-game-btn"
-                :class="hasConfirmed
-                    ? 'bg-panel-input text-ink-muted border-white cursor-not-allowed shadow-none translate-y-1'
-                    : 'bg-action-primary border-green-300 text-white'"
+        <!-- ACTION BAR: Anterior / Dots / Siguiente + Enviar -->
+        <div class="flex-none pt-5 pb-4 border-t border-white/20 flex justify-between items-center gap-3">
+
+            <!-- Atrás -->
+            <TButton
+                variant="secondary"
+                size="md"
+                :disabled="isFirstCategory"
+                @click="prevCategory"
             >
-                {{ hasConfirmed ? '¡ENVIADO! ✅' : '¡COMPLETADO!' }}
-            </button>
+                ← Anterior
+            </TButton>
+
+            <!-- Dots de progreso -->
+            <div class="flex gap-1.5">
+                <div
+                    v-for="(_, i) in categories" :key="i"
+                    class="w-2 h-2 rounded-full transition-all duration-300"
+                    :class="i === currentCategoryIndex ? 'bg-action-primary w-5' : 'bg-panel-input'"
+                />
+            </div>
+
+            <!-- Siguiente ó Enviar Votos -->
+            <TButton
+                v-if="!isLastCategory"
+                variant="primary"
+                size="md"
+                @click="nextCategory"
+            >
+                Siguiente →
+            </TButton>
+            <TButton
+                v-else
+                variant="primary"
+                size="md"
+                :disabled="hasConfirmed"
+                @click="emit('submit-votes')"
+            >
+                {{ hasConfirmed ? '¡Enviado! ✅' : '¡Completado!' }}
+            </TButton>
+
         </div>
     </div>
 </template>
