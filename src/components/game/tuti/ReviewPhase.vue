@@ -30,6 +30,16 @@ const isLastCategory   = computed(() => currentCategoryIndex.value === props.cat
 const nextCategory = () => { if (!isLastCategory.value)  currentCategoryIndex.value++; };
 const prevCategory = () => { if (!isFirstCategory.value) currentCategoryIndex.value--; };
 
+// ─── Smart Grid (Densidad Dinámica) ──────────────────────────────────────────
+const gridLayoutClass = computed(() => {
+    const count = props.players.length;
+    if (count <= 2) return 'grid-cols-1 md:grid-cols-2 max-w-5xl mx-auto'; // Duelo (50/50)
+    if (count === 3) return 'grid-cols-1 md:grid-cols-3 max-w-6xl mx-auto'; // Tridente
+    if (count === 4) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 max-w-4xl mx-auto'; // Cuadrado 2x2
+    if (count <= 6) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto'; // Galería 2x3
+    return 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 max-w-7xl mx-auto'; // Alta densidad
+});
+
 // ─── Vote helpers (sin cambios) ───────────────────────────────────────────────
 const isApproved = (playerId: string, category: string) =>
     !props.votes[playerId]?.[category]?.includes(props.myUserId);
@@ -56,7 +66,7 @@ const selfStatusIcon = (playerId: string, category: string) => {
 </script>
 
 <template>
-    <div class="h-full flex flex-col w-full max-w-4xl mx-auto px-2 pt-4">
+    <div class="h-full flex flex-col w-full mx-auto px-2 pt-4">
 
         <!-- Stop Alert -->
         <div v-if="showStopAlert && stopperPlayer"
@@ -80,9 +90,9 @@ const selfStatusIcon = (playerId: string, category: string) => {
             </h2>
         </div>
 
-        <!-- ARENA: CSS Grid Fluido (Sprint 2.3 preservado) -->
+        <!-- ARENA: Smart Grid Condicional -->
         <div class="flex-1 overflow-y-auto">
-            <div class="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-6 w-full px-2 py-4">
+            <div class="grid gap-4 md:gap-6 w-full px-2 py-4 transition-all duration-500 ease-in-out" :class="gridLayoutClass">
                 <VotingCard
                     v-for="player in players" :key="player.id"
                     :player-name="player.name"

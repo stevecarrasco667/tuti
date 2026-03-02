@@ -24,7 +24,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <div class="bg-panel-card rounded-2xl shadow-warm border border-white/20 p-5 flex flex-col justify-between h-full transition-transform hover:-translate-y-1 relative"
+    <div class="bg-panel-card rounded-2xl shadow-warm border border-white/20 p-5 flex flex-col justify-between w-full h-full min-h-[220px] max-h-[280px] transition-transform hover:-translate-y-1 relative"
          :class="[
             isAutoValidated 
                 ? 'bg-amber-100 border-amber-300 shadow-[0_4px_12px_rgba(251,191,36,0.3)]' 
@@ -52,8 +52,8 @@ const emit = defineEmits<{
         </div>
 
         <!-- MID: Palabra Escrita Gigante -->
-        <div class="flex-1 flex flex-col items-center justify-center min-h-[80px] my-6">
-            <p class="text-3xl md:text-4xl font-black text-center break-words leading-tight"
+        <div class="flex-1 flex flex-col items-center justify-center min-h-[80px] my-4">
+            <p class="text-2xl md:text-3xl font-black text-center break-words break-all line-clamp-2 overflow-hidden leading-tight"
                 :class="[
                     isAutoValidated
                         ? 'text-amber-700'
@@ -72,7 +72,7 @@ const emit = defineEmits<{
         </div>
 
         <!-- BOT: Votaciones y Acciones -->
-        <div class="mt-auto pt-4 border-t-2 border-white/50 relative flex justify-center h-12">
+        <div class="mt-auto pt-4 pb-2 border-t-2 border-white/50 relative flex justify-center h-12">
             <!-- Badge Votos Negativos -->
             <span v-if="voteCount > 0 && !isAutoValidated"
                 class="absolute -top-3 left-1/2 -translate-x-1/2 bg-action-warning text-ink-main border-2 border-white px-2 py-0.5 rounded-full text-[10px] font-black shadow-sm z-10 whitespace-nowrap">
