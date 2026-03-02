@@ -137,10 +137,12 @@ const rivalsActivity = computed(() => {
 
         <div class="flex-1 overflow-y-auto w-full scroll-smooth p-4 relative">
             <Transition name="fade" mode="out-in">
-                <div :key="gameState.status" class="w-full h-full flex flex-col items-center lg:grid lg:grid-cols-[280px_1fr_200px] lg:gap-8 lg:items-start lg:max-w-[1600px] lg:mx-auto"> 
+                <!-- Grid dinámico: 3 columnas en PLAYING, 2 columnas en las demás fases -->
+                <div :key="gameState.status" class="w-full h-full flex flex-col items-center lg:grid lg:gap-8 lg:items-start lg:max-w-[1600px] lg:mx-auto" 
+                    :class="gameState.status === 'PLAYING' ? 'lg:grid-cols-[280px_1fr_200px]' : 'lg:grid-cols-[1fr_200px]'"> 
                     
-                    <!-- COLUMN 1: RIVALS -->
-                    <div class="w-full lg:h-full lg:overflow-y-auto order-1 lg:order-1">
+                    <!-- COLUMN 1: RIVALS (SOLO EN PLAYING) -->
+                    <div v-if="gameState.status === 'PLAYING'" class="w-full lg:h-full lg:overflow-y-auto order-1 lg:order-1">
                          <RivalsHeader 
                             v-if="rivalsActivity.length > 0 && gameState.status === 'PLAYING'"
                             :rivals="rivalsActivity" 
