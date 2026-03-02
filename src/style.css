@@ -5,7 +5,17 @@
 @layer base {
   body {
     @apply bg-panel-base text-ink-main antialiased selection:bg-action-primary selection:text-white;
+    color-scheme: dark;
   }
+}
+
+/* Erradicación del Scrollbar global */
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  -ms-overflow-style: none; /* IE y Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 /* Mobile Chat Animations */

@@ -154,7 +154,7 @@ const handleRefresh = () => {
             <TCard padding="md">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xs font-black text-ink-main uppercase tracking-widest">Tu Identidad</h3>
-                    <button @click="isEditingProfile = !isEditingProfile" class="text-[10px] font-bold text-action-blue bg-white/50 hover:bg-white px-2 py-1 rounded border border-white/60 transition-colors uppercase">
+                    <button @click="isEditingProfile = !isEditingProfile" class="text-[10px] font-bold text-white bg-white/5 hover:bg-white/10 px-2 py-1 rounded border border-white/10 transition-colors uppercase">
                         {{ isEditingProfile ? 'Guardar' : 'Editar' }}
                     </button>
                 </div>
@@ -162,7 +162,7 @@ const handleRefresh = () => {
                 <div class="flex items-center gap-4">
                     <!-- Avatar Button/Display -->
                     <div class="relative group flex-none">
-                        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-panel-input border-[3px] border-white rounded-2xl flex items-center justify-center text-4xl shadow-sm transition-transform group-hover:scale-105 overflow-hidden">
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-panel-input border-[3px] border-white/10 rounded-2xl flex items-center justify-center text-4xl shadow-sm transition-transform group-hover:scale-105 overflow-hidden">
                             {{ selectedAvatar }}
                         </div>
                     </div>
@@ -182,11 +182,11 @@ const handleRefresh = () => {
                 </div>
 
                 <!-- Avatar Grid Selection -->
-                <div v-show="isEditingProfile" class="mt-4 pt-4 border-t border-white/50 grid grid-cols-6 gap-2 animate-in fade-in slide-in-from-top-2">
+                <div v-show="isEditingProfile" class="mt-4 pt-4 border-t border-white/10 grid grid-cols-6 gap-2 animate-in fade-in slide-in-from-top-2">
                     <button v-for="avatar in AVATARS" :key="avatar"
                         @click="selectedAvatar = avatar"
                         class="aspect-square flex items-center justify-center text-2xl rounded-xl transition-all border-2"
-                        :class="selectedAvatar === avatar ? 'bg-panel-card border-action-blue scale-110 shadow-sm' : 'bg-panel-input border-transparent hover:border-white/50 opacity-60 hover:opacity-100'"
+                        :class="selectedAvatar === avatar ? 'bg-panel-card border-action-primary scale-110 shadow-sm' : 'bg-panel-input border-transparent hover:border-white/10 opacity-60 hover:opacity-100'"
                     >
                         {{ avatar }}
                     </button>
@@ -195,7 +195,7 @@ const handleRefresh = () => {
 
             <!-- ACTIVE ROOMS RADAR -->
             <TCard padding="none" class="flex flex-col overflow-hidden max-h-[400px]">
-                <div class="p-4 border-b border-white/50 bg-panel-card/50 flex items-center justify-between sticky top-0 z-10">
+                <div class="p-4 border-b border-white/10 bg-panel-card/90 flex items-center justify-between sticky top-0 z-10">
                     <h3 class="text-xs font-black text-ink-main uppercase tracking-widest flex items-center gap-2">
                         📡 Radar de Salas
                     </h3>
@@ -220,10 +220,10 @@ const handleRefresh = () => {
                     <button
                         v-for="room in publicRooms" :key="room.id"
                         @click="handleJoinPublicRoom(room.id)"
-                        class="w-full bg-panel-card hover:bg-white p-3 rounded-2xl border-2 border-white/50 hover:border-action-cyan transition-all text-left flex items-center justify-between group shadow-sm"
+                        class="w-full bg-panel-card hover:bg-panel-input p-3 rounded-2xl border-2 border-white/10 hover:border-action-primary transition-all text-left flex items-center justify-between group shadow-sm"
                     >
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-panel-base border-2 border-white flex items-center justify-center text-lg shadow-inner group-hover:scale-110 transition-transform">
+                            <div class="w-10 h-10 rounded-xl bg-panel-base border-2 border-white/10 flex items-center justify-center text-lg shadow-inner group-hover:scale-110 transition-transform">
                                 👑
                             </div>
                             <div>
@@ -238,10 +238,10 @@ const handleRefresh = () => {
                         </div>
                         
                         <div class="flex items-center gap-2">
-                            <span class="text-xs font-black bg-panel-input px-2 py-1 rounded-lg text-ink-soft border border-white">
+                            <span class="text-xs font-black bg-panel-input px-2 py-1 rounded-lg text-ink-muted border border-white/10">
                                 {{ room.currentPlayers }}/{{ room.maxPlayers }}
                             </span>
-                            <span class="text-action-blue opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1">→</span>
+                            <span class="text-action-primary opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1">→</span>
                         </div>
                     </button>
                     <!-- /Room Item -->
