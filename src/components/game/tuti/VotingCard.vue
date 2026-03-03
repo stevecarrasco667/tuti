@@ -24,7 +24,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <div class="bg-panel-card rounded-2xl shadow-warm border border-white/20 p-5 flex flex-col justify-between w-full h-full min-h-[260px] transition-transform hover:-translate-y-1 relative"
+    <div class="bg-panel-card rounded-2xl shadow-xl border border-white/20 p-5 flex flex-col justify-between w-full h-full min-h-[260px] transition-transform hover:-translate-y-1 relative"
          :class="[
             isAutoValidated 
                 ? 'bg-amber-900/30 border-amber-500/50 shadow-[0_4px_12px_rgba(251,191,36,0.1)]' 

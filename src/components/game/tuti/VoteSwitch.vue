@@ -25,7 +25,7 @@ const toggle = () => {
         role="switch"
         :disabled="isAutoValidated"
         @click="toggle"
-        class="relative inline-flex h-11 w-[4.5rem] shrink-0 cursor-pointer rounded-full border-[3px] border-white transition-colors duration-200 ease-in-out focus-visible:outline-none shadow-sm disabled:cursor-not-allowed"
+        class="relative inline-flex h-11 w-[4.5rem] shrink-0 cursor-pointer rounded-full border-[3px] border-white/10 transition-colors duration-200 ease-in-out focus-visible:outline-none shadow-sm disabled:cursor-not-allowed"
         :class="[
             isAutoValidated 
                 ? 'bg-action-warning shadow-inner' 
@@ -36,7 +36,7 @@ const toggle = () => {
     >
         <!-- Knob -->
         <span 
-            class="pointer-events-none inline-flex h-9 w-9 my-auto transform rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out items-center justify-center text-sm border-2 border-panel-card"
+            class="pointer-events-none inline-flex h-9 w-9 my-auto transform rounded-full bg-ink-main shadow-md transition-transform duration-200 ease-in-out items-center justify-center text-sm border-2 border-panel-card/50"
             :class="[
                 modelValue || isAutoValidated ? 'translate-x-[2.1rem]' : 'translate-x-[0.15rem]'
             ]"

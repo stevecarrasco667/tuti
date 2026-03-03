@@ -12,10 +12,10 @@ withDefaults(defineProps<{
 });
 
 const VARIANT_MAP = {
-    primary:   'bg-action-primary hover:bg-action-primary-hover text-white shadow-warm disabled:opacity-50',
+    primary:   'bg-action-primary hover:bg-action-primary-hover text-white shadow-lg disabled:opacity-50',
     secondary: 'bg-action-secondary hover:bg-action-secondary-hover text-white',
     blue:      'bg-action-secondary hover:bg-action-secondary-hover text-white',
-    teal:      'bg-action-accent hover:opacity-90 text-white shadow-warm',
+    teal:      'bg-action-accent hover:opacity-90 text-white shadow-lg',
     ghost:     'bg-transparent hover:bg-panel-input text-ink-main',
     danger:    'bg-action-error text-white',
 } as const;

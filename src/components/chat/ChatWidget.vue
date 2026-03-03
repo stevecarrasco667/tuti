@@ -48,10 +48,10 @@ const handleFocus = () => {
 </script>
 
 <template>
-    <div class="flex flex-col h-full overflow-hidden bg-panel-base border-l-[4px] border-white rounded-r-[2rem] border-y-0 lg:border-r-0 shadow-game-panel">
+    <div class="flex flex-col h-full overflow-hidden bg-panel-base border-l-[4px] border-white/10 rounded-r-[2rem] border-y-0 lg:border-r-0">
         
         <!-- Header -->
-        <div class="h-12 flex items-center px-4 bg-white/60 backdrop-blur-md border-b-[3px] border-white/50 shrink-0 justify-between">
+        <div class="h-12 flex items-center px-4 bg-panel-card/80 backdrop-blur-md border-b-[3px] border-white/10 shrink-0 justify-between">
             <h3 class="text-[11px] font-black text-ink-muted uppercase tracking-[0.2em] drop-shadow-sm">Sala de Chat</h3>
             <div v-if="unreadCount > 0" class="bg-action-error text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm animate-bounce">
                 {{ unreadCount }}
@@ -77,13 +77,13 @@ const handleFocus = () => {
         </div>
 
         <!-- Input Area -->
-        <div class="p-4 bg-white/60 backdrop-blur-md border-t-[3px] border-white/50 shrink-0">
+        <div class="p-4 bg-panel-card/80 backdrop-blur-md border-t-[3px] border-white/10 shrink-0">
             <input 
                 v-model="inputValue"
                 type="text" 
                 :placeholder="isDisabled ? '👻 Los fantasmas no hablan...' : 'Escribe un mensaje...'" 
                 :disabled="isDisabled"
-                class="w-full bg-white rounded-full px-5 py-3 text-sm text-ink-main font-bold outline-none transition-all border-2 border-slate-200 focus:border-action-cyan focus:shadow-inner shadow-sm disabled:opacity-50 disabled:bg-slate-100 disabled:cursor-not-allowed"
+                class="w-full bg-panel-input rounded-full px-5 py-3 text-sm text-ink-main font-bold outline-none transition-all border-2 border-transparent focus:border-action-primary focus:ring-1 focus:ring-action-primary placeholder-ink-muted disabled:opacity-50 disabled:bg-panel-input/50 disabled:cursor-not-allowed"
                 :class="isDisabled ? 'placeholder-red-300' : 'placeholder-ink-muted/50'"
                 @keydown.enter.prevent="handleSend"
                 @focus="handleFocus"

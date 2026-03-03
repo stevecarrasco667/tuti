@@ -25,15 +25,15 @@ const formattedTime = computed(() => {
             <div class="px-3 py-2 text-sm shadow-sm break-words relative min-w-[60px] font-bold"
                 :class="[
                     isMine 
-                        ? 'bg-action-primary border-[3px] border-green-300 text-white rounded-[1.2rem] rounded-tr-[4px]' 
-                        : 'bg-white border-[3px] border-slate-200 text-ink-main rounded-[1.2rem] rounded-tl-[4px]'
+                        ? 'bg-action-primary border-action-primary/50 text-white rounded-[1.2rem] rounded-tr-[4px]' 
+                        : 'bg-panel-input border-[3px] border-white/10 text-ink-main rounded-[1.2rem] rounded-tl-[4px]'
                 ]"
             >
                 <div>{{ message.text }}</div>
                 
                 <!-- Timestamp -->
                 <div class="text-[9px] mt-1 text-right w-full mix-blend-normal font-black"
-                     :class="isMine ? 'text-green-100' : 'text-slate-400'">
+                     :class="isMine ? 'text-white/60' : 'text-ink-muted'">
                     {{ formattedTime }}
                 </div>
             </div>
