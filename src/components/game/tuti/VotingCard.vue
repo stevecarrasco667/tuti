@@ -14,7 +14,7 @@ defineProps<{
     isMe: boolean;
     selfStatusIcon: string;
     // V-model support
-    modelValue: boolean; 
+    modelValue: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -24,62 +24,58 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <div class="bg-panel-card rounded-2xl shadow-xl border border-white/20 p-5 flex flex-col justify-between w-full h-full min-h-[260px] transition-transform hover:-translate-y-1 relative"
+    <!-- ╔══════════════════════════════════════════════════════╗ -->
+    <!-- ║   CONTENEDOR PRINCIPAL — Líquido, Absoluto, Oscuro  ║ -->
+    <!-- ╚══════════════════════════════════════════════════════╝ -->
+    <div class="bg-panel-card rounded-2xl w-full h-full min-h-[280px] flex flex-col relative overflow-hidden transition-all duration-500"
          :class="[
-            isAutoValidated 
-                ? 'bg-amber-900/30 border-amber-500/50 shadow-[0_4px_12px_rgba(251,191,36,0.1)]' 
-                : isRejected 
-                    ? 'bg-red-900/30 border-red-500/50 shadow-sm opacity-80' 
-                    : !isApproved
-                        ? 'bg-red-900/30 border-red-500/50 shadow-sm'
-                        : 'bg-panel-card border-white/10 shadow-sm hover:shadow-md'
+            isAutoValidated
+                ? 'border border-amber-500/30 shadow-[0_0_30px_-5px_rgba(251,191,36,0.25)]'
+                : isRejected || !isApproved
+                    ? 'border border-red-900/50 shadow-[0_0_30px_-5px_rgba(239,68,68,0.3)]'
+                    : isDuplicate
+                        ? 'border border-amber-900/50 shadow-[0_0_30px_-5px_rgba(245,158,11,0.3)]'
+                        : 'border border-white/5 shadow-2xl'
          ]">
 
-        <!-- TOP: Avatar y Nombre -->
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full border-2 border-white/10 flex items-center justify-center bg-panel-input shadow-sm shrink-0">
-                <span class="text-xl leading-none">{{ playerAvatar || '👤' }}</span>
-            </div>
-            <div class="flex flex-col min-w-0">
-                <span class="text-sm font-black uppercase tracking-widest truncate"
-                      :class="isAutoValidated ? 'text-amber-400' : 'text-ink-muted'">
-                    {{ playerName }}
-                </span>
-            </div>
-            <div v-if="isAutoValidated" class="ml-auto flex-shrink-0">
-                🛡️
-            </div>
+        <!-- ══ POLO NORTE: Header Flotante (Avatar + Nombre) ══ -->
+        <div class="absolute top-4 left-4 flex items-center gap-2 z-10 max-w-[calc(100%-2rem)]">
+            <span class="text-xl leading-none drop-shadow-md flex-shrink-0">{{ playerAvatar || '👤' }}</span>
+            <span class="text-xs font-bold text-ink-muted drop-shadow-md truncate">{{ playerName }}</span>
+            <span v-if="isAutoValidated" class="text-sm flex-shrink-0">🛡️</span>
         </div>
 
-        <!-- MID: Palabra Escrita Gigante -->
-        <div class="flex-1 flex flex-col items-center justify-center min-h-[100px] my-4">
-            <p class="text-2xl md:text-3xl font-black text-center break-words break-all line-clamp-2 overflow-hidden leading-tight"
-                :class="[
-                    isAutoValidated
-                        ? 'text-amber-400'
-                        : isRejected || !isApproved
-                            ? 'line-through opacity-40 text-red-400'
-                            : isDuplicate
-                                ? 'text-action-warning'
-                                : 'text-blue-400'
-                ]">
+        <!-- ══ DEAD CENTER: La Palabra (Protagonista Absoluto) ══ -->
+        <div class="flex-1 flex flex-col items-center justify-center w-full px-6 z-0 mt-8 mb-16">
+            <span class="text-4xl md:text-5xl lg:text-6xl font-black text-center uppercase tracking-wide break-words break-all line-clamp-2 drop-shadow-xl transition-all duration-300"
+                  :class="[
+                      isRejected || !isApproved
+                          ? 'line-through opacity-40 text-red-400'
+                          : isAutoValidated
+                              ? 'text-amber-300'
+                              : isDuplicate
+                                  ? 'text-action-warning'
+                                  : 'text-ink-main'
+                  ]">
                 {{ word || '—' }}
-            </p>
-            
-            <div v-if="isDuplicate" class="mt-2 text-yellow-500 text-[10px] font-black uppercase tracking-widest bg-yellow-900/30 px-2 py-0.5 rounded-full border border-yellow-500/50">
-                Repetida
-            </div>
+            </span>
+
+            <!-- Badge Duplicado (integrado en el centro) -->
+            <span v-if="isDuplicate"
+                  class="mt-4 text-xs font-bold bg-action-warning/20 text-action-warning px-3 py-1 rounded-full border border-action-warning/30 uppercase tracking-widest">
+                Palabra Repetida
+            </span>
         </div>
 
-        <!-- BOT: Votaciones y Acciones -->
-        <div class="mt-auto pt-4 border-t-2 border-white/10 relative flex justify-center items-center">
+        <!-- ══ POLO SUR: Pedestal de Votación (Anclado Absoluto) ══ -->
+        <div class="absolute bottom-4 left-0 w-full flex flex-col items-center justify-center z-10 gap-1.5 px-4">
             <!-- Badge Votos Negativos -->
             <span v-if="voteCount > 0 && !isAutoValidated"
-                class="absolute -top-3 left-1/2 -translate-x-1/2 bg-action-warning text-ink-base border-2 border-white/10 px-2 py-0.5 rounded-full text-[10px] font-black shadow-sm z-10 whitespace-nowrap">
+                  class="bg-action-warning text-ink-base border border-white/10 px-2 py-0.5 rounded-full text-[10px] font-black whitespace-nowrap shadow-sm">
                 {{ voteCount }} 👎
             </span>
-            
-            <!-- VoteSwitch (Otros) o SelfIndicator (Yo) -->
+
+            <!-- VoteSwitch (otros) o Self-Indicator (yo) -->
             <VoteSwitch
                 v-if="!isMe"
                 :model-value="modelValue"
@@ -87,7 +83,8 @@ const emit = defineEmits<{
                 :label="`Voto ${playerName}`"
                 @update:model-value="(val: boolean) => emit('update:modelValue', val)"
             />
-            <span v-else class="text-2xl drop-shadow-sm flex items-center justify-center bg-panel-input w-11 h-11 rounded-full border-2 border-white/10">
+            <span v-else
+                  class="text-2xl drop-shadow-sm flex items-center justify-center bg-panel-input w-11 h-11 rounded-full border-2 border-white/10">
                 {{ selfStatusIcon }}
             </span>
         </div>

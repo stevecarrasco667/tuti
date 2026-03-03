@@ -33,11 +33,11 @@ const prevCategory = () => { if (!isFirstCategory.value) currentCategoryIndex.va
 // ─── Smart Grid (Densidad Dinámica) ──────────────────────────────────────────
 const gridLayoutClass = computed(() => {
     const count = props.players.length;
-    if (count <= 2) return 'grid-cols-1 md:grid-cols-2 max-w-5xl mx-auto'; // Duelo (50/50)
-    if (count === 3) return 'grid-cols-1 md:grid-cols-3 max-w-6xl mx-auto'; // Tridente
-    if (count === 4) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 max-w-4xl mx-auto'; // Cuadrado 2x2
-    if (count <= 6) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto'; // Galería 2x3
-    return 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 max-w-7xl mx-auto'; // Alta densidad
+    if (count <= 2) return 'grid-cols-1 md:grid-cols-2'; // Duelo (50/50)
+    if (count === 3) return 'grid-cols-1 md:grid-cols-3'; // Tridente
+    if (count === 4) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2'; // Cuadrado 2x2
+    if (count <= 6) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'; // Galería 2x3
+    return 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-4'; // Alta densidad
 });
 
 // ─── Vote helpers (sin cambios) ───────────────────────────────────────────────
