@@ -13,59 +13,44 @@ defineEmits<{
 </script>
 
 <template>
-    <div class="flex-none h-20 bg-panel-card/80 backdrop-blur-md border-[3px] border-white/50 flex items-center justify-between px-4 z-40 relative rounded-b-3xl shadow-game-panel mx-2 mt-0">
+    <div class="flex-none h-16 flex items-center justify-between px-2 md:px-4 z-40 relative mt-4 mx-auto w-full max-w-7xl pointer-events-none">
             
-        <!-- Left: Exit & Round -->
-        <div class="flex items-center gap-4 w-[120px]">
+        <!-- Left: Exit & Round (Holographic Pill) -->
+        <div class="flex items-center gap-3 md:gap-4 w-auto bg-panel-card/80 backdrop-blur-md px-2 py-1.5 md:px-3 md:py-2 rounded-2xl border-2 border-white/10 shadow-lg pointer-events-auto">
             <!-- Exit Button -->
-            <button @click="$emit('exit')" class="text-ink-soft hover:text-ink-main transition-colors p-2 bg-panel-input rounded-xl shadow-sm border-2 border-white/10 active:scale-95" title="Salir">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="size-6">
+            <button @click="$emit('exit')" class="text-ink-soft hover:text-white transition-colors p-1.5 md:p-2 bg-panel-input rounded-xl shadow-sm border border-white/5 active:scale-95" title="Salir">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="size-5 md:size-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
                 </svg>
             </button>
 
-            <div class="flex flex-col">
-                <span class="text-[10px] uppercase font-black text-ink-muted tracking-widest">Ronda</span>
-                <span class="text-xl font-black text-ink-main leading-none">
-                    {{ round }}<span class="text-xs text-ink-soft ml-0.5">/{{ totalRounds }}</span>
+            <div class="flex flex-col pr-2 md:pr-4">
+                <span class="text-[9px] md:text-[10px] uppercase font-black text-ink-muted tracking-widest leading-none mb-0.5">Ronda</span>
+                <span class="text-base md:text-xl font-black text-ink-main leading-none">
+                    {{ round }}<span class="text-[10px] md:text-xs text-ink-soft ml-0.5">/{{ totalRounds }}</span>
                 </span>
             </div>
         </div>
 
-        <!-- Center: THE BADGE (Current Letter) -->
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
-             <!-- If canStop is true, this might be overshadowed by the Stop Button on Mobile? 
-                  Design decision: On Mobile, maybe hide Letter if button is crucial? 
-                  Or keep Button small? 
-                  User requested integration. Let's put the Stop Button NEXT to the badge or replace the badge??
-                  Actually, the Badge is critical. The Stop Button is critical.
-                  Let's try to fit them. On desktop: Letter Center, Button Right.
-                  On Mobile: Letter Center, Button ??
-                  
-                  Let's look at the "Refactor de Layout" request again:
-                  "Extraer toda la parte superior... a RoundStatusHeader".
-                  
-                  Let's put the STOP BUTTON in the header, probably on the right side if space permits, 
-                  or keep the Letter in the Center and put the Button to the immediate right of it?
-             -->
-             <!-- Let's keep the Badge in the exact center. -->
-            <div class="relative group mt-3">
-                <div class="absolute inset-0 bg-action-blue rounded-xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity"></div>
-                <div class="relative bg-panel-card text-ink-main w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl border border-white/10 transform transition-transform group-hover:scale-105">
-                    <span class="text-4xl font-black text-white drop-shadow-sm">{{ currentLetter }}</span>
+        <!-- Center: THE BADGE (Holographic Circle) -->
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none mt-2">
+            <div class="relative group">
+                <div class="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-40 group-hover:opacity-60 transition-opacity"></div>
+                <div class="relative bg-panel-card border-2 border-white/20 text-ink-main w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-[0_0_30px_-5px_rgba(255,255,255,0.2)] transform transition-transform group-hover:scale-105">
+                    <span class="text-3xl md:text-4xl font-black text-white drop-shadow-md pb-0.5">{{ currentLetter }}</span>
                 </div>
             </div>
         </div>
 
-        <!-- Right: Timer -->
-        <div class="flex flex-col items-end w-[50px] md:w-[60px]">
-            <span v-if="timeLeft !== null" 
-                class="font-mono text-xl font-black leading-none tabular-nums bg-panel-input px-2 py-1 rounded-lg border-2 border-white/10 shadow-sm"
-                :class="timerColor"
-            >
-                {{ timeLeft }}
-            </span>
-            <span v-else class="text-xl font-black text-ink-muted">--</span>
+        <!-- Right: Timer (Holographic Pill) -->
+        <div class="flex flex-col items-end w-auto bg-panel-card/80 backdrop-blur-md px-3 py-1.5 md:py-2 rounded-2xl border-2 border-white/10 shadow-lg pointer-events-auto">
+            <div v-if="timeLeft !== null" class="flex items-center gap-1.5 md:gap-2">
+                <span class="text-xs md:text-sm">⏱️</span>
+                <span class="font-mono text-lg md:text-xl font-black leading-none tabular-nums" :class="timerColor">
+                    {{ timeLeft }}
+                </span>
+            </div>
+            <span v-else class="text-lg md:text-xl font-black text-ink-muted">--</span>
         </div>
     </div>
 </template>

@@ -23,7 +23,7 @@ defineEmits<{
         <div class="w-full max-w-[95%] xl:max-w-7xl mx-auto flex items-center justify-between gap-4 pointer-events-auto mt-4 px-2">
             
             <!-- My Progress (Left) -->
-             <div class="hidden md:flex flex-col w-20 bg-panel-card/60 p-2 rounded-xl border-[3px] border-white/10 shadow-sm items-center backdrop-blur-md">
+             <div v-show="status !== 'RESULTS'" class="hidden md:flex flex-col w-20 bg-panel-card/60 p-2 rounded-xl border-[3px] border-white/10 shadow-sm items-center backdrop-blur-md">
                  <span class="text-[9px] text-ink-soft font-black uppercase tracking-widest text-center">Progreso</span>
                  <span class="text-2xl font-black text-ink-main leading-none mt-1">
                      {{ myProgress.current }}<span class="text-base text-ink-muted/50 font-bold">/{{ myProgress.total }}</span>
@@ -48,16 +48,16 @@ defineEmits<{
             <button 
                 v-if="status === 'RESULTS' && amIHost"
                 @click="$emit('next-round')"
-                class="flex-1 max-w-sm bg-action-primary hover:bg-action-hover text-white font-black text-xl py-4 rounded-3xl shadow-game-btn border-4 border-green-300 transition-transform active:scale-[0.98] mx-auto uppercase tracking-wide flex items-center justify-center gap-2"
+                class="flex-1 max-w-sm bg-action-primary hover:bg-action-hover text-white font-black text-xl py-4 rounded-3xl shadow-[0_0_30px_-5px_rgba(74,222,128,0.4)] border-4 border-green-300 transition-transform active:scale-[0.98] mx-auto uppercase tracking-wide flex items-center justify-center gap-2"
             >
                 Siguiente Ronda <span class="text-2xl">⚡</span>
             </button>
-             <div v-else-if="status === 'RESULTS'" class="w-full text-center text-ink-main/60 bg-panel-card/60 border-2 border-white/10 backdrop-blur-sm max-w-sm mx-auto rounded-full shadow-sm text-sm font-black uppercase tracking-widest animate-pulse py-4 flex items-center justify-center">
-                ⏳ Esperando al anfitrión...
+             <div v-else-if="status === 'RESULTS'" class="w-full text-center text-amber-500 bg-panel-input border-2 border-amber-500/30 shadow-[0_0_30px_-5px_rgba(245,158,11,0.2)] backdrop-blur-sm max-w-xs mx-auto rounded-full text-sm font-black uppercase tracking-widest animate-[pulse_2s_ease-in-out_infinite] py-3.5 flex items-center justify-center gap-2">
+                <span class="text-lg">⏳</span> Esperando al anfitrión...
             </div>
 
             <!-- Spacer (Right) -->
-             <div class="hidden md:block w-20"></div>
+             <div v-show="status !== 'RESULTS'" class="hidden md:block w-20"></div>
         </div>
     </div>
 </template>

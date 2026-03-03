@@ -122,21 +122,22 @@ onMounted(() => {
         </div>
         
         <!-- My Grid -->
-        <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl p-4 shadow-game-panel">
-            <h3 class="text-sm font-black text-ink-main uppercase tracking-widest mb-3 text-center">🎯 Tu Desempeño</h3>
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+        <div class="bg-panel-base/40 backdrop-blur-sm border-2 border-white/10 rounded-3xl p-4 md:p-6 shadow-2xl mt-4 relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none"></div>
+            <h3 class="relative z-10 text-sm md:text-base font-black text-ink-main uppercase tracking-widest mb-4 md:mb-5 text-center drop-shadow-sm">🎯 Tu Desempeño</h3>
+            <div class="relative z-10 grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                     <div v-for="category in categories" :key="category" 
-                        class="bg-panel-card border-b-[4px] rounded-xl p-3 shadow-inner bg-white/50"
+                        class="rounded-2xl p-3 md:p-4 transition-all duration-300 backdrop-blur-md flex flex-col justify-center"
                         :class="{
-                            'border-action-primary': myAnswers[category] && getPlayerStatus(myUserId, category).state === 'VALID',
-                            'border-action-error': getPlayerStatus(myUserId, category).state === 'REJECTED' || (!myAnswers[category] && getPlayerStatus(myUserId, category).state !== 'EMPTY'),
-                            'border-white/50': !myAnswers[category] || getPlayerStatus(myUserId, category).state === 'EMPTY'
+                            'bg-action-primary/10 border border-action-primary/30 shadow-[0_0_20px_-5px_rgba(74,222,128,0.2)]': myAnswers[category] && getPlayerStatus(myUserId, category).state === 'VALID',
+                            'bg-action-error/10 border border-action-error/30 shadow-[0_0_20px_-5px_rgba(239,68,68,0.2)]': getPlayerStatus(myUserId, category).state === 'REJECTED' || (!myAnswers[category] && getPlayerStatus(myUserId, category).state !== 'EMPTY'),
+                            'bg-panel-input/30 border border-white/5 shadow-sm': !myAnswers[category] || getPlayerStatus(myUserId, category).state === 'EMPTY' || (myAnswers[category] && getPlayerStatus(myUserId, category).state !== 'VALID' && getPlayerStatus(myUserId, category).state !== 'REJECTED')
                         }"
                     >
-                    <div class="text-[10px] uppercase font-black text-ink-soft mb-1 truncate tracking-wider">{{ category }}</div>
-                    <div class="text-base font-black truncate leading-none" :class="{
-                        'text-action-primary': myAnswers[category] && getPlayerStatus(myUserId, category).state === 'VALID',
-                        'text-action-error line-through opacity-70': getPlayerStatus(myUserId, category).state === 'REJECTED',
+                    <div class="text-[9px] md:text-[10px] uppercase font-black text-ink-muted mb-1 md:mb-1.5 truncate tracking-widest">{{ category }}</div>
+                    <div class="text-sm md:text-base font-black truncate leading-tight drop-shadow-sm" :class="{
+                        'text-green-400': myAnswers[category] && getPlayerStatus(myUserId, category).state === 'VALID',
+                        'text-red-400 line-through opacity-70': getPlayerStatus(myUserId, category).state === 'REJECTED',
                         'text-ink-main': (!myAnswers[category] || getPlayerStatus(myUserId, category).state === 'EMPTY') || (myAnswers[category] && getPlayerStatus(myUserId, category).state !== 'VALID' && getPlayerStatus(myUserId, category).state !== 'REJECTED')
                     }">{{ myAnswers[category] || '—' }}</div>
                     </div>
