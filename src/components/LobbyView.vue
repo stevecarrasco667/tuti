@@ -224,7 +224,7 @@ const copyRoomLink = () => {
                     @click="activeTab = 'players'"
                     class="flex-1 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2"
                     :class="activeTab === 'players'
-                        ? 'bg-panel-base text-action-blue shadow-sm border border-white'
+                        ? 'bg-panel-base text-action-blue shadow-sm border border-white/10'
                         : 'text-ink-muted hover:text-ink-soft'"
                 >
                     👥 Jugadores
@@ -234,7 +234,7 @@ const copyRoomLink = () => {
                     @click="activeTab = 'settings'"
                     class="flex-1 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2"
                     :class="activeTab === 'settings'
-                        ? 'bg-panel-base text-action-blue shadow-sm border border-white'
+                        ? 'bg-panel-base text-action-blue shadow-sm border border-white/10'
                         : 'text-ink-muted hover:text-ink-soft'"
                 >
                     ⚙️ Reglas
@@ -266,7 +266,7 @@ const copyRoomLink = () => {
                             <select
                                 :value="localConfig.maxPlayers"
                                 @change="handleConfigChange('maxPlayers', Number(($event.target as HTMLSelectElement).value))"
-                                class="w-full sm:w-auto bg-panel-input border-2 border-panel-card text-ink-main text-xs font-black uppercase tracking-wider px-3 py-2 rounded-xl appearance-none cursor-pointer hover:bg-white transition-colors focus:outline-none focus:border-action-cyan shadow-inner sm:shadow-none"
+                                class="w-full sm:w-auto bg-panel-input border-2 border-panel-card text-ink-main text-xs font-black uppercase tracking-wider px-3 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner sm:shadow-none"
                             >
                                 <option v-for="n in 9" :key="n+1" :value="n+1" class="bg-panel-input">{{ n + 1 }} JUGADORES</option>
                             </select>
@@ -280,7 +280,7 @@ const copyRoomLink = () => {
                     <!-- Player List + Empty Slots -->
                     <div class="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin">
                         <div v-for="player in players" :key="player.id"
-                             class="flex items-center gap-3 p-3 bg-panel-card rounded-xl border-2 border-white hover:border-action-cyan transition-colors group shadow-sm"
+                             class="flex items-center gap-3 p-3 bg-panel-card rounded-xl border-2 border-white/10 hover:border-action-primary transition-colors group shadow-sm"
                         >
                             <span class="text-2xl flex-none">{{ player.avatar || '👤' }}</span>
                             <div class="flex-1 min-w-0">
@@ -338,7 +338,7 @@ const copyRoomLink = () => {
                                     class="relative p-4 lg:p-5 rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[110px] flex flex-col items-center justify-center"
                                     :class="localConfig.mode === 'CLASSIC'
                                         ? 'border-yellow-400 bg-yellow-400/10 shadow-[0_0_15px_rgba(250,204,21,0.2)]'
-                                        : 'border-white/50 bg-panel-card hover:border-action-cyan hover:bg-white'"
+                                        : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input'"
                                 >
                                     <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform">🎯</div>
                                     <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">TUTI CLÁSICO</h4>
@@ -351,7 +351,7 @@ const copyRoomLink = () => {
                                     class="relative p-4 lg:p-5 rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[110px] flex flex-col items-center justify-center"
                                     :class="localConfig.mode === 'IMPOSTOR'
                                         ? 'border-action-blue bg-action-blue/10 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
-                                        : 'border-white/50 bg-panel-card hover:border-action-cyan hover:bg-white'"
+                                        : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input'"
                                 >
                                     <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform">🕵️</div>
                                     <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">IMPOSTOR</h4>
@@ -373,7 +373,7 @@ const copyRoomLink = () => {
                                 <div v-if="localConfig.classic?.categories?.length > 0" class="flex flex-wrap gap-2 content-start">
                                     <TransitionGroup name="list">
                                     <div v-for="cat in localConfig.classic?.categories" :key="cat"
-                                         class="group flex items-center pl-3 pr-2 py-1.5 bg-panel-card hover:bg-white rounded-full text-[11px] font-bold text-ink-main border-2 border-white transition-all shadow-sm">
+                                         class="group flex items-center pl-3 pr-2 py-1.5 bg-panel-card hover:bg-panel-input rounded-full text-[11px] font-bold text-ink-main border-2 border-white/10 transition-all shadow-sm">
                                         <span>{{ cat }}</span>
                                         <button @click.stop="handleQuickDelete(cat)" class="ml-1.5 w-5 h-5 flex items-center justify-center rounded-full bg-panel-input border border-panel-card text-ink-muted hover:text-white hover:bg-action-error transition-colors text-[10px] font-bold">
                                             &times;
@@ -410,9 +410,9 @@ const copyRoomLink = () => {
                             <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
                                 <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🔁 Rondas</label>
                                 <div class="flex items-center justify-between">
-                                    <button @click="decrementRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-white border-2 border-white text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
+                                    <button @click="decrementRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                                     <span class="text-4xl font-black text-ink-main">{{ localConfig.classic?.rounds || 5 }}</span>
-                                    <button @click="incrementRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-white border-2 border-white text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
+                                    <button @click="incrementRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                                 </div>
                             </div>
 
@@ -420,12 +420,12 @@ const copyRoomLink = () => {
                             <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
                                 <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">⏱️ Tiempo de Escritura</label>
                                 <div class="flex items-center justify-between">
-                                    <button @click="decrementTimeLimit" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-white border-2 border-white text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
+                                    <button @click="decrementTimeLimit" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                                     <div class="text-center">
                                         <span class="text-4xl font-black text-ink-main">{{ localConfig.classic?.timeLimit || 60 }}</span>
                                         <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">seg</span>
                                     </div>
-                                    <button @click="incrementTimeLimit" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-white border-2 border-white text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
+                                    <button @click="incrementTimeLimit" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                                 </div>
                             </div>
 
@@ -433,16 +433,16 @@ const copyRoomLink = () => {
                             <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
                                 <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🗳️ Tiempo de Votación</label>
                                 <div class="flex items-center justify-between">
-                                    <button @click="decrementVotingDuration" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-white border-2 border-white text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
+                                    <button @click="decrementVotingDuration" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                                     <div class="text-center">
                                         <span class="text-4xl font-black text-ink-main">{{ localConfig.classic?.votingDuration || 30 }}</span>
                                         <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">seg</span>
                                     </div>
-                                    <button @click="incrementVotingDuration" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-white border-2 border-white text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
+                                    <button @click="incrementVotingDuration" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                                 </div>
                             </div>
 
-                            <hr class="border-t-[3px] border-white rounded-full mt-4 mb-2" />
+                            <hr class="border-t-[3px] border-white/10 rounded-full mt-4 mb-2" />
 
                             <!-- MUTATORS -->
                             <div>
@@ -458,7 +458,7 @@ const copyRoomLink = () => {
                                         <button
                                             @click="handleMutatorChange('suicidalStop', !localConfig.classic?.mutators?.suicidalStop)"
                                             class="relative w-[3.25rem] h-8 rounded-full transition-all duration-300 border-[3px] flex-none"
-                                            :class="localConfig.classic?.mutators?.suicidalStop ? 'bg-action-error border-red-400' : 'bg-white border-panel-card shadow-inner'"
+                                            :class="localConfig.classic?.mutators?.suicidalStop ? 'bg-action-error border-red-400' : 'bg-panel-input border-panel-card shadow-inner'"
                                         >
                                             <span class="absolute top-0.5 w-5 h-5 rounded-full shadow-sm transition-all duration-300"
                                                   :class="localConfig.classic?.mutators?.suicidalStop ? 'bg-white left-[calc(100%-1.4rem)]' : 'bg-panel-card left-1'"></span>
@@ -477,7 +477,7 @@ const copyRoomLink = () => {
                                         <button
                                             @click="handleMutatorChange('anonymousVoting', !localConfig.classic?.mutators?.anonymousVoting)"
                                             class="relative w-[3.25rem] h-8 rounded-full transition-all duration-300 border-[3px] flex-none"
-                                            :class="localConfig.classic?.mutators?.anonymousVoting ? 'bg-purple-500 border-purple-300' : 'bg-white border-panel-card shadow-inner'"
+                                            :class="localConfig.classic?.mutators?.anonymousVoting ? 'bg-purple-500 border-purple-300' : 'bg-panel-input border-panel-card shadow-inner'"
                                         >
                                             <span class="absolute top-0.5 w-5 h-5 rounded-full shadow-sm transition-all duration-300"
                                                   :class="localConfig.classic?.mutators?.anonymousVoting ? 'bg-white left-[calc(100%-1.4rem)]' : 'bg-panel-card left-1'"></span>
@@ -495,33 +495,33 @@ const copyRoomLink = () => {
                             <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
                                 <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🔁 Rondas</label>
                                 <div class="flex items-center justify-between">
-                                    <button @click="decrementImpostorRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-white border-2 border-white text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
+                                    <button @click="decrementImpostorRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                                     <span class="text-4xl font-black text-ink-main">{{ localConfig.impostor?.rounds || 3 }}</span>
-                                    <button @click="incrementImpostorRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-white border-2 border-white text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
+                                    <button @click="incrementImpostorRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                                 </div>
                             </div>
 
                             <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
                                 <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">⏱️ Tiempo de Escritura</label>
                                 <div class="flex items-center justify-between">
-                                    <button @click="decrementImpostorTypingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-white border-2 border-white text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
+                                    <button @click="decrementImpostorTypingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                                     <div class="text-center">
                                         <span class="text-4xl font-black text-ink-main">{{ localConfig.impostor?.typingTime || 30 }}</span>
                                         <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">seg</span>
                                     </div>
-                                    <button @click="incrementImpostorTypingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-white border-2 border-white text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
+                                    <button @click="incrementImpostorTypingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                                 </div>
                             </div>
 
                             <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
                                 <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🗳️ Tiempo del Tribunal</label>
                                 <div class="flex items-center justify-between">
-                                    <button @click="decrementImpostorVotingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-white border-2 border-white text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
+                                    <button @click="decrementImpostorVotingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                                     <div class="text-center">
                                         <span class="text-4xl font-black text-ink-main">{{ localConfig.impostor?.votingTime || 40 }}</span>
                                         <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">seg</span>
                                     </div>
-                                    <button @click="incrementImpostorVotingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-white border-2 border-white text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
+                                    <button @click="incrementImpostorVotingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                                 </div>
                             </div>
                             </template>
@@ -546,7 +546,7 @@ const copyRoomLink = () => {
                 >
                     <span class="text-2xl md:text-3xl">⚡</span> EMPEZAR PARTIDA
                 </TButton>
-                <div v-else class="w-full py-5 text-center bg-panel-card rounded-2xl border-[3px] border-white text-ink-main text-sm font-black uppercase shadow-sm flex flex-col items-center justify-center">
+                <div v-else class="w-full py-5 text-center bg-panel-card rounded-2xl border-[3px] border-white/10 text-ink-main text-sm font-black uppercase shadow-sm flex flex-col items-center justify-center">
                     <span class="animate-pulse flex items-center gap-2">⏳ Esperando al anfitrión...</span>
                 </div>
             </div>
@@ -557,7 +557,7 @@ const copyRoomLink = () => {
             <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden">
                 <div class="p-4 border-b-2 border-white/50 flex items-center justify-between bg-panel-card/80 flex-none">
                     <h3 class="text-lg font-black text-ink-main uppercase tracking-widest">Selección de Categorías</h3>
-                    <div class="text-xs font-bold text-ink-main bg-white px-3 py-1 rounded-full border-2 border-panel-card shadow-sm">
+                    <div class="text-xs font-bold text-ink-main bg-panel-input px-3 py-1 rounded-full border-2 border-white/10 shadow-sm">
                         {{ tempSelectedCategories.length }} elegidas
                     </div>
                 </div>
@@ -565,11 +565,11 @@ const copyRoomLink = () => {
                 <div class="p-4 bg-panel-card/30 space-y-3 flex-none border-b-2 border-white/30">
                      <div class="relative">
                          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xl">🔍</span>
-                         <input v-model="searchQuery" type="text" placeholder="Buscar categoría..." class="w-full bg-panel-input border-2 border-white pl-[3.25rem] pr-4 py-3 text-ink-main placeholder-ink-muted focus:border-action-cyan outline-none transition-colors font-bold text-sm rounded-xl shadow-inner">
+                         <input v-model="searchQuery" type="text" placeholder="Buscar categoría..." class="w-full bg-panel-input border-2 border-white/10 pl-[3.25rem] pr-4 py-3 text-ink-main placeholder-ink-muted focus:border-action-primary outline-none transition-colors font-bold text-sm rounded-xl shadow-inner">
                      </div>
                      <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-none pt-1">
-                        <button @click="activeFilterTag = null" :class="['px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide transition-all border-2 whitespace-nowrap', !activeFilterTag ? 'bg-action-blue border-action-blue text-white shadow-sm' : 'border-white bg-white text-ink-soft hover:text-ink-main hover:bg-panel-card']">Todo</button>
-                        <button v-for="tag in availableTags" :key="tag" @click="activeFilterTag = activeFilterTag === tag ? null : tag" :class="['px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide transition-all border-2 whitespace-nowrap', activeFilterTag === tag ? 'bg-tuti-teal border-teal-400 text-ink-main shadow-sm' : 'border-white bg-white text-ink-soft hover:text-ink-main hover:bg-panel-card']">{{ tag }}</button>
+                        <button @click="activeFilterTag = null" :class="['px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide transition-all border-2 whitespace-nowrap', !activeFilterTag ? 'bg-action-blue border-action-blue text-white shadow-sm' : 'border-white/10 bg-panel-input text-ink-soft hover:text-ink-main hover:bg-panel-card']">Todo</button>
+                        <button v-for="tag in availableTags" :key="tag" @click="activeFilterTag = activeFilterTag === tag ? null : tag" :class="['px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide transition-all border-2 whitespace-nowrap', activeFilterTag === tag ? 'bg-tuti-teal border-teal-400 text-ink-main shadow-sm' : 'border-white/10 bg-panel-input text-ink-soft hover:text-ink-main hover:bg-panel-card']">{{ tag }}</button>
                      </div>
                 </div>
 
@@ -577,7 +577,7 @@ const copyRoomLink = () => {
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
                         <button v-for="cat in filteredCategories" :key="cat.name" @click="toggleCategory(cat.name)"
                             class="text-left px-4 py-4 rounded-2xl text-xs font-bold border-[3px] transition-all duration-200 flex items-center justify-between active:scale-95 shadow-sm"
-                            :class="tempSelectedCategories.includes(cat.name) ? 'bg-action-blue border-blue-400 text-white' : 'bg-panel-card border-white text-ink-main hover:bg-white hover:border-action-cyan'"
+                            :class="tempSelectedCategories.includes(cat.name) ? 'bg-action-blue border-blue-400 text-white' : 'bg-panel-card border-white/10 text-ink-main hover:bg-panel-input hover:border-action-primary'"
                         >
                             {{ cat.name }}
                             <span v-if="tempSelectedCategories.includes(cat.name)" class="text-lg font-black leading-none">✓</span>

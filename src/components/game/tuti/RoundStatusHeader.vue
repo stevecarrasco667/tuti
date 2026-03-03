@@ -18,7 +18,7 @@ defineEmits<{
         <!-- Left: Exit & Round -->
         <div class="flex items-center gap-4 w-[120px]">
             <!-- Exit Button -->
-            <button @click="$emit('exit')" class="text-ink-soft hover:text-ink-main transition-colors p-2 bg-white rounded-xl shadow-sm border-2 border-panel-card active:scale-95" title="Salir">
+            <button @click="$emit('exit')" class="text-ink-soft hover:text-ink-main transition-colors p-2 bg-panel-input rounded-xl shadow-sm border-2 border-white/10 active:scale-95" title="Salir">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="size-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
                 </svg>
@@ -60,7 +60,7 @@ defineEmits<{
         <!-- Right: Timer -->
         <div class="flex flex-col items-end w-[50px] md:w-[60px]">
             <span v-if="timeLeft !== null" 
-                class="font-mono text-xl font-black leading-none tabular-nums bg-white px-2 py-1 rounded-lg border-2 border-panel-card shadow-sm"
+                class="font-mono text-xl font-black leading-none tabular-nums bg-panel-input px-2 py-1 rounded-lg border-2 border-white/10 shadow-sm"
                 :class="timerColor"
             >
                 {{ timeLeft }}

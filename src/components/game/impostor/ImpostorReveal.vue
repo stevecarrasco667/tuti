@@ -31,7 +31,7 @@ const allies = computed(() => {
                 {{ isImpostor ? (allies > 0 ? 'Son los Impostores' : 'Eres el Impostor') : 'Eres un Tripulante' }}
             </h1>
 
-            <div class="bg-panel-card border-4 border-white p-6 rounded-3xl backdrop-blur-xl mt-8 shadow-sm">
+            <div class="bg-panel-card border-4 border-white/10 p-6 rounded-3xl backdrop-blur-xl mt-8 shadow-sm">
                 <p class="text-xl md:text-2xl text-ink-soft font-black mb-2 uppercase tracking-wide">
                     {{ isImpostor ? 'Tu misión es sobrevivir y engañar.' : 'Encuentra al mentiroso.' }}
                 </p>
@@ -48,7 +48,7 @@ const allies = computed(() => {
                 </div>
             </div>
 
-            <div class="mt-12 text-center bg-white/60 p-4 rounded-3xl border-2 border-white shadow-sm inline-block">
+            <div class="mt-12 text-center bg-panel-card/60 p-4 rounded-3xl border-2 border-white/10 shadow-sm inline-block">
                 <p class="text-[10px] font-black tracking-widest text-ink-muted uppercase mb-1">El juego comienza en</p>
                 <div class="text-6xl font-black font-mono drop-shadow-sm leading-none" :class="timerColor">
                     {{ Math.max(0, timeRemaining) }}

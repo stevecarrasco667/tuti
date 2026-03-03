@@ -23,7 +23,7 @@ defineEmits<{
         <div class="w-full max-w-[95%] xl:max-w-7xl mx-auto flex items-center justify-between gap-4 pointer-events-auto mt-4 px-2">
             
             <!-- My Progress (Left) -->
-             <div class="hidden md:flex flex-col w-20 bg-white/60 p-2 rounded-xl border-[3px] border-white shadow-sm items-center backdrop-blur-md">
+             <div class="hidden md:flex flex-col w-20 bg-panel-card/60 p-2 rounded-xl border-[3px] border-white/10 shadow-sm items-center backdrop-blur-md">
                  <span class="text-[9px] text-ink-soft font-black uppercase tracking-widest text-center">Progreso</span>
                  <span class="text-2xl font-black text-ink-main leading-none mt-1">
                      {{ myProgress.current }}<span class="text-base text-ink-muted/50 font-bold">/{{ myProgress.total }}</span>
@@ -52,7 +52,7 @@ defineEmits<{
             >
                 Siguiente Ronda <span class="text-2xl">⚡</span>
             </button>
-             <div v-else-if="status === 'RESULTS'" class="w-full text-center text-ink-main/60 bg-white/50 border-2 border-white backdrop-blur-sm max-w-sm mx-auto rounded-full shadow-sm text-sm font-black uppercase tracking-widest animate-pulse py-4 flex items-center justify-center">
+             <div v-else-if="status === 'RESULTS'" class="w-full text-center text-ink-main/60 bg-panel-card/60 border-2 border-white/10 backdrop-blur-sm max-w-sm mx-auto rounded-full shadow-sm text-sm font-black uppercase tracking-widest animate-pulse py-4 flex items-center justify-center">
                 ⏳ Esperando al anfitrión...
             </div>
 

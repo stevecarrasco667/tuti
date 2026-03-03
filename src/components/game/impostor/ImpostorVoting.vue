@@ -60,18 +60,18 @@ const suspects = computed(() => {
         </div>
 
         <!-- TIMER -->
-        <div class="absolute top-4 left-4 z-10 flex items-center justify-center min-w-[3rem] px-2 h-12 rounded-2xl border-2 border-white bg-panel-card shadow-sm">
+        <div class="absolute top-4 left-4 z-10 flex items-center justify-center min-w-[3rem] px-2 h-12 rounded-2xl border-2 border-white/10 bg-panel-card shadow-sm">
             <span class="text-xl font-black font-mono transition-colors duration-300" :class="timerColor">
                 {{ Math.max(0, timeRemaining) }}
             </span>
         </div>
 
         <!-- BANNER DE FANTASMA -->
-        <div v-if="isDead" class="w-full max-w-4xl mx-auto mb-6 bg-slate-200 border-4 border-slate-300 rounded-3xl px-6 py-4 backdrop-blur-md flex items-center justify-center gap-3 shadow-inner">
+        <div v-if="isDead" class="w-full max-w-4xl mx-auto mb-6 bg-panel-input/60 border-4 border-white/10 rounded-3xl px-6 py-4 backdrop-blur-md flex items-center justify-center gap-3 shadow-inner">
             <span class="text-4xl animate-bounce drop-shadow-sm">💀</span>
             <div class="text-center">
-                <span class="text-slate-600 font-black text-sm md:text-base uppercase tracking-widest block">Eres un Fantasma</span>
-                <span class="text-slate-500 text-xs font-bold">Observa el tribunal, pero ya no tienes voz ni voto.</span>
+                <span class="text-ink-muted font-black text-sm md:text-base uppercase tracking-widest block">Eres un Fantasma</span>
+                <span class="text-ink-muted/70 text-xs font-bold">Observa el tribunal, pero ya no tienes voz ni voto.</span>
             </div>
         </div>
 
@@ -103,7 +103,7 @@ const suspects = computed(() => {
                 <div v-for="s in suspects" :key="s.id"
                      class="relative overflow-hidden bg-panel-card backdrop-blur-md border-[4px] rounded-3xl flex flex-col transition-colors duration-300 shadow-sm"
                      :class="[
-                         s.isSelectedByMe ? 'border-action-primary bg-emerald-50 shadow-[0_4px_15px_rgba(46,204,113,0.3)]' : 'border-white hover:shadow-md',
+                         s.isSelectedByMe ? 'border-action-primary bg-emerald-900/20 shadow-[0_4px_15px_rgba(46,204,113,0.3)]' : 'border-white/10 hover:shadow-md',
                          s.isPlayerDead ? 'opacity-50 grayscale pointer-events-none' : ''
                      ]"
                 >
@@ -111,7 +111,7 @@ const suspects = computed(() => {
                         <!-- Fila Superior: Avatar + Info -->
                         <div class="flex gap-3 items-center mb-3">
                             <!-- 3. AVATARES -->
-                            <div class="flex-none w-10 h-10 md:w-12 md:h-12 rounded-full bg-white flex items-center justify-center overflow-hidden border-2 border-panel-card shadow-sm">
+                            <div class="flex-none w-10 h-10 md:w-12 md:h-12 rounded-full bg-panel-input flex items-center justify-center overflow-hidden border-2 border-white/10 shadow-sm">
                                 <img v-if="s.avatar && (s.avatar.startsWith('/') || s.avatar.startsWith('http'))" :src="s.avatar" class="w-full h-full object-cover" />
                                 <span v-else class="text-xl md:text-2xl drop-shadow-sm">{{ s.avatar || '👤' }}</span>
                             </div>
@@ -130,7 +130,7 @@ const suspects = computed(() => {
                                 :disabled="s.isMe || s.isPlayerDead || isDead"
                                 class="flex items-center justify-between w-full mx-auto rounded-full pl-4 pr-1.5 py-1.5 transition-colors duration-300 mt-2 border-2"
                                 :class="[
-                                    s.isSelectedByMe ? 'bg-action-primary/20 border-action-primary' : 'bg-white border-panel-input',
+                                    s.isSelectedByMe ? 'bg-action-primary/20 border-action-primary' : 'bg-panel-input border-white/10',
                                     (!s.isMe && !s.isPlayerDead && !isDead) ? 'active:scale-95 cursor-pointer shadow-sm' : 'cursor-not-allowed opacity-70'
                                 ]"
                         >
@@ -153,7 +153,7 @@ const suspects = computed(() => {
                     </div>
                     
                     <!-- Fila Inferior: Votos en Vivo -->
-                    <div class="mt-auto bg-white/60 flex justify-center items-center py-2 px-3 text-xs font-black border-t-2 border-white/50 flex-wrap">
+                    <div class="mt-auto bg-panel-input/60 flex justify-center items-center py-2 px-3 text-xs font-black border-t-2 border-white/10 flex-wrap">
                         <span class="text-action-warning mr-1.5 text-sm drop-shadow-sm">🔥</span>
                         <span class="text-ink-soft uppercase tracking-widest">{{ s.currentVotes }} Votos</span>
                     </div>
@@ -170,7 +170,7 @@ const suspects = computed(() => {
                     </div>
 
                     <!-- Indicador MUERTO adicional si es pertinente -->
-                    <div v-if="s.isPlayerDead" class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 text-shadow-xl bg-slate-900/60 backdrop-blur-[1px]">
+                    <div v-if="s.isPlayerDead" class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 text-shadow-xl bg-panel-base/80 backdrop-blur-[1px]">
                         <span class="text-5xl drop-shadow-md">💀</span>
                     </div>
                 </div>

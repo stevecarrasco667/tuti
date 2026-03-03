@@ -61,23 +61,23 @@ const isPlayerDead = (playerId: string) => {
         
         <!-- HEADER: Timer & Info -->
         <div class="w-full flex justify-between items-start mb-4 max-w-4xl">
-            <div class="bg-panel-card border-2 border-white px-6 py-3 rounded-3xl backdrop-blur-md shadow-sm">
+            <div class="bg-panel-card border-2 border-white/10 px-6 py-3 rounded-3xl backdrop-blur-md shadow-sm">
                 <span class="text-[10px] text-ink-muted uppercase tracking-widest block font-black mb-1">Categoría</span>
                 <span class="text-xl text-ink-main font-black">{{ impostorData.secretCategory }}</span>
             </div>
             
-            <div class="bg-panel-card border-2 border-white px-6 py-2 rounded-3xl backdrop-blur-md flex flex-col items-center min-w-[120px] shadow-sm">
+            <div class="bg-panel-card border-2 border-white/10 px-6 py-2 rounded-3xl backdrop-blur-md flex flex-col items-center min-w-[120px] shadow-sm">
                  <span class="text-[10px] text-ink-muted uppercase tracking-widest font-black mb-1">Tiempo</span>
-                 <span class="text-3xl font-mono font-black border bg-white px-2 rounded-lg leading-none" :class="timerColor">{{ Math.max(0, timeRemaining) }}</span>
+                 <span class="text-3xl font-mono font-black border bg-panel-input px-2 rounded-lg leading-none" :class="timerColor">{{ Math.max(0, timeRemaining) }}</span>
             </div>
         </div>
 
         <!-- BANNER DE FANTASMA -->
-        <div v-if="isDead" class="w-full max-w-4xl mb-6 bg-slate-200 border-4 border-slate-300 rounded-3xl px-6 py-4 backdrop-blur-md flex items-center justify-center gap-3 shadow-inner">
+        <div v-if="isDead" class="w-full max-w-4xl mb-6 bg-panel-input/60 border-4 border-white/10 rounded-3xl px-6 py-4 backdrop-blur-md flex items-center justify-center gap-3 shadow-inner">
             <span class="text-4xl animate-bounce drop-shadow-sm">💀</span>
             <div class="text-center">
-                <span class="text-slate-600 font-black text-sm uppercase tracking-widest block">Eres un Fantasma</span>
-                <span class="text-slate-500 text-xs text-left font-bold">Observa el caos. Tus acciones ya no afectan este mundo.</span>
+                <span class="text-ink-muted font-black text-sm uppercase tracking-widest block">Eres un Fantasma</span>
+                <span class="text-ink-muted/70 text-xs text-left font-bold">Observa el caos. Tus acciones ya no afectan este mundo.</span>
             </div>
         </div>
 
@@ -119,7 +119,7 @@ const isPlayerDead = (playerId: string) => {
                     v-model="inputWord"
                     :disabled="isLocked"
                     placeholder="Tu palabra aquí..."
-                    class="w-full bg-panel-input border-[4px] border-white text-ink-main text-center text-4xl py-6 px-12 rounded-[2.5rem] backdrop-blur-xl focus:outline-none focus:border-action-cyan focus:bg-white transition-all font-black placeholder:text-ink-muted/40 shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="w-full bg-panel-input border-[4px] border-white/10 text-ink-main text-center text-4xl py-6 px-12 rounded-[2.5rem] backdrop-blur-xl focus:outline-none focus:border-action-primary focus:bg-panel-input transition-all font-black placeholder:text-ink-muted/40 shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
                     autofocus
                 />
                 <button 
@@ -149,19 +149,19 @@ const isPlayerDead = (playerId: string) => {
                 <div v-for="player in activePlayers" :key="player.id" 
                      class="flex flex-col items-center relative transition-all duration-300"
                      :class="{ 'opacity-50 grayscale pointer-events-none': isPlayerDead(player.id) }">
-                    <div class="w-16 h-16 rounded-full bg-white border-4 border-panel-card flex items-center justify-center text-3xl shadow-sm relative z-10 overflow-hidden">
+                    <div class="w-16 h-16 rounded-full bg-panel-input border-4 border-white/10 flex items-center justify-center text-3xl shadow-sm relative z-10 overflow-hidden">
                         {{ player.avatar || '👤' }}
                         
                         <!-- Ícono de Calavera para muertos -->
-                        <div v-if="isPlayerDead(player.id)" class="absolute inset-0 flex items-center justify-center bg-slate-900/60 backdrop-blur-[1px]">
+                        <div v-if="isPlayerDead(player.id)" class="absolute inset-0 flex items-center justify-center bg-panel-base/80 backdrop-blur-[1px]">
                             <span class="text-2xl drop-shadow-md">💀</span>
                         </div>
                     </div>
-                    <span class="text-xs text-ink-soft mt-2 font-black uppercase tracking-wider max-w-[80px] truncate bg-white/60 px-2 py-0.5 rounded-full border border-white/50">{{ player.id === myUserId ? 'Tú' : player.name }}</span>
+                    <span class="text-xs text-ink-soft mt-2 font-black uppercase tracking-wider max-w-[80px] truncate bg-panel-input/60 px-2 py-0.5 rounded-full border border-white/10">{{ player.id === myUserId ? 'Tú' : player.name }}</span>
                     
                     <!-- Checkmark Badge for submitted word -->
                     <div v-if="!isPlayerDead(player.id) && hasPlayerTypingCompleted(player.id)" 
-                         class="absolute -top-1 -right-1 bg-action-primary text-white w-7 h-7 rounded-full flex items-center justify-center border-2 border-white shadow-sm z-10 scale-in">
+                         class="absolute -top-1 -right-1 bg-action-primary text-white w-7 h-7 rounded-full flex items-center justify-center border-2 border-white/10 shadow-sm z-10 scale-in">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
                           <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
                         </svg>

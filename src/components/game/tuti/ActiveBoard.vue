@@ -103,7 +103,7 @@ onUnmounted(() => {
                                 :ref="(el) => setInputRef(el, index)"
                                 type="text"
                                 autocomplete="off"
-                                class="w-full bg-panel-input border-[3px] border-white text-ink-main rounded-xl focus:bg-white focus:border-action-cyan focus:shadow-[0_0_0_4px_rgba(56,189,248,0.2)] outline-none transition-all placeholder-ink-muted/50 font-black h-14 md:h-12 py-3 md:py-2 px-4 text-2xl md:text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
+                                class="w-full bg-panel-input border-[3px] border-white/10 text-ink-main rounded-xl focus:bg-panel-input focus:border-action-primary focus:shadow-[0_0_0_4px_rgba(217,119,6,0.2)] outline-none transition-all placeholder-ink-muted/50 font-black h-14 md:h-12 py-3 md:py-2 px-4 text-2xl md:text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
                                 :placeholder="(currentLetter || '') + '...'"
                                 :disabled="isBlocked"
                             >

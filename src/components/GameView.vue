@@ -121,7 +121,7 @@ const handleToast = (msg: string, style: 'join' | 'leave' | 'stop-warning', icon
              <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl p-6 shadow-game-panel max-w-xs w-full text-center">
                  <h3 class="text-ink-main font-black uppercase tracking-widest text-lg mb-6">¿Salir de la partida?</h3>
                  <div class="flex gap-3">
-                     <button @click="showExitModal = false" class="flex-1 py-3 rounded-2xl bg-panel-input border-2 border-panel-card text-ink-soft font-black uppercase tracking-wide hover:bg-white text-xs shadow-inner active:scale-95 transition-all">Cancelar</button>
+                     <button @click="showExitModal = false" class="flex-1 py-3 rounded-2xl bg-panel-input border-2 border-panel-card text-ink-soft font-black uppercase tracking-wide hover:bg-panel-card text-xs shadow-inner active:scale-95 transition-all">Cancelar</button>
                      <button @click="handleExit" class="flex-1 py-3 rounded-2xl bg-action-error border-[3px] border-red-400 text-white font-black uppercase tracking-wide hover:bg-red-500 shadow-game-btn active:scale-95 transition-all text-xs">Salir</button>
                  </div>
              </div>

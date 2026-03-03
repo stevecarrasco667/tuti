@@ -83,7 +83,7 @@ onMounted(() => {
             <h3 class="text-sm font-black text-ink-main uppercase tracking-widest mb-3 px-2 text-center md:text-left">🏆 Posiciones Finales</h3>
             <div class="space-y-3">
                 <div v-for="(player, idx) in players" :key="player.id"
-                     class="relative overflow-hidden rounded-3xl bg-panel-card border-[3px] border-white p-3 flex flex-col justify-center shadow-sm"
+                     class="relative overflow-hidden rounded-3xl bg-panel-card border-[3px] border-white/10 p-3 flex flex-col justify-center shadow-sm"
                 >
                     <!-- PROGRESS BAR BACKGROUND -->
                     <div class="absolute inset-0 bg-panel-input z-0"></div>
@@ -99,13 +99,13 @@ onMounted(() => {
                         <div class="flex items-center gap-3">
                              <!-- Rank Badge -->
                             <div class="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm border-2 shadow-sm" 
-                                 :class="idx === 0 ? 'bg-amber-100 border-amber-300 text-amber-700 scale-110 drop-shadow-md' : 'bg-white border-panel-card text-ink-main'">
+                                 :class="idx === 0 ? 'bg-amber-900/30 border-amber-500 text-amber-300 scale-110 drop-shadow-md' : 'bg-panel-input border-white/10 text-ink-main'">
                                  <span v-if="idx === 0" class="text-lg">👑</span>
                                  <span v-else>{{ idx + 1 }}</span>
                             </div>
                             
                             <!-- Avatar & Name -->
-                            <div class="flex items-center gap-2 bg-white/40 px-2 py-1 rounded-full border border-white/50 backdrop-blur-sm">
+                            <div class="flex items-center gap-2 bg-panel-input/40 px-2 py-1 rounded-full border border-white/10 backdrop-blur-sm">
                                 <span class="text-2xl leading-none drop-shadow-sm">{{ player.avatar }}</span>
                                 <span class="font-black text-lg text-ink-main truncate max-w-[120px]">{{ player.name }}</span>
                             </div>

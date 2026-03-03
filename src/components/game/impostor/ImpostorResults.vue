@@ -70,10 +70,10 @@ if (matchOver.value) {
                 <p class="text-lg text-ink-main font-black uppercase tracking-widest">{{ winner === 'IMPOSTOR' ? 'Los impostores controlan la nave.' : 'La tripulación purificó la nave.' }}</p>
             </template>
             <template v-else>
-                <div v-if="!eliminatedPlayer" class="text-sm font-black text-ink-muted bg-white px-4 py-3 rounded-2xl shadow-inner border-2 border-white/50 w-full uppercase tracking-widest">
+                <div v-if="!eliminatedPlayer" class="text-sm font-black text-ink-muted bg-panel-input px-4 py-3 rounded-2xl shadow-inner border-2 border-white/10 w-full uppercase tracking-widest">
                     Los votos se dividieron. Todos sobreviven a esta ronda.
                 </div>
-                <div v-else class="text-sm font-black w-full rounded-2xl px-4 py-3 border-2 shadow-inner uppercase tracking-wide" :class="isEliminatedImpostor ? 'bg-white border-green-200 text-green-700' : 'bg-white border-red-200 text-red-700'">
+                <div v-else class="text-sm font-black w-full rounded-2xl px-4 py-3 border-2 shadow-inner uppercase tracking-wide" :class="isEliminatedImpostor ? 'bg-emerald-900/30 border-emerald-700 text-emerald-300' : 'bg-red-900/30 border-red-700 text-red-300'">
                     {{ isEliminatedImpostor ? 'Un impostor menos en la nave.' : 'Han sacrificado a un tripulante inocente.' }}
                 </div>
             </template>
@@ -81,7 +81,7 @@ if (matchOver.value) {
         </div>
         
         <!-- TIMER -->
-        <div class="mt-8 text-center bg-white/80 p-4 rounded-3xl border-[3px] border-white shadow-sm inline-block">
+        <div class="mt-8 text-center bg-panel-card/60 p-4 rounded-3xl border-[3px] border-white/10 shadow-sm inline-block">
             <p class="text-[10px] uppercase tracking-widest font-black mb-1 text-ink-muted">{{ matchOver ? 'Fin de la Partida' : 'Siguiente Deducción en' }}</p>
             <div class="text-3xl font-mono font-black transition-colors leading-none" :class="timerColor">{{ Math.max(0, timeRemaining) }}</div>
         </div>
