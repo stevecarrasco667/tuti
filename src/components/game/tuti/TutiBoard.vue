@@ -135,7 +135,7 @@ const rivalsActivity = computed(() => {
             @exit="emit('exit')"
         />
 
-        <div class="flex-1 overflow-y-auto w-full scroll-smooth p-4 relative">
+        <div class="flex-1 overflow-y-auto w-full scroll-smooth p-2 relative">
             <Transition name="fade" mode="out-in">
                 <!-- Grid dinámico: 3 columnas en PLAYING, 2 columnas en las demás fases -->
                 <div :key="gameState.status" class="w-full h-full flex flex-col items-center lg:grid lg:gap-8 lg:items-start lg:max-w-[1600px] lg:mx-auto" 
@@ -150,7 +150,7 @@ const rivalsActivity = computed(() => {
                     </div>
 
                     <!-- COLUMN 2: GAME CENTER -->
-                    <div class="w-full flex justify-center order-2 lg:order-2 lg:h-full lg:overflow-y-auto">
+                    <div class="w-full flex justify-center order-2 lg:order-2 lg:h-full lg:overflow-y-auto h-full">
                         <ActiveRound 
                             v-if="gameState.status === 'PLAYING'"
                             :categories="gameState.categories"

@@ -33,11 +33,10 @@ const prevCategory = () => { if (!isFirstCategory.value) currentCategoryIndex.va
 // ─── Smart Grid (Densidad Dinámica) ──────────────────────────────────────────
 const gridLayoutClass = computed(() => {
     const count = props.players.length;
-    if (count <= 2) return 'grid-cols-1 md:grid-cols-2 auto-rows-fr'; // Duelo (50/50)
-    if (count === 3) return 'grid-cols-1 md:grid-cols-3 auto-rows-fr'; // Tridente
-    if (count === 4) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 auto-rows-fr'; // Cuadrado 2x2
-    if (count <= 6) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr'; // Galería 2x3
-    return 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 auto-rows-fr'; // Alta densidad
+    if (count <= 2) return 'grid-cols-2 auto-rows-fr';
+    if (count <= 4) return 'grid-cols-2 xl:grid-cols-4 auto-rows-fr';
+    if (count <= 6) return 'grid-cols-3 auto-rows-fr';
+    return 'grid-cols-4 auto-rows-fr'; // 7-8 jugadores: 2 filas de 4
 });
 
 // ─── Vote helpers (sin cambios) ───────────────────────────────────────────────
@@ -66,7 +65,7 @@ const selfStatusIcon = (playerId: string, category: string) => {
 </script>
 
 <template>
-    <div class="h-full flex flex-col w-full mx-auto px-2 pt-4">
+    <div class="h-full flex flex-col w-full mx-auto px-2 md:px-6">
 
         <!-- Stop Alert -->
         <div v-if="showStopAlert && stopperPlayer"
@@ -78,20 +77,20 @@ const selfStatusIcon = (playerId: string, category: string) => {
             </div>
         </div>
 
-        <div class="flex-none text-center mb-2">
-            <p class="text-[10px] md:text-xs font-black uppercase tracking-widest text-ink-muted mb-1 md:mb-2">
-                Categoría {{ currentCategoryIndex + 1 }} de {{ categories.length }}
-            </p>
-            <h2 class="bg-panel-card/90 backdrop-blur-xl py-2 px-4 md:py-3 md:px-6 rounded-2xl
-                        text-base md:text-xl font-black uppercase tracking-widest text-ink-main
-                        border-[3px] border-white/10 shadow-game-panel w-fit mx-auto">
+        <!-- CONTROL BAR: Fase + Categoría Unificados -->
+        <div class="flex-none flex items-center justify-between bg-panel-card/40 border border-white/5 rounded-2xl px-4 md:px-6 py-2 my-2 backdrop-blur-sm">
+            <div class="text-[10px] md:text-sm font-bold text-ink-muted uppercase tracking-widest">
+                Fase {{ currentCategoryIndex + 1 }} / {{ categories.length }}
+            </div>
+            <h2 class="text-lg md:text-2xl font-black text-action-primary uppercase tracking-[0.15em] drop-shadow-md">
                 {{ activeCategory }}
             </h2>
+            <div class="w-12 md:w-16"></div>
         </div>
 
         <!-- ARENA: Smart Grid Condicional -->
-        <div class="flex-1 overflow-y-auto min-h-0">
-            <div class="grid gap-2 md:gap-4 w-full h-full min-h-full px-2 pb-4 transition-all duration-500 ease-in-out" :class="gridLayoutClass">
+        <div class="flex-1 min-h-0">
+            <div class="grid gap-2 md:gap-3 w-full h-full px-1 transition-all duration-500 ease-in-out" :class="gridLayoutClass">
                 <VotingCard
                     v-for="player in players" :key="player.id"
                     :player-name="player.name"
@@ -111,7 +110,7 @@ const selfStatusIcon = (playerId: string, category: string) => {
         </div>
 
         <!-- ACTION BAR: Anterior / Dots / Siguiente + Enviar -->
-        <div class="flex-none pt-5 pb-4 border-t border-white/20 flex justify-between items-center gap-3">
+        <div class="flex-none pt-2 pb-2 md:pb-3 flex justify-between items-center gap-3">
 
             <!-- Atrás -->
             <TButton
