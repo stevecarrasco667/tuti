@@ -68,15 +68,9 @@ watch(() => gameState.value.players, (newPlayers) => {
 
 <template>
   <div class="h-[100dvh] w-screen overflow-hidden bg-panel-base text-ink-main flex flex-col items-center relative transition-all duration-500 font-sans"
-       :class="currentView === 'GAME' ? 'p-0' : 'p-4'">
+       :class="currentView === 'GAME' ? 'p-0' : 'p-2'">
     
-    <!-- MAIN TITLE (Header) - Hidden in Game Mode -->
-    <header v-if="currentView !== 'GAME'" class="flex-none flex flex-col items-center mb-4 z-10 transition-all duration-500 drop-shadow-md">
-        <h1 class="text-4xl md:text-5xl font-black text-ink-inverse tracking-tight">
-          Tutifruti <span class="text-tuti-soft">Online</span>
-        </h1>
-        <p class="text-ink-inverse/80 text-sm font-light tracking-wide mt-1">Project Phoenix</p>
-    </header>
+
 
 
 
