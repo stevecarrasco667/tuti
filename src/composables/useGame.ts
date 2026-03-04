@@ -76,7 +76,16 @@ export function useGame() {
             const parsed: ServerMessage = JSON.parse(newMsg);
 
             if (parsed.type === EVENTS.UPDATE_STATE) {
-                gameState.value = parsed.payload;
+                const newState = parsed.payload;
+
+                // Fix: RIVAL_UPDATE persiste filledCount en el cliente, pero UPDATE_STATE
+                // no lo resetea (viene como undefined). Al iniciar una nueva ronda (PLAYING),
+                // lo forzamos a 0 antes de asignar, para que no quede el valor de la ronda anterior.
+                if (newState.status === 'PLAYING' && newState.players) {
+                    newState.players.forEach((p: any) => { p.filledCount = 0; });
+                }
+
+                gameState.value = newState;
                 // If we were stopping and state changed from PLAYING, reset flag
                 if (isStopping.value && gameState.value.status !== 'PLAYING') {
                     isStopping.value = false;
