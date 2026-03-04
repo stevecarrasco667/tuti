@@ -1,4 +1,4 @@
-import { ref, computed, watch, onUnmounted, Ref } from 'vue';
+import { ref, computed, watch, nextTick, onUnmounted, Ref } from 'vue';
 import { RoomState } from '../../shared/types';
 import { useSound } from './useSound';
 
@@ -37,17 +37,26 @@ export function useGameEffects(
         }
     };
 
-    watch(() => [gameState.value.status, gameState.value.timers], () => {
-        if (timerInterval) {
-            clearInterval(timerInterval);
-        }
+    // Fix Bug 2: observar uiMetadata.targetTime directamente (valor escalar) en lugar del
+    // objeto timers completo con deep:true. Eso evita la race condition donde el watch se
+    // disparaba con el targetTime stale de la fase anterior (RESULTS) antes de que el nuevo
+    // estado (PLAYING) fuera aplicado en su totalidad.
+    // nextTick garantiza que el gameState completo fue asignado antes de leer targetTime.
+    watch(
+        () => gameState.value?.uiMetadata?.targetTime,
+        () => {
+            if (timerInterval) clearInterval(timerInterval);
 
-        updateTimer();
-
-        if (gameState.value?.uiMetadata?.showTimer) {
-            timerInterval = setInterval(updateTimer, 1000);
-        }
-    }, { immediate: true, deep: true });
+            // Diferir la lectura un tick para que todo el UPDATE_STATE esté aplicado
+            nextTick(() => {
+                updateTimer();
+                if (gameState.value?.uiMetadata?.showTimer) {
+                    timerInterval = setInterval(updateTimer, 1000);
+                }
+            });
+        },
+        { immediate: true }
+    );
 
     onUnmounted(() => {
         if (timerInterval) {

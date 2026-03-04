@@ -20,6 +20,9 @@ export class RoundManager {
         state.stoppedBy = null;
         state.status = 'PLAYING';
 
+        // Reset per-player progress counters (fix: filledCount was persisting across rounds)
+        state.players.forEach(p => { p.filledCount = 0; });
+
         // Pick new letter (Random)
         state.currentLetter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.charAt(Math.floor(Math.random() * 26));
 
