@@ -26,8 +26,10 @@ const progressPercent = computed(() => {
 </script>
 
 <template>
-    <div v-if="status !== 'REVIEW'" class="flex-none bg-gradient-to-t from-panel-base via-panel-base/90 to-transparent p-4 pb-safe pt-10 -mt-6 z-30 pointer-events-none">
-        <div class="w-full max-w-lg mx-auto flex flex-col items-center gap-2 pointer-events-auto">
+    <div v-if="status !== 'REVIEW'" class="flex-none bg-gradient-to-t from-panel-base via-panel-base/90 to-transparent p-4 pb-safe pt-10 -mt-6 z-30 pointer-events-none"
+         :class="status === 'RESULTS' ? 'lg:pr-[216px]' : ''"
+    >
+        <div class="w-full max-w-xl mx-auto flex flex-col items-center gap-2 pointer-events-auto">
 
             <!-- ═══════════════════════════════════════════ -->
             <!-- PLAYING: Barra de Progreso + Botón BASTA   -->
