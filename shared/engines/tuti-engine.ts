@@ -267,12 +267,17 @@ export class TutiEngine extends BaseEngine {
 
             this.state.roundsPlayed = 0;
 
-            // Select categories: use configured list if >= 3, else pick 5 random
-            if (this.state.config.classic.categories.length >= 3) {
-                this.state.categories = [...this.state.config.classic.categories];
+            // Select categories: obey manual selection (even 1 category), else use categoryCount from config
+            const manualCategories = this.state.config.classic.categories || [];
+            const count = this.state.config.classic.categoryCount ?? 5;
+
+            if (manualCategories.length > 0) {
+                // Host chose manually → obey without restrictions
+                this.state.categories = [...manualCategories];
             } else {
+                // No manual selection → pick `count` random categories
                 const shuffled = [...MASTER_CATEGORIES].sort(() => 0.5 - Math.random());
-                this.state.categories = shuffled.slice(0, 5).map(c => c.name);
+                this.state.categories = shuffled.slice(0, count).map(c => c.name);
             }
 
             this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());

@@ -37,6 +37,7 @@ export interface GameConfig {
         rounds: number;
         timeLimit: number;
         votingDuration: number;
+        categoryCount?: number; // Number of random categories when none are manually selected
         categories: string[];
         customCategories: string[];
         mutators: {
