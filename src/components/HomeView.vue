@@ -90,25 +90,34 @@ const handleRefresh = () => {
 </script>
 
 <template>
-    <div class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-7 gap-6 px-4">
+    <div class="h-full w-full flex flex-col items-center justify-center p-4">
+        <div class="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-7 gap-6 lg:gap-8">
 
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- COLUMN LEFT: "LA CONSOLA" (Main Action Hub)    -->
-        <!-- ═══════════════════════════════════════════════ -->
-        <div class="lg:col-span-4 space-y-5">
+            <!-- ═══════════════════════════════════════════════ -->
+            <!-- COLUMN LEFT: "LA CONSOLA" (Main Action Hub)    -->
+            <!-- ═══════════════════════════════════════════════ -->
+            <div class="lg:col-span-4 flex flex-col gap-5 justify-center">
 
-            <!-- HERO: Logo + Quick Play -->
-            <TCard padding="lg">
-                <!-- Logo -->
-                <h1 class="text-4xl sm:text-5xl font-black text-center mb-2 tracking-tight">
-                    <span class="text-white drop-shadow-md">
-                        TUTI PARTY
-                    </span>
-                </h1>
-                <p class="text-center text-ink-soft text-sm mb-8 font-bold">
-                    <span v-if="publicRooms.length > 0" class="text-action-primary">🟢 {{ publicRooms.length }} sala{{ publicRooms.length !== 1 ? 's' : '' }} activa{{ publicRooms.length !== 1 ? 's' : '' }}</span>
-                    <span v-else>El juego de palabras más rápido</span>
-                </p>
+                <!-- HERO: Logo + Quick Play -->
+                <TCard padding="lg" class="shadow-2xl border-[3px] border-white/10 relative overflow-hidden">
+                    <!-- Decoración fondo -->
+                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-action-blue/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <!-- Logo -->
+                    <div class="relative z-10">
+                        <h1 class="text-5xl sm:text-6xl font-black text-center mb-1 tracking-tighter">
+                            <span class="text-white drop-shadow-lg">
+                                TUTI PARTY
+                            </span>
+                        </h1>
+                        <p class="text-center text-ink-muted text-[10px] font-black tracking-[0.3em] uppercase mb-8">
+                            Project Phoenix
+                        </p>
+                        <p class="text-center text-ink-soft text-sm mb-8 font-bold">
+                            <span v-if="publicRooms.length > 0" class="text-action-primary px-3 py-1 bg-action-primary/10 rounded-full border border-action-primary/20 shadow-sm animate-pulse">🟢 {{ publicRooms.length }} sala{{ publicRooms.length !== 1 ? 's' : '' }} activa{{ publicRooms.length !== 1 ? 's' : '' }}</span>
+                            <span v-else class="text-ink-muted">El juego de palabras más rápido</span>
+                        </p>
+                    </div>
 
                 <!-- PRIMARY ACTION BUTTONS -->
                 <div class="grid grid-cols-2 gap-3">
@@ -145,10 +154,10 @@ const handleRefresh = () => {
             </TCard>
         </div>
 
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- COLUMN RIGHT: Identity & Social Radar          -->
-        <!-- ═══════════════════════════════════════════════ -->
-        <div class="lg:col-span-3 space-y-5">
+            <!-- ═══════════════════════════════════════════════ -->
+            <!-- COLUMN RIGHT: Identity & Social Radar          -->
+            <!-- ═══════════════════════════════════════════════ -->
+            <div class="lg:col-span-3 flex flex-col gap-5 justify-center">
             
             <!-- IDENTITY CARD -->
             <TCard padding="md">
@@ -249,6 +258,7 @@ const handleRefresh = () => {
                 </div>
             </TCard>
 
+            </div>
         </div>
     </div>
 </template>
