@@ -150,7 +150,9 @@ const rivalsActivity = computed(() => {
                     </div>
 
                     <!-- COLUMN 2: GAME CENTER -->
-                    <div class="w-full flex flex-col justify-center items-center order-2 lg:order-2 lg:h-full lg:overflow-y-auto h-full">
+                    <div class="w-full flex order-2 lg:order-2 lg:h-full lg:overflow-y-auto h-full"
+                         :class="gameState.status === 'PLAYING' ? 'flex-col justify-center items-center' : 'flex-col'"
+                    >
                         <ActiveRound 
                             v-if="gameState.status === 'PLAYING'"
                             :categories="gameState.categories"
@@ -172,6 +174,7 @@ const rivalsActivity = computed(() => {
                             :has-confirmed="hasConfirmed"
                             @vote="(pid: string, cat: string) => emit('toggle-vote', pid, cat)"
                             @submit-votes="handleConfirmVotes"
+                            class="my-auto"
                         />
                         
                         <ResultsRanking
@@ -181,6 +184,7 @@ const rivalsActivity = computed(() => {
                             :categories="gameState.categories"
                             :my-user-id="myUserId"
                             :get-player-status="getPlayerStatusForRanking"
+                            class="my-auto"
                         />
                     </div>
 
