@@ -32,6 +32,16 @@ export class GameHandler extends BaseHandler {
 
             const filledCount = Object.values(payload.answers).filter((val: any) => val && val.trim().length > 0).length;
 
+            // Fix: Persist filledCount in canonical state so that:
+            // 1. broadcastStateDelta()'s compare() detects the change in previousStates
+            // 2. startRound()'s reset to 0 generates a proper patch delta
+            const state = this.engine.getState();
+            const player = state.players.find((p: any) => p.id === userId);
+            if (player) {
+                player.filledCount = filledCount;
+            }
+
+            // Also send lightweight RIVAL_UPDATE for instant UI feedback (no full delta needed)
             const msg = JSON.stringify({
                 type: EVENTS.RIVAL_UPDATE,
                 payload: {
