@@ -24,7 +24,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <div class="bg-panel-card rounded-2xl w-full h-full min-h-[100px] flex flex-col overflow-hidden transition-all duration-500 p-2.5 md:p-3"
+    <div class="bg-panel-card rounded-2xl w-full h-full min-h-[100px] flex flex-col overflow-hidden transition-all duration-500 p-2.5 md:p-3 [container-type:inline-size]"
          :class="[
             isAutoValidated
                 ? 'border border-amber-500/30 shadow-[0_0_30px_-5px_rgba(251,191,36,0.25)]'
@@ -44,7 +44,7 @@ const emit = defineEmits<{
 
         <!-- ROW 2: La Palabra (flex-1, centrada, protagonista) -->
         <div class="flex-1 flex flex-col items-center justify-center w-full px-2 min-h-0">
-            <span class="font-black text-center uppercase tracking-wide break-words break-all line-clamp-2 drop-shadow-xl transition-all duration-300 text-[clamp(1rem,3.5cqw,2rem)] md:text-[clamp(1.2rem,2.5vw,2.5rem)] leading-tight"
+            <span class="font-black text-center uppercase tracking-wide break-words break-all line-clamp-2 drop-shadow-xl transition-all duration-300 text-[clamp(1.5rem,12cqi,4.5rem)] leading-tight"
                   :class="[
                       isRejected || !isApproved
                           ? 'line-through opacity-40 text-red-400'
