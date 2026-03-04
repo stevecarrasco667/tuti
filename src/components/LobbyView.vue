@@ -418,6 +418,17 @@ const copyRoomLink = () => {
                             <!-- ===== CLASSIC MODE SETTINGS ===== -->
                             <template v-if="localConfig.mode === 'CLASSIC'">
 
+                            <!-- Category Count (only shown when no manual categories) -->
+                            <div v-if="!(localConfig.classic?.categories?.length > 0)" class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
+                                <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🎲 Categorías Aleatorias</label>
+                                <div class="flex items-center justify-between">
+                                    <button @click="decrementCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
+                                    <span class="text-4xl font-black text-ink-main">{{ localConfig.classic?.categoryCount ?? 5 }}</span>
+                                    <button @click="incrementCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
+                                </div>
+                                <p class="text-ink-muted text-[8px] font-bold mt-2 text-center">Se elegirán al azar al iniciar</p>
+                            </div>
+
                             <!-- Rounds -->
                             <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
                                 <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🔁 Rondas</label>
@@ -452,17 +463,6 @@ const copyRoomLink = () => {
                                     </div>
                                     <button @click="incrementVotingDuration" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                                 </div>
-                            </div>
-
-                            <!-- Category Count (only shown when no manual categories) -->
-                            <div v-if="!(localConfig.classic?.categories?.length > 0)" class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
-                                <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🎲 Categorías Aleatorias</label>
-                                <div class="flex items-center justify-between">
-                                    <button @click="decrementCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
-                                    <span class="text-4xl font-black text-ink-main">{{ localConfig.classic?.categoryCount ?? 5 }}</span>
-                                    <button @click="incrementCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
-                                </div>
-                                <p class="text-ink-muted text-[8px] font-bold mt-2 text-center">Se elegirán al azar al iniciar</p>
                             </div>
 
                             <hr class="border-t-[3px] border-white/10 rounded-full mt-4 mb-2" />
