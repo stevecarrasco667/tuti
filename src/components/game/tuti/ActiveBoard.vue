@@ -39,6 +39,29 @@ const gridClass = computed(() => {
     return             'grid-cols-2 sm:grid-cols-3 xl:grid-cols-5'; // 9-10
 });
 
+// Altura de cada input: inversamente proporcional al conteo de categorías
+// Con pocas categorías el input es alto y cómodo; con muchas es compacto
+const inputHeightClass = computed(() => {
+    const n = props.categories.length;
+    if (n <= 2) return 'h-24';   // 2 cat  — muy espacioso
+    if (n === 3) return 'h-20';  // 3 cat
+    if (n === 4) return 'h-16';  // 4 cat
+    if (n <= 6)  return 'h-14';  // 5-6 cat
+    if (n <= 8)  return 'h-11';  // 7-8 cat
+    return              'h-9';   // 9-10 cat — compacto
+});
+
+// Fuente del input: escala igual que la altura
+const inputTextClass = computed(() => {
+    const n = props.categories.length;
+    if (n <= 2) return 'text-3xl';
+    if (n === 3) return 'text-2xl';
+    if (n === 4) return 'text-2xl';
+    if (n <= 6)  return 'text-xl';
+    if (n <= 8)  return 'text-base';
+    return              'text-sm';
+});
+
 // --- KEYBOARD NAVIGATION ---
 const inputElements = ref<(HTMLInputElement | null)[]>([]);
 
@@ -108,7 +131,8 @@ onUnmounted(() => {
                                 :ref="(el) => setInputRef(el, index)"
                                 type="text"
                                 autocomplete="off"
-                                class="w-full bg-panel-input border-[3px] border-white/10 text-ink-main rounded-xl focus:bg-panel-input focus:border-action-primary focus:shadow-[0_0_0_4px_rgba(217,119,6,0.2)] outline-none transition-all placeholder-ink-muted/50 font-black h-12 md:h-10 py-2 px-4 text-xl md:text-base disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
+                                class="w-full bg-panel-input border-[3px] border-white/10 text-ink-main rounded-xl focus:bg-panel-input focus:border-action-primary focus:shadow-[0_0_0_4px_rgba(217,119,6,0.2)] outline-none transition-all placeholder-ink-muted/50 font-black py-2 px-4 disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
+                                :class="[inputHeightClass, inputTextClass]"
                                 :placeholder="(currentLetter || '') + '...'"
                                 :disabled="isBlocked"
                             >
