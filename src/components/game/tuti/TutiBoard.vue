@@ -150,7 +150,7 @@ const rivalsActivity = computed(() => {
                     </div>
 
                     <!-- COLUMN 2: GAME CENTER -->
-                    <div class="w-full flex justify-center order-2 lg:order-2 lg:h-full lg:overflow-y-auto h-full">
+                    <div class="w-full flex flex-col justify-center items-center order-2 lg:order-2 lg:h-full lg:overflow-y-auto h-full">
                         <ActiveRound 
                             v-if="gameState.status === 'PLAYING'"
                             :categories="gameState.categories"

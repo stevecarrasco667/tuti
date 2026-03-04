@@ -107,12 +107,10 @@ const handleRefresh = () => {
                     <div class="relative z-10">
                         <h1 class="text-5xl sm:text-6xl font-black text-center mb-1 tracking-tighter">
                             <span class="text-white drop-shadow-lg">
-                                TUTI PARTY
+                                TUTI GAMES
                             </span>
                         </h1>
-                        <p class="text-center text-ink-muted text-[10px] font-black tracking-[0.3em] uppercase mb-8">
-                            Project Phoenix
-                        </p>
+
                         <p class="text-center text-ink-soft text-sm mb-8 font-bold">
                             <span v-if="publicRooms.length > 0" class="text-action-primary px-3 py-1 bg-action-primary/10 rounded-full border border-action-primary/20 shadow-sm animate-pulse">🟢 {{ publicRooms.length }} sala{{ publicRooms.length !== 1 ? 's' : '' }} activa{{ publicRooms.length !== 1 ? 's' : '' }}</span>
                             <span v-else class="text-ink-muted">El juego de palabras más rápido</span>
@@ -206,7 +204,7 @@ const handleRefresh = () => {
             <TCard padding="none" class="flex flex-col overflow-hidden max-h-[400px]">
                 <div class="p-4 border-b border-white/10 bg-panel-card/90 flex items-center justify-between sticky top-0 z-10">
                     <h3 class="text-xs font-black text-ink-main uppercase tracking-widest flex items-center gap-2">
-                        📡 Radar de Salas
+                         Salas Publicas
                     </h3>
                     <button 
                         @click="handleRefresh" 
