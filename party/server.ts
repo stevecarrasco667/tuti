@@ -372,6 +372,10 @@ export default class Server implements Party.Server {
                     await this.playerHandler.handleKick(payload as any, sender);
                     break;
 
+                case EVENTS.RESTART_GAME:
+                    await this.gameHandler.handleRestartGame(sender);
+                    break;
+
                 case EVENTS.EXIT_GAME:
                     this.connectionHandler.handleExitGame(sender);
                     break;

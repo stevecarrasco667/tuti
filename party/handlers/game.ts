@@ -63,4 +63,12 @@ export class GameHandler extends BaseHandler {
             sendError(sender, (err as Error).message);
         }
     }
+
+    async handleRestartGame(sender: Party.Connection) {
+        try {
+            this.engine.restartGame(sender.id);
+        } catch (err) {
+            sendError(sender, (err as Error).message);
+        }
+    }
 }
