@@ -69,6 +69,22 @@ export interface ImpostorData {
     };
 }
 
+// --- IMPOSTOR DATA LAYER (Sprint 3.1) ---
+export type ImpostorDifficulty = 1 | 2 | 3;
+
+export interface ImpostorWord {
+    id: string;
+    word: string;
+    difficulty: ImpostorDifficulty;
+    tags?: string[];
+}
+
+export interface ImpostorCategoryData {
+    categoryId: string;
+    name: string;
+    words: ImpostorWord[];
+}
+
 export interface RoomState {
     stateVersion: number; // Integrity vector
     status: GameStatus;

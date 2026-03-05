@@ -1,0 +1,81 @@
+{
+    "categoryId": "cat-lugares",
+    "name": "Lugares",
+    "words": [
+        {
+            "id": "lug-playa",
+            "word": "Playa",
+            "difficulty": 1
+        },
+        {
+            "id": "lug-hospital",
+            "word": "Hospital",
+            "difficulty": 1
+        },
+        {
+            "id": "lug-colegio",
+            "word": "Colegio",
+            "difficulty": 1
+        },
+        {
+            "id": "lug-cine",
+            "word": "Cine",
+            "difficulty": 1
+        },
+        {
+            "id": "lug-supermercado",
+            "word": "Supermercado",
+            "difficulty": 1
+        },
+        {
+            "id": "lug-aeropuerto",
+            "word": "Aeropuerto",
+            "difficulty": 1
+        },
+        {
+            "id": "lug-parque",
+            "word": "Parque",
+            "difficulty": 1
+        },
+        {
+            "id": "lug-biblioteca",
+            "word": "Biblioteca",
+            "difficulty": 1
+        },
+        {
+            "id": "lug-estadio",
+            "word": "Estadio",
+            "difficulty": 1
+        },
+        {
+            "id": "lug-iglesia",
+            "word": "Iglesia",
+            "difficulty": 1
+        },
+        {
+            "id": "lug-restaurante",
+            "word": "Restaurante",
+            "difficulty": 1
+        },
+        {
+            "id": "lug-museo",
+            "word": "Museo",
+            "difficulty": 2
+        },
+        {
+            "id": "lug-gimnasio",
+            "word": "Gimnasio",
+            "difficulty": 1
+        },
+        {
+            "id": "lug-estacion",
+            "word": "Estación de tren",
+            "difficulty": 2
+        },
+        {
+            "id": "lug-zoologico",
+            "word": "Zoológico",
+            "difficulty": 1
+        }
+    ]
+}

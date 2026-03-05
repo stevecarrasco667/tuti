@@ -1,0 +1,81 @@
+{
+    "categoryId": "cat-animales",
+    "name": "Animales",
+    "words": [
+        {
+            "id": "ani-perro",
+            "word": "Perro",
+            "difficulty": 1
+        },
+        {
+            "id": "ani-gato",
+            "word": "Gato",
+            "difficulty": 1
+        },
+        {
+            "id": "ani-elefante",
+            "word": "Elefante",
+            "difficulty": 1
+        },
+        {
+            "id": "ani-jirafa",
+            "word": "Jirafa",
+            "difficulty": 1
+        },
+        {
+            "id": "ani-pinguino",
+            "word": "Pingüino",
+            "difficulty": 1
+        },
+        {
+            "id": "ani-leon",
+            "word": "León",
+            "difficulty": 1
+        },
+        {
+            "id": "ani-tigre",
+            "word": "Tigre",
+            "difficulty": 1
+        },
+        {
+            "id": "ani-delfin",
+            "word": "Delfín",
+            "difficulty": 1
+        },
+        {
+            "id": "ani-aguila",
+            "word": "Águila",
+            "difficulty": 1
+        },
+        {
+            "id": "ani-caballo",
+            "word": "Caballo",
+            "difficulty": 1
+        },
+        {
+            "id": "ani-mono",
+            "word": "Mono",
+            "difficulty": 1
+        },
+        {
+            "id": "ani-oso",
+            "word": "Oso",
+            "difficulty": 1
+        },
+        {
+            "id": "ani-serpiente",
+            "word": "Serpiente",
+            "difficulty": 2
+        },
+        {
+            "id": "ani-loro",
+            "word": "Loro",
+            "difficulty": 1
+        },
+        {
+            "id": "ani-tortuga",
+            "word": "Tortuga",
+            "difficulty": 1
+        }
+    ]
+}

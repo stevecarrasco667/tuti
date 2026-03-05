@@ -1,0 +1,81 @@
+{
+    "categoryId": "cat-profesiones",
+    "name": "Profesiones",
+    "words": [
+        {
+            "id": "pro-medico",
+            "word": "Médico",
+            "difficulty": 1
+        },
+        {
+            "id": "pro-bombero",
+            "word": "Bombero",
+            "difficulty": 1
+        },
+        {
+            "id": "pro-profesor",
+            "word": "Profesor",
+            "difficulty": 1
+        },
+        {
+            "id": "pro-piloto",
+            "word": "Piloto",
+            "difficulty": 1
+        },
+        {
+            "id": "pro-policia",
+            "word": "Policía",
+            "difficulty": 1
+        },
+        {
+            "id": "pro-cocinero",
+            "word": "Cocinero",
+            "difficulty": 1
+        },
+        {
+            "id": "pro-astronauta",
+            "word": "Astronauta",
+            "difficulty": 1
+        },
+        {
+            "id": "pro-abogado",
+            "word": "Abogado",
+            "difficulty": 1
+        },
+        {
+            "id": "pro-arquitecto",
+            "word": "Arquitecto",
+            "difficulty": 2
+        },
+        {
+            "id": "pro-veterinario",
+            "word": "Veterinario",
+            "difficulty": 1
+        },
+        {
+            "id": "pro-ingeniero",
+            "word": "Ingeniero",
+            "difficulty": 1
+        },
+        {
+            "id": "pro-carpintero",
+            "word": "Carpintero",
+            "difficulty": 1
+        },
+        {
+            "id": "pro-electricista",
+            "word": "Electricista",
+            "difficulty": 2
+        },
+        {
+            "id": "pro-dentista",
+            "word": "Dentista",
+            "difficulty": 1
+        },
+        {
+            "id": "pro-mecanico",
+            "word": "Mecánico",
+            "difficulty": 1
+        }
+    ]
+}
