@@ -1,11 +1,14 @@
 import { ref, watch, computed } from 'vue';
 import { useSocket } from './useSocket';
 import { debounce } from '../utils/timing';
-import { RoomState, ServerMessage, GameConfig, DeepPartial } from '../../shared/types';
+import { RoomState, ServerMessage, GameConfig, DeepPartial, PrivateRolePayload } from '../../shared/types';
 import { EVENTS, APP_VERSION } from '../../shared/consts';
 import { applyPatch } from 'fast-json-patch';
 
 // Global state to persist across component mounts if needed
+// Sprint 3.4: Local private role — received via WebSocket whisper, never in public state
+export const localImpostorRole = ref<PrivateRolePayload | null>(null);
+
 const gameState = ref<RoomState>({
     // ... initial state
     stateVersion: 0,
@@ -86,6 +89,10 @@ export function useGame() {
                 }
 
                 gameState.value = newState;
+                // Clear local role cache when back to lobby or game over
+                if (newState.status === 'LOBBY' || newState.status === 'GAME_OVER') {
+                    localImpostorRole.value = null;
+                }
                 // If we were stopping and state changed from PLAYING, reset flag
                 if (isStopping.value && gameState.value.status !== 'PLAYING') {
                     isStopping.value = false;
@@ -140,6 +147,10 @@ export function useGame() {
                 if (player) {
                     player.filledCount = filledCount;
                 }
+            } else if (parsed.type === EVENTS.PRIVATE_ROLE_ASSIGNMENT) {
+                // Sprint 3.4: Whispered private role — stored locally, never in public state
+                localImpostorRole.value = parsed.payload as PrivateRolePayload;
+                console.log('[Sprint3.4] Private role received:', localImpostorRole.value?.role);
             } else if (parsed.type === EVENTS.SYSTEM_VERSION) {
                 const serverVersion = (parsed.payload as any).version;
                 if (serverVersion && serverVersion !== APP_VERSION) {

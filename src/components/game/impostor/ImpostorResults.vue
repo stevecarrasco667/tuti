@@ -22,7 +22,10 @@ const eliminatedPlayer = computed(() => {
 });
 
 const isEliminatedImpostor = computed(() => {
-    return eliminatedId.value ? props.impostorData.impostorIds.includes(eliminatedId.value) : false;
+    if (!eliminatedId.value) return false;
+    // Sprint 3.4: impostorIds removed from public state.
+    // The server reveals impostor identity post-vote via cycleResult.revealedImpostorIds
+    return result.value?.revealedImpostorIds?.includes(eliminatedId.value) ?? false;
 });
 
 // Sound effects on mount

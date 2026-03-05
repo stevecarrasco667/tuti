@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { ImpostorData, Player } from '../../../../shared/types';
+import { localImpostorRole } from '../../../composables/useGame';
 
 const props = defineProps<{
     impostorData: ImpostorData;
@@ -18,13 +19,13 @@ const inputWord = ref('');
 const hasSubmitted = ref(false);
 
 const isDead = computed(() => !props.impostorData.alivePlayers.includes(props.myUserId));
-const isImpostor = computed(() => props.impostorData.impostorIds.includes(props.myUserId));
+// Sprint 3.4: Read role from private whisper instead of public state
+const isImpostor = computed(() => localImpostorRole.value?.role === 'impostor');
+const secretWord = computed(() => localImpostorRole.value?.word ?? null);
 
 const impostorAllies = computed(() => {
-    if (!isImpostor.value) return [];
-    const myId = props.myUserId;
-    return props.impostorData.impostorIds
-        .filter(id => id !== myId)
+    if (!isImpostor.value || !localImpostorRole.value) return [];
+    return (localImpostorRole.value.allies)
         .map(id => props.players.find(p => p.id === id)?.name || 'Desconocido');
 });
 
@@ -63,7 +64,7 @@ const isPlayerDead = (playerId: string) => {
         <div class="w-full flex justify-between items-start mb-4 max-w-4xl">
             <div class="bg-panel-card border-2 border-white/10 px-6 py-3 rounded-3xl backdrop-blur-md shadow-sm">
                 <span class="text-[10px] text-ink-muted uppercase tracking-widest block font-black mb-1">Categoría</span>
-                <span class="text-xl text-ink-main font-black">{{ impostorData.secretCategory }}</span>
+                <span class="text-xl text-ink-main font-black">{{ impostorData.currentCategoryName }}</span>
             </div>
             
             <div class="bg-panel-card border-2 border-white/10 px-6 py-2 rounded-3xl backdrop-blur-md flex flex-col items-center min-w-[120px] shadow-sm">
@@ -89,11 +90,11 @@ const isPlayerDead = (playerId: string) => {
                     <span class="text-3xl drop-shadow-sm">🤫</span>
                     <div>
                         <span class="text-action-error font-black text-sm md:text-base uppercase tracking-widest block text-left">Eres Impostor</span>
-                        <span class="text-ink-muted text-sm font-bold ml-2" v-if="!isDead">Categoría: <strong class="text-action-error font-black">{{ impostorData.secretCategory }}</strong></span>
+                        <span class="text-ink-muted text-sm font-bold ml-2" v-if="!isDead">Categoría: <strong class="text-action-error font-black">{{ impostorData.currentCategoryName }}</strong></span>
                     </div>
                 </div>
                 <div v-if="impostorAllies.length > 0" class="flex flex-col items-end">
-                    <span class="text-action-error/80 text-[10px] uppercase font-black tracking-widest">Tus Aliados:</span>
+                    <span class="text-[10px] font-black text-ink-muted uppercase tracking-widest">Tus aliados</span>
                     <span class="text-action-error font-black text-sm">{{ impostorAllies.join(', ') }}</span>
                 </div>
             </div>
@@ -102,7 +103,7 @@ const isPlayerDead = (playerId: string) => {
                 <span class="text-3xl drop-shadow-sm">💡</span>
                 <div>
                     <span class="text-tuti-teal font-black text-sm md:text-base uppercase tracking-widest text-left block">Eres Tripulante</span>
-                    <span class="text-ink-muted text-sm font-bold ml-2" v-if="!isDead">La palabra es: <strong class="text-tuti-teal font-black">{{ impostorData.secretWord }}</strong></span>
+                    <span class="text-ink-muted text-sm font-bold ml-2" v-if="!isDead">La palabra es: <strong class="text-tuti-teal font-black">{{ secretWord }}</strong></span>
                 </div>
             </div>
         </div>

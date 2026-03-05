@@ -56,9 +56,7 @@ export interface GameConfig {
 export type AnswerStatus = 'VALID' | 'VALID_AUTO' | 'DUPLICATE' | 'INVALID' | 'EMPTY' | 'PENDING';
 
 export interface ImpostorData {
-    secretWord: string;
-    secretCategory: string;
-    impostorIds: string[];
+    currentCategoryName: string;  // Public: the theme of the round (no word secrets)
     alivePlayers: string[];
     words: Record<string, string>; // userId -> palabra
     votes: Record<string, string>; // voterId -> accusedId
@@ -67,7 +65,16 @@ export interface ImpostorData {
         eliminatedId: string | null;
         matchOver: boolean;
         winner?: 'IMPOSTOR' | 'CREW';
+        revealedImpostorIds?: string[]; // Revealed AFTER match ends for results screen
     };
+}
+
+// Sprint 3.4: Private Role Payload — delivered via per-connection WebSocket whisper
+export interface PrivateRolePayload {
+    role: 'impostor' | 'crewmate';
+    word: string | null;   // null for impostor (they must bluff without knowing the word)
+    category: string;
+    allies: string[];      // Co-impostor IDs (empty for crewmates)
 }
 
 // --- IMPOSTOR DATA LAYER (Sprint 3.1) ---
@@ -145,6 +152,7 @@ export type ServerMessage =
     | { type: typeof EVENTS.PATCH_STATE; payload: { stateVersion: number, patches: any[] } } // [Phoenix] Checked Delta Sync
     | { type: typeof EVENTS.AUTH_GRANTED; payload: { userId: string; sessionToken: string } } // [Phoenix] Anti-Spoofing
     | { type: typeof EVENTS.RIVAL_UPDATE; payload: { playerId: string; filledCount: number } }
+    | { type: typeof EVENTS.PRIVATE_ROLE_ASSIGNMENT; payload: PrivateRolePayload } // [Sprint 3.4] Whisper
     | { type: typeof EVENTS.SYSTEM_MESSAGE; payload: string }
     | { type: typeof EVENTS.SYSTEM_VERSION; payload: { version: string } }
     | { type: typeof EVENTS.CHAT_NEW; payload: ChatMessage }

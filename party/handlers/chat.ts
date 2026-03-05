@@ -4,9 +4,7 @@ import { EVENTS } from "../../shared/consts";
 import type { ChatMessage } from "../../shared/types";
 import { RateLimiter } from "../utils/rate-limiter";
 
-function escapeRegExp(string: string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-}
+
 
 export class ChatHandler {
     constructor(
@@ -39,15 +37,10 @@ export class ChatHandler {
         }
 
         // [SPRINT 9] EL FILTRO ANTI-SPOILERS
-        if (state.config.mode === 'IMPOSTOR' && state.impostorData?.secretWord) {
-            const secretWord = state.impostorData.secretWord;
-            if (secretWord && secretWord.length > 0) {
-                // Use word boundaries \b to avoid false positives as requested
-                const escapedWord = escapeRegExp(secretWord);
-                const spoilerRegex = new RegExp(`\\b${escapedWord}\\b`, 'gi');
-                trimmed = trimmed.replace(spoilerRegex, '[CENSURADO]');
-            }
-        }
+        // Sprint 3.4: secretWord no existe en el estado público (ahora es una propiedad privada del motor).
+        // El impostor ya no puede revelar la palabra accidentalmente desde el chat —
+        // simplemente no la conoce. Si en el futuro se desea reactivar este filtro,
+        // se deberá exponer un método auxiliar en ImpostorEngine como getSecretWord().
 
         const finalText = trimmed.slice(0, 140);
         const player = state.players.find(p => p.id === senderId);

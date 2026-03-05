@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { ImpostorData } from '../../../../shared/types';
+import { localImpostorRole } from '../../../composables/useGame';
 
 const props = defineProps<{
     impostorData: ImpostorData;
@@ -9,11 +10,11 @@ const props = defineProps<{
     timerColor: string;
 }>();
 
-const isImpostor = computed(() => props.impostorData.impostorIds.includes(props.myUserId));
-const allies = computed(() => {
-    if (!isImpostor.value) return 0;
-    return props.impostorData.impostorIds.length - 1;
-});
+// Sprint 3.4: Consume private role whisper instead of public state
+const isImpostor = computed(() => localImpostorRole.value?.role === 'impostor');
+const allies = computed(() => localImpostorRole.value?.allies.length ?? 0);
+const secretWord = computed(() => localImpostorRole.value?.word ?? null);
+const currentCategory = computed(() => props.impostorData.currentCategoryName);
 </script>
 
 <template>
@@ -25,7 +26,14 @@ const allies = computed(() => {
 
         <div class="z-10 flex flex-col items-center max-w-2xl space-y-6">
             <span class="text-6xl animate-bounce drop-shadow-md">{{ isImpostor ? '🤫' : '🕵️' }}</span>
-            
+
+            <!-- Category for EVERYONE (public info) -->
+            <p class="text-[11px] font-black tracking-[0.3em] text-ink-muted uppercase">Categoría de la ronda</p>
+            <span class="text-3xl md:text-4xl font-black tracking-widest uppercase px-6 py-2 rounded-2xl border-2 shadow-sm"
+                  :class="isImpostor ? 'bg-action-error/20 border-action-error/40 text-action-error' : 'bg-tuti-teal/20 border-tuti-teal/40 text-tuti-teal'">
+                {{ currentCategory }}
+            </span>
+
             <h1 class="text-5xl md:text-7xl font-black uppercase tracking-tighter drop-shadow-sm"
                 :class="isImpostor ? 'text-action-error' : 'text-tuti-teal'">
                 {{ isImpostor ? (allies > 0 ? 'Son los Impostores' : 'Eres el Impostor') : 'Eres un Tripulante' }}
@@ -35,15 +43,17 @@ const allies = computed(() => {
                 <p class="text-xl md:text-2xl text-ink-soft font-black mb-2 uppercase tracking-wide">
                     {{ isImpostor ? 'Tu misión es sobrevivir y engañar.' : 'Encuentra al mentiroso.' }}
                 </p>
-                
+
                 <div class="text-2xl md:text-3xl font-black mt-4 text-ink-main">
                     <template v-if="isImpostor">
-                        La categoría es:<br/>
-                        <span class="text-white font-black tracking-widest bg-action-error border-2 border-action-error/50 px-5 py-2 rounded-2xl inline-block mt-3 shadow-sm">{{ impostorData.secretCategory }}</span>
+                        <p class="text-base text-ink-muted font-bold mb-2">No conoces la palabra secreta. ¡Blufea con la categoría!</p>
+                        <template v-if="allies > 0">
+                            <span class="text-sm text-action-error font-black mt-2 block">Tus aliados: {{ allies }} impostor{{ allies > 1 ? 'es' : '' }} más</span>
+                        </template>
                     </template>
                     <template v-else>
                         La palabra secreta es:<br/>
-                        <span class="text-white font-black tracking-widest bg-tuti-teal border-2 border-tuti-teal/50 px-5 py-2 rounded-2xl inline-block mt-3 shadow-sm">{{ impostorData.secretWord }}</span>
+                        <span class="text-white font-black tracking-widest bg-tuti-teal border-2 border-tuti-teal/50 px-5 py-2 rounded-2xl inline-block mt-3 shadow-sm">{{ secretWord }}</span>
                     </template>
                 </div>
             </div>

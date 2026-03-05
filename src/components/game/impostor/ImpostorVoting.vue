@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { ImpostorData, Player } from '../../../../shared/types';
-import { useGame } from '../../../composables/useGame';
+import { useGame, localImpostorRole } from '../../../composables/useGame';
 import { useSound } from '../../../composables/useSound';
 
 const props = defineProps<{
@@ -15,12 +15,14 @@ const props = defineProps<{
 const { toggleVote } = useGame();
 const { playClick } = useSound();
 
-const myVoteTarget = computed(() => {
+const myVote = computed(() => {
     return props.impostorData.votes?.[props.myUserId] || null;
 });
 
 const isDead = computed(() => !props.impostorData.alivePlayers.includes(props.myUserId));
-const isImpostor = computed(() => props.impostorData.impostorIds.includes(props.myUserId));
+// Sprint 3.4: Read role from private whisper
+const isImpostor = computed(() => localImpostorRole.value?.role === 'impostor');
+const secretWord = computed(() => localImpostorRole.value?.word ?? null);
 
 const handleVote = (targetId: string) => {
     if (targetId === props.myUserId || isDead.value) return;
@@ -31,7 +33,7 @@ const handleVote = (targetId: string) => {
 const suspects = computed(() => {
     return props.players.filter(p => p.isConnected).map(player => {
         const hasVoted = props.impostorData.votes && props.impostorData.votes[player.id] !== undefined;
-        const isSelectedByMe = myVoteTarget.value === player.id;
+        const isSelectedByMe = myVote.value === player.id;
         const isMe = player.id === props.myUserId;
         const word = props.impostorData.words?.[player.id] || null;
         const isPlayerDead = !props.impostorData.alivePlayers.includes(player.id);
@@ -82,7 +84,7 @@ const suspects = computed(() => {
                 <span class="text-2xl drop-shadow-sm">⚠️</span>
                 <div class="flex flex-col">
                     <span class="text-action-error font-black text-sm uppercase tracking-widest">Impostor</span>
-                    <span class="text-ink-muted text-xs font-bold" v-if="!isDead">Categoría: <strong class="text-action-error font-black">{{ impostorData.secretCategory }}</strong></span>
+                    <span class="text-ink-muted text-xs font-bold" v-if="!isDead">Categoría: <strong class="text-action-error font-black">{{ impostorData.currentCategoryName }}</strong></span>
                 </div>
             </div>
             <div v-else
@@ -90,7 +92,7 @@ const suspects = computed(() => {
                 <span class="text-2xl drop-shadow-sm">💡</span>
                 <div class="flex flex-col">
                     <span class="text-tuti-teal font-black text-sm uppercase tracking-widest">Tripulante</span>
-                    <span class="text-ink-muted text-xs font-bold" v-if="!isDead">La palabra es: <strong class="text-tuti-teal font-black">{{ impostorData.secretWord }}</strong></span>
+                    <span class="text-ink-muted text-xs font-bold" v-if="!isDead">La palabra es: <strong class="text-tuti-teal font-black">{{ secretWord }}</strong></span>
                 </div>
             </div>
         </div>

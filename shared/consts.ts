@@ -21,6 +21,7 @@ export const EVENTS = {
     PATCH_STATE: 'PATCH_STATE', // [Phoenix] Delta Sync
     AUTH_GRANTED: 'AUTH_GRANTED', // [Phoenix] Anti-Spoofing
     RIVAL_UPDATE: 'RIVAL_UPDATE',
+    PRIVATE_ROLE_ASSIGNMENT: 'PRIVATE_ROLE_ASSIGNMENT', // [Sprint 3.4] Whisper: private role per-connection
     SYSTEM_MESSAGE: 'SYSTEM',
     SYSTEM_VERSION: 'SYSTEM_VERSION',
 

@@ -4,7 +4,7 @@
 // Sprint 2 will implement the full logic.
 // For now, this is a placeholder that satisfies the BaseEngine contract.
 
-import { RoomState, GameConfig, DeepPartial } from '../types.js';
+import { RoomState, GameConfig, DeepPartial, PrivateRolePayload } from '../types.js';
 import { BaseEngine } from './base-engine.js';
 import { PlayerManager } from '../systems/player-manager.js';
 import { ConfigurationManager } from '../systems/configuration-manager.js';
@@ -20,6 +20,10 @@ export class ImpostorEngine extends BaseEngine {
     private usedWords = new Set<string>();
     private activeCategoryIds: string[] = [];
     private lastImpostorId: string | null = null;
+
+    // Sprint 3.4: Secret data — NEVER published to the state graph
+    private secretWord: string | null = null;
+    private currentImpostorIds: string[] = [];
 
     constructor(roomId: string, onGameStateChange?: (state: RoomState) => void) {
         super();
@@ -69,7 +73,7 @@ export class ImpostorEngine extends BaseEngine {
      * - Censor private information per-player
      */
     public getClientState(userId: string): RoomState {
-        // Fase 1: Clon superficial (Shallow Copy) para evitar bomba de CPU
+        // Shallow copy to avoid CPU bomb
         const maskedState: RoomState = {
             ...this.state,
             impostorData: this.state.impostorData ? {
@@ -80,15 +84,6 @@ export class ImpostorEngine extends BaseEngine {
         };
 
         if (maskedState.impostorData) {
-            if (maskedState.impostorData.impostorIds.includes(userId)) {
-                // Tripulante Impostor: CENSURAR LA PALABRA SECRETA (para no delatarse accidentalmente),
-                // pero NO CENSURAMOS LAS IDENTIDADES DE LOS MÚLTIPLES IMPOSTORES
-                maskedState.impostorData.secretWord = '???';
-            } else {
-                // Tripulante Honesto: CENSURAR LA IDENTIDAD DE LOS IMPOSTORES
-                maskedState.impostorData.impostorIds = [];
-            }
-
             // VULNERABILITY FIX: Mask rival typed words during TYPING phase to prevent sniffer leakage
             if (maskedState.status === 'TYPING' && maskedState.impostorData.words) {
                 for (const key of Object.keys(maskedState.impostorData.words)) {
@@ -109,6 +104,30 @@ export class ImpostorEngine extends BaseEngine {
         }
 
         return maskedState;
+    }
+
+    /**
+     * Sprint 3.4: Per-player private role payload delivered via WebSocket whisper.
+     * The server calls this and sends the result ONLY to the specific connection.
+     */
+    public getPrivateRolePayload(playerId: string): PrivateRolePayload {
+        const isImpostor = this.currentImpostorIds.includes(playerId);
+        const category = this.state.impostorData?.currentCategoryName || 'Desconocida';
+
+        if (isImpostor) {
+            return {
+                role: 'impostor',
+                word: null, // Impostor does NOT know the secret word
+                category,
+                allies: this.currentImpostorIds.filter(id => id !== playerId)
+            };
+        }
+        return {
+            role: 'crewmate',
+            word: this.secretWord,
+            category,
+            allies: []
+        };
     }
 
     public hydrate(newState: RoomState): void {
@@ -243,12 +262,14 @@ export class ImpostorEngine extends BaseEngine {
         const impostorIds = shuffled.slice(0, numImpostors).map(p => p.id);
         if (numImpostors === 1) this.lastImpostorId = impostorIds[0];
 
+        // Sprint 3.4: Store secrets in private properties (never written to public state)
+        this.secretWord = secretWord;
+        this.currentImpostorIds = impostorIds;
+
         const alivePlayers = activePlayers.map(p => p.id);
 
         this.state.impostorData = {
-            secretCategory,
-            secretWord,
-            impostorIds,
+            currentCategoryName: secretCategory, // Public: the theme only, no word
             alivePlayers,
             words: {},
             votes: {},
@@ -383,7 +404,7 @@ export class ImpostorEngine extends BaseEngine {
         let aliveCrew = 0;
 
         for (const id of this.state.impostorData.alivePlayers) {
-            if (this.state.impostorData.impostorIds.includes(id)) {
+            if (this.currentImpostorIds.includes(id)) {
                 aliveImpostors++;
             } else {
                 aliveCrew++;
@@ -405,7 +426,7 @@ export class ImpostorEngine extends BaseEngine {
 
         // Asignar puntajes finales si terminó
         if (matchOver && winner === 'IMPOSTOR') {
-            for (const impId of this.state.impostorData.impostorIds) {
+            for (const impId of this.currentImpostorIds) {
                 this.state.roundScores[impId] = (this.state.roundScores[impId] || 0) + 300;
                 const p = this.state.players.find(pl => pl.id === impId);
                 if (p) p.score += 300;
@@ -413,7 +434,7 @@ export class ImpostorEngine extends BaseEngine {
         } else if (matchOver && winner === 'CREW') {
             for (const p of this.state.players) {
                 // Tripulantes que no sean impostores ganan puntaje, incluso si murieron heroicamente
-                if (!this.state.impostorData.impostorIds.includes(p.id)) {
+                if (!this.currentImpostorIds.includes(p.id)) {
                     this.state.roundScores[p.id] = (this.state.roundScores[p.id] || 0) + 100;
                     p.score += 100;
                 }
@@ -423,7 +444,9 @@ export class ImpostorEngine extends BaseEngine {
         this.state.impostorData.cycleResult = {
             eliminatedId,
             matchOver,
-            winner
+            winner,
+            // Sprint 3.4: Reveal impostor identities post-vote (legitimate for results screen)
+            revealedImpostorIds: [...this.currentImpostorIds]
         };
     }
 
@@ -445,6 +468,10 @@ export class ImpostorEngine extends BaseEngine {
         this.usedWords.clear();
         this.activeCategoryIds = [];
         this.lastImpostorId = null;
+
+        // Sprint 3.4: Clear secret memory
+        this.secretWord = null;
+        this.currentImpostorIds = [];
 
         return this.state;
     }
