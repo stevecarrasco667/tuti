@@ -37,7 +37,7 @@ if (matchOver.value) {
 
 <template>
     <div class="h-full w-full flex flex-col items-center justify-center p-4 text-center transition-all duration-700 bg-white/40 border-[4px] shadow-game-panel rounded-3xl m-2 md:m-4"
-         :class="matchOver && winner === 'IMPOSTOR' ? 'border-red-300/80 shadow-[0_0_40px_rgba(239,68,68,0.2)]' : 'border-green-300/80 shadow-[0_0_40px_rgba(46,204,113,0.2)]'">
+         :class="matchOver && winner === 'IMPOSTOR' ? 'border-action-error/80 shadow-[0_0_40px_rgba(239,68,68,0.2)]' : 'border-tuti-teal/80 shadow-[0_0_40px_rgba(106,215,229,0.2)]'">
         
         <!-- HEADER DE RESULTADO -->
         <h1 class="text-4xl md:text-6xl font-black tracking-tighter uppercase animate-pulse mb-6 drop-shadow-sm"
@@ -63,7 +63,7 @@ if (matchOver.value) {
 
         <!-- DETALLES DE VOTACIÓN -->
         <div class="bg-panel-card border-4 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col items-center max-w-xl w-[95%]"
-             :class="(!eliminatedPlayer || isEliminatedImpostor) ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'">
+             :class="(!eliminatedPlayer || isEliminatedImpostor) ? 'border-tuti-teal bg-tuti-teal/5' : 'border-action-error bg-action-error/5'">
             
             <template v-if="matchOver">
                 <span class="text-6xl mb-4 drop-shadow-md">{{ winner === 'IMPOSTOR' ? '🦇' : '🎯' }}</span>
@@ -73,7 +73,7 @@ if (matchOver.value) {
                 <div v-if="!eliminatedPlayer" class="text-sm font-black text-ink-muted bg-panel-input px-4 py-3 rounded-2xl shadow-inner border-2 border-white/10 w-full uppercase tracking-widest">
                     Los votos se dividieron. Todos sobreviven a esta ronda.
                 </div>
-                <div v-else class="text-sm font-black w-full rounded-2xl px-4 py-3 border-2 shadow-inner uppercase tracking-wide" :class="isEliminatedImpostor ? 'bg-emerald-900/30 border-emerald-700 text-emerald-300' : 'bg-red-900/30 border-red-700 text-red-300'">
+                <div v-else class="text-sm font-black w-full rounded-2xl px-4 py-3 border-2 shadow-inner uppercase tracking-wide" :class="isEliminatedImpostor ? 'bg-tuti-teal/20 border-tuti-teal/40 text-tuti-teal' : 'bg-action-error/20 border-action-error/40 text-action-error'">
                     {{ isEliminatedImpostor ? 'Un impostor menos en la nave.' : 'Han sacrificado a un tripulante inocente.' }}
                 </div>
             </template>

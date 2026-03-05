@@ -78,19 +78,19 @@ const suspects = computed(() => {
         <!-- HUD DE IDENTIDAD -->
         <div class="w-full max-w-4xl mx-auto mb-4 px-4 transition-opacity duration-500" :class="{ 'opacity-50 grayscale pointer-events-none': isDead }">
             <div v-if="isImpostor"
-                 class="bg-red-50 border-[3px] border-red-200 rounded-3xl px-5 py-2.5 backdrop-blur-md flex items-center gap-3 shadow-sm">
+                 class="bg-action-error/10 border-[3px] border-action-error/30 rounded-3xl px-5 py-2.5 backdrop-blur-md flex items-center gap-3 shadow-sm">
                 <span class="text-2xl drop-shadow-sm">⚠️</span>
-                <div class="flex flex-wrap items-center gap-x-2">
+                <div class="flex flex-col">
                     <span class="text-action-error font-black text-sm uppercase tracking-widest">Impostor</span>
-                    <span class="text-red-900/70 text-xs font-bold" v-if="!isDead">Categoría: <strong class="text-action-error font-black">{{ impostorData.secretCategory }}</strong></span>
+                    <span class="text-ink-muted text-xs font-bold" v-if="!isDead">Categoría: <strong class="text-action-error font-black">{{ impostorData.secretCategory }}</strong></span>
                 </div>
             </div>
             <div v-else
-                 class="bg-cyan-50 border-[3px] border-cyan-200 rounded-3xl px-5 py-2.5 backdrop-blur-md flex items-center gap-3 shadow-sm">
+                 class="bg-tuti-teal/10 border-[3px] border-tuti-teal/30 rounded-3xl px-5 py-2.5 backdrop-blur-md flex items-center gap-3 shadow-sm">
                 <span class="text-2xl drop-shadow-sm">💡</span>
-                <div class="flex flex-wrap items-center gap-x-2">
-                    <span class="text-action-cyan font-black text-sm uppercase tracking-widest">Tripulante</span>
-                    <span class="text-cyan-900/70 text-xs font-bold" v-if="!isDead">La palabra es: <strong class="text-action-cyan font-black">{{ impostorData.secretWord }}</strong></span>
+                <div class="flex flex-col">
+                    <span class="text-tuti-teal font-black text-sm uppercase tracking-widest">Tripulante</span>
+                    <span class="text-ink-muted text-xs font-bold" v-if="!isDead">La palabra es: <strong class="text-tuti-teal font-black">{{ impostorData.secretWord }}</strong></span>
                 </div>
             </div>
         </div>

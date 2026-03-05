@@ -84,12 +84,12 @@ const isPlayerDead = (playerId: string) => {
         <!-- HUD DE IDENTIDAD -->
         <div class="w-full max-w-4xl mb-8 px-2 transition-opacity duration-500" :class="{ 'opacity-50 grayscale pointer-events-none': isDead }">
             <div v-if="isImpostor"
-                 class="bg-red-50 border-[3px] border-red-200 rounded-3xl px-6 py-3 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+                 class="bg-action-error/10 border-[3px] border-action-error/30 rounded-3xl px-6 py-3 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
                 <div class="flex items-center gap-3">
-                    <span class="text-3xl drop-shadow-sm">⚠️</span>
+                    <span class="text-3xl drop-shadow-sm">🤫</span>
                     <div>
                         <span class="text-action-error font-black text-sm md:text-base uppercase tracking-widest block text-left">Eres Impostor</span>
-                        <span class="text-red-900/70 text-sm font-bold ml-2" v-if="!isDead">Categoría: <strong class="text-action-error font-black">{{ impostorData.secretCategory }}</strong></span>
+                        <span class="text-ink-muted text-sm font-bold ml-2" v-if="!isDead">Categoría: <strong class="text-action-error font-black">{{ impostorData.secretCategory }}</strong></span>
                     </div>
                 </div>
                 <div v-if="impostorAllies.length > 0" class="flex flex-col items-end">
@@ -98,11 +98,11 @@ const isPlayerDead = (playerId: string) => {
                 </div>
             </div>
             <div v-else
-                 class="bg-cyan-50 border-[3px] border-cyan-200 rounded-3xl px-6 py-3 backdrop-blur-md flex items-center gap-3 shadow-sm">
+                 class="bg-tuti-teal/10 border-[3px] border-tuti-teal/30 rounded-3xl px-6 py-3 backdrop-blur-md flex items-center gap-3 shadow-sm">
                 <span class="text-3xl drop-shadow-sm">💡</span>
                 <div>
-                    <span class="text-action-cyan font-black text-sm md:text-base uppercase tracking-widest text-left block">Eres Tripulante</span>
-                    <span class="text-cyan-900/70 text-sm font-bold ml-2" v-if="!isDead">La palabra es: <strong class="text-action-cyan font-black">{{ impostorData.secretWord }}</strong></span>
+                    <span class="text-tuti-teal font-black text-sm md:text-base uppercase tracking-widest text-left block">Eres Tripulante</span>
+                    <span class="text-ink-muted text-sm font-bold ml-2" v-if="!isDead">La palabra es: <strong class="text-tuti-teal font-black">{{ impostorData.secretWord }}</strong></span>
                 </div>
             </div>
         </div>
@@ -125,7 +125,7 @@ const isPlayerDead = (playerId: string) => {
                 <button 
                     type="submit"
                     :disabled="isLocked || !inputWord.trim()"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 bg-action-primary hover:bg-action-hover text-white p-4 rounded-3xl font-black transition-colors disabled:opacity-0 shadow-game-btn border-2 border-green-300 active:scale-95"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 bg-action-primary hover:bg-action-hover text-white p-4 rounded-3xl font-black transition-colors disabled:opacity-0 shadow-game-btn border-2 border-white/20 active:scale-95"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-7 h-7">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />

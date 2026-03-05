@@ -27,7 +27,7 @@ const allies = computed(() => {
             <span class="text-6xl animate-bounce drop-shadow-md">{{ isImpostor ? '🤫' : '🕵️' }}</span>
             
             <h1 class="text-5xl md:text-7xl font-black uppercase tracking-tighter drop-shadow-sm"
-                :class="isImpostor ? 'text-action-error' : 'text-action-cyan'">
+                :class="isImpostor ? 'text-action-error' : 'text-tuti-teal'">
                 {{ isImpostor ? (allies > 0 ? 'Son los Impostores' : 'Eres el Impostor') : 'Eres un Tripulante' }}
             </h1>
 
@@ -39,11 +39,11 @@ const allies = computed(() => {
                 <div class="text-2xl md:text-3xl font-black mt-4 text-ink-main">
                     <template v-if="isImpostor">
                         La categoría es:<br/>
-                        <span class="text-white font-black tracking-widest bg-action-error border-2 border-red-300 px-5 py-2 rounded-2xl inline-block mt-3 shadow-sm">{{ impostorData.secretCategory }}</span>
+                        <span class="text-white font-black tracking-widest bg-action-error border-2 border-action-error/50 px-5 py-2 rounded-2xl inline-block mt-3 shadow-sm">{{ impostorData.secretCategory }}</span>
                     </template>
                     <template v-else>
                         La palabra secreta es:<br/>
-                        <span class="text-white font-black tracking-widest bg-action-cyan border-2 border-blue-300 px-5 py-2 rounded-2xl inline-block mt-3 shadow-sm">{{ impostorData.secretWord }}</span>
+                        <span class="text-white font-black tracking-widest bg-tuti-teal border-2 border-tuti-teal/50 px-5 py-2 rounded-2xl inline-block mt-3 shadow-sm">{{ impostorData.secretWord }}</span>
                     </template>
                 </div>
             </div>
