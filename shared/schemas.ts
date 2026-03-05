@@ -33,7 +33,8 @@ export const GameConfigSchema = z.object({
     impostor: z.object({
         rounds: z.number().min(1).max(10),
         typingTime: z.number().min(10).max(60),
-        votingTime: z.number().min(15).max(120)
+        votingTime: z.number().min(15).max(120),
+        categoryCount: z.number().min(1).max(8).optional().default(3)
     })
 });
 

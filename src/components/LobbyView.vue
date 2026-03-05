@@ -170,6 +170,15 @@ const decrementImpostorVotingTime = () => {
     if (val > 15) handleConfigChange('impostor.votingTime', val - 5);
 };
 
+const incrementImpostorCategoryCount = () => {
+    const val = localConfig.value.impostor?.categoryCount || 3;
+    if (val < 8) handleConfigChange('impostor.categoryCount', val + 1);
+};
+const decrementImpostorCategoryCount = () => {
+    const val = localConfig.value.impostor?.categoryCount || 3;
+    if (val > 1) handleConfigChange('impostor.categoryCount', val - 1);
+};
+
 const canStart = computed(() => {
     if (!amIHost.value) return false;
     return true;
@@ -515,6 +524,18 @@ const copyRoomLink = () => {
                             <!-- ===== IMPOSTOR MODE SETTINGS ===== -->
                             <template v-else-if="localConfig.mode === 'IMPOSTOR'">
                             <!-- Impostor mode specific settings -->
+                            <!-- Category Count -->
+                            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
+                                <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">📦 Categorías en Juego</label>
+                                <div class="flex items-center justify-between">
+                                    <button @click="decrementImpostorCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
+                                    <span class="text-4xl font-black text-ink-main">{{ localConfig.impostor?.categoryCount ?? 3 }}</span>
+                                    <button @click="incrementImpostorCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
+                                </div>
+                                <p class="text-ink-muted text-[8px] font-bold mt-2 text-center">Se seleccionarán al azar de nuestro catálogo secreto</p>
+                            </div>
+
+                            <!-- Rounds -->
                             <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
                                 <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🔁 Rondas</label>
                                 <div class="flex items-center justify-between">

@@ -19,7 +19,8 @@ export class ConfigurationManager {
         impostor: {
             rounds: 3,
             typingTime: 30,
-            votingTime: 40
+            votingTime: 40,
+            categoryCount: 3
         }
     };
 
@@ -69,6 +70,10 @@ export class ConfigurationManager {
         if (next.impostor.typingTime > 60) next.impostor.typingTime = 60;
         if (next.impostor.votingTime < 15) next.impostor.votingTime = 15;
         if (next.impostor.votingTime > 120) next.impostor.votingTime = 120;
+        if (next.impostor.categoryCount !== undefined) {
+            if (next.impostor.categoryCount < 1) next.impostor.categoryCount = 1;
+            if (next.impostor.categoryCount > 8) next.impostor.categoryCount = 8;
+        }
 
         return next;
     }

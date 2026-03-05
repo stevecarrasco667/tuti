@@ -49,6 +49,7 @@ export interface GameConfig {
         rounds: number;
         typingTime: number;
         votingTime: number;
+        categoryCount?: number; // Number of categories per Impostor match (Sprint 3.2)
     };
 }
 
