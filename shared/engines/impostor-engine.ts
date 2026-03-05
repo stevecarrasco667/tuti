@@ -8,13 +8,18 @@ import { RoomState, GameConfig, DeepPartial } from '../types.js';
 import { BaseEngine } from './base-engine.js';
 import { PlayerManager } from '../systems/player-manager.js';
 import { ConfigurationManager } from '../systems/configuration-manager.js';
+import { impostorWords } from '../dictionaries/impostor/manager.js';
 
 export class ImpostorEngine extends BaseEngine {
     private state: RoomState;
     private _players = new PlayerManager();
     private configManager = new ConfigurationManager();
-    // Stored for Sprint 2 — will be used when game lifecycle methods are implemented
     protected onGameStateChange?: (state: RoomState) => void;
+
+    // Sprint 3.3: Anti-repetition memory (private — NEVER serialized to JSON/WebSocket)
+    private usedWords = new Set<string>();
+    private activeCategoryIds: string[] = [];
+    private lastImpostorId: string | null = null;
 
     constructor(roomId: string, onGameStateChange?: (state: RoomState) => void) {
         super();
@@ -173,6 +178,22 @@ export class ImpostorEngine extends BaseEngine {
             // Reset scores for new game
             this.state.players.forEach(p => p.score = 0);
             this.state.roundsPlayed = 0;
+
+            // Sprint 3.3: Select random categories from provider based on host config
+            const count = this.state.config.impostor?.categoryCount || 3;
+            this.activeCategoryIds = [];
+            const usedCats = new Set<string>();
+            for (let i = 0; i < count; i++) {
+                const catId = impostorWords.getRandomCategory(usedCats);
+                if (catId) {
+                    this.activeCategoryIds.push(catId);
+                    usedCats.add(catId);
+                }
+            }
+            this.usedWords.clear();
+            this.lastImpostorId = null;
+            console.log(`[ImpostorEngine] Selected ${this.activeCategoryIds.length} categories for match:`, this.activeCategoryIds);
+
             this.startNewRound();
         }
 
@@ -191,11 +212,37 @@ export class ImpostorEngine extends BaseEngine {
         if (playerCount >= 6 && playerCount <= 8) numImpostors = 2;
         else if (playerCount >= 9) numImpostors = 3;
 
-        const secretCategory = 'Animales';
-        const secretWord = 'Pingüino';
+        // Sprint 3.3: Round Robin category rotation
+        const catIndex = this.activeCategoryIds.length > 0
+            ? this.state.roundsPlayed % this.activeCategoryIds.length
+            : 0;
+        const currentCategoryId = this.activeCategoryIds[catIndex] || this.activeCategoryIds[0];
+        const catData = currentCategoryId ? impostorWords.getCategory(currentCategoryId) : undefined;
+        const secretCategory = catData?.name || 'Desconocida';
 
-        const shuffled = [...activePlayers].sort(() => Math.random() - 0.5);
+        // Get random word, excluding already used ones
+        let wordData = currentCategoryId
+            ? impostorWords.getRandomWord(currentCategoryId, this.usedWords)
+            : null;
+        if (!wordData && currentCategoryId) {
+            console.warn('[ImpostorEngine] All words exhausted for category, clearing memory');
+            this.usedWords.clear();
+            wordData = impostorWords.getRandomWord(currentCategoryId, this.usedWords);
+        }
+        const secretWord = wordData?.word || 'Misterio';
+        if (wordData) this.usedWords.add(wordData.id);
+
+        console.log(`[ImpostorEngine] Round ${this.state.roundsPlayed + 1}: Category "${secretCategory}", Word "${secretWord}"`);
+
+        // Smart impostor selection: avoid repeating last impostor (when possible)
+        let candidates = [...activePlayers];
+        if (numImpostors === 1 && this.lastImpostorId && candidates.length > 2) {
+            candidates = candidates.filter(p => p.id !== this.lastImpostorId);
+        }
+        const shuffled = candidates.sort(() => Math.random() - 0.5);
         const impostorIds = shuffled.slice(0, numImpostors).map(p => p.id);
+        if (numImpostors === 1) this.lastImpostorId = impostorIds[0];
+
         const alivePlayers = activePlayers.map(p => p.id);
 
         this.state.impostorData = {
@@ -393,6 +440,12 @@ export class ImpostorEngine extends BaseEngine {
         this.state.impostorData = undefined;
         this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null };
         this.state.stoppedBy = null;
+
+        // Sprint 3.3: Clear anti-repetition memory
+        this.usedWords.clear();
+        this.activeCategoryIds = [];
+        this.lastImpostorId = null;
+
         return this.state;
     }
 
