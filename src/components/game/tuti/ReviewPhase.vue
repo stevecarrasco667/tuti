@@ -20,34 +20,37 @@ const emit = defineEmits<{
     (e: 'submit-votes'): void;
 }>();
 
-// ─── Wizard Navigation ───────────────────────────────────────────────────────
+// ─── Wizard Navigation ────────────────────────────────────────────────────────
 const currentCategoryIndex = ref(0);
-
-const activeCategory   = computed(() => props.categories[currentCategoryIndex.value]);
-const isFirstCategory  = computed(() => currentCategoryIndex.value === 0);
-const isLastCategory   = computed(() => currentCategoryIndex.value === props.categories.length - 1);
-
+const activeCategory  = computed(() => props.categories[currentCategoryIndex.value]);
+const isFirstCategory = computed(() => currentCategoryIndex.value === 0);
+const isLastCategory  = computed(() => currentCategoryIndex.value === props.categories.length - 1);
 const nextCategory = () => { if (!isLastCategory.value)  currentCategoryIndex.value++; };
 const prevCategory = () => { if (!isFirstCategory.value) currentCategoryIndex.value--; };
 
-// ─── Smart Grid (Densidad Dinámica) ──────────────────────────────────────────
+// ─── Phase 1+2: Smart Grid — sin auto-rows-fr, escalable por conteo ───────────
 const gridLayoutClass = computed(() => {
-    const count = props.players.length;
-    if (count <= 2) return 'grid-cols-1 md:grid-cols-2 auto-rows-fr';
-    if (count === 3) return 'grid-cols-1 md:grid-cols-3 auto-rows-fr';
-    if (count === 4) return 'grid-cols-2 xl:grid-cols-4 auto-rows-fr';
-    if (count <= 6) return 'grid-cols-2 lg:grid-cols-3 auto-rows-fr';
-    return 'grid-cols-2 lg:grid-cols-4 auto-rows-fr'; // 7-8 jugadores: 2 filas de 4
+    const n = props.players.length;
+    // Phase 7: ningún layout produce un jugador solo en su fila
+    if (n <= 2)  return 'grid-cols-2 justify-items-center'; // 2 cols centradas y acotadas
+    if (n === 3) return 'grid-cols-3';
+    if (n === 4) return 'grid-cols-2 md:grid-cols-4';
+    if (n <= 6)  return 'grid-cols-2 md:grid-cols-3';
+    // 7-8 jugadores: 4 cols en PC (4+3 ó 4+4), 2 cols en móvil
+    return 'grid-cols-2 md:grid-cols-4';
 });
 
 const gridMaxWidthClass = computed(() => {
-    const count = props.players.length;
-    if (count <= 2) return 'max-w-4xl mx-auto'; // Prevenir gigantismo en DUELO
-    if (count === 3) return 'max-w-6xl mx-auto'; // Prevenir gigantismo en TRIDENTE
+    const n = props.players.length;
+    if (n <= 2) return 'max-w-lg mx-auto';            // evitar tarjetas gigantes en duelo
+    if (n === 3) return 'max-w-3xl mx-auto';
     return 'max-w-full';
 });
 
-// ─── Vote helpers (sin cambios) ───────────────────────────────────────────────
+// ─── Compact mode for 7-8 players ─────────────────────────────────────────────
+const isCompact = computed(() => props.players.length >= 7);
+
+// ─── Vote helpers ─────────────────────────────────────────────────────────────
 const isApproved = (playerId: string, category: string) =>
     !props.votes[playerId]?.[category]?.includes(props.myUserId);
 
@@ -85,20 +88,21 @@ const selfStatusIcon = (playerId: string, category: string) => {
             </div>
         </div>
 
-        <!-- CONTROL BAR: Fase + Categoría Unificados -->
-        <div class="flex-none flex items-center justify-between bg-panel-card/40 border border-white/5 rounded-2xl px-4 md:px-6 py-2 my-2 backdrop-blur-sm">
+        <!-- Phase 6: CONTROL BAR — grid 3 cols para centrado limpio -->
+        <div class="flex-none grid grid-cols-3 items-center bg-panel-card/40 border border-white/5 rounded-2xl px-4 md:px-6 py-2 my-2 backdrop-blur-sm">
             <div class="text-[10px] md:text-sm font-bold text-ink-muted uppercase tracking-widest">
                 Fase {{ currentCategoryIndex + 1 }} / {{ categories.length }}
             </div>
-            <h2 class="text-lg md:text-2xl font-black text-action-primary uppercase tracking-[0.15em] drop-shadow-md">
+            <h2 class="text-base md:text-2xl font-black text-action-primary uppercase tracking-[0.15em] drop-shadow-md text-center">
                 {{ activeCategory }}
             </h2>
-            <div class="w-12 md:w-16"></div>
+            <div></div>
         </div>
 
-        <!-- ARENA: Smart Grid Condicional -->
-        <div class="flex-1 min-h-0 w-full" :class="gridMaxWidthClass">
-            <div class="grid gap-2 md:gap-3 w-full h-full px-1 transition-all duration-500 ease-in-out" :class="gridLayoutClass">
+        <!-- Phase 1+2: ARENA — Smart Grid sin auto-rows-fr -->
+        <div class="flex-1 min-h-0 w-full overflow-y-auto" :class="gridMaxWidthClass">
+            <div class="grid gap-2 md:gap-3 w-full px-1 transition-all duration-500 ease-in-out content-start"
+                 :class="gridLayoutClass">
                 <VotingCard
                     v-for="player in players" :key="player.id"
                     :player-name="player.name"
@@ -112,52 +116,37 @@ const selfStatusIcon = (playerId: string, category: string) => {
                     :is-me="player.id === myUserId"
                     :self-status-icon="selfStatusIcon(player.id, activeCategory)"
                     :model-value="isApproved(player.id, activeCategory)"
+                    :is-compact="isCompact"
                     @update:model-value="emit('vote', player.id, activeCategory)"
                 />
             </div>
         </div>
 
-        <!-- ACTION BAR: Anterior / Dots / Siguiente + Enviar -->
-        <div class="flex-none pt-2 pb-2 md:pb-3 flex justify-between items-center gap-3">
+        <!-- Phase 5: ACTION BAR — safe area + z-index -->
+        <div class="flex-none pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0.5rem))] md:pb-3 flex justify-between items-center gap-3 z-30 relative">
 
             <!-- Atrás -->
-            <TButton
-                variant="secondary"
-                size="md"
-                :disabled="isFirstCategory"
-                @click="prevCategory"
-            >
+            <TButton variant="secondary" size="md" :disabled="isFirstCategory" @click="prevCategory">
                 ← Anterior
             </TButton>
 
-            <!-- Dots de progreso -->
-            <div class="flex gap-1.5">
+            <!-- Phase 5: Dots — tamaño aumentado para mejor target -->
+            <div class="flex gap-1.5 items-center">
                 <div
                     v-for="(_, i) in categories" :key="i"
-                    class="w-2 h-2 rounded-full transition-all duration-300"
-                    :class="i === currentCategoryIndex ? 'bg-action-primary w-5' : 'bg-panel-input'"
+                    class="h-2.5 rounded-full transition-all duration-300 cursor-pointer"
+                    :class="i === currentCategoryIndex ? 'bg-action-primary w-5' : 'bg-panel-input w-2.5'"
+                    @click="currentCategoryIndex = i"
                 />
             </div>
 
             <!-- Siguiente ó Enviar Votos -->
-            <TButton
-                v-if="!isLastCategory"
-                variant="primary"
-                size="md"
-                @click="nextCategory"
-            >
+            <TButton v-if="!isLastCategory" variant="primary" size="md" @click="nextCategory">
                 Siguiente →
             </TButton>
-            <TButton
-                v-else
-                variant="primary"
-                size="md"
-                :disabled="hasConfirmed"
-                @click="emit('submit-votes')"
-            >
+            <TButton v-else variant="primary" size="md" :disabled="hasConfirmed" @click="emit('submit-votes')">
                 {{ hasConfirmed ? '¡Enviado! ✅' : '¡Completado!' }}
             </TButton>
-
         </div>
     </div>
 </template>

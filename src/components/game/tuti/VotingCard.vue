@@ -10,11 +10,11 @@ defineProps<{
     isRejected: boolean;
     isApproved: boolean;
     voteCount: number;
-    // self handling
     isMe: boolean;
     selfStatusIcon: string;
-    // V-model support
     modelValue: boolean;
+    // Phase 3+4: compact mode for 7+ players
+    isCompact?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -24,8 +24,10 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <div class="bg-panel-card rounded-2xl w-full h-full min-h-[100px] flex flex-col overflow-hidden transition-all duration-500 p-2.5 md:p-3 [container-type:inline-size]"
+    <!-- Phase 1: max-h added, no more stretching -->
+    <div class="bg-panel-card rounded-2xl w-full flex flex-col overflow-hidden transition-all duration-500 [container-type:inline-size]"
          :class="[
+            isCompact ? 'p-2 min-h-[130px] max-h-[220px]' : 'p-2.5 md:p-3 min-h-[160px] max-h-[320px]',
             isAutoValidated
                 ? 'border border-amber-500/30 shadow-[0_0_30px_-5px_rgba(251,191,36,0.25)]'
                 : isRejected || !isApproved
@@ -35,17 +37,28 @@ const emit = defineEmits<{
                         : 'border border-white/5 shadow-2xl'
          ]">
 
-        <!-- ROW 1: Avatar + Nombre (inline, flow normal) -->
-        <div class="flex-none flex items-center gap-2 mb-1">
-            <span class="text-base md:text-lg leading-none drop-shadow-md flex-shrink-0">{{ playerAvatar || '👤' }}</span>
-            <span class="text-[10px] md:text-xs font-bold text-ink-muted drop-shadow-md truncate">{{ playerName }}</span>
+        <!-- Phase 4: ROW 1 — Avatar + Nombre con mejor legibilidad -->
+        <div class="flex-none flex items-center gap-2 mb-2">
+            <span class="leading-none drop-shadow-md flex-shrink-0"
+                  :class="isCompact ? 'text-sm' : 'text-base md:text-lg'">
+                {{ playerAvatar || '👤' }}
+            </span>
+            <!-- Phase 4: name siempre legible, nunca 10px -->
+            <span class="text-xs font-black text-ink-main drop-shadow-md truncate"
+                  :title="playerName">
+                {{ playerName }}
+            </span>
             <span v-if="isAutoValidated" class="text-xs flex-shrink-0 ml-auto">🛡️</span>
         </div>
 
-        <!-- ROW 2: La Palabra (flex-1, centrada, protagonista) -->
-        <div class="flex-1 flex flex-col items-center justify-center w-full px-2 min-h-0">
-            <span class="font-black text-center uppercase tracking-wide break-words break-all line-clamp-2 drop-shadow-xl transition-all duration-300 text-[clamp(1.5rem,12cqi,4.5rem)] leading-tight"
+        <!-- Phase 4: ROW 2 — La Palabra (protagonista con clamp apropiado) -->
+        <div class="flex-1 flex flex-col items-center justify-center w-full px-1 min-h-0">
+            <span class="font-black text-center uppercase tracking-wide break-words break-all drop-shadow-xl transition-all duration-300 leading-tight"
                   :class="[
+                      // Phase 4: clamp más bajo para evitar gigantismo, line-clamp-1 en compacto
+                      isCompact
+                          ? 'text-[clamp(0.875rem,9cqi,2rem)] line-clamp-2'
+                          : 'text-[clamp(1.25rem,10cqi,3.5rem)] line-clamp-2',
                       isRejected || !isApproved
                           ? 'line-through opacity-40 text-red-400'
                           : isAutoValidated
@@ -58,13 +71,13 @@ const emit = defineEmits<{
             </span>
 
             <span v-if="isDuplicate"
-                  class="mt-1.5 text-[8px] md:text-[10px] font-bold bg-action-warning/20 text-action-warning px-2 py-0.5 rounded-full border border-action-warning/30 uppercase tracking-widest">
+                  class="mt-1 text-[8px] md:text-[10px] font-bold bg-action-warning/20 text-action-warning px-2 py-0.5 rounded-full border border-action-warning/30 uppercase tracking-widest">
                 Repetida
             </span>
         </div>
 
-        <!-- ROW 3: Switch de Votación (inline, flow normal, SIEMPRE visible) -->
-        <div class="flex-none flex flex-col items-center justify-center gap-1 mt-1">
+        <!-- Phase 3: ROW 3 — Switch o self-icon -->
+        <div class="flex-none flex flex-col items-center justify-center gap-1 mt-2">
             <span v-if="voteCount > 0 && !isAutoValidated"
                   class="bg-action-warning text-ink-base border border-white/10 px-2 py-0.5 rounded-full text-[8px] md:text-[10px] font-black whitespace-nowrap shadow-sm">
                 {{ voteCount }} 👎
@@ -74,14 +87,15 @@ const emit = defineEmits<{
                 v-if="!isMe"
                 :model-value="modelValue"
                 :is-auto-validated="isAutoValidated"
+                :is-compact="isCompact"
                 :label="`Voto ${playerName}`"
                 @update:model-value="(val: boolean) => emit('update:modelValue', val)"
             />
             <span v-else
-                  class="text-lg md:text-xl drop-shadow-sm flex items-center justify-center bg-panel-input w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/10">
+                  class="drop-shadow-sm flex items-center justify-center bg-panel-input rounded-full border-2 border-white/10"
+                  :class="isCompact ? 'w-7 h-7 text-base' : 'w-8 h-8 md:w-10 md:h-10 text-lg md:text-xl'">
                 {{ selfStatusIcon }}
             </span>
         </div>
-
     </div>
 </template>
