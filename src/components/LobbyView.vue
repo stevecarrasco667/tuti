@@ -266,7 +266,7 @@ const copyRoomLink = () => {
         <!-- ====================================== -->
         <!-- MAIN CONTENT: 3-col Desktop / Tabs Mobile -->
         <!-- ====================================== -->
-        <div class="flex-1 min-h-0 px-3 pt-2 pb-20 lg:pb-3 lg:px-4 overflow-hidden">
+        <div class="flex-1 min-h-0 px-3 pt-2 pb-2 lg:pb-3 lg:px-4 overflow-hidden">
             <div class="h-full grid grid-cols-1 lg:grid-cols-12 gap-3">
 
                 <!-- ================================ -->
@@ -276,7 +276,7 @@ const copyRoomLink = () => {
                      :class="{ 'hidden lg:flex': activeTab !== 'players' }"
                 >
                     <!-- Header: Title + MaxPlayers -->
-                    <div class="p-4 border-b-2 border-white/50 bg-panel-card/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-none sticky top-0 z-10">
+                    <div class="p-4 border-b-2 border-white/50 bg-panel-card/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-none">
                         <div class="flex items-center justify-between sm:justify-start gap-2">
                             <h3 class="text-ink-main text-xs font-black uppercase tracking-widest flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -356,7 +356,7 @@ const copyRoomLink = () => {
                             <div class="grid grid-cols-2 gap-3">
                                 <button
                                     @click="handleConfigChange('mode', 'CLASSIC')"
-                                    class="relative p-4 lg:p-5 rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[110px] flex flex-col items-center justify-center"
+                                    class="relative p-3 lg:p-5 rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
                                     :class="localConfig.mode === 'CLASSIC'
                                         ? 'border-yellow-400 bg-yellow-400/10 shadow-[0_0_15px_rgba(250,204,21,0.2)]'
                                         : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input'"
@@ -369,7 +369,7 @@ const copyRoomLink = () => {
 
                                 <button
                                     @click="handleConfigChange('mode', 'IMPOSTOR')"
-                                    class="relative p-4 lg:p-5 rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[110px] flex flex-col items-center justify-center"
+                                    class="relative p-3 lg:p-5 rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
                                     :class="localConfig.mode === 'IMPOSTOR'
                                         ? 'border-action-blue bg-action-blue/10 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
                                         : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input'"
@@ -384,7 +384,7 @@ const copyRoomLink = () => {
 
                         <!-- CATEGORIES -->
                         <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-game-panel flex-1 flex flex-col overflow-hidden min-h-[120px] lg:min-h-0">
-                            <div class="p-4 border-b-2 border-white/50 bg-panel-card/50 flex items-center justify-between flex-none sticky top-0">
+                            <div class="p-4 border-b-2 border-white/50 bg-panel-card/50 flex items-center justify-between flex-none">
                                 <p class="text-ink-main text-[9px] font-black uppercase tracking-[0.2em]">
                                     Categorías <span class="text-ink-soft">({{ localConfig.classic?.categories?.length || 0 }})</span>
                                 </p>
@@ -417,7 +417,7 @@ const copyRoomLink = () => {
                     <div class="lg:col-span-4 bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-game-panel flex flex-col overflow-hidden min-h-0"
                          :class="{ 'opacity-60 pointer-events-none': !amIHost }"
                     >
-                        <div class="p-4 border-b-2 border-white/50 bg-panel-card/50 flex items-center justify-between sticky top-0 z-10 flex-none gap-2">
+                        <div class="p-3 md:p-4 border-b-2 border-white/50 bg-panel-card/50 flex items-center justify-between flex-none gap-2">
                             <h3 class="text-ink-main text-xs font-black uppercase tracking-widest">Ajustes</h3>
                             <span v-if="!amIHost" class="text-amber-500 text-[8px] font-black uppercase tracking-wider bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">Solo lectura</span>
                         </div>
@@ -428,33 +428,33 @@ const copyRoomLink = () => {
                             <template v-if="localConfig.mode === 'CLASSIC'">
 
                             <!-- Category Count (only shown when no manual categories) -->
-                            <div v-if="!(localConfig.classic?.categories?.length > 0)" class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
+                            <div v-if="!(localConfig.classic?.categories?.length > 0)" class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
                                 <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🎲 Categorías Aleatorias</label>
                                 <div class="flex items-center justify-between">
                                     <button @click="decrementCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
-                                    <span class="text-4xl font-black text-ink-main">{{ localConfig.classic?.categoryCount ?? 5 }}</span>
+                                    <span class="text-3xl md:text-4xl font-black text-ink-main">{{ localConfig.classic?.categoryCount ?? 5 }}</span>
                                     <button @click="incrementCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                                 </div>
                                 <p class="text-ink-muted text-[8px] font-bold mt-2 text-center">Se elegirán al azar al iniciar</p>
                             </div>
 
                             <!-- Rounds -->
-                            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
+                            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
                                 <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🔁 Rondas</label>
                                 <div class="flex items-center justify-between">
                                     <button @click="decrementRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
-                                    <span class="text-4xl font-black text-ink-main">{{ localConfig.classic?.rounds || 5 }}</span>
+                                    <span class="text-3xl md:text-4xl font-black text-ink-main">{{ localConfig.classic?.rounds || 5 }}</span>
                                     <button @click="incrementRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                                 </div>
                             </div>
 
                             <!-- Time Limit -->
-                            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
+                            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
                                 <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">⏱️ Tiempo de Escritura</label>
                                 <div class="flex items-center justify-between">
                                     <button @click="decrementTimeLimit" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                                     <div class="text-center">
-                                        <span class="text-4xl font-black text-ink-main">{{ localConfig.classic?.timeLimit || 60 }}</span>
+                                        <span class="text-3xl md:text-4xl font-black text-ink-main">{{ localConfig.classic?.timeLimit || 60 }}</span>
                                         <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">seg</span>
                                     </div>
                                     <button @click="incrementTimeLimit" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
@@ -462,12 +462,12 @@ const copyRoomLink = () => {
                             </div>
 
                             <!-- Voting Duration -->
-                            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
+                            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
                                 <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🗳️ Tiempo de Votación</label>
                                 <div class="flex items-center justify-between">
                                     <button @click="decrementVotingDuration" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                                     <div class="text-center">
-                                        <span class="text-4xl font-black text-ink-main">{{ localConfig.classic?.votingDuration || 30 }}</span>
+                                        <span class="text-3xl md:text-4xl font-black text-ink-main">{{ localConfig.classic?.votingDuration || 30 }}</span>
                                         <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">seg</span>
                                     </div>
                                     <button @click="incrementVotingDuration" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
@@ -525,44 +525,44 @@ const copyRoomLink = () => {
                             <template v-else-if="localConfig.mode === 'IMPOSTOR'">
                             <!-- Impostor mode specific settings -->
                             <!-- Category Count -->
-                            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
+                            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
                                 <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">📦 Categorías en Juego</label>
                                 <div class="flex items-center justify-between">
                                     <button @click="decrementImpostorCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
-                                    <span class="text-4xl font-black text-ink-main">{{ localConfig.impostor?.categoryCount ?? 3 }}</span>
+                                    <span class="text-3xl md:text-4xl font-black text-ink-main">{{ localConfig.impostor?.categoryCount ?? 3 }}</span>
                                     <button @click="incrementImpostorCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                                 </div>
                                 <p class="text-ink-muted text-[8px] font-bold mt-2 text-center">Se seleccionarán al azar de nuestro catálogo secreto</p>
                             </div>
 
                             <!-- Rounds -->
-                            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
+                            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
                                 <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🔁 Rondas</label>
                                 <div class="flex items-center justify-between">
                                     <button @click="decrementImpostorRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
-                                    <span class="text-4xl font-black text-ink-main">{{ localConfig.impostor?.rounds || 3 }}</span>
+                                    <span class="text-3xl md:text-4xl font-black text-ink-main">{{ localConfig.impostor?.rounds || 3 }}</span>
                                     <button @click="incrementImpostorRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                                 </div>
                             </div>
 
-                            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
+                            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
                                 <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">⏱️ Tiempo de Escritura</label>
                                 <div class="flex items-center justify-between">
                                     <button @click="decrementImpostorTypingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                                     <div class="text-center">
-                                        <span class="text-4xl font-black text-ink-main">{{ localConfig.impostor?.typingTime || 30 }}</span>
+                                        <span class="text-3xl md:text-4xl font-black text-ink-main">{{ localConfig.impostor?.typingTime || 30 }}</span>
                                         <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">seg</span>
                                     </div>
                                     <button @click="incrementImpostorTypingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                                 </div>
                             </div>
 
-                            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
+                            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
                                 <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🗳️ Tiempo del Tribunal</label>
                                 <div class="flex items-center justify-between">
                                     <button @click="decrementImpostorVotingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                                     <div class="text-center">
-                                        <span class="text-4xl font-black text-ink-main">{{ localConfig.impostor?.votingTime || 40 }}</span>
+                                        <span class="text-3xl md:text-4xl font-black text-ink-main">{{ localConfig.impostor?.votingTime || 40 }}</span>
                                         <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">seg</span>
                                     </div>
                                     <button @click="incrementImpostorVotingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
@@ -579,18 +579,19 @@ const copyRoomLink = () => {
         <!-- ================================ -->
         <!-- STICKY FOOTER: Start Button      -->
         <!-- ================================ -->
-        <div class="fixed bottom-0 left-0 w-full p-4 bg-panel-base/90 backdrop-blur-xl border-t-[3px] border-white/50 z-50 lg:relative lg:bg-transparent lg:border-0 lg:backdrop-blur-none lg:p-4 lg:pt-0 flex-none pb-safe shadow-game-panel lg:shadow-none">
+        <!-- Phase 1+2+6: Footer integrado en el flujo flex (ya no fixed), botón compacto en móvil, safe area iOS -->
+        <div class="flex-none px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] md:pb-3 lg:px-4 lg:pt-0 lg:pb-4 bg-panel-base/95 lg:bg-transparent border-t-2 border-white/10 lg:border-0 shadow-[0_-4px_20px_rgba(0,0,0,0.35)] lg:shadow-none backdrop-blur-xl lg:backdrop-blur-none">
             <div class="max-w-[1400px] mx-auto">
                 <TButton v-if="amIHost"
                     variant="primary"
-                    size="lg"
-                    class="w-full text-xl md:text-2xl"
+                    size="md"
+                    class="w-full text-base md:text-xl"
                     :disabled="!canStart"
                     @click="handleStart"
                 >
-                    <span class="text-2xl md:text-3xl">⚡</span> EMPEZAR PARTIDA
+                    <span class="text-lg md:text-2xl">⚡</span> EMPEZAR PARTIDA
                 </TButton>
-                <div v-else class="w-full py-5 text-center bg-panel-card rounded-2xl border-[3px] border-white/10 text-ink-main text-sm font-black uppercase shadow-sm flex flex-col items-center justify-center">
+                <div v-else class="w-full py-3 md:py-5 text-center bg-panel-card rounded-2xl border-[3px] border-white/10 text-ink-main text-sm font-black uppercase shadow-sm flex flex-col items-center justify-center">
                     <span class="animate-pulse flex items-center gap-2">⏳ Esperando al anfitrión...</span>
                 </div>
             </div>
