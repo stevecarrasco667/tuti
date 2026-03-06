@@ -15,12 +15,8 @@ const props = defineProps<{
 const { toggleVote } = useGame();
 const { playClick } = useSound();
 
-const myVote = computed(() => {
-    return props.impostorData.votes?.[props.myUserId] || null;
-});
-
+const myVote = computed(() => props.impostorData.votes?.[props.myUserId] || null);
 const isDead = computed(() => !props.impostorData.alivePlayers.includes(props.myUserId));
-// Sprint 3.4: Read role from private whisper
 const isImpostor = computed(() => localImpostorRole.value?.role === 'impostor');
 const secretWord = computed(() => localImpostorRole.value?.word ?? null);
 
@@ -38,144 +34,224 @@ const suspects = computed(() => {
         const word = props.impostorData.words?.[player.id] || null;
         const isPlayerDead = !props.impostorData.alivePlayers.includes(player.id);
         const currentVotes = props.impostorData.voteCounts?.[player.id] || 0;
-
-        return {
-            ...player,
-            hasVoted,
-            isSelectedByMe,
-            isMe,
-            word,
-            isPlayerDead,
-            currentVotes
-        };
+        return { ...player, hasVoted, isSelectedByMe, isMe, word, isPlayerDead, currentVotes };
     });
 });
+
+// Phase 1: Adaptive grid strategy by player count
+const gridClass = computed(() => {
+    const n = suspects.value.length;
+    if (n <= 2) return 'grid-cols-2 max-w-lg mx-auto';
+    if (n <= 4) return 'grid-cols-2 max-w-2xl mx-auto';
+    if (n <= 6) return 'grid-cols-3 max-w-4xl mx-auto sm:grid-cols-3';
+    return 'grid-cols-2 sm:grid-cols-4 max-w-5xl mx-auto'; // ≥7: compact mode
+});
+
+// Compact mode for ≥7 players
+const isCompact = computed(() => suspects.value.length >= 7);
+
+// Phase 6: Global voting progress
+const votesCast = computed(() => Object.keys(props.impostorData.votes || {}).length);
+const totalVoters = computed(() => suspects.value.filter(s => !s.isPlayerDead).length);
+const votingProgress = computed(() =>
+    totalVoters.value > 0 ? Math.round((votesCast.value / totalVoters.value) * 100) : 0
+);
 </script>
 
 <template>
-    <div class="h-full w-full flex flex-col pt-4">
+    <div class="h-full w-full flex flex-col overflow-hidden">
 
         <!-- HEADER -->
-        <div class="flex-none text-center mb-4 mt-2">
-            <h2 class="text-2xl md:text-3xl font-black text-ink-main tracking-widest uppercase mb-1 drop-shadow-sm">🔎 El Tribunal</h2>
-            <p class="text-ink-muted text-xs md:text-sm font-black uppercase tracking-widest bg-white/40 border border-white/50 px-3 py-1 rounded-full w-fit mx-auto">Analiza las evidencias y acusa al impostor.</p>
-        </div>
+        <div class="flex-none px-4 pt-3 pb-2">
+            <!-- Row: Timer + Title + (mobile: nothing) -->
+            <div class="flex items-center justify-center relative mb-2">
+                <!-- Timer (absolute left) -->
+                <div class="absolute left-0 flex items-center justify-center min-w-[3rem] px-2 h-10 rounded-2xl border-2 border-white/10 bg-panel-card shadow-sm">
+                    <span class="text-lg font-black font-mono transition-colors duration-300" :class="timerColor">
+                        {{ Math.max(0, timeRemaining) }}
+                    </span>
+                </div>
 
-        <!-- TIMER -->
-        <div class="absolute top-4 left-4 z-10 flex items-center justify-center min-w-[3rem] px-2 h-12 rounded-2xl border-2 border-white/10 bg-panel-card shadow-sm">
-            <span class="text-xl font-black font-mono transition-colors duration-300" :class="timerColor">
-                {{ Math.max(0, timeRemaining) }}
-            </span>
-        </div>
-
-        <!-- BANNER DE FANTASMA -->
-        <div v-if="isDead" class="w-full max-w-4xl mx-auto mb-6 bg-panel-input/60 border-4 border-white/10 rounded-3xl px-6 py-4 backdrop-blur-md flex items-center justify-center gap-3 shadow-inner">
-            <span class="text-4xl animate-bounce drop-shadow-sm">💀</span>
-            <div class="text-center">
-                <span class="text-ink-muted font-black text-sm md:text-base uppercase tracking-widest block">Eres un Fantasma</span>
-                <span class="text-ink-muted/70 text-xs font-bold">Observa el tribunal, pero ya no tienes voz ni voto.</span>
-            </div>
-        </div>
-
-        <!-- HUD DE IDENTIDAD -->
-        <div class="w-full max-w-4xl mx-auto mb-4 px-4 transition-opacity duration-500" :class="{ 'opacity-50 grayscale pointer-events-none': isDead }">
-            <div v-if="isImpostor"
-                 class="bg-action-error/10 border-[3px] border-action-error/30 rounded-3xl px-5 py-2.5 backdrop-blur-md flex items-center gap-3 shadow-sm">
-                <span class="text-2xl drop-shadow-sm">⚠️</span>
-                <div class="flex flex-col">
-                    <span class="text-action-error font-black text-sm uppercase tracking-widest">Impostor</span>
-                    <span class="text-ink-muted text-xs font-bold" v-if="!isDead">Categoría: <strong class="text-action-error font-black">{{ impostorData.currentCategoryName }}</strong></span>
+                <!-- Title -->
+                <div class="text-center">
+                    <h2 class="text-xl md:text-2xl font-black text-ink-main tracking-widest uppercase drop-shadow-sm">
+                        🔎 El Tribunal
+                    </h2>
+                    <!-- Only visible on desktop -->
+                    <p class="hidden md:block text-ink-muted text-[11px] font-black uppercase tracking-widest bg-white/40 border border-white/50 px-3 py-0.5 rounded-full w-fit mx-auto mt-1">
+                        Analiza las evidencias y acusa al impostor.
+                    </p>
                 </div>
             </div>
-            <div v-else
-                 class="bg-tuti-teal/10 border-[3px] border-tuti-teal/30 rounded-3xl px-5 py-2.5 backdrop-blur-md flex items-center gap-3 shadow-sm">
-                <span class="text-2xl drop-shadow-sm">💡</span>
-                <div class="flex flex-col">
-                    <span class="text-tuti-teal font-black text-sm uppercase tracking-widest">Tripulante</span>
-                    <span class="text-ink-muted text-xs font-bold" v-if="!isDead">La palabra es: <strong class="text-tuti-teal font-black">{{ secretWord }}</strong></span>
+
+            <!-- Identity Banner — compact on mobile -->
+            <div class="w-full transition-opacity duration-500" :class="{ 'opacity-50 grayscale pointer-events-none': isDead }">
+                <div v-if="isImpostor"
+                     class="bg-action-error/10 border-[2px] border-action-error/30 rounded-2xl px-4 py-2 backdrop-blur-md flex items-center gap-2 shadow-sm">
+                    <span class="text-xl flex-none">⚠️</span>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-action-error font-black text-xs uppercase tracking-widest">Impostor</span>
+                        <span v-if="!isDead" class="text-ink-muted text-xs font-bold">·
+                            Categoría: <strong class="text-action-error font-black">{{ impostorData.currentCategoryName }}</strong>
+                        </span>
+                    </div>
                 </div>
+                <div v-else
+                     class="bg-tuti-teal/10 border-[2px] border-tuti-teal/30 rounded-2xl px-4 py-2 backdrop-blur-md flex items-center gap-2 shadow-sm">
+                    <span class="text-xl flex-none">💡</span>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-tuti-teal font-black text-xs uppercase tracking-widest">Tripulante</span>
+                        <span v-if="!isDead" class="text-ink-muted text-xs font-bold">·
+                            La palabra es: <strong class="text-tuti-teal font-black">{{ secretWord }}</strong>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 6: Voting Progress Bar -->
+            <div class="mt-2 flex items-center gap-3">
+                <div class="flex-1 h-1.5 bg-panel-input rounded-full overflow-hidden">
+                    <div class="h-full bg-action-primary rounded-full transition-all duration-500"
+                         :style="{ width: votingProgress + '%' }"></div>
+                </div>
+                <span class="text-[10px] font-black text-ink-muted uppercase tracking-widest whitespace-nowrap flex-none">
+                    {{ votesCast }}/{{ totalVoters }} votaron
+                </span>
+            </div>
+
+            <!-- Ghost banner -->
+            <div v-if="isDead" class="mt-2 bg-panel-input/60 border-2 border-white/10 rounded-2xl px-4 py-2 flex items-center gap-2 shadow-inner">
+                <span class="text-2xl">💀</span>
+                <span class="text-ink-muted font-black text-xs uppercase tracking-widest">Eres un fantasma — observa en silencio.</span>
             </div>
         </div>
 
-        <!-- TARJETAS DE SOSPECHOSOS -->
-        <div class="flex-1 overflow-y-auto px-2 pb-8 w-full max-w-5xl mx-auto scrollbar-thin">
-            <!-- 1. GRILLA RESPONSIVA DINÁMICA -->
-            <div class="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-3 md:gap-4 p-1 w-full h-full">
-                
+        <!-- SUSPECT CARDS GRID -->
+        <div class="flex-1 overflow-y-auto px-3 pb-4 scrollbar-thin">
+            <div class="grid gap-3 w-full" :class="gridClass">
+
                 <div v-for="s in suspects" :key="s.id"
-                     class="relative overflow-hidden bg-panel-card backdrop-blur-md border-[4px] rounded-3xl flex flex-col transition-colors duration-300 shadow-sm"
+                     class="relative bg-panel-card backdrop-blur-md border-[3px] rounded-2xl flex flex-col transition-all duration-300 shadow-sm overflow-hidden"
                      :class="[
-                         s.isSelectedByMe ? 'border-action-primary bg-emerald-900/20 shadow-[0_4px_15px_rgba(46,204,113,0.3)]' : 'border-white/10 hover:shadow-md',
+                         s.isSelectedByMe
+                             ? 'border-action-primary bg-action-primary/5 shadow-[0_0_16px_rgba(46,204,113,0.25)]'
+                             : 'border-white/10 hover:border-white/20',
                          s.isPlayerDead ? 'opacity-50 grayscale pointer-events-none' : ''
                      ]"
                 >
-                    <div class="p-3">
-                        <!-- Fila Superior: Avatar + Info -->
-                        <div class="flex gap-3 items-center mb-3">
-                            <!-- 3. AVATARES -->
-                            <div class="flex-none w-10 h-10 md:w-12 md:h-12 rounded-full bg-panel-input flex items-center justify-center overflow-hidden border-2 border-white/10 shadow-sm">
-                                <img v-if="s.avatar && (s.avatar.startsWith('/') || s.avatar.startsWith('http'))" :src="s.avatar" class="w-full h-full object-cover" />
-                                <span v-else class="text-xl md:text-2xl drop-shadow-sm">{{ s.avatar || '👤' }}</span>
+                    <!-- Card body -->
+                    <div class="p-3 flex flex-col gap-2 flex-1">
+
+                        <!-- Row: Avatar + Name -->
+                        <div class="flex items-center gap-2">
+                            <!-- Avatar -->
+                            <div class="flex-none rounded-full bg-panel-input flex items-center justify-center overflow-hidden border-2 border-white/10 shadow-sm"
+                                 :class="isCompact ? 'w-8 h-8' : 'w-10 h-10 md:w-11 md:h-11'">
+                                <img v-if="s.avatar && (s.avatar.startsWith('/') || s.avatar.startsWith('http'))"
+                                     :src="s.avatar" class="w-full h-full object-cover" />
+                                <span v-else :class="isCompact ? 'text-lg' : 'text-xl md:text-2xl'">{{ s.avatar || '👤' }}</span>
                             </div>
-                            
-                            <!-- Nombre y Palabra -->
-                            <div class="flex flex-col flex-1 min-w-0 justify-center">
-                                <span class="text-xs md:text-sm font-black text-ink-main uppercase tracking-widest truncate break-all leading-tight">{{ s.name }}</span>
-                                <span class="text-[12px] md:text-xs text-action-blue font-black bg-white/60 px-2 py-0.5 rounded-full inline-block mt-1 w-fit truncate max-w-full shadow-inner border border-white/50">
-                                    {{ s.word || 'Pensando...' }}
+
+                            <!-- Name -->
+                            <div class="min-w-0 flex-1">
+                                <span class="block font-black text-ink-main uppercase tracking-wide leading-tight truncate"
+                                      :class="isCompact ? 'text-[10px]' : 'text-xs md:text-sm'"
+                                      :title="s.name">
+                                    {{ s.name }}
                                 </span>
+                                <!-- "YO" badge for self -->
+                                <span v-if="s.isMe" class="text-[9px] font-black bg-white/20 text-ink-muted px-1.5 py-0.5 rounded-full uppercase tracking-widest">
+                                    YO
+                                </span>
+                            </div>
+
+                            <!-- Status indicator: voted / thinking -->
+                            <div class="flex-none ml-auto">
+                                <svg v-if="!s.hasVoted && !s.isMe && !s.isPlayerDead"
+                                     class="animate-spin h-3.5 w-3.5 text-ink-muted/50" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span v-else-if="s.hasVoted && !s.isMe && !s.isPlayerDead"
+                                      class="text-action-primary font-black text-sm">✓</span>
                             </div>
                         </div>
 
-                        <!-- Fila Media: Switch ACUSAR (2. REACTIVIDAD DEL SWITCH) -->
+                        <!-- Phase 2: WORD — Visual protagonist -->
+                        <div class="w-full rounded-xl px-3 py-2 text-center transition-colors duration-300"
+                             :class="s.word
+                                 ? 'bg-tuti-teal/10 border border-tuti-teal/30'
+                                 : 'bg-panel-input/60 border border-white/10 border-dashed'"
+                        >
+                            <span v-if="s.word"
+                                  class="font-black text-tuti-teal break-all leading-tight"
+                                  :class="isCompact ? 'text-sm' : 'text-base md:text-lg'">
+                                {{ s.word }}
+                            </span>
+                            <span v-else class="text-ink-muted/60 font-bold italic"
+                                  :class="isCompact ? 'text-[10px]' : 'text-xs'">
+                                ⏳ Pensando...
+                            </span>
+                        </div>
+
+                        <!-- Phase 3: ACUSAR button — guaranteed min size -->
                         <button @click="handleVote(s.id)"
                                 :disabled="s.isMe || s.isPlayerDead || isDead"
-                                class="flex items-center justify-between w-full mx-auto rounded-full pl-4 pr-1.5 py-1.5 transition-colors duration-300 mt-2 border-2"
+                                class="flex items-center justify-between w-full min-h-[40px] rounded-full px-3 py-1.5 transition-all duration-300 border-2 active:scale-95"
                                 :class="[
-                                    s.isSelectedByMe ? 'bg-action-primary/20 border-action-primary' : 'bg-panel-input border-white/10',
-                                    (!s.isMe && !s.isPlayerDead && !isDead) ? 'active:scale-95 cursor-pointer shadow-sm' : 'cursor-not-allowed opacity-70'
+                                    s.isSelectedByMe
+                                        ? 'bg-action-primary/20 border-action-primary shadow-[0_0_8px_rgba(46,204,113,0.3)]'
+                                        : 'bg-panel-input border-white/10',
+                                    (!s.isMe && !s.isPlayerDead && !isDead)
+                                        ? 'cursor-pointer hover:border-white/30'
+                                        : 'cursor-not-allowed opacity-60'
                                 ]"
                         >
-                            <span class="text-[10px] md:text-xs font-black tracking-widest uppercase text-left" 
-                                  :class="s.isSelectedByMe ? 'text-action-primary' : 'text-ink-soft'">Acusar</span>
-                            
-                            <!-- Toggle switch visual -->
-                            <div class="relative w-10 h-5 md:h-6 md:w-11 rounded-full border-2 transition-colors duration-300"
+                            <span class="font-black tracking-widest uppercase text-left flex-shrink-0 mr-2"
+                                  :class="[
+                                      s.isSelectedByMe ? 'text-action-primary' : 'text-ink-soft',
+                                      isCompact ? 'text-[9px]' : 'text-[11px] md:text-xs'
+                                  ]">
+                                Acusar
+                            </span>
+
+                            <!-- Toggle visual — flex-shrink-0 so it never compresses -->
+                            <div class="relative flex-shrink-0 rounded-full border-2 transition-colors duration-300"
                                  :class="[
-                                    s.isSelectedByMe ? 'bg-action-primary border-transparent' : 'bg-panel-input border-panel-card shadow-inner',
-                                    s.isMe ? 'opacity-50' : ''
+                                     isCompact ? 'w-8 h-4' : 'w-10 h-5 md:w-11 md:h-6',
+                                     s.isSelectedByMe ? 'bg-action-primary border-transparent' : 'bg-panel-input border-panel-card shadow-inner',
+                                     s.isMe ? 'opacity-40' : ''
                                  ]">
-                                 <!-- Toggle circle -->
-                                 <div v-if="!s.isMe" 
-                                      class="absolute top-0.5 md:top-[1px] left-0.5 md:left-[1px] w-3 h-3 md:w-4 md:h-4 rounded-full bg-white shadow-sm transition-transform duration-300 border border-black/5"
-                                      :class="s.isSelectedByMe ? 'translate-x-[1.1rem] md:translate-x-5' : 'translate-x-0'">
-                                 </div>
+                                <div v-if="!s.isMe"
+                                     class="absolute top-0.5 left-0.5 rounded-full bg-white shadow-sm transition-transform duration-300 border border-black/5"
+                                     :class="[
+                                         isCompact ? 'w-2.5 h-2.5' : 'w-3 h-3 md:w-4 md:h-4',
+                                         s.isSelectedByMe
+                                             ? (isCompact ? 'translate-x-[14px]' : 'translate-x-[1.1rem] md:translate-x-5')
+                                             : 'translate-x-0'
+                                     ]">
+                                </div>
                             </div>
                         </button>
                     </div>
-                    
-                    <!-- Fila Inferior: Votos en Vivo -->
-                    <div class="mt-auto bg-panel-input/60 flex justify-center items-center py-2 px-3 text-xs font-black border-t-2 border-white/10 flex-wrap">
-                        <span class="text-action-warning mr-1.5 text-sm drop-shadow-sm">🔥</span>
-                        <span class="text-ink-soft uppercase tracking-widest">{{ s.currentVotes }} Votos</span>
-                    </div>
-                    
-                    <!-- Indicador PENDING / VOTED -->
-                    <div v-if="!s.hasVoted && !s.isMe && !s.isPlayerDead" class="absolute top-2 right-2 text-ink-muted/50" title="Pensando...">
-                        <svg class="animate-spin h-4 w-4 drop-shadow-sm" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                    </div>
-                    <div v-else-if="s.hasVoted && !s.isMe && !s.isPlayerDead" class="absolute top-2 right-2 text-action-primary drop-shadow-sm">
-                        <span class="text-sm font-black">✓</span>
+
+                    <!-- Footer: vote count -->
+                    <div class="bg-panel-input/60 flex justify-center items-center border-t-2 border-white/10"
+                         :class="isCompact ? 'py-1 px-2' : 'py-1.5 px-3'">
+                        <span class="text-action-warning mr-1 drop-shadow-sm" :class="isCompact ? 'text-xs' : 'text-sm'">🔥</span>
+                        <span class="font-black text-ink-soft uppercase tracking-widest"
+                              :class="isCompact ? 'text-[9px]' : 'text-[10px] md:text-xs'">
+                            {{ s.currentVotes }} {{ s.currentVotes === 1 ? 'voto' : 'votos' }}
+                        </span>
                     </div>
 
-                    <!-- Indicador MUERTO adicional si es pertinente -->
-                    <div v-if="s.isPlayerDead" class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 text-shadow-xl bg-panel-base/80 backdrop-blur-[1px]">
+                    <!-- Dead overlay -->
+                    <div v-if="s.isPlayerDead"
+                         class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 bg-panel-base/80 backdrop-blur-[1px]">
                         <span class="text-5xl drop-shadow-md">💀</span>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
