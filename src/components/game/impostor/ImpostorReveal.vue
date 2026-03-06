@@ -18,14 +18,14 @@ const currentCategory = computed(() => props.impostorData.currentCategoryName);
 </script>
 
 <template>
-    <div class="h-full w-full flex flex-col items-center justify-center p-4 md:p-6 text-center bg-panel-base backdrop-blur-md rounded-3xl border-[4px] border-white/50 relative overflow-y-auto shadow-game-panel scrollbar-thin">
+    <div class="h-full w-full flex flex-col p-4 md:p-6 lg:py-8 text-center bg-panel-base backdrop-blur-md rounded-3xl border-[4px] border-white/50 relative overflow-y-auto shadow-game-panel scrollbar-thin">
         <!-- Fondo Animado FX -->
         <div class="absolute inset-0 z-0 opacity-40 pointer-events-none"
              :class="isImpostor ? 'bg-gradient-to-br from-action-error/40 via-transparent' : 'bg-gradient-to-br from-action-secondary/40 via-transparent'">
         </div>
 
-        <div class="z-10 flex-1 flex flex-col items-center justify-center w-full max-w-2xl gap-4 md:gap-6 py-4 min-h-0">
-            <span class="text-5xl md:text-6xl animate-bounce drop-shadow-md flex-none">{{ isImpostor ? '🤫' : '🕵️' }}</span>
+        <div class="z-10 flex-1 flex flex-col items-center justify-center w-full max-w-4xl m-auto gap-4 py-4 min-h-0">
+            <span class="text-5xl lg:text-5xl animate-bounce drop-shadow-md flex-none">{{ isImpostor ? '🤫' : '🕵️' }}</span>
 
             <!-- Category for EVERYONE (public info) -->
             <div class="flex-none flex flex-col items-center gap-1.5">
@@ -36,14 +36,14 @@ const currentCategory = computed(() => props.impostorData.currentCategoryName);
                 </span>
             </div>
 
-            <!-- Título Principal Fluido -->
-            <h1 class="font-black uppercase tracking-tighter drop-shadow-sm leading-none flex-none text-[clamp(2.5rem,8vw,5rem)]"
+            <!-- Título Principal Fijo -->
+            <h1 class="font-black uppercase tracking-tighter drop-shadow-sm leading-none flex-none text-4xl md:text-[3.5rem] lg:text-[4.5rem] w-full"
                 :class="isImpostor ? 'text-action-error' : 'text-tuti-teal'">
                 {{ isImpostor ? (allies > 0 ? 'Son los Impostores' : 'Eres el Impostor') : 'Eres un Tripulante' }}
             </h1>
 
             <!-- Tarjeta de Misión -->
-            <div class="bg-panel-card border-4 border-white/10 p-4 md:p-6 rounded-3xl backdrop-blur-xl shadow-sm flex-none w-full max-w-lg mx-auto">
+            <div class="bg-panel-card border-4 border-white/10 p-4 md:p-5 lg:p-6 rounded-3xl backdrop-blur-xl shadow-sm flex-none w-full max-w-xl mx-auto">
                 <p class="text-lg md:text-2xl text-ink-soft font-black mb-2 uppercase tracking-wide leading-tight">
                     {{ isImpostor ? 'Tu misión es sobrevivir y engañar.' : 'Encuentra al mentiroso.' }}
                 </p>
