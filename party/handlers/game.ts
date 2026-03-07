@@ -8,7 +8,7 @@ export class GameHandler extends BaseHandler {
 
     async handleStartGame(sender: Party.Connection) {
         try {
-            this.engine.startGame(sender.id);
+            await this.engine.startGame(sender.id);
         } catch (err) {
             sendError(sender, (err as Error).message);
         }
@@ -66,7 +66,7 @@ export class GameHandler extends BaseHandler {
 
     async handleRestartGame(sender: Party.Connection) {
         try {
-            this.engine.restartGame(sender.id);
+            await this.engine.restartGame(sender.id);
         } catch (err) {
             sendError(sender, (err as Error).message);
         }

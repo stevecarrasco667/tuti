@@ -1,5 +1,19 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { TutiEngine } from './engines/tuti-engine';
+import { SupabaseClient } from '@supabase/supabase-js';
+
+// Dummy Supabase Client for tests
+const mockSupabase = {
+    from: (table: string) => ({
+        select: (_columns: string) => ({
+            eq: async (_column: string, _value: string) => {
+                if (table === 'categories') return { data: [{ id: '1', name: 'A' }, { id: '2', name: 'B' }] };
+                if (table === 'words') return { data: [{ id: '1', word: 'Manzana' }, { id: '2', word: 'Pera' }] };
+                return { data: [] };
+            }
+        })
+    })
+} as unknown as SupabaseClient;
 
 describe('TutiEngine Core', () => {
     let engine: TutiEngine;
@@ -8,7 +22,7 @@ describe('TutiEngine Core', () => {
     const hostConn = 'conn-host';
 
     beforeEach(() => {
-        engine = new TutiEngine(roomId);
+        engine = new TutiEngine(mockSupabase, roomId);
     });
 
 
@@ -17,7 +31,7 @@ describe('TutiEngine Core', () => {
         let engine: TutiEngine;
 
         beforeEach(() => {
-            engine = new TutiEngine('test-room');
+            engine = new TutiEngine(mockSupabase, 'test-room');
             const state = engine.getState();
             state.status = 'PLAYING';
             state.currentLetter = 'A';
@@ -50,7 +64,7 @@ describe('TutiEngine Core', () => {
     describe('VotingManager Integration', () => {
         let engine: TutiEngine;
         beforeEach(() => {
-            engine = new TutiEngine('test-room');
+            engine = new TutiEngine(mockSupabase, 'test-room');
             engine.joinPlayer('p1', 'P1', 'av', 'c1');
             engine.joinPlayer('p2', 'P2', 'av', 'c2');
             const state = engine.getState();
@@ -141,11 +155,11 @@ describe('TutiEngine Core', () => {
             expect(engine.getState().players[1].isHost).toBe(false);
         });
 
-        it('should start game', () => {
+        it('should start game', async () => {
             engine.joinPlayer(hostId, 'Host', 'avatar1', hostConn);
             engine.joinPlayer('user-2', 'Guest', 'avatar2', 'conn-2');
 
-            engine.startGame(hostConn);
+            await engine.startGame(hostConn);
 
             const state = engine.getState();
             expect(state.status).toBe('PLAYING');
@@ -157,7 +171,7 @@ describe('TutiEngine Core', () => {
     // --- 3.B: CONFIGURATION MANAGER INTEGRATION ---
     describe('ConfigurationManager Integration', () => {
         let engine: TutiEngine;
-        beforeEach(() => { engine = new TutiEngine('test-room'); });
+        beforeEach(() => { engine = new TutiEngine(mockSupabase, 'test-room'); });
 
         it('should use default config on init', () => {
             const config = engine.getState().config;
@@ -181,7 +195,7 @@ describe('TutiEngine Core', () => {
 
     // B. Cálculo de Puntajes
     describe('Scoring Logic', () => {
-        it('should calculate scores correctly (Unique/Duplicate/Empty/Invalid)', () => {
+        it('should calculate scores correctly (Unique/Duplicate/Empty/Invalid)', async () => {
             // Setup Players
             const pA = 'player-A'; const cA = 'conn-A';
             const pB = 'player-B'; const cB = 'conn-B';
@@ -195,7 +209,7 @@ describe('TutiEngine Core', () => {
             engine.joinPlayer(pD, 'D', 'av', cD);
             engine.joinPlayer(pE, 'E', 'av', cE);
 
-            engine.startGame(cA);
+            await engine.startGame(cA);
 
             // Mock categories and letter to control validation
             // We force 'Fruta' as the first category and 'M' as letter for 'Manzana' example
@@ -280,13 +294,13 @@ describe('TutiEngine Core', () => {
 
     // C. Validaciones de Seguridad
     describe('Security checks', () => {
-        it('should ignore start game from non-host', () => {
+        it('should ignore start game from non-host', async () => {
             engine.joinPlayer(hostId, 'Host', 'av1', hostConn);
             engine.joinPlayer('guest', 'Guest', 'av2', 'conn-guest');
 
             // Attempt start from guest
             // Attempt start from guest
-            expect(() => engine.startGame('conn-guest')).toThrow();
+            await expect(engine.startGame('conn-guest')).rejects.toThrow();
 
             expect(engine.getState().status).toBe('LOBBY');
         });
@@ -294,11 +308,11 @@ describe('TutiEngine Core', () => {
 
     // C. Regresión y Estabilidad
     describe('Regression & Stability', () => {
-        it('Regression: Memory Leak Check (Round Reset)', () => {
+        it('Regression: Memory Leak Check (Round Reset)', async () => {
             // 1. Setup & Start Round 1
             const p1 = 'p1'; const c1 = 'c1';
             engine.joinPlayer(p1, 'Player 1', 'av', c1);
-            engine.startGame(c1);
+            await engine.startGame(c1);
 
             // 2. Pollute State (Simulate Round 1 Data)
             const state = engine.getState();
@@ -311,7 +325,7 @@ describe('TutiEngine Core', () => {
             state.status = 'RESULTS';
 
             // 4. Start Round 2
-            engine.startGame(c1); // Helper validation might block if not Host, but p1 is Host (first joined)
+            await engine.startGame(c1); // Helper validation might block if not Host, but p1 is Host (first joined)
 
             // 5. Assert Tabula Rasa
             const newState = engine.getState();

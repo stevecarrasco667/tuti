@@ -7,6 +7,12 @@ export interface ValidationResult {
 }
 
 export class ValidationManager {
+    public dictionary = new DictionaryManager();
+
+    public getDictionaryManager(): DictionaryManager {
+        return this.dictionary;
+    }
+
     /**
      * Processing pipeline:
      * 1. Normalize (NFKD)
@@ -43,7 +49,7 @@ export class ValidationManager {
         }
 
         // 4. Dictionary Auto-Validation (Escudo Dorado 🛡️)
-        if (categoryId && DictionaryManager.isFuzzyValid(categoryId, normalized)) {
+        if (categoryId && this.dictionary.isFuzzyValid(categoryId, normalized)) {
             return { text: normalized, status: "VALID_AUTO" };
         }
 

@@ -4,7 +4,6 @@ import { TutiEngine } from "../shared/engines/tuti-engine.js";
 import { ImpostorEngine } from "../shared/engines/impostor-engine.js";
 import { RoomState, RoomSnapshot } from "../shared/types.js";
 import { ClientMessageSchema } from "../shared/schemas.js";
-import { DictionaryManager } from "../shared/dictionaries/manager";
 import { EVENTS, APP_VERSION } from "../shared/consts.js";
 import { logger } from "../shared/utils/logger";
 import { RateLimiter } from "./utils/rate-limiter";
@@ -22,17 +21,20 @@ const AUTH_TOKENS_KEY = "auth_tokens_v1";
 // =============================================
 // Engine Factory — Loads the correct game mode
 // =============================================
+import { SupabaseClient, createClient } from "@supabase/supabase-js";
+
 function createEngine(
+    supabase: SupabaseClient,
     mode: string,
     roomId: string,
     onStateChange?: (state: RoomState) => void
 ): BaseEngine {
     switch (mode) {
         case 'IMPOSTOR':
-            return new ImpostorEngine(roomId, onStateChange);
+            return new ImpostorEngine(supabase, roomId, onStateChange);
         case 'CLASSIC':
         default:
-            return new TutiEngine(roomId, onStateChange);
+            return new TutiEngine(supabase, roomId, onStateChange);
     }
 }
 
@@ -43,6 +45,7 @@ export default class Server implements Party.Server {
 
     room: Party.Room;
     engine: BaseEngine;
+    private supabase: SupabaseClient;
 
     // Security: Auth Tokens (UserId -> SessionToken)
     authTokens = new Map<string, string>();
@@ -111,9 +114,14 @@ export default class Server implements Party.Server {
     constructor(room: Party.Room) {
         this.room = room;
 
+        // Initialize Supabase Client using PartyKit Environment Variables
+        const supabaseUrl = this.room.env.SUPABASE_URL as string;
+        const supabaseKey = this.room.env.SUPABASE_ANON_KEY as string;
+        this.supabase = createClient(supabaseUrl, supabaseKey);
+
         // Factory Pattern: Engine is created as TutiEngine by default.
         // If the stored state has mode='IMPOSTOR', it will be re-created in onStart().
-        this.engine = createEngine('CLASSIC', room.id, this.onStateChange);
+        this.engine = createEngine(this.supabase, 'CLASSIC', room.id, this.onStateChange);
 
         // Instantiate Handlers (typed against BaseEngine)
         this.connectionHandler = new ConnectionHandler(room, this.engine, this.authTokens, this.messages);
@@ -132,7 +140,7 @@ export default class Server implements Party.Server {
 
                 // Factory Pattern: Re-create engine if stored mode differs
                 if (stored.config.mode === 'IMPOSTOR') {
-                    this.engine = createEngine('IMPOSTOR', this.room.id, this.onStateChange);
+                    this.engine = createEngine(this.supabase, 'IMPOSTOR', this.room.id, this.onStateChange);
                     // Re-wire handlers to new engine
                     this.connectionHandler = new ConnectionHandler(this.room, this.engine, this.authTokens, this.messages);
                     this.playerHandler = new PlayerHandler(this.room, this.engine);
@@ -153,10 +161,6 @@ export default class Server implements Party.Server {
 
             // 3. [Phoenix Lobby] Start True Heartbeat
             this.startHeartbeat();
-
-            // 4. [Phoenix CDN] Hydrate dictionaries from CDN
-            await DictionaryManager.hydrate();
-            logger.info('DICTIONARIES_HYDRATED', { source: 'CDN', roomId: this.room.id });
         } catch (err) {
             logger.error('ROOM_HYDRATION_FAILED', { roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
         }
@@ -358,13 +362,6 @@ export default class Server implements Party.Server {
             // Bypass PONG heartbeats locally to prevent zod bloat on pings
             if (rawData.type === 'PONG') return;
 
-            // [Phoenix CDN] Admin: Force reload dictionaries
-            if (rawData.type === EVENTS.ADMIN_RELOAD_DICTS) {
-                await DictionaryManager.hydrate(true);
-                const adminUserId = (sender.state as any)?.userId || sender.id;
-                logger.info('ADMIN_FORCED_DICTIONARY_RELOAD', { roomId: this.room.id, userId: adminUserId });
-                return;
-            }
 
             const result = ClientMessageSchema.safeParse(rawData);
 
@@ -422,7 +419,7 @@ export default class Server implements Party.Server {
                     if (oldMode !== newMode) {
                         console.log(`[HOT-SWAP] Cambiando motor de ${oldMode} a ${newMode}`);
                         const currentState = this.engine.getState();
-                        this.engine = createEngine(newMode, this.room.id, this.onStateChange);
+                        this.engine = createEngine(this.supabase, newMode, this.room.id, this.onStateChange);
                         this.engine.hydrate(currentState);
 
                         // Re-instanciar los handlers inyectando el nuevo motor
@@ -523,7 +520,7 @@ export default class Server implements Party.Server {
             }
             await this.room.storage.deleteAll();
             // Reset engine via factory (default to CLASSIC for empty room)
-            this.engine = createEngine('CLASSIC', 'purged-room');
+            this.engine = createEngine(this.supabase, 'CLASSIC', 'purged-room');
             this.previousStates.clear();
             return;
         }

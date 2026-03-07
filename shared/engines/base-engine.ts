@@ -6,8 +6,13 @@
 
 import { RoomState, GameConfig, DeepPartial } from '../types.js';
 import { PlayerManager } from '../systems/player-manager.js';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 export abstract class BaseEngine {
+
+    // --- DEPENDENCIES ---
+    protected abstract supabase: SupabaseClient;
+
     // --- STATE ACCESS ---
     abstract getState(): RoomState;
 
@@ -27,9 +32,9 @@ export abstract class BaseEngine {
     abstract updateConfig(connectionId: string, newConfig: DeepPartial<GameConfig>): RoomState;
 
     // --- GAME LIFECYCLE ---
-    abstract startGame(connectionId: string): RoomState;
+    abstract startGame(connectionId: string): Promise<RoomState>;
     abstract stopRound(connectionId: string, answers: Record<string, string>): RoomState;
-    abstract restartGame(requestorId: string): RoomState;
+    abstract restartGame(requestorId: string): Promise<RoomState>;
 
     // --- GAMEPLAY ACTIONS ---
     abstract submitAnswers(connectionId: string, answers: Record<string, string>): RoomState;

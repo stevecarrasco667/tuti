@@ -9,12 +9,14 @@ import { BaseEngine } from './base-engine.js';
 import { PlayerManager } from '../systems/player-manager.js';
 import { ConfigurationManager } from '../systems/configuration-manager.js';
 import { impostorWords } from '../dictionaries/impostor/manager.js';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 export class ImpostorEngine extends BaseEngine {
     private state: RoomState;
     private _players = new PlayerManager();
     private configManager = new ConfigurationManager();
     protected onGameStateChange?: (state: RoomState) => void;
+    protected supabase: SupabaseClient;
 
     // Sprint 3.3: Anti-repetition memory (private — NEVER serialized to JSON/WebSocket)
     private usedWords = new Set<string>();
@@ -25,8 +27,13 @@ export class ImpostorEngine extends BaseEngine {
     private secretWord: string | null = null;
     private currentImpostorIds: string[] = [];
 
-    constructor(roomId: string, onGameStateChange?: (state: RoomState) => void) {
+    constructor(
+        supabase: SupabaseClient,
+        roomId: string,
+        onGameStateChange?: (state: RoomState) => void
+    ) {
         super();
+        this.supabase = supabase;
         this.onGameStateChange = onGameStateChange;
         this.state = {
             stateVersion: 0,
@@ -181,7 +188,7 @@ export class ImpostorEngine extends BaseEngine {
         }
     }
 
-    public startGame(connectionId: string): RoomState {
+    public async startGame(connectionId: string): Promise<RoomState> {
         const userId = this._players.getPlayerId(connectionId);
         if (!userId) return this.state;
 
@@ -457,7 +464,7 @@ export class ImpostorEngine extends BaseEngine {
         return this.state;
     }
 
-    public restartGame(_requestorId: string): RoomState {
+    public async restartGame(_requestorId: string): Promise<RoomState> {
         this.clearTimer();
         this.state.status = 'LOBBY';
         this.state.uiMetadata = { activeView: 'LOBBY', showTimer: false, targetTime: null };

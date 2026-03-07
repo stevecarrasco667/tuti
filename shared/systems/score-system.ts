@@ -1,8 +1,13 @@
 import { RoomState } from '../types';
 import { normalizeAnswer } from '../utils';
-import { DictionaryManager } from '../dictionaries/manager';
+import { ValidationManager } from './validation-manager';
 
 export class ScoreSystem {
+    private validation: ValidationManager;
+
+    constructor(validation: ValidationManager) {
+        this.validation = validation;
+    }
 
     /**
      * Calculates scores for the current round based on answers and votes.
@@ -37,7 +42,7 @@ export class ScoreSystem {
                 }
 
                 // Check auto-validation (Escudo Dorado 🛡️ — immune to voting)
-                const isAutoValidated = DictionaryManager.hasExact(category, rawAnswer);
+                const isAutoValidated = this.validation.getDictionaryManager().hasExact(category, rawAnswer);
 
                 // Check voting (Invalidation) — skip for auto-validated answers
                 if (!isAutoValidated) {

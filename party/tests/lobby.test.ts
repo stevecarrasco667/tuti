@@ -2,12 +2,27 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import Server from '../server';
 import { createMockConnection, createMockRoom, createMockContext } from './mocks';
 
+vi.mock('@supabase/supabase-js', () => ({
+    createClient: vi.fn(() => ({
+        from: vi.fn((table: string) => ({
+            select: vi.fn((_columns: string) => ({
+                eq: vi.fn(async (_col: string, _val: string) => {
+                    if (table === 'categories') return { data: [{ id: '1', name: 'A' }, { id: '2', name: 'B' }] };
+                    if (table === 'words') return { data: [{ id: '1', word: 'Manzana' }, { id: '2', word: 'Pera' }] };
+                    return { data: [] };
+                })
+            }))
+        }))
+    }))
+}));
+
 describe('Server Integration - Lobby', () => {
     let mockRoom: any;
     let server: Server;
 
     beforeEach(() => {
         mockRoom = createMockRoom('LOBBY_TEST');
+        mockRoom.env = { SUPABASE_URL: 'http://mock-supabase.local', SUPABASE_ANON_KEY: 'mock-key' };
         server = new Server(mockRoom as any);
         vi.clearAllMocks();
     });

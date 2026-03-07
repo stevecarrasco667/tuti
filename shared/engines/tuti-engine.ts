@@ -16,17 +16,25 @@ import { ValidationManager } from '../systems/validation-manager.js';
 import { ConfigurationManager } from '../systems/configuration-manager.js';
 import { VotingManager } from '../systems/voting-manager.js';
 
+import { SupabaseClient } from '@supabase/supabase-js';
+
 export class TutiEngine extends BaseEngine {
     private state: RoomState;
-    public scoreSystem = new ScoreSystem();
+    public validation = new ValidationManager();
+    public scoreSystem = new ScoreSystem(this.validation);
     public rounds = new RoundManager();
     private _players = new PlayerManager();
-    public validation = new ValidationManager();
     private configManager = new ConfigurationManager();
     private voting = new VotingManager(this.validation);
+    protected supabase: SupabaseClient;
 
-    constructor(roomId: string, private onGameStateChange?: (state: RoomState) => void) {
+    constructor(
+        supabase: SupabaseClient,
+        roomId: string,
+        private onGameStateChange?: (state: RoomState) => void
+    ) {
         super();
+        this.supabase = supabase;
         this.state = {
             stateVersion: 0,
             status: 'LOBBY',
@@ -243,7 +251,7 @@ export class TutiEngine extends BaseEngine {
 
     // --- GAME LIFECYCLE ---
 
-    public startGame(connectionId: string): RoomState {
+    public async startGame(connectionId: string): Promise<RoomState> {
         const userId = this._players.getPlayerId(connectionId);
         if (!userId) throw new Error("Connection not mapped to a player");
 
@@ -261,6 +269,11 @@ export class TutiEngine extends BaseEngine {
 
             const continueGame = this.rounds.nextRound(this.state, this.state.config);
             if (continueGame) {
+                // Ensure temporal cache is loaded for categories
+                for (const cat of this.state.categories) {
+                    await this.validation.getDictionaryManager().loadCategory(cat, this.supabase);
+                }
+
                 this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
                 this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
             } else {
@@ -288,8 +301,15 @@ export class TutiEngine extends BaseEngine {
                 this.state.categories = [...manualCategories];
             } else {
                 // No manual selection → pick `count` random categories
-                const shuffled = [...MASTER_CATEGORIES].sort(() => 0.5 - Math.random());
-                this.state.categories = shuffled.slice(0, count).map(c => c.name);
+                const { data: catData } = await this.supabase.from('categories').select('id, name').eq('game_mode', 'classic');
+                const allCats = catData ? catData.map(c => c.name) : MASTER_CATEGORIES.map(c => c.name);
+                const shuffled = [...allCats].sort(() => 0.5 - Math.random());
+                this.state.categories = shuffled.slice(0, count);
+            }
+
+            // Hydrate temporal cache BEFORE starting the timer
+            for (const cat of this.state.categories) {
+                await this.validation.getDictionaryManager().loadCategory(cat, this.supabase);
             }
 
             this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
@@ -337,7 +357,7 @@ export class TutiEngine extends BaseEngine {
         return this.state;
     }
 
-    public restartGame(requestorId: string): RoomState {
+    public async restartGame(requestorId: string): Promise<RoomState> {
         const userId = this._players.getPlayerId(requestorId);
         const player = this.state.players.find(p => p.id === userId);
 
@@ -365,6 +385,13 @@ export class TutiEngine extends BaseEngine {
         this.state.timers.votingEndsAt = null;
         this.state.timers.resultsEndsAt = null;
         this.state.stoppedBy = null;
+
+        // Clear temporal cache
+        this.validation.getDictionaryManager().clearCache();
+
+        if (this.onGameStateChange) {
+            this.onGameStateChange(this.state);
+        }
 
         return this.state;
     }

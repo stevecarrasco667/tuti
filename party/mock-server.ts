@@ -2,6 +2,10 @@ import { WebSocketServer } from 'ws';
 import { randomUUID } from 'crypto';
 import { URL } from 'url';
 import { TutiEngine as GameEngine } from '../shared/engines/tuti-engine.js'; // Aliased for minimal mock-server changes
+import { SupabaseClient } from '@supabase/supabase-js';
+
+const mockSupabase = {} as SupabaseClient;
+
 // Wait, the user command is "npm run dev:mock" which runs "concurrently \"node party/mock-server.js\" \"vite\"".
 // "party/mock-server.js" is a JS file. It cannot import .ts files directly unless using ts-node or similar.
 // But wait, the shared folder has .ts files. 
@@ -189,7 +193,7 @@ function broadcastToRoom(roomId: string, message: any) {
 
 function getOrCreateRoom(roomId: string): GameEngine {
     if (!rooms.has(roomId)) {
-        rooms.set(roomId, new GameEngine(roomId));
+        rooms.set(roomId, new GameEngine(mockSupabase, roomId));
         console.log(`🏠 Created new room: ${roomId}`);
     }
     return rooms.get(roomId)!;
@@ -284,7 +288,7 @@ wss.on('connection', (ws, req) => {
         payload: engine.getState()
     }));
 
-    ws.on('message', (rawMessage) => {
+    ws.on('message', async (rawMessage) => {
         try {
             const message = JSON.parse(rawMessage.toString());
             console.log(`📨 Received from ${connectionId} in ${roomId}:`, message);
@@ -295,7 +299,7 @@ wss.on('connection', (ws, req) => {
                 const avatar = message.payload.avatar || '👤';
                 engine.joinPlayer(message.payload.userId, message.payload.name, avatar, connectionId);
             } else if (message.type === 'START_GAME') {
-                engine.startGame(connectionId);
+                await engine.startGame(connectionId);
             } else if (message.type === 'STOP_ROUND') {
                 engine.stopRound(connectionId, message.payload.answers);
             } else if (message.type === 'SUBMIT_ANSWERS') {
@@ -311,7 +315,7 @@ wss.on('connection', (ws, req) => {
                 engine.submitAnswers(connectionId, message.payload.answers);
             } else if (message.type === 'RESTART_GAME') {
                 console.log("[MOCK] RESTART_GAME received. Resetting...");
-                engine.restartGame(connectionId);
+                await engine.restartGame(connectionId);
             } else if (message.type === 'KICK_PLAYER') {
                 engine.kickPlayer(connectionId, message.payload.targetUserId);
             }

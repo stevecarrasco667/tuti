@@ -41,9 +41,9 @@ const BLACKLIST = new Set([
     "retrasado", "imbecil", "estupido", "idiota", "mogolico"
 ]);
 
-import { DictionaryManager } from './dictionaries/manager.js';
+// (Removed DictionaryManager import)
 
-export function validateWord(word: string, category: string): { isValid: boolean, isFuzzy: boolean } {
+export function validateWord(word: string, _category: string): { isValid: boolean, isFuzzy: boolean } {
     const cleanWord = word.trim().toLowerCase();
 
     // 1. Sanity Check
@@ -52,47 +52,6 @@ export function validateWord(word: string, category: string): { isValid: boolean
     // 2. Blacklist Check
     if (BLACKLIST.has(cleanWord)) return { isValid: false, isFuzzy: false };
 
-    // 3. Dictionary Check (O(1))
-    // We strictly assume if dict exists, words must be in it.
-    // However, checking existence of collection first is good to define fallback policy.
-    const collection = DictionaryManager.getCollection(category);
-
-    if (!collection) {
-        // Fallback: In 1vs1 Authoritative Mode, if we don't know the category, we MUST reject it.
-        return { isValid: false, isFuzzy: false };
-    }
-
-    // 3.1 Exact Match (via Manager which creates normalized sets)
-    if (DictionaryManager.hasExact(category, cleanWord)) {
-        return { isValid: true, isFuzzy: false };
-    }
-
-    // 4. Fuzzy Match (Typo Tolerance)
-    // Only for words > 4 length
-    if (cleanWord.length > 4) {
-        // We iterate the Set from the Manager
-        for (const validWord of collection) {
-            // Optimization: Length diff check first
-            if (Math.abs(validWord.length - cleanWord.length) > 2) continue;
-
-
-            // Levenshtein on "Peru" vs "Perú" is 1. That's handled.
-            // But manager stores "peru". Input "Perú" -> clean "perú".
-            // cleanWord still has accents? yes, .toLowerCase() doesn't remove accents.
-            // We should ideally compare normalized input against normalized set for fuzzy too.
-            // BUT, removing accents is a type of fuzzy matching itself.
-            // Let's use the same normalize as Manager for optimal check.
-            const normInput = cleanWord.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
-            // Check normalized exact match again? hasExact does it.
-            // So this is for real typos. "Perru".
-
-            const distNorm = levenshteinDistance(normInput, validWord);
-            if (distNorm <= 2) {
-                return { isValid: true, isFuzzy: true };
-            }
-        }
-    }
-
-    return { isValid: false, isFuzzy: false };
+    // 3. Fallback: Trust user input but rely on server Voting/ScoreSystem for real check
+    return { isValid: true, isFuzzy: false };
 }
