@@ -64,19 +64,24 @@ export default class Server implements Party.Server {
     private saveTimeout: ReturnType<typeof setTimeout> | null = null;
     // [Phoenix Lobby] True Heartbeat Interval
     private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+    // [Sprint 1] Server-Authoritative Tick Loop
+    private tickInterval: ReturnType<typeof setInterval> | null = null;
 
     // Chat State
     messages: import('../shared/types').ChatMessage[] = [];
 
     // Reusable state change callback for Engine Factory
     private onStateChange = (newState: RoomState) => {
-        // 1. Inmediato: Per-connection broadcast with State Masking
+        // 1. [Sprint 1] Tick Loop Phase Management — react to every phase transition
+        this.manageTick(newState);
+
+        // 2. Inmediato: Per-connection broadcast with State Masking
         this.broadcastStateDelta(newState);
 
-        // 2. Schedule backup alarm for next phase (critical for hibernate recovery)
+        // 3. Schedule backup alarm for next phase (critical for hibernate recovery)
         this.scheduleAlarms(newState);
 
-        // 2. Diferido: Write-Behind a disco (max 1 vez cada 5s)
+        // 4. Diferido: Write-Behind a disco (max 1 vez cada 5s)
         if (!this.saveTimeout) {
             this.saveTimeout = setTimeout(async () => {
                 await this.room.storage.put(STORAGE_KEY, this.engine.getState());
@@ -84,7 +89,7 @@ export default class Server implements Party.Server {
             }, 5000);
         }
 
-        // 3. [Phoenix Lobby] Heartbeat RPC to Orchestrator (fire-and-forget)
+        // 5. [Phoenix Lobby] Heartbeat RPC to Orchestrator (fire-and-forget)
         if (newState.config.isPublic) {
             const activeConnCount = Array.from(this.room.getConnections()).length;
             const snapshot: RoomSnapshot = {
@@ -236,6 +241,71 @@ export default class Server implements Party.Server {
                 logger.error('HEARTBEAT_CRASH', { roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
             }
         }, 10000);
+    }
+
+    // [Sprint 1] Tick Loop Director: called on every state mutation.
+    // Inspects the new game status and starts/stops the tick loop accordingly.
+    // Using the existing timers (endsAt timestamps) to calculate remaining time precisely.
+    private manageTick(state: RoomState) {
+        const now = Date.now();
+
+        if (state.status === 'PLAYING' && state.timers.roundEndsAt) {
+            const msLeft = state.timers.roundEndsAt - now;
+            if (msLeft > 0 && !this.tickInterval) {
+                this.startTick(msLeft);
+            }
+        } else if (state.status === 'REVIEW' && state.timers.votingEndsAt) {
+            const msLeft = state.timers.votingEndsAt - now;
+            if (msLeft > 0 && !this.tickInterval) {
+                this.startTick(msLeft);
+            }
+        } else if (state.status === 'TYPING' && state.timers.roundEndsAt) {
+            // Impostor mode: TYPING phase
+            const msLeft = state.timers.roundEndsAt - now;
+            if (msLeft > 0 && !this.tickInterval) {
+                this.startTick(msLeft);
+            }
+        } else if (state.status === 'VOTING' && state.timers.votingEndsAt) {
+            // Impostor mode: VOTING phase
+            const msLeft = state.timers.votingEndsAt - now;
+            if (msLeft > 0 && !this.tickInterval) {
+                this.startTick(msLeft);
+            }
+        } else {
+            // Any non-timed phase: LOBBY, RESULTS, GAME_OVER, ROLE_REVEAL → stop the tick
+            this.stopTick();
+        }
+    }
+
+    // [Sprint 1] Server-Authoritative Tick Loop
+    // Starts a 1s interval that decrements remainingTime and broadcasts it to ALL
+    // clients via the existing delta-sync pipeline.
+    // Re-entrant safe: always calls stopTick() first to prevent double-tick bugs.
+    private startTick(durationMs: number) {
+        this.stopTick(); // Re-entrant safety: clear any previous interval before starting
+        let remaining = Math.ceil(durationMs / 1000);
+        console.log(`[Tick Loop] Starting — ${remaining}s`);
+
+        this.tickInterval = setInterval(() => {
+            remaining--;
+            this.engine.tick(remaining);
+            this.broadcastStateDelta(this.engine.getState());
+
+            if (remaining <= 0) {
+                // The RoundManager's setTimeout will handle the actual phase transition.
+                // We stop the tick loop here to avoid unnecessary broadcasts post-transition.
+                this.stopTick();
+            }
+        }, 1000);
+    }
+
+    // Stops and cleans up the Tick Loop. Safe to call even if no tick is running.
+    private stopTick() {
+        if (this.tickInterval) {
+            clearInterval(this.tickInterval);
+            this.tickInterval = null;
+            console.log('[Tick Loop] Stopped.');
+        }
     }
 
     async onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
@@ -466,8 +536,17 @@ export default class Server implements Party.Server {
         if (zombiesPurged || stateMutatedByTimer) {
             console.log(`[SERVER] State mutated by watchdog (Zombies: ${zombiesPurged}, AntiFreeze: ${stateMutatedByTimer})`);
 
-            // Si el motor fue rescatado de la hibernación, forzamos un salvado y broadcast
             if (stateMutatedByTimer) {
+                // [Sprint 1] If a phase timer expired during hibernation, resume the tick loop
+                // for any newly started timed phase (e.g. REVIEW after forced PLAYING→REVIEW)
+                const state = this.engine.getState();
+                if (state.status === 'REVIEW' && state.timers.votingEndsAt) {
+                    const msLeft = state.timers.votingEndsAt - Date.now();
+                    if (msLeft > 0) this.startTick(msLeft);
+                } else if (state.status === 'PLAYING' && state.timers.roundEndsAt) {
+                    const msLeft = state.timers.roundEndsAt - Date.now();
+                    if (msLeft > 0) this.startTick(msLeft);
+                }
                 this.broadcastStateDelta(this.engine.getState());
             }
             await this.room.storage.put(STORAGE_KEY, this.engine.getState());
@@ -495,6 +574,9 @@ export default class Server implements Party.Server {
                 this.saveTimeout = null;
             }
             this.room.storage.put(STORAGE_KEY, this.engine.getState());
+
+            // [Sprint 1] Stop Tick Loop — no players means no need to count down
+            this.stopTick();
 
             // [Phoenix Lobby] Stop Heartbeat to allow hibernation
             if (this.heartbeatInterval) {

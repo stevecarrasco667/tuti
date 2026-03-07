@@ -50,6 +50,7 @@ export class TutiEngine extends BaseEngine {
                 votingEndsAt: null,
                 resultsEndsAt: null
             },
+            remainingTime: 0,
             stoppedBy: null,
             uiMetadata: {
                 activeView: 'LOBBY',
@@ -136,6 +137,17 @@ export class TutiEngine extends BaseEngine {
         }
 
         this._players.remove(this.state, connectionId);
+
+        // [Sprint 1 - Phase 3] Ghost Player Fix:
+        // If a player disconnects during REVIEW and was the last one to vote,
+        // auto-confirm their vote and check consensus to unblock the game.
+        if (this.state.status === 'REVIEW') {
+            this.voting.autoConfirmDisconnectedPlayers(this.state);
+            if (this.voting.checkConsensus(this.state)) {
+                console.log('[Ghost Player] Disconnection triggered consensus — forcing results.');
+                this.calculateResults();
+            }
+        }
 
         // ABANDONMENT CHECK (RELAXED)
         if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW') {
@@ -383,6 +395,12 @@ export class TutiEngine extends BaseEngine {
         const userId = this._players.getPlayerId(connectionId);
         if (!userId) return this.state;
 
+        // [Sprint 1 - Phase 2] Grace Period: reject updates if time already expired
+        if (this.state.remainingTime <= -1) {
+            console.log(`[SECURITY] UPDATE_ANSWERS rejected: time expired (${this.state.remainingTime}s) for ${userId}`);
+            return this.state;
+        }
+
         this.state.answers[userId] = answers;
         return this.state;
     }
@@ -390,6 +408,12 @@ export class TutiEngine extends BaseEngine {
     public toggleVote(connectionId: string, targetUserId: string, category: string): RoomState {
         const userId = this._players.getPlayerId(connectionId);
         if (!userId) return this.state;
+
+        // [Sprint 1 - Phase 2] Grace Period: reject votes if voting time already expired
+        if (this.state.remainingTime <= -1) {
+            console.log(`[SECURITY] TOGGLE_VOTE rejected: voting time expired (${this.state.remainingTime}s) for ${userId}`);
+            return this.state;
+        }
 
         this.voting.toggleVote(this.state, userId, targetUserId, category);
         return this.state;
@@ -479,16 +503,14 @@ export class TutiEngine extends BaseEngine {
 
         if (this.state.status === 'PLAYING' && this.state.timers.roundEndsAt && now >= this.state.timers.roundEndsAt) {
             console.log("[TutiEngine] Anti-Freeze: Forcing round stop");
-            this.handleTimeUp_Internal(); // Reusing the existing timeout callback logic
+            this.handleTimeUp_Internal();
             changed = true;
         } else if (this.state.status === 'REVIEW' && this.state.timers.votingEndsAt && now >= this.state.timers.votingEndsAt) {
             console.log("[TutiEngine] Anti-Freeze: Forcing results calculation");
-            // If voting ends, we force calculation (auto-filling missing votes or resolving)
             this.calculateResults();
             changed = true;
         } else if (this.state.status === 'RESULTS' && this.state.timers.resultsEndsAt && now >= this.state.timers.resultsEndsAt) {
             console.log("[TutiEngine] Anti-Freeze: Forcing next round");
-            // Force next round
             if (this.rounds.nextRound(this.state, this.state.config)) {
                 this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
             }
@@ -496,5 +518,10 @@ export class TutiEngine extends BaseEngine {
         }
 
         return changed;
+    }
+
+    // [Sprint 1 - Phase 1] Server-canonical countdown mutator
+    public tick(newValue: number): void {
+        this.state.remainingTime = Math.max(-1, newValue);
     }
 }

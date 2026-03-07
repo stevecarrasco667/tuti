@@ -116,6 +116,7 @@ export interface RoomState {
         votingEndsAt: number | null;
         resultsEndsAt: number | null;
     };
+    remainingTime: number; // Server-canonical countdown in seconds (emitted every tick)
     stoppedBy: string | null;
     gameOverReason?: 'NORMAL' | 'ABANDONED';
     uiMetadata: {

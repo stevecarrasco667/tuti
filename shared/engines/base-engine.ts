@@ -45,6 +45,10 @@ export abstract class BaseEngine {
      *  Returns `true` if the state was mutated by forcing a timeout transition. */
     abstract handleTimeUp(): boolean;
 
+    /** Called every second by the server Tick Loop.
+     *  Updates the server-canonical remaining time and broadcasts it to clients. */
+    abstract tick(newValue: number): void;
+
     // --- SUB-SYSTEMS (exposed for server.ts reconnection logic) ---
     abstract get players(): PlayerManager;
 }

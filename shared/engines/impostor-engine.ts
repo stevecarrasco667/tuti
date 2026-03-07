@@ -48,6 +48,7 @@ export class ImpostorEngine extends BaseEngine {
                 votingEndsAt: null,
                 resultsEndsAt: null
             },
+            remainingTime: 0,
             stoppedBy: null,
             uiMetadata: {
                 activeView: 'LOBBY',
@@ -567,5 +568,10 @@ export class ImpostorEngine extends BaseEngine {
         }
 
         return changed;
+    }
+
+    // [Sprint 1 - Phase 1] Server-canonical countdown mutator
+    public tick(newValue: number): void {
+        this.state.remainingTime = Math.max(-1, newValue);
     }
 }

@@ -50,6 +50,7 @@ const gameState = ref<RoomState>({
         votingEndsAt: null,
         resultsEndsAt: null
     },
+    remainingTime: 0,
     stoppedBy: null,
     gameOverReason: undefined,
     uiMetadata: {
@@ -395,6 +396,7 @@ export function useGame() {
                 votingEndsAt: null,
                 resultsEndsAt: null
             },
+            remainingTime: 0,
             stoppedBy: null,
             gameOverReason: undefined,
             uiMetadata: {

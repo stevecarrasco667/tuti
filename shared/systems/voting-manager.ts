@@ -40,6 +40,18 @@ export class VotingManager {
         return confirmedActivePlayers.length === activePlayers.length && activePlayers.length > 0;
     }
 
+    // [Sprint 1 - Phase 3] Ghost Player Fix:
+    // Auto-confirms disconnected players so they don't block voting consensus.
+    // Call this BEFORE checkConsensus whenever a player disconnects mid-review.
+    public autoConfirmDisconnectedPlayers(state: RoomState): void {
+        state.players
+            .filter(p => !p.isConnected && !state.whoFinishedVoting.includes(p.id))
+            .forEach(p => {
+                console.log(`[Ghost Player] Auto-confirming vote for disconnected player: ${p.id}`);
+                state.whoFinishedVoting.push(p.id);
+            });
+    }
+
     public cleanupPlayerVotes(state: RoomState, targetUserId: string): boolean {
         // Remove votes received by this player
         delete state.votes[targetUserId];
