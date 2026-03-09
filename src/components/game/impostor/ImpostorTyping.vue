@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { ImpostorData, Player } from '../../../../shared/types';
-import { localImpostorRole } from '../../../composables/useGame';
+import { localImpostorRole } from '../../../composables/useGameState';
 
 const props = defineProps<{
     impostorData: ImpostorData;
@@ -22,6 +22,7 @@ const isDead = computed(() => !props.impostorData.alivePlayers.includes(props.my
 // Sprint 3.4: Read role from private whisper instead of public state
 const isImpostor = computed(() => localImpostorRole.value?.role === 'impostor');
 const secretWord = computed(() => localImpostorRole.value?.word ?? null);
+
 
 const impostorAllies = computed(() => {
     if (!isImpostor.value || !localImpostorRole.value) return [];

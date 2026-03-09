@@ -8,12 +8,12 @@ import GameView from './components/GameView.vue';
 import GameOverView from './components/GameOverView.vue';
 
 
-const { gameState, myUserId, tryRestoreSession } = useGame();
+const { gameState, myUserId, isConnected } = useGame();
 
 onMounted(() => {
-    // Attempt auto-reconnect if URL has room param
-    if (tryRestoreSession()) {
-        console.log('🔄 Attempting to restore session...');
+    // Si la URL tiene '?room=', el composable useSocket intentará restaurar si hay token
+    if (isConnected.value) {
+        console.log('🔄 Session restored.');
     }
 });
 const currentView = ref<'HOME' | 'LOBBY' | 'GAME' | 'GAME_OVER'>('HOME');

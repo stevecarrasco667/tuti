@@ -8,7 +8,7 @@ import { RoomState, GameConfig, DeepPartial, PrivateRolePayload } from '../types
 import { BaseEngine } from './base-engine.js';
 import { PlayerManager } from '../systems/player-manager.js';
 import { ConfigurationManager } from '../systems/configuration-manager.js';
-import { impostorWords } from '../dictionaries/impostor/manager.js';
+import { ImpostorWordProvider } from '../dictionaries/impostor/manager.js'; // Changed import
 import { SupabaseClient } from '@supabase/supabase-js';
 
 export class ImpostorEngine extends BaseEngine {
@@ -27,6 +27,9 @@ export class ImpostorEngine extends BaseEngine {
     private secretWord: string | null = null;
     private currentImpostorIds: string[] = [];
 
+    // Phase 1: Temporal Cache Provider (Isolated per Room)
+    private wordProvider: ImpostorWordProvider; // Added property
+
     constructor(
         supabase: SupabaseClient,
         roomId: string,
@@ -35,6 +38,7 @@ export class ImpostorEngine extends BaseEngine {
         super();
         this.supabase = supabase;
         this.onGameStateChange = onGameStateChange;
+        this.wordProvider = new ImpostorWordProvider(); // Instantiated
         this.state = {
             stateVersion: 0,
             status: 'LOBBY',
@@ -223,13 +227,12 @@ export class ImpostorEngine extends BaseEngine {
             this.activeCategoryIds = shuffled.slice(0, count);
 
             this.usedWords.clear();
-            this.lastImpostorId = null;
-            console.log(`[ImpostorEngine] Selected ${this.activeCategoryIds.length} categories for match:`, this.activeCategoryIds);
+            console.log(`[ImpostorEngine] Selected ${this.activeCategoryIds.length} categories for match: `, this.activeCategoryIds);
 
             // Phase 2: Parallel Load from Supabase to Temporal Cache
             await Promise.all(
                 this.activeCategoryIds.map(catId =>
-                    impostorWords.loadCategory(catId, this.supabase)
+                    this.wordProvider.loadCategory(catId, this.supabase) // Replaced impostorWords.
                 )
             );
 
@@ -256,21 +259,20 @@ export class ImpostorEngine extends BaseEngine {
             ? this.state.roundsPlayed % this.activeCategoryIds.length
             : 0;
         const currentCategoryId = this.activeCategoryIds[catIndex] || this.activeCategoryIds[0];
-        const catData = currentCategoryId ? impostorWords.getCategory(currentCategoryId) : undefined;
+        const catData = currentCategoryId ? this.wordProvider.getCategory(currentCategoryId) : undefined; // Replaced impostorWords.
         const secretCategory = catData?.name || 'Desconocida';
 
         // Get random word, excluding already used ones
         let wordData = currentCategoryId
-            ? impostorWords.getRandomWord(currentCategoryId, this.usedWords)
+            ? this.wordProvider.getRandomWord(currentCategoryId, this.usedWords) // Replaced impostorWords.
             : null;
         if (!wordData && currentCategoryId) {
             console.warn('[ImpostorEngine] All words exhausted for category, clearing memory');
             this.usedWords.clear();
-            wordData = impostorWords.getRandomWord(currentCategoryId, this.usedWords);
+            wordData = this.wordProvider.getRandomWord(currentCategoryId, this.usedWords); // Replaced impostorWords.
         }
         const secretWord = wordData?.word || 'Misterio';
         if (wordData) this.usedWords.add(wordData.id);
-
         console.log(`[ImpostorEngine] Round ${this.state.roundsPlayed + 1}: Category "${secretCategory}", Word "${secretWord}"`);
 
         // Smart impostor selection: avoid repeating last impostor (when possible)
@@ -373,7 +375,7 @@ export class ImpostorEngine extends BaseEngine {
                 this.state.gameOverReason = 'NORMAL';
                 this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
                 // Sprint 2.1: Garbage Collection
-                impostorWords.clearCache();
+                this.wordProvider.clearCache();
             }
         } else {
             // Ciclo terminó en empate o eliminación parcial, el juego continúa
@@ -496,7 +498,7 @@ export class ImpostorEngine extends BaseEngine {
         this.currentImpostorIds = [];
 
         // Sprint 2.1: Garbage Collection
-        impostorWords.clearCache();
+        this.wordProvider.clearCache();
 
         return this.state;
     }

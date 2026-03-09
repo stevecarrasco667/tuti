@@ -7,7 +7,7 @@
 import type { ImpostorWord, ImpostorCategoryData } from '../../types.js';
 import { SupabaseClient } from '@supabase/supabase-js';
 
-class ImpostorWordProvider {
+export class ImpostorWordProvider {
     // Temporal Cache (populated per-round)
     private categories: Map<string, ImpostorCategoryData>;
 
@@ -133,6 +133,3 @@ class ImpostorWordProvider {
         return this.categories.get(categoryId);
     }
 }
-
-// Singleton Export
-export const impostorWords = new ImpostorWordProvider();

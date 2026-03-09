@@ -1,0 +1,143 @@
+import { ref, computed, watch } from 'vue';
+import { RoomState, PrivateRolePayload } from '../../shared/types';
+
+// Global state to persist across component mounts if needed
+export const localImpostorRole = ref<PrivateRolePayload | null>(null);
+
+export const gameState = ref<RoomState>({
+    stateVersion: 0,
+    status: 'LOBBY',
+    players: [],
+    spectators: [],
+    roomId: null,
+    currentLetter: null,
+    categories: [],
+    answers: {},
+    answerStatuses: {},
+    roundsPlayed: 0,
+    votes: {},
+    whoFinishedVoting: [],
+    roundScores: {},
+    config: {
+        mode: 'CLASSIC',
+        isPublic: false,
+        maxPlayers: 8,
+        classic: {
+            rounds: 5,
+            timeLimit: 60,
+            votingDuration: 30,
+            categories: [],
+            customCategories: [],
+            mutators: {
+                suicidalStop: false,
+                anonymousVoting: false
+            }
+        },
+        impostor: {
+            rounds: 3,
+            typingTime: 30,
+            votingTime: 40
+        }
+    },
+    timers: {
+        roundEndsAt: null,
+        votingEndsAt: null,
+        resultsEndsAt: null
+    },
+    remainingTime: 0,
+    stoppedBy: null,
+    gameOverReason: undefined,
+    uiMetadata: {
+        activeView: 'LOBBY',
+        showTimer: false,
+        targetTime: null
+    }
+});
+
+// UI states
+export const isStopping = ref(false);
+export const isUpdateAvailable = ref(false);
+
+// Storage Constants
+export const STORAGE_KEY_USER_ID = 'tuti-user-id';
+export const STORAGE_KEY_USER_NAME = 'tuti-user-name';
+export const STORAGE_KEY_USER_AVATAR = 'tuti-user-avatar';
+export const STORAGE_KEY_SESSION_TOKEN = 'tuti-session-token';
+
+export function useGameState() {
+    // 1. User ID Persistence
+    const getStoredUserId = () => {
+        if (typeof localStorage !== 'undefined') {
+            return localStorage.getItem(STORAGE_KEY_USER_ID);
+        }
+        return null; // Fallback for SSR/Test without DOM
+    };
+
+    const generateSafeId = (): string => {
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+            return crypto.randomUUID();
+        }
+        // Fallback para HTTP (red local / móviles sin contexto seguro)
+        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    };
+
+    const myUserId = ref<string>(getStoredUserId() || generateSafeId());
+
+    // Watcher for ID to support server re-assignment
+    watch(myUserId, (newId) => {
+        if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY_USER_ID, newId);
+    }, { immediate: true });
+
+    // 2. User Name Persistence
+    const getStoredUserName = () => typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY_USER_NAME) : '';
+    const myUserName = ref<string>(getStoredUserName() || '');
+
+    watch(myUserName, (newName) => {
+        if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY_USER_NAME, newName);
+    });
+
+    // 3. User Avatar Persistence
+    const getStoredAvatar = () => typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY_USER_AVATAR) : '🦁';
+    const myUserAvatar = ref<string>(getStoredAvatar() || '🦁');
+
+    watch(myUserAvatar, (newAvatar) => {
+        if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY_USER_AVATAR, newAvatar);
+    });
+
+    // Computed: Global properties
+    const amIHost = computed(() => {
+        const me = gameState.value.players.find(p => p.id === myUserId.value);
+        return me?.isHost || false;
+    });
+
+    const isGameOver = computed(() => gameState.value.status === 'GAME_OVER');
+
+    // UI Helpers (derived from server's uiMetadata instead of raw status)
+    const isLobbyPhase = computed(() => gameState.value.uiMetadata.activeView === 'LOBBY');
+    const isGamePhase = computed(() => gameState.value.uiMetadata.activeView === 'GAME');
+    const isResultsPhase = computed(() => ['RESULTS', 'REVIEW'].includes(gameState.value.status));
+
+    // For specific UI states without mutating
+    const setStopping = (val: boolean) => isStopping.value = val;
+
+    return {
+        // Direct References
+        gameState,
+        localImpostorRole,
+        isStopping,
+        isUpdateAvailable,
+        myUserId,
+        myUserName,
+        myUserAvatar,
+
+        // Computed Helpers
+        amIHost,
+        isGameOver,
+        isLobbyPhase,
+        isGamePhase,
+        isResultsPhase,
+
+        // Mutators / Actions on local state ONLY
+        setStopping
+    };
+}

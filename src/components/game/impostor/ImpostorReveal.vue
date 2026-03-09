@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { ImpostorData } from '../../../../shared/types';
-import { localImpostorRole } from '../../../composables/useGame';
+import { localImpostorRole } from '../../../composables/useGameState';
 
 const props = defineProps<{
     impostorData: ImpostorData;

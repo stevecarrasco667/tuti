@@ -1,451 +1,66 @@
-import { ref, watch, computed } from 'vue';
-import { useSocket } from './useSocket';
-import { debounce } from '../utils/timing';
-import { RoomState, ServerMessage, GameConfig, DeepPartial, PrivateRolePayload } from '../../shared/types';
-import { EVENTS, APP_VERSION } from '../../shared/consts';
-import { applyPatch } from 'fast-json-patch';
+import { useGameState } from './useGameState';
+import { useGameSync } from './useGameSync';
+import { useGameActions } from './useGameActions';
 
-// Global state to persist across component mounts if needed
-// Sprint 3.4: Local private role — received via WebSocket whisper, never in public state
-export const localImpostorRole = ref<PrivateRolePayload | null>(null);
-
-const gameState = ref<RoomState>({
-    // ... initial state
-    stateVersion: 0,
-    status: 'LOBBY',
-    players: [],
-    spectators: [],
-    roomId: null,
-    currentLetter: null,
-    categories: [],
-    answers: {},
-    answerStatuses: {},
-    roundsPlayed: 0,
-    votes: {},
-    whoFinishedVoting: [],
-    roundScores: {},
-    config: {
-        mode: 'CLASSIC',
-        isPublic: false,
-        maxPlayers: 8,
-        classic: {
-            rounds: 5,
-            timeLimit: 60,
-            votingDuration: 30,
-            categories: [],
-            customCategories: [],
-            mutators: {
-                suicidalStop: false,
-                anonymousVoting: false
-            }
-        },
-        impostor: {
-            rounds: 3,
-            typingTime: 30,
-            votingTime: 40
-        }
-    },
-    timers: {
-        roundEndsAt: null,
-        votingEndsAt: null,
-        resultsEndsAt: null
-    },
-    remainingTime: 0,
-    stoppedBy: null,
-    gameOverReason: undefined,
-    uiMetadata: {
-        activeView: 'LOBBY',
-        showTimer: false,
-        targetTime: null
-    }
-});
-
+/**
+ * useGame Facade
+ * 
+ * Orquestador principal del estado y red del juego. 
+ * Implementa un patrón "Composition Facade" para mantener la firma (API Pública)
+ * idéntica a la que esperan las vistas Vue, mientras divide responsabilidades 
+ * internas en State, Sync y Actions.
+ */
 export function useGame() {
-    const { socket, lastMessage, setRoomId, isConnected } = useSocket();
+    // 1. Instanciar la Malla de Estado Puro (Refs & Computed)
+    const state = useGameState();
 
-    const isStopping = ref(false);
-    const isUpdateAvailable = ref(false);
+    // 2. Conectar la capa de Sincronización inyectando el Estado (Inbound/Hydration)
+    // Extraemos isConnected y tryRestoreSession como parte de la API pública expuesta
+    const { isConnected, connectToParty } = useGameSync(state);
 
-    // Persistence Constants
-    const STORAGE_KEY_USER_ID = 'tuti-user-id';
-    const STORAGE_KEY_USER_NAME = 'tuti-user-name';
-    const STORAGE_KEY_USER_AVATAR = 'tuti-user-avatar';
-    const STORAGE_KEY_SESSION_TOKEN = 'tuti-session-token';
+    // 3. Conectar las emisiones (Outbound) e inyectar validaciones de Estado y Socket
+    const actions = useGameActions(state);
 
-    // Watch for incoming messages
-    watch(lastMessage, (newMsg) => {
-        if (!newMsg) return;
-
-        try {
-            const parsed: ServerMessage = JSON.parse(newMsg);
-
-            if (parsed.type === EVENTS.UPDATE_STATE) {
-                const newState = parsed.payload;
-
-                // Fix: RIVAL_UPDATE persiste filledCount en el cliente, pero UPDATE_STATE
-                // no lo resetea (viene como undefined). Al iniciar una nueva ronda (PLAYING),
-                // lo forzamos a 0 antes de asignar, para que no quede el valor de la ronda anterior.
-                if (newState.status === 'PLAYING' && newState.players) {
-                    newState.players.forEach((p: any) => { p.filledCount = 0; });
-                }
-
-                gameState.value = newState;
-                // Clear local role cache when back to lobby or game over
-                if (newState.status === 'LOBBY' || newState.status === 'GAME_OVER') {
-                    localImpostorRole.value = null;
-                }
-                // If we were stopping and state changed from PLAYING, reset flag
-                if (isStopping.value && gameState.value.status !== 'PLAYING') {
-                    isStopping.value = false;
-                }
-            } else if (parsed.type === EVENTS.PATCH_STATE) {
-                // [Refactor C] Checked Delta Sync (Zero-Trust Integrity)
-                const { stateVersion, patches } = parsed.payload;
-
-                if (stateVersion === gameState.value.stateVersion + 1) {
-                    // Secuencia perfecta: aplicar parche
-                    applyPatch(gameState.value, patches);
-                    gameState.value.stateVersion = stateVersion; // Safety net enforce
-                } else if (stateVersion > gameState.value.stateVersion + 1) {
-                    // Paquete perdido o salto asíncrono. Curar estado forzosamente.
-                    console.warn(`[Red] Desfase Crítico (Local: ${gameState.value.stateVersion} vs Requerido: ${stateVersion}). Solicitando FULL SYNC...`);
-                    if (socket.value && socket.value.readyState === WebSocket.OPEN) {
-                        socket.value.send(JSON.stringify({ type: EVENTS.REQUEST_FULL_SYNC }));
-                    }
-                } else {
-                    // Paquetes viejos/retrasados: Drop silencioso.
-                    console.debug(`[Red] Ignorando parche obsoleto: ${stateVersion}`);
-                }
-
-                // [SAFETY NET] Deduplicate players array after patch application
-                // Prevents ghost players if baselines desync between server and client
-                if (gameState.value.players) {
-                    const seen = new Set<string>();
-                    gameState.value.players = gameState.value.players.filter(p => {
-                        if (seen.has(p.id)) return false;
-                        seen.add(p.id);
-                        return true;
-                    });
-                }
-            } else if (parsed.type === EVENTS.AUTH_GRANTED) {
-                // [Phoenix] Anti-Spoofing Handshake
-                const { userId, sessionToken } = parsed.payload;
-
-                // 1. Persist Token
-                if (typeof localStorage !== 'undefined') {
-                    localStorage.setItem(STORAGE_KEY_SESSION_TOKEN, sessionToken);
-                }
-
-                // 2. Persist/Update ID (if server rejected our claim)
-                if (userId !== myUserId.value) {
-                    console.warn(`[Security] Server assigned new ID: ${userId}`);
-                    myUserId.value = userId; // Will trigger watcher to save
-                }
-            } else if (parsed.type === EVENTS.RIVAL_UPDATE) {
-                // [SILENT UPDATE] Optimize rendering by only updating specific field
-                const { playerId, filledCount } = parsed.payload;
-                const player = gameState.value.players.find(p => p.id === playerId);
-                if (player) {
-                    player.filledCount = filledCount;
-                }
-            } else if (parsed.type === EVENTS.PRIVATE_ROLE_ASSIGNMENT) {
-                // Sprint 3.4: Whispered private role — stored locally, never in public state
-                localImpostorRole.value = parsed.payload as PrivateRolePayload;
-                console.log('[Sprint3.4] Private role received:', localImpostorRole.value?.role);
-            } else if (parsed.type === EVENTS.SYSTEM_VERSION) {
-                const serverVersion = (parsed.payload as any).version;
-                if (serverVersion && serverVersion !== APP_VERSION) {
-                    console.warn(`[VERSION MISMATCH] Client: ${APP_VERSION}, Server: ${serverVersion}`);
-                    isUpdateAvailable.value = true;
-                }
-            } else if (parsed.type === EVENTS.SERVER_ERROR) {
-                // [Phoenix P0] Server-side error — do not attempt to parse state
-                console.error('[Server Error]:', (parsed.payload as { message: string }).message);
-            }
-        } catch (e) {
-            console.error('Failed to parse message:', e);
-        }
-    });
-
-    // 1. User ID Persistence
-    const getStoredUserId = () => {
-        if (typeof localStorage !== 'undefined') {
-            return localStorage.getItem(STORAGE_KEY_USER_ID);
-        }
-        return null; // Fallback for SSR/Test without DOM
-    };
-
-    const generateSafeId = (): string => {
-        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-            return crypto.randomUUID();
-        }
-        // Fallback para HTTP (red local / móviles sin contexto seguro)
-        return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    };
-
-    const myUserId = ref<string>(getStoredUserId() || generateSafeId());
-
-    // Ensure it's saved if we generated a new one or if it was missing
-    // [Phoenix] Added watcher for ID to support server re-assignment
-    watch(myUserId, (newId) => {
-        if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY_USER_ID, newId);
-    }, { immediate: true });
-
-    // 2. User Name Persistence
-    const getStoredUserName = () => typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY_USER_NAME) : '';
-    const myUserName = ref<string>(getStoredUserName() || '');
-
-    // Watch and save name changes
-    watch(myUserName, (newName) => {
-        if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY_USER_NAME, newName);
-    });
-
-    // 3. User Avatar Persistence
-    const getStoredAvatar = () => typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY_USER_AVATAR) : '🦁';
-    const myUserAvatar = ref<string>(getStoredAvatar() || '🦁');
-
-    watch(myUserAvatar, (newAvatar) => {
-        if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_KEY_USER_AVATAR, newAvatar);
-    });
-
-    // Computed: Check if current user is host
-    const amIHost = computed(() => {
-        const me = gameState.value.players.find(p => p.id === myUserId.value);
-        return me?.isHost || false;
-    });
-
-    const joinGame = async (name: string, roomId: string, avatar: string, isPublic?: boolean) => {
-        const userId = myUserId.value; // Use the reactive myUserId
-
-        // [Phoenix] Retrieve token
-        const token = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY_SESSION_TOKEN) || undefined : undefined;
-
-        // 1. Connect to the specific room with identity & token
-        setRoomId(roomId, { userId, name, avatar, token, public: isPublic ? 'true' : undefined });
-
-        // Update URL for deep linking
-        const url = new URL(window.location.href);
-        url.searchParams.set('room', roomId);
-        window.history.pushState({}, '', url);
-
-        // 2. Wait for connection to open
-        // Simple polling for now
-        const waitForConnection = () => {
-            return new Promise<void>((resolve) => {
-                if (isConnected.value) {
-                    resolve();
-                    return;
-                }
-                const unwatch = watch(isConnected, (connected) => {
-                    if (connected) {
-                        unwatch();
-                        resolve();
-                    }
-                });
-            });
-        };
-
-        await waitForConnection();
-
-        // 3. JOIN message is now handled by connection params, no need to send manually here
-        // The server 'connection' handler will read params and auto-join the player.
-    };
-
-    const startGame = () => {
-        if (!socket.value) return;
-        socket.value.send(JSON.stringify({ type: EVENTS.START_GAME }));
-    };
-
-    const submitAnswers = (answers: Record<string, string>) => {
-        if (!socket.value) return;
-        socket.value.send(JSON.stringify({
-            type: EVENTS.SUBMIT_ANSWERS,
-            payload: { answers }
-        }));
-    };
-
-    const stopRound = (answers: Record<string, string>) => {
-        if (!socket.value) return;
-        isStopping.value = true; // Optimistic Lock
-        socket.value.send(JSON.stringify({
-            type: EVENTS.STOP_ROUND,
-            payload: { answers }
-        }));
-
-        // Safety timeout in case server doesn't respond
-        setTimeout(() => { isStopping.value = false; }, 3000);
-    };
-
-    // Continuous Sync (Debounced)
-    const updateAnswers = (answers: Record<string, string>) => {
-        if (!socket.value) return;
-        socket.value.send(JSON.stringify({
-            type: EVENTS.UPDATE_ANSWERS,
-            payload: { answers }
-        }));
-    };
-
-    const debouncedUpdateAnswers = debounce(updateAnswers, 500);
-
-    // Watch for state changes to REVIEW to trigger submitting answers if we haven't already
-    // Note: The UI component should handle calling 'submitAnswers' when it detects the state change 
-    // to grab the current values from the inputs. 
-    // However, defining the transport method here is key.
-
-    // We expose a helper to check if we need to submit
-    const shouldSubmit = () => gameState.value.status === 'REVIEW';
-
-    const toggleVote = (targetUserId: string, category: string) => {
-        if (!socket.value) return;
-        socket.value.send(JSON.stringify({
-            type: EVENTS.TOGGLE_VOTE,
-            payload: { targetUserId, category }
-        }));
-    };
-
-    const confirmVotes = () => {
-        if (!socket.value) return;
-        socket.value.send(JSON.stringify({
-            type: EVENTS.CONFIRM_VOTES
-        }));
-    };
-
-    const updateConfig = (config: DeepPartial<GameConfig>) => {
-        if (!socket.value) return;
-        socket.value.send(JSON.stringify({
-            type: EVENTS.UPDATE_CONFIG,
-            payload: config
-        }));
-    };
-
-    const resetGame = () => {
-        if (!socket.value) return;
-        socket.value.send(JSON.stringify({
-            type: EVENTS.RESTART_GAME
-        }));
-    };
-
-    const kickPlayer = (targetUserId: string) => {
-        if (!socket.value) return;
-        socket.value.send(JSON.stringify({
-            type: EVENTS.KICK_PLAYER,
-            payload: { targetUserId }
-        }));
-    };
-
-    // [Phoenix CDN] Admin utility — callable from browser console
-    const forceDictionaryReload = () => {
-        socket.value?.send(JSON.stringify({ type: EVENTS.ADMIN_RELOAD_DICTS, userId: myUserId.value }));
-    };
-
-    const leaveGame = () => {
-        // 1. Send Explicit Exit & Close Socket
-        if (socket.value) {
-            // FIRE AND FORGET: Try to tell server we are leaving
-            // If network is down, it fails silently, but server watchdog cleans up anyway.
-            try {
-                socket.value.send(JSON.stringify({ type: EVENTS.EXIT_GAME }));
-            } catch (e) { /* ignore */ }
-
-            // EXECUTE PROTOCOL 66: Intentional Disconnect
-            const { disconnectIntentionally } = useSocket();
-            disconnectIntentionally();
-        }
-
-        // 2. Clear room reference
-        setRoomId(null);
-
-        // 3. Reset state to initial
-        gameState.value = {
-            stateVersion: 0,
-            status: 'LOBBY',
-            players: [],
-            spectators: [],
-            roomId: null,
-            currentLetter: null,
-            categories: [],
-            answers: {},
-            answerStatuses: {},
-            roundsPlayed: 0,
-            votes: {},
-            whoFinishedVoting: [],
-            roundScores: {},
-            config: {
-                mode: 'CLASSIC',
-                isPublic: false,
-                maxPlayers: 8,
-                classic: {
-                    rounds: 5,
-                    timeLimit: 60,
-                    votingDuration: 30,
-                    categories: [],
-                    customCategories: [],
-                    mutators: {
-                        suicidalStop: false,
-                        anonymousVoting: false
-                    }
-                },
-                impostor: {
-                    rounds: 3,
-                    typingTime: 30,
-                    votingTime: 40
-                }
-            },
-            timers: {
-                roundEndsAt: null,
-                votingEndsAt: null,
-                resultsEndsAt: null
-            },
-            remainingTime: 0,
-            stoppedBy: null,
-            gameOverReason: undefined,
-            uiMetadata: {
-                activeView: 'LOBBY',
-                showTimer: false,
-                targetTime: null
-            }
-        };
-
-        // 4. Clear URL
-        if (typeof window !== 'undefined') {
-            const url = new URL(window.location.href);
-            url.searchParams.delete('room');
-            window.history.pushState({}, '', url);
-        }
-    };
-
+    // 4. Devolver el gran Objeto Fusionado
+    // Nota: El uso de desestructuración plana asume que las vistas Vue usan ref().value directamente, 
+    // pero como devolvemos las mismas variables de useGameState, 
+    // reactividad nativa de Vue3 (Proxy) preserva los binding en el DOM.
     return {
-        gameState,
-        joinGame,
-        startGame,
-        stopRound,
-        submitAnswers,
-        debouncedUpdateAnswers,
-        shouldSubmit,
-        toggleVote,
-        confirmVotes,
-        updateConfig,
-        resetGame,
-        kickPlayer,
-        myUserId,
-        myUserName,
-        amIHost,
-        myUserAvatar,
-        tryRestoreSession: () => {
-            const url = new URL(window.location.href);
-            const roomParam = url.searchParams.get('room');
+        // --- ESTADO Y PROPIEDADES REACTIVAS ---
+        gameState: state.gameState,
+        localImpostorRole: state.localImpostorRole,
+        isStopping: state.isStopping,
+        isUpdateAvailable: state.isUpdateAvailable,
+        myUserId: state.myUserId,
+        myUserName: state.myUserName,
+        myUserAvatar: state.myUserAvatar,
 
-            if (roomParam && myUserId.value && myUserName.value && myUserAvatar.value) {
-                console.log('🔄 Restoring session for room:', roomParam);
-                joinGame(myUserName.value, roomParam, myUserAvatar.value);
-                return true;
-            }
-            return false;
-        },
-        leaveGame,
-        forceDictionaryReload,
+        // --- HELPERS COMPUTADOS ---
+        amIHost: state.amIHost,
+        isGameOver: state.isGameOver,
+        isLobbyPhase: state.isLobbyPhase,
+        isGamePhase: state.isGamePhase,
+        isResultsPhase: state.isResultsPhase,
+
+        // --- ESTADO DE RED ---
         isConnected,
-        isStopping,
-        isUpdateAvailable
+        tryRestoreSession: connectToParty,
+
+        // --- ACCIONES (Mutadores y WebSockets Outbound) ---
+        joinGame: actions.joinGame,
+        startGame: actions.startGame,
+        submitAnswers: actions.submitAnswers,
+        stopRound: actions.stopRound,
+        updateAnswers: actions.updateAnswers,
+        debouncedUpdateAnswers: actions.debouncedUpdateAnswers,
+        shouldSubmit: actions.shouldSubmit,
+        toggleVote: actions.toggleVote,
+        confirmVotes: actions.confirmVotes,
+        updateConfig: actions.updateConfig,
+        resetGame: actions.resetGame,
+        kickPlayer: actions.kickPlayer,
+        forceDictionaryReload: actions.forceDictionaryReload,
+        leaveGame: actions.leaveGame,
+        sendChatMessage: actions.sendChatMessage
     };
 }
