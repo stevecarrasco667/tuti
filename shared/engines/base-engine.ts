@@ -54,6 +54,11 @@ export abstract class BaseEngine {
      *  Updates the server-canonical remaining time and broadcasts it to clients. */
     abstract tick(newValue: number): void;
 
+    /** Sprint 4 Death Hook: Forces release of all GlobalCache references.
+     *  Called when a room enters hibernation or all connections close.
+     *  Must be idempotent — safe to call multiple times. */
+    abstract dispose(): void;
+
     // --- SUB-SYSTEMS (exposed for server.ts reconnection logic) ---
     abstract get players(): PlayerManager;
 }

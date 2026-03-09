@@ -2,19 +2,30 @@
 // Import raw JSON data
 import levenshtein from 'fast-levenshtein';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { GlobalWordCache } from './global-word-cache';
 
 // Helper to normalized strings: Lowercase + NFD + Remove Accents + Trim
 const normalize = (str: string) => str.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 export class DictionaryManager {
-    // Temporal Cache (populated per-round)
-    private datasets: Record<string, Set<string>> = {};
+    // Sprint 4: Proxy Pattern — no local data storage.
+    // Only tracks which categories THIS room has acquired from the GlobalCache.
+    private activeCategories: string[] = [];
+    private disposed = false;
 
     /**
-     * Clears the Temporal Cache to free up memory when a round is over.
+     * Releases all acquired references and marks this proxy as disposed.
+     * Idempotent: safe to call multiple times (GAME_OVER + Death Hook).
      */
     public clearCache() {
-        this.datasets = {};
+        if (this.disposed) return;
+        this.disposed = true;
+
+        for (const catId of this.activeCategories) {
+            GlobalWordCache.release(catId);
+        }
+        this.activeCategories = [];
+        console.log(`[DictionaryManager] Proxy disposed. GlobalCache stats:`, GlobalWordCache.getStats());
     }
 
     /**
@@ -35,38 +46,27 @@ export class DictionaryManager {
     }
 
     /**
-     * Temporal Cache Hydration: Loads all words for a specific category into memory.
-     * Must be called at the start of a round using `await`.
+     * Acquires a reference to a category's word set from the GlobalWordCache.
+     * Sprint 4: No longer stores data locally — delegates to the shared Bóveda.
      */
     public async loadCategory(categoryId: string, supabase: SupabaseClient): Promise<void> {
-        // If already cached, skip
-        if (this.datasets[categoryId]) return;
+        // If already acquired by this proxy, skip
+        if (this.activeCategories.includes(categoryId)) return;
 
-        const { data, error } = await supabase
-            .from('words')
-            .select('word')
-            .eq('category_id', categoryId);
+        // Reset disposed flag if re-used (e.g., new round after GAME_OVER)
+        this.disposed = false;
 
-        if (error || !data) {
-            console.error(`[DictionaryManager] Failed to load words for category ${categoryId}:`, error);
-            return;
-        }
-
-        const set = new Set<string>();
-        for (const row of data) {
-            set.add(normalize(row.word));
-        }
-
-        this.datasets[categoryId] = set;
-        console.log(`[DictionaryManager] Cached ${set.size} words for category ${categoryId}`);
+        await GlobalWordCache.acquire(categoryId, supabase);
+        this.activeCategories.push(categoryId);
+        console.log(`[DictionaryManager] Proxy acquired "${categoryId}". Active: [${this.activeCategories.join(', ')}]`);
     }
 
     /**
      * Synchronous Validations (O(1)).
-     * Relies on Temporal Cache being pre-loaded.
+     * Reads from GlobalWordCache instead of local storage.
      */
     public hasExact(categoryId: string, word: string): boolean {
-        const collection = this.datasets[categoryId];
+        const collection = GlobalWordCache.get(categoryId);
         if (!collection) {
             console.warn(`[DictionaryManager] Attempted to validate against uncached category: ${categoryId}`);
             return false;
@@ -76,7 +76,7 @@ export class DictionaryManager {
 
     public isFuzzyValid(categoryId: string, word: string): boolean {
         const normalizedWord = normalize(word);
-        const collection = this.datasets[categoryId];
+        const collection = GlobalWordCache.get(categoryId);
 
         if (!collection) {
             console.warn(`[DictionaryManager] Attempted to validate against uncached category: ${categoryId}`);
@@ -107,7 +107,6 @@ export class DictionaryManager {
     }
 
     public getCollection(categoryId: string): Set<string> | undefined {
-        return this.datasets[categoryId];
+        return GlobalWordCache.get(categoryId);
     }
 }
-

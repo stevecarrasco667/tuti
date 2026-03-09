@@ -575,6 +575,10 @@ export default class Server implements Party.Server {
             // [Sprint 1] Stop Tick Loop — no players means no need to count down
             this.stopTick();
 
+            // [Sprint 4] Death Hook — Release all GlobalCache references
+            // Prevents zombie RAM when rooms hibernate with no players.
+            this.engine.dispose();
+
             // [Phoenix Lobby] Stop Heartbeat to allow hibernation
             if (this.heartbeatInterval) {
                 clearInterval(this.heartbeatInterval);

@@ -600,4 +600,11 @@ export class ImpostorEngine extends BaseEngine {
     public tick(newValue: number): void {
         this.state.remainingTime = Math.max(-1, newValue);
     }
+
+    // [Sprint 4] Death Hook — release all GlobalImpostorCache references
+    public dispose(): void {
+        this.clearTimer();
+        this.wordProvider.clearCache();
+        console.log(`[ImpostorEngine] Disposed for room ${this.state.roomId}`);
+    }
 }

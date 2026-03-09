@@ -569,4 +569,11 @@ export class TutiEngine extends BaseEngine {
     public tick(newValue: number): void {
         this.state.remainingTime = Math.max(-1, newValue);
     }
+
+    // [Sprint 4] Death Hook — release all GlobalWordCache references
+    public dispose(): void {
+        this.rounds.cancelTimer();
+        this.validation.getDictionaryManager().clearCache();
+        console.log(`[TutiEngine] Disposed for room ${this.state.roomId}`);
+    }
 }

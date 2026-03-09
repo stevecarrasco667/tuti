@@ -1,25 +1,30 @@
 // =============================================
-// ImpostorWordProvider — Singleton Data Layer
+// ImpostorWordProvider — Proxy to GlobalImpostorCache
 // =============================================
-// Sprint 3.1: Sole authority for Impostor word/category data.
-// The ImpostorEngine will consume this provider in future sprints.
+// Sprint 4: No longer stores data locally.
+// Acquires/releases references from the shared Bóveda.
 
 import type { ImpostorWord, ImpostorCategoryData } from '../../types.js';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { GlobalImpostorCache } from './global-impostor-cache';
 
 export class ImpostorWordProvider {
-    // Temporal Cache (populated per-round)
-    private categories: Map<string, ImpostorCategoryData>;
-
-    constructor() {
-        this.categories = new Map();
-    }
+    // Sprint 4: Proxy Pattern — tracks acquired categories only
+    private activeCategories: string[] = [];
+    private disposed = false;
 
     /**
-     * Clears the Temporal Cache to free up memory when a round is over.
+     * Releases all acquired references. Idempotent via disposed flag.
      */
     public clearCache() {
-        this.categories.clear();
+        if (this.disposed) return;
+        this.disposed = true;
+
+        for (const catId of this.activeCategories) {
+            GlobalImpostorCache.release(catId);
+        }
+        this.activeCategories = [];
+        console.log(`[ImpostorWordProvider] Proxy disposed. GlobalCache stats:`, GlobalImpostorCache.getStats());
     }
 
     /**
@@ -40,60 +45,27 @@ export class ImpostorWordProvider {
     }
 
     /**
-     * Temporal Cache Hydration: Loads all words for a specific category into memory.
-     * Must be called at the start of a round using `await`.
+     * Acquires a reference to a category from the GlobalImpostorCache.
      */
     public async loadCategory(categoryId: string, supabase: SupabaseClient): Promise<void> {
-        // If already cached, skip
-        if (this.categories.has(categoryId)) return;
+        if (this.activeCategories.includes(categoryId)) return;
 
-        // Fetch category name
-        const { data: categoryData, error: catError } = await supabase
-            .from('categories')
-            .select('name')
-            .eq('id', categoryId)
-            .single();
+        // Reset disposed flag if re-used
+        this.disposed = false;
 
-        if (catError || !categoryData) {
-            console.error(`[ImpostorWordProvider] Failed to load category name for ${categoryId}:`, catError);
-            return;
+        const data = await GlobalImpostorCache.acquire(categoryId, supabase);
+        if (data) {
+            this.activeCategories.push(categoryId);
+            console.log(`[ImpostorWordProvider] Proxy acquired "${categoryId}". Active: [${this.activeCategories.join(', ')}]`);
         }
-
-        const { data: wordsData, error: wordsError } = await supabase
-            .from('words')
-            .select('id, word, difficulty')
-            .eq('category_id', categoryId);
-
-        if (wordsError || !wordsData) {
-            console.error(`[ImpostorWordProvider] Failed to load words for category ${categoryId}:`, wordsError);
-            return;
-        }
-
-        const impostorWords: ImpostorWord[] = wordsData.map(row => ({
-            id: String(row.id),
-            word: row.word,
-            difficulty: row.difficulty
-        }));
-
-        this.categories.set(categoryId, {
-            categoryId,
-            name: categoryData.name,
-            words: impostorWords
-        });
-
-        console.log(`[ImpostorWordProvider] Cached ${impostorWords.length} words for category ${categoryId}`);
     }
 
     /**
-     * Synchronous Validations (O(1)).
-     * Relies on Temporal Cache being pre-loaded.
-     *
      * Returns a random word from the specified category,
      * excluding any word whose ID is in `usedWordIds`.
-     * Returns null if no words are available (all exhausted).
      */
     public getRandomWord(categoryId: string, usedWordIds: Set<string>): ImpostorWord | null {
-        const category = this.categories.get(categoryId);
+        const category = GlobalImpostorCache.get(categoryId);
         if (!category) {
             console.warn(`[ImpostorWordProvider] Attempted to pick word from uncached category: ${categoryId}`);
             return null;
@@ -110,15 +82,12 @@ export class ImpostorWordProvider {
     }
 
     /**
-     * Returns a random category ID from the *currently loaded* cache.
-     * Optionally excluding already-used categories.
-     * Note: In Sprint 2, this assumes you have pre-loaded the categories you want to pick from.
+     * Returns a random category ID from the *currently acquired* categories.
      */
     public getRandomCategory(usedCategoryIds?: Set<string>): string | null {
-        const allIds = Array.from(this.categories.keys());
         const available = usedCategoryIds
-            ? allIds.filter(id => !usedCategoryIds.has(id))
-            : allIds;
+            ? this.activeCategories.filter(id => !usedCategoryIds.has(id))
+            : [...this.activeCategories];
 
         if (available.length === 0) return null;
 
@@ -127,9 +96,9 @@ export class ImpostorWordProvider {
     }
 
     /**
-     * Returns the full category data from the cache for a given categoryId.
+     * Returns the full category data from the GlobalImpostorCache.
      */
     public getCategory(categoryId: string): ImpostorCategoryData | undefined {
-        return this.categories.get(categoryId);
+        return GlobalImpostorCache.get(categoryId);
     }
 }
