@@ -196,7 +196,15 @@ export class ImpostorEngine extends BaseEngine {
         if (!player) return this.state;
         if (!player.isHost) return this.state;
 
+        // [Sprint 2.1] Phase 1 - Idempotency Guard
+        if (this.state.status === 'LOADING_ROUND') {
+            console.warn('[Idempotency] Request ignored, game is already LOADING_ROUND');
+            return this.state;
+        }
+
         if (this.state.status === 'LOBBY' || this.state.status === 'GAME_OVER') {
+            this.state.status = 'LOADING_ROUND';
+
             if (this.state.spectators.length > 0) {
                 this.state.players.push(...this.state.spectators);
                 this.state.spectators = [];
@@ -206,20 +214,24 @@ export class ImpostorEngine extends BaseEngine {
             this.state.players.forEach(p => p.score = 0);
             this.state.roundsPlayed = 0;
 
-            // Sprint 3.3: Select random categories from provider based on host config
+            // Sprint 2.1: Async Random Category Selection
             const count = this.state.config.impostor?.categoryCount || 3;
-            this.activeCategoryIds = [];
-            const usedCats = new Set<string>();
-            for (let i = 0; i < count; i++) {
-                const catId = impostorWords.getRandomCategory(usedCats);
-                if (catId) {
-                    this.activeCategoryIds.push(catId);
-                    usedCats.add(catId);
-                }
-            }
+
+            const { data: catData } = await this.supabase.from('categories').select('id').eq('game_mode', 'impostor');
+            const allCatIds = catData ? catData.map(c => c.id) : [];
+            const shuffled = [...allCatIds].sort(() => 0.5 - Math.random());
+            this.activeCategoryIds = shuffled.slice(0, count);
+
             this.usedWords.clear();
             this.lastImpostorId = null;
             console.log(`[ImpostorEngine] Selected ${this.activeCategoryIds.length} categories for match:`, this.activeCategoryIds);
+
+            // Phase 2: Parallel Load from Supabase to Temporal Cache
+            await Promise.all(
+                this.activeCategoryIds.map(catId =>
+                    impostorWords.loadCategory(catId, this.supabase)
+                )
+            );
 
             this.startNewRound();
         }
@@ -360,6 +372,8 @@ export class ImpostorEngine extends BaseEngine {
                 this.state.status = 'GAME_OVER';
                 this.state.gameOverReason = 'NORMAL';
                 this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
+                // Sprint 2.1: Garbage Collection
+                impostorWords.clearCache();
             }
         } else {
             // Ciclo terminó en empate o eliminación parcial, el juego continúa
@@ -480,6 +494,9 @@ export class ImpostorEngine extends BaseEngine {
         // Sprint 3.4: Clear secret memory
         this.secretWord = null;
         this.currentImpostorIds = [];
+
+        // Sprint 2.1: Garbage Collection
+        impostorWords.clearCache();
 
         return this.state;
     }

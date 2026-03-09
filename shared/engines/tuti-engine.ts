@@ -259,8 +259,15 @@ export class TutiEngine extends BaseEngine {
         if (!player) throw new Error("Player not found in state");
         if (!player.isHost) throw new Error("Only the host can start the game");
 
+        // [Sprint 2.1] Phase 1 - Idempotency Guard
+        if (this.state.status === 'LOADING_ROUND') {
+            console.warn('[Idempotency] Request ignored, game is already LOADING_ROUND');
+            return this.state;
+        }
+
         // CASE 1: Manual "Next Round" from Results screen
         if (this.state.status === 'RESULTS') {
+            this.state.status = 'LOADING_ROUND';
             if (this.state.spectators.length > 0) {
                 console.log(`[Spectator] Promoting ${this.state.spectators.length} spectators to players.`);
                 this.state.players.push(...this.state.spectators);
@@ -269,21 +276,28 @@ export class TutiEngine extends BaseEngine {
 
             const continueGame = this.rounds.nextRound(this.state, this.state.config);
             if (continueGame) {
-                // Ensure temporal cache is loaded for categories
-                for (const cat of this.state.categories) {
-                    await this.validation.getDictionaryManager().loadCategory(cat, this.supabase);
-                }
+                // Ensure temporal cache is loaded for categories (Parallel)
+                await Promise.all(
+                    this.state.categories.map(cat =>
+                        this.validation.getDictionaryManager().loadCategory(cat, this.supabase)
+                    )
+                );
 
                 this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
                 this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
             } else {
+                this.state.status = 'GAME_OVER';
                 this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
+                // Sprint 2.1: Garbage Collection
+                this.validation.getDictionaryManager().clearCache();
             }
             return this.state;
         }
 
         // CASE 2: Starting new game from Lobby/GameOver
         if (this.state.status === 'LOBBY' || this.state.status === 'GAME_OVER') {
+            this.state.status = 'LOADING_ROUND';
+
             if (this.state.spectators.length > 0) {
                 console.log(`[Spectator] Promoting ${this.state.spectators.length} spectators to players.`);
                 this.state.players.push(...this.state.spectators);
@@ -307,10 +321,12 @@ export class TutiEngine extends BaseEngine {
                 this.state.categories = shuffled.slice(0, count);
             }
 
-            // Hydrate temporal cache BEFORE starting the timer
-            for (const cat of this.state.categories) {
-                await this.validation.getDictionaryManager().loadCategory(cat, this.supabase);
-            }
+            // Hydrate temporal cache BEFORE starting the timer (Parallel)
+            await Promise.all(
+                this.state.categories.map(cat =>
+                    this.validation.getDictionaryManager().loadCategory(cat, this.supabase)
+                )
+            );
 
             this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
             this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };

@@ -10,7 +10,14 @@ export class GameHandler extends BaseHandler {
         try {
             await this.engine.startGame(sender.id);
         } catch (err) {
-            sendError(sender, (err as Error).message);
+            console.error(`[GameHandler] Fatal error during game bootstrap:`, err);
+
+            // Sprint 2.1 - Network Shield: Gracefully fallback to LOBBY
+            const state = this.engine.getState();
+            state.status = 'LOBBY';
+            state.uiMetadata = { activeView: 'LOBBY', showTimer: false, targetTime: null };
+
+            sendError(sender, "Error de red al inicializar la partida. Intente nuevamente.");
         }
     }
 
