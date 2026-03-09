@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue';
 import { useGame } from '../composables/useGame';
 import { useSound } from '../composables/useSound';
 import { MASTER_CATEGORIES } from '../../shared/engines/categories';
+import type { CategoryRef } from '../../shared/types';
 import TCard from './ui/TCard.vue';
 import TButton from './ui/TButton.vue';
 
@@ -51,14 +52,14 @@ const handleKick = (targetUserId: string, name: string) => {
 
 const handleQuickDelete = (catName: string) => {
     const current = localConfig.value.classic?.categories || [];
-    handleConfigChange('classic.categories', current.filter((c: string) => c !== catName));
+    handleConfigChange('classic.categories', current.filter((c: CategoryRef) => c.name !== catName));
 };
 
 // --- Manual Selection Modal ---
 const showCategoriesModal = ref(false);
 const searchQuery = ref('');
 const activeFilterTag = ref<string | null>(null);
-const tempSelectedCategories = ref<string[]>([]);
+const tempSelectedCategories = ref<CategoryRef[]>([]);
 
 const openCategoryModal = () => {
     tempSelectedCategories.value = [...(localConfig.value.classic?.categories || [])];
@@ -67,10 +68,10 @@ const openCategoryModal = () => {
     showCategoriesModal.value = true;
 };
 
-const toggleCategory = (catName: string) => {
-    const idx = tempSelectedCategories.value.indexOf(catName);
+const toggleCategory = (cat: CategoryRef) => {
+    const idx = tempSelectedCategories.value.findIndex(s => s.id === cat.id);
     if (idx === -1) {
-        tempSelectedCategories.value.push(catName);
+        tempSelectedCategories.value.push(cat);
     } else {
         tempSelectedCategories.value.splice(idx, 1);
     }
@@ -393,10 +394,10 @@ const copyRoomLink = () => {
                             <div class="flex-1 overflow-y-auto p-4 min-h-0">
                                 <div v-if="localConfig.classic?.categories?.length > 0" class="flex flex-wrap gap-2 content-start">
                                     <TransitionGroup name="list">
-                                    <div v-for="cat in localConfig.classic?.categories" :key="cat"
+                                    <div v-for="cat in localConfig.classic?.categories" :key="cat.id"
                                          class="group flex items-center pl-3 pr-2 py-1.5 bg-panel-card hover:bg-panel-input rounded-full text-[11px] font-bold text-ink-main border-2 border-white/10 transition-all shadow-sm">
-                                        <span>{{ cat }}</span>
-                                        <button @click.stop="handleQuickDelete(cat)" class="ml-1.5 w-5 h-5 flex items-center justify-center rounded-full bg-panel-input border border-panel-card text-ink-muted hover:text-white hover:bg-action-error transition-colors text-[10px] font-bold">
+                                        <span>{{ cat.name }}</span>
+                                        <button @click.stop="handleQuickDelete(cat.name)" class="ml-1.5 w-5 h-5 flex items-center justify-center rounded-full bg-panel-input border border-panel-card text-ink-muted hover:text-white hover:bg-action-error transition-colors text-[10px] font-bold">
                                             &times;
                                         </button>
                                     </div>
@@ -620,12 +621,12 @@ const copyRoomLink = () => {
 
                 <div class="flex-1 overflow-y-auto p-4 content-start bg-panel-input min-h-0 shadow-inner">
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        <button v-for="cat in filteredCategories" :key="cat.name" @click="toggleCategory(cat.name)"
+                        <button v-for="cat in filteredCategories" :key="cat.name" @click="toggleCategory({ id: cat.id, name: cat.name })"
                             class="text-left px-4 py-4 rounded-2xl text-xs font-bold border-[3px] transition-all duration-200 flex items-center justify-between active:scale-95 shadow-sm"
-                            :class="tempSelectedCategories.includes(cat.name) ? 'bg-action-blue border-blue-400 text-white' : 'bg-panel-card border-white/10 text-ink-main hover:bg-panel-input hover:border-action-primary'"
+                            :class="tempSelectedCategories.some(s => s.id === cat.id) ? 'bg-action-blue border-blue-400 text-white' : 'bg-panel-card border-white/10 text-ink-main hover:bg-panel-input hover:border-action-primary'"
                         >
                             {{ cat.name }}
-                            <span v-if="tempSelectedCategories.includes(cat.name)" class="text-lg font-black leading-none">✓</span>
+                            <span v-if="tempSelectedCategories.some(s => s.id === cat.id)" class="text-lg font-black leading-none">✓</span>
                         </button>
                     </div>
                     <div v-if="filteredCategories.length === 0" class="text-center py-16 text-ink-muted font-black uppercase tracking-widest text-sm flex flex-col items-center gap-3">

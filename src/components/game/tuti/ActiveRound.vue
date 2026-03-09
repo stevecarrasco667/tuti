@@ -3,12 +3,13 @@
 import { useGame } from '../../../composables/useGame';
 import { useGameEffects } from '../../../composables/useGameEffects';
 import ActiveBoard from './ActiveBoard.vue';
+import type { CategoryRef } from '../../../../shared/types';
 
 const props = defineProps<{
-    categories: string[];
+    categories: CategoryRef[];
     currentLetter: string | null;
     modelValue: Record<string, string>;
-    rivalsActivity: any[]; // Using any for simplicity as Interface is complex or importing from types might be better
+    rivalsActivity: any[];
     isBlocked?: boolean;
 }>();
 

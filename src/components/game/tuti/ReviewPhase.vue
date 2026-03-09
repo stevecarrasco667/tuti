@@ -2,10 +2,10 @@
 import { ref, computed } from 'vue';
 import VotingCard from './VotingCard.vue';
 import TButton from '../../ui/TButton.vue';
-import type { Player } from '../../../../shared/types';
+import type { Player, CategoryRef } from '../../../../shared/types';
 
 const props = defineProps<{
-    categories: string[];
+    categories: CategoryRef[];
     players: Player[];
     votes: Record<string, Record<string, string[]>>;
     myUserId: string;
@@ -94,7 +94,7 @@ const selfStatusIcon = (playerId: string, category: string) => {
                 Fase {{ currentCategoryIndex + 1 }} / {{ categories.length }}
             </div>
             <h2 class="text-base md:text-2xl font-black text-action-primary uppercase tracking-[0.15em] drop-shadow-md text-center">
-                {{ activeCategory }}
+                {{ activeCategory?.name }}
             </h2>
             <div></div>
         </div>
@@ -107,17 +107,17 @@ const selfStatusIcon = (playerId: string, category: string) => {
                     v-for="player in players" :key="player.id"
                     :player-name="player.name"
                     :player-avatar="player.avatar || ''"
-                    :word="getReviewItem(player.id, activeCategory).answer"
-                    :is-duplicate="getReviewItem(player.id, activeCategory).state === 'DUPLICATE'"
-                    :is-auto-validated="isAutoValidated(player.id, activeCategory)"
-                    :is-rejected="isRejected(player.id, activeCategory)"
-                    :is-approved="isApproved(player.id, activeCategory)"
-                    :vote-count="getVoteCount(player.id, activeCategory)"
+                    :word="getReviewItem(player.id, activeCategory.name).answer"
+                    :is-duplicate="getReviewItem(player.id, activeCategory.name).state === 'DUPLICATE'"
+                    :is-auto-validated="isAutoValidated(player.id, activeCategory.name)"
+                    :is-rejected="isRejected(player.id, activeCategory.name)"
+                    :is-approved="isApproved(player.id, activeCategory.name)"
+                    :vote-count="getVoteCount(player.id, activeCategory.name)"
                     :is-me="player.id === myUserId"
-                    :self-status-icon="selfStatusIcon(player.id, activeCategory)"
-                    :model-value="isApproved(player.id, activeCategory)"
+                    :self-status-icon="selfStatusIcon(player.id, activeCategory.name)"
+                    :model-value="isApproved(player.id, activeCategory.name)"
                     :is-compact="isCompact"
-                    @update:model-value="emit('vote', player.id, activeCategory)"
+                    @update:model-value="emit('vote', player.id, activeCategory.name)"
                 />
             </div>
         </div>

@@ -4,7 +4,7 @@
 // Migrated from shared/game-engine.ts → GameEngine
 // Implements BaseEngine contract.
 
-import { RoomState, GameConfig, AnswerStatus, DeepPartial } from '../types.js';
+import { RoomState, GameConfig, AnswerStatus, DeepPartial, CategoryRef } from '../types.js';
 import { RoundAnswersSchema } from '../schemas.js';
 import { BaseEngine } from './base-engine.js';
 import { MASTER_CATEGORIES } from './categories.js';
@@ -279,7 +279,7 @@ export class TutiEngine extends BaseEngine {
                 // Ensure temporal cache is loaded for categories (Parallel)
                 await Promise.all(
                     this.state.categories.map(cat =>
-                        this.validation.getDictionaryManager().loadCategory(cat, this.supabase)
+                        this.validation.getDictionaryManager().loadCategory(cat.id, this.supabase)
                     )
                 );
 
@@ -316,15 +316,17 @@ export class TutiEngine extends BaseEngine {
             } else {
                 // No manual selection → pick `count` random categories
                 const { data: catData } = await this.supabase.from('categories').select('id, name').eq('game_mode', 'classic');
-                const allCats = catData ? catData.map(c => c.name) : MASTER_CATEGORIES.map(c => c.name);
+                const allCats: CategoryRef[] = (catData && catData.length > 0)
+                    ? catData.map(c => ({ id: c.id, name: c.name }))
+                    : MASTER_CATEGORIES.map(c => ({ id: c.id, name: c.name }));
                 const shuffled = [...allCats].sort(() => 0.5 - Math.random());
-                this.state.categories = shuffled.slice(0, count);
+                this.state.categories = shuffled.slice(0, count) as CategoryRef[];
             }
 
             // Hydrate temporal cache BEFORE starting the timer (Parallel)
             await Promise.all(
                 this.state.categories.map(cat =>
-                    this.validation.getDictionaryManager().loadCategory(cat, this.supabase)
+                    this.validation.getDictionaryManager().loadCategory(cat.id, this.supabase)
                 )
             );
 

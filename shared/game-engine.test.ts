@@ -35,7 +35,7 @@ describe('TutiEngine Core', () => {
             const state = engine.getState();
             state.status = 'PLAYING';
             state.currentLetter = 'A';
-            state.categories = ['Fruta', 'País'];
+            state.categories = [{ id: 'test-fruta', name: 'Fruta' }, { id: 'test-pais', name: 'País' }];
             state.players = [{ id: 'p1', name: 'Tester', score: 0, isHost: true, isConnected: true, lastSeenAt: Date.now(), avatar: '🙂' }];
         });
 
@@ -113,7 +113,7 @@ describe('TutiEngine Core', () => {
 
             // Set answers so we can calculate results
             const state = engine.getState();
-            state.categories = ['A']; // Must exist for ScoreSystem to iterate
+            state.categories = [{ id: 'test-a', name: 'A' }]; // Must exist for ScoreSystem to iterate
             state.answers['p1'] = { 'A': 'Manzana' };
             state.answers['p2'] = { 'A': 'Pera' };
 
@@ -214,7 +214,7 @@ describe('TutiEngine Core', () => {
             // Mock categories and letter to control validation
             // We force 'Fruta' as the first category and 'M' as letter for 'Manzana' example
             const state = engine.getState();
-            state.categories = ['Fruta'];
+            state.categories = [{ id: 'test-fruta', name: 'Fruta' }];
             state.currentLetter = 'M'; // Though our manual validation bypasses this if we want, but let's be consistent
 
             // To test scoring purely, we need to bypass strict letter validation or ensure inputs match.

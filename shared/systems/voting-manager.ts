@@ -135,34 +135,19 @@ export class VotingManager {
             // If disconnected, maybe skip?
 
             for (const category of state.categories) {
-                const answer = state.answers[player.id]?.[category] || "";
-                const valResult = this.validation.processAnswer(answer, currentLetter, category);
+                const catName = category.name;
+                const answer = state.answers[player.id]?.[catName] || "";
+                const valResult = this.validation.processAnswer(answer, currentLetter, catName);
 
                 if (valResult.status === 'INVALID') {
-                    // System Vote? Or Vote from "Everyone else"?
-                    // Let's just leave it empty for now and rely on ScoreSystem.
-                    // If the user wants specific behavior, they'll ask.
-                    // BUT, I must replace `GameEngine`'s logic.
-                    // I will copy the logic of "Vote against it if invalid".
-
-                    // To do this safely without specific "Opponent", I'll create a SYSTEM_VOTE?
-                    // Or just let ScoreSystem handle it.
-
-                    // Refactoring decision: Drop `injectAutomatedVotes` if `ScoreSystem` handles `INVALID`.
-                    // The original code had it.
-                    // "Inject vote from A against B".
-                    // This creates a "Interaction" feeling.
-
-                    // I will implement: "If 2 players, and one is wrong, the other votes."
                     if (activePlayers.length === 2) {
                         const otherPlayer = activePlayers.find(p => p.id !== player.id);
                         if (otherPlayer) {
-                            this.toggleVote(state, otherPlayer.id, player.id, category);
-                            // Wait, toggleVote toggles. I need "Ensure Vote".
+                            this.toggleVote(state, otherPlayer.id, player.id, catName);
                             if (!state.votes[player.id]) state.votes[player.id] = {};
-                            if (!state.votes[player.id][category]) state.votes[player.id][category] = [];
-                            if (!state.votes[player.id][category].includes(otherPlayer.id)) {
-                                state.votes[player.id][category].push(otherPlayer.id);
+                            if (!state.votes[player.id][catName]) state.votes[player.id][catName] = [];
+                            if (!state.votes[player.id][catName].includes(otherPlayer.id)) {
+                                state.votes[player.id][catName].push(otherPlayer.id);
                             }
                         }
                     }

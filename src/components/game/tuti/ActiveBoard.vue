@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 
+import type { CategoryRef } from '../../../../shared/types';
+
 const props = defineProps<{
-    categories: string[];
+    categories: CategoryRef[];
     modelValue: Record<string, string>;
     currentLetter: string | null;
     rivalsActivity: Array<{
@@ -114,18 +116,18 @@ onUnmounted(() => {
             <!-- FASE 2: padding reducido, grid adaptativo por gridClass computed -->
             <div class="p-4 md:p-5">
                 <div class="grid gap-3 md:gap-4 items-start" :class="gridClass">
-                    <div v-for="(category, index) in categories" :key="category" class="group">
+                    <div v-for="(category, index) in categories" :key="category.id" class="group">
                         <!-- FASE 4: title tooltip para labels largas -->
                         <label
-                            :title="category"
+                            :title="category.name"
                             class="block font-black text-ink-soft mb-1.5 transition-colors group-focus-within:text-action-blue truncate tracking-widest text-xs uppercase cursor-default"
                         >
-                            {{ category }}
+                            {{ category.name }}
                         </label>
                         <div class="relative">
                             <input 
-                                :value="modelValue[category]"
-                                @input="handleInput(category, $event)"
+                                :value="modelValue[category.name]"
+                                @input="handleInput(category.name, $event)"
                                 @focus="$emit('input-focus', $event)"
                                 @keydown.enter.prevent="handleNextFocus(index)"
                                 :ref="(el) => setInputRef(el, index)"
@@ -137,7 +139,7 @@ onUnmounted(() => {
                                 :disabled="isBlocked"
                             >
                             <!-- Filled indicator dot -->
-                            <div v-if="modelValue[category]?.trim().length > 0"
+                            <div v-if="modelValue[category.name]?.trim().length > 0"
                                  class="absolute right-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-action-primary shadow-[0_0_8px_rgba(46,204,113,0.8)] pointer-events-none">
                             </div>
                         </div>

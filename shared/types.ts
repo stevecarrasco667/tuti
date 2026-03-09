@@ -4,6 +4,12 @@ import { RoomSnapshotSchema } from './schemas';
 
 export type GameStatus = 'LOBBY' | 'LOADING_ROUND' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER' | 'ROLE_REVEAL' | 'TYPING' | 'VOTING';
 
+/** Reference to a game category — id used for DB queries, name for UI display */
+export interface CategoryRef {
+    id: string;
+    name: string;
+}
+
 export type DeepPartial<T> = T extends object ? {
     [P in keyof T]?: DeepPartial<T[P]>;
 } : T;
@@ -38,7 +44,7 @@ export interface GameConfig {
         timeLimit: number;
         votingDuration: number;
         categoryCount?: number; // Number of random categories when none are manually selected
-        categories: string[];
+        categories: CategoryRef[];
         customCategories: string[];
         mutators: {
             suicidalStop: boolean;
@@ -100,7 +106,7 @@ export interface RoomState {
     spectators: Player[];  // [Phoenix] Late joiners waiting for next round
     roomId: string | null;
     currentLetter: string | null;
-    categories: string[];
+    categories: CategoryRef[];
     answers: Record<string, Record<string, string>>; // PlayerID -> { Category -> Answer }
     answerStatuses: Record<string, Record<string, AnswerStatus>>; // PlayerID -> { Category -> AnswerStatus }
     roundsPlayed: number;

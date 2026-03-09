@@ -26,6 +26,7 @@ export class ScoreSystem {
 
         // Loop per category to analyze duplicates
         for (const category of state.categories) {
+            const catName = category.name;
 
             // 1. Collect Valid Answers (Not empty, Not voted out)
             const validAnswersMap: Record<string, string[]> = {}; // Normalized Word -> [PlayerIds]
@@ -33,23 +34,23 @@ export class ScoreSystem {
             const autoValidatedPlayers = new Set<string>();
 
             state.players.forEach(player => {
-                const rawAnswer = state.answers[player.id]?.[category];
+                const rawAnswer = state.answers[player.id]?.[catName];
 
                 // Check empty
                 if (!rawAnswer || !rawAnswer.trim()) {
-                    state.answerStatuses[player.id][category] = 'INVALID';
+                    state.answerStatuses[player.id][catName] = 'INVALID';
                     return;
                 }
 
                 // Check auto-validation (Escudo Dorado 🛡️ — immune to voting)
-                const isAutoValidated = this.validation.getDictionaryManager().hasExact(category, rawAnswer);
+                const isAutoValidated = this.validation.getDictionaryManager().hasExact(catName, rawAnswer);
 
                 // Check voting (Invalidation) — skip for auto-validated answers
                 if (!isAutoValidated) {
-                    const negativeVotes = state.votes[player.id]?.[category]?.length || 0;
+                    const negativeVotes = state.votes[player.id]?.[catName]?.length || 0;
                     // [RULE] If >= 50% of players vote negative, it is rejected.
                     if (negativeVotes >= totalPlayers / 2) {
-                        state.answerStatuses[player.id][category] = 'INVALID';
+                        state.answerStatuses[player.id][catName] = 'INVALID';
                         return;
                     }
                 } else {
@@ -72,9 +73,9 @@ export class ScoreSystem {
                 playerIds.forEach(pid => {
                     // Use VALID_AUTO if auto-validated, else VALID/DUPLICATE
                     if (autoValidatedPlayers.has(pid)) {
-                        state.answerStatuses[pid][category] = isDuplicate ? 'DUPLICATE' : 'VALID_AUTO';
+                        state.answerStatuses[pid][catName] = isDuplicate ? 'DUPLICATE' : 'VALID_AUTO';
                     } else {
-                        state.answerStatuses[pid][category] = isDuplicate ? 'DUPLICATE' : 'VALID';
+                        state.answerStatuses[pid][catName] = isDuplicate ? 'DUPLICATE' : 'VALID';
                     }
 
                     // Add Score

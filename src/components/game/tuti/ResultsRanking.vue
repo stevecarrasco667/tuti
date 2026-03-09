@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import { Player } from '../../../../shared/types';
+import { Player, CategoryRef } from '../../../../shared/types';
 import { useSound } from '../../../composables/useSound';
 
 const props = defineProps<{
     players: Player[];
     myAnswers: Record<string, string>;
-    categories: string[];
+    categories: CategoryRef[];
     myUserId: string;
     getPlayerStatus: (playerId: string, category: string) => { state: string };
 }>();
@@ -155,29 +155,29 @@ onMounted(() => {
                     <div class="grid grid-cols-2 lg:grid-cols-1 gap-2">
                         <div
                             v-for="category in categories"
-                            :key="category"
+                            :key="category.id"
                             class="rounded-xl p-2.5 flex items-center gap-2 border transition-colors bg-panel-base/40"
                             :class="{
-                                'bg-green-900/10 border-green-500/20': myAnswers[category] && getPlayerStatus(myUserId, category).state === 'VALID',
-                                'bg-red-900/10 border-red-500/20': getPlayerStatus(myUserId, category).state === 'REJECTED',
-                                'border-transparent': !myAnswers[category] || getPlayerStatus(myUserId, category).state === 'EMPTY' || (myAnswers[category] && getPlayerStatus(myUserId, category).state !== 'VALID' && getPlayerStatus(myUserId, category).state !== 'REJECTED'),
+                                'bg-green-900/10 border-green-500/20': myAnswers[category.name] && getPlayerStatus(myUserId, category.name).state === 'VALID',
+                                'bg-red-900/10 border-red-500/20': getPlayerStatus(myUserId, category.name).state === 'REJECTED',
+                                'border-transparent': !myAnswers[category.name] || getPlayerStatus(myUserId, category.name).state === 'EMPTY' || (myAnswers[category.name] && getPlayerStatus(myUserId, category.name).state !== 'VALID' && getPlayerStatus(myUserId, category.name).state !== 'REJECTED'),
                             }"
                         >
-                            <span class="text-base leading-none flex-none w-5 text-center">{{ statusIcon(category) }}</span>
+                            <span class="text-base leading-none flex-none w-5 text-center">{{ statusIcon(category.name) }}</span>
                             <div class="flex-1 min-w-0">
-                                <div class="text-[9px] sm:text-[10px] uppercase font-black text-ink-muted mb-0.5 truncate tracking-widest" :title="category">
-                                    {{ category }}
+                                <div class="text-[9px] sm:text-[10px] uppercase font-black text-ink-muted mb-0.5 truncate tracking-widest" :title="category.name">
+                                    {{ category.name }}
                                 </div>
                                 <div
                                     class="text-xs sm:text-sm font-black truncate leading-tight"
                                     :class="{
-                                        'text-green-400': myAnswers[category] && getPlayerStatus(myUserId, category).state === 'VALID',
-                                        'text-red-400 line-through opacity-70': getPlayerStatus(myUserId, category).state === 'REJECTED',
-                                        'text-ink-muted': !myAnswers[category] || getPlayerStatus(myUserId, category).state === 'EMPTY',
-                                        'text-ink-main': myAnswers[category] && getPlayerStatus(myUserId, category).state !== 'VALID' && getPlayerStatus(myUserId, category).state !== 'REJECTED' && getPlayerStatus(myUserId, category).state !== 'EMPTY',
+                                        'text-green-400': myAnswers[category.name] && getPlayerStatus(myUserId, category.name).state === 'VALID',
+                                        'text-red-400 line-through opacity-70': getPlayerStatus(myUserId, category.name).state === 'REJECTED',
+                                        'text-ink-muted': !myAnswers[category.name] || getPlayerStatus(myUserId, category.name).state === 'EMPTY',
+                                        'text-ink-main': myAnswers[category.name] && getPlayerStatus(myUserId, category.name).state !== 'VALID' && getPlayerStatus(myUserId, category.name).state !== 'REJECTED' && getPlayerStatus(myUserId, category.name).state !== 'EMPTY',
                                     }"
                                 >
-                                    {{ myAnswers[category] || '—' }}
+                                    {{ myAnswers[category.name] || '—' }}
                                 </div>
                             </div>
                         </div>

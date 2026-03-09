@@ -42,7 +42,7 @@ const validationCooldown = ref(false);
 
 const canStopRound = computed(() => {
     return props.gameState.categories.every(cat => {
-        const val = answers.value[cat];
+        const val = answers.value[cat.name];
         return val && val.trim().length > 0;
     });
 });
