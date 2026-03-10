@@ -11,6 +11,17 @@ import { ConfigurationManager } from '../systems/configuration-manager.js';
 import { ImpostorWordProvider } from '../dictionaries/impostor/manager.js'; // Changed import
 import { SupabaseClient } from '@supabase/supabase-js';
 
+// [Sprint P1 — Fase 3] Serializable snapshot of private engine state.
+// Persisted in Worker storage under a SEPARATE key from the public RoomState.
+// NEVER included in WebSocket payloads or getClientState().
+export interface ImpostorSecretState {
+    secretWord: string | null;
+    currentImpostorIds: string[];
+    activeCategoryIds: string[];
+    usedWords: string[];         // Set<string> serialized as array for JSON compat
+    lastImpostorId: string | null;
+}
+
 export class ImpostorEngine extends BaseEngine {
     private state: RoomState;
     private _players = new PlayerManager();
@@ -145,6 +156,40 @@ export class ImpostorEngine extends BaseEngine {
     public hydrate(newState: RoomState): void {
         this.state = newState;
         console.log("[ImpostorEngine] State hydrated from storage");
+        // NOTE: Private secrets (secretWord, currentImpostorIds, etc.) are restored
+        // separately via hydrateSecrets() called by server.ts onStart().
+    }
+
+    // [Sprint P1 — Fase 3] Returns a snapshot of private state for Storage persistence.
+    // Called by server.ts Write-Behind when the engine is ImpostorEngine.
+    public getSecretState(): ImpostorSecretState {
+        return {
+            secretWord: this.secretWord,
+            currentImpostorIds: [...this.currentImpostorIds],
+            activeCategoryIds: [...this.activeCategoryIds],
+            usedWords: [...this.usedWords],
+            lastImpostorId: this.lastImpostorId,
+        };
+    }
+
+    // [Sprint P1 — Fase 3] Restores private state after Worker hibernation.
+    // Called by server.ts onStart() immediately after engine.hydrate(stored).
+    public hydrateSecrets(secret: ImpostorSecretState): void {
+        this.secretWord = secret.secretWord;
+        this.currentImpostorIds = secret.currentImpostorIds;
+        this.activeCategoryIds = secret.activeCategoryIds;
+        this.usedWords = new Set(secret.usedWords); // Deserialize array back to Set
+        this.lastImpostorId = secret.lastImpostorId;
+        console.log(`[ImpostorEngine] 🔑 Secrets hydrated — impostors: [${secret.currentImpostorIds.join(', ')}], word: "${secret.secretWord}"`);
+    }
+
+    // [Sprint P1 — Fase 3] Clears private state. Called on restartGame() and dispose().
+    public clearSecrets(): void {
+        this.secretWord = null;
+        this.currentImpostorIds = [];
+        this.activeCategoryIds = [];
+        this.usedWords.clear();
+        this.lastImpostorId = null;
     }
 
     // --- CONNECTION MANAGEMENT (Minimal viable for lobby) ---
@@ -158,7 +203,23 @@ export class ImpostorEngine extends BaseEngine {
     }
 
     public playerDisconnected(connectionId: string): RoomState {
+        // [Sprint P1 — Fase 2] Anti-Zombie Protocol:
+        // Capture userId BEFORE remove() cleans the connection map.
+        const userId = this._players.getPlayerId(connectionId);
+
         this._players.remove(this.state, connectionId);
+
+        // Only trigger during active game phases. In LOBBY or GAME_OVER, disconnections are normal.
+        const activeGameStatuses: RoomState['status'][] = ['ROLE_REVEAL', 'TYPING', 'VOTING', 'RESULTS'];
+        if (
+            userId &&
+            activeGameStatuses.includes(this.state.status) &&
+            this.currentImpostorIds.includes(userId)
+        ) {
+            console.log(`[ImpostorEngine] ⚠️ Anti-Zombie: Impostor ${userId} disconnected during ${this.state.status}. Forcing CREW victory.`);
+            this._forceCrewVictory('IMPOSTOR_DISCONNECTED');
+        }
+
         return this.state;
     }
 
@@ -168,6 +229,40 @@ export class ImpostorEngine extends BaseEngine {
         this.state.players = this.state.players.filter(p => p.id !== userId);
         this._players.remove(this.state, connectionId);
         return this.state;
+    }
+
+    // [Sprint P1 — Fase 2] Forces an immediate CREW victory and transitions to GAME_OVER.
+    // Used when the Impostor abandons mid-game. Scores CREW players and notifies via onGameStateChange.
+    private _forceCrewVictory(reason: 'IMPOSTOR_DISCONNECTED'): void {
+        // 1. Score all surviving crewmates
+        for (const p of this.state.players) {
+            if (!this.currentImpostorIds.includes(p.id)) {
+                this.state.roundScores[p.id] = (this.state.roundScores[p.id] || 0) + 100;
+                p.score += 100;
+            }
+        }
+
+        // 2. Reveal impostors in the public result payload
+        if (this.state.impostorData) {
+            this.state.impostorData.cycleResult = {
+                eliminatedId: null,
+                matchOver: true,
+                winner: 'CREW',
+                revealedImpostorIds: [...this.currentImpostorIds],
+            };
+        }
+
+        // 3. Cancel any pending internal timers to prevent stale callbacks
+        this.clearTimer();
+
+        // 4. Transition state — skip RESULTS, go directly to GAME_OVER
+        this.state.status = 'GAME_OVER';
+        this.state.gameOverReason = reason;
+        this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null };
+        this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
+
+        // 5. Broadcast the new state via the server callback
+        this.onGameStateChange?.(this.state);
     }
 
     public updateConfig(connectionId: string, newConfig: DeepPartial<GameConfig>): RoomState {
@@ -488,14 +583,8 @@ export class ImpostorEngine extends BaseEngine {
         this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null };
         this.state.stoppedBy = null;
 
-        // Sprint 3.3: Clear anti-repetition memory
-        this.usedWords.clear();
-        this.activeCategoryIds = [];
-        this.lastImpostorId = null;
-
-        // Sprint 3.4: Clear secret memory
-        this.secretWord = null;
-        this.currentImpostorIds = [];
+        // [Sprint P1 — Fase 3] Use clearSecrets() as the single source of truth for resetting private state.
+        this.clearSecrets();
 
         // Sprint 2.1: Garbage Collection
         this.wordProvider.clearCache();
@@ -604,6 +693,8 @@ export class ImpostorEngine extends BaseEngine {
     // [Sprint 4] Death Hook — release all GlobalImpostorCache references
     public dispose(): void {
         this.clearTimer();
+        // [Sprint P1 — Fase 3] Clear private secrets to avoid stale state on next warm-start
+        this.clearSecrets();
         this.wordProvider.clearCache();
         console.log(`[ImpostorEngine] Disposed for room ${this.state.roomId}`);
     }

@@ -1,7 +1,7 @@
 import type * as Party from "partykit/server";
 import { BaseEngine } from "../shared/engines/base-engine.js";
 import { TutiEngine } from "../shared/engines/tuti-engine.js";
-import { ImpostorEngine } from "../shared/engines/impostor-engine.js";
+import { ImpostorEngine, ImpostorSecretState } from "../shared/engines/impostor-engine.js";
 import { RoomState, RoomSnapshot } from "../shared/types.js";
 import { ClientMessageSchema } from "../shared/schemas.js";
 import { EVENTS, APP_VERSION } from "../shared/consts.js";
@@ -17,11 +17,29 @@ import { compare } from "fast-json-patch";
 
 const STORAGE_KEY = "room_state_v1";
 const AUTH_TOKENS_KEY = "auth_tokens_v1";
+// [Sprint P1 — Fase 3] Storage key for ImpostorEngine private secrets (never sent via WebSocket)
+const IMPOSTOR_SECRET_KEY = "impostor_secret_v1";
+
+import { SupabaseClient, createClient } from "@supabase/supabase-js";
+
+// =============================================
+// [Sprint P1 — Fase 1] Module-Level Supabase Singleton
+// Map keyed by URL: one SupabaseClient instance per credential set,
+// shared across ALL rooms within the same V8 Isolate.
+// This prevents Postgres connection pool exhaustion at scale.
+// =============================================
+const _supabaseClients = new Map<string, SupabaseClient>();
+
+function getSupabaseClient(url: string, key: string): SupabaseClient {
+    if (!_supabaseClients.has(url)) {
+        _supabaseClients.set(url, createClient(url, key));
+    }
+    return _supabaseClients.get(url)!;
+}
 
 // =============================================
 // Engine Factory — Loads the correct game mode
 // =============================================
-import { SupabaseClient, createClient } from "@supabase/supabase-js";
 
 function createEngine(
     supabase: SupabaseClient,
@@ -88,6 +106,12 @@ export default class Server implements Party.Server {
         if (!this.saveTimeout) {
             this.saveTimeout = setTimeout(async () => {
                 await this.room.storage.put(STORAGE_KEY, this.engine.getState());
+                // [Sprint P1 — Fase 3] Also persist ImpostorEngine private secrets to durable storage.
+                // These fields (secretWord, impostorIds, etc.) never travel via WebSocket,
+                // so they must be stored separately to survive Worker hibernation.
+                if (this.engine instanceof ImpostorEngine) {
+                    await this.room.storage.put(IMPOSTOR_SECRET_KEY, this.engine.getSecretState());
+                }
                 this.saveTimeout = null;
             }, 5000);
         }
@@ -114,10 +138,11 @@ export default class Server implements Party.Server {
     constructor(room: Party.Room) {
         this.room = room;
 
-        // Initialize Supabase Client using PartyKit Environment Variables
+        // [Sprint P1 — Fase 1] Lazy Singleton: retrieve shared client from module-level Map.
+        // env is only available inside lifecycle hooks — this is safe here (constructor is a hook).
         const supabaseUrl = this.room.env.SUPABASE_URL as string;
         const supabaseKey = this.room.env.SUPABASE_ANON_KEY as string;
-        this.supabase = createClient(supabaseUrl, supabaseKey);
+        this.supabase = getSupabaseClient(supabaseUrl, supabaseKey);
 
         // Factory Pattern: Engine is created as TutiEngine by default.
         // If the stored state has mode='IMPOSTOR', it will be re-created in onStart().
@@ -150,6 +175,18 @@ export default class Server implements Party.Server {
                 }
 
                 this.engine.hydrate(stored);
+
+                // [Sprint P1 — Fase 3] Restore ImpostorEngine private secrets from durable storage.
+                // These are in a separate key and never travel via WebSocket (State Masking).
+                if (this.engine instanceof ImpostorEngine) {
+                    const storedSecrets = await this.room.storage.get<ImpostorSecretState>(IMPOSTOR_SECRET_KEY);
+                    if (storedSecrets) {
+                        this.engine.hydrateSecrets(storedSecrets);
+                        logger.info('IMPOSTOR_SECRETS_HYDRATED', { roomId: this.room.id });
+                    } else {
+                        logger.warn('IMPOSTOR_SECRETS_MISSING', { roomId: this.room.id });
+                    }
+                }
             }
 
             // 2. Load Auth Tokens

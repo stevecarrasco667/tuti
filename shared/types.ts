@@ -124,7 +124,8 @@ export interface RoomState {
     };
     remainingTime: number; // Server-canonical countdown in seconds (emitted every tick)
     stoppedBy: string | null;
-    gameOverReason?: 'NORMAL' | 'ABANDONED';
+    // [Sprint P1 — Fase 2] 'IMPOSTOR_DISCONNECTED' triggers when the Impostor abandons mid-game
+    gameOverReason?: 'NORMAL' | 'ABANDONED' | 'IMPOSTOR_DISCONNECTED';
     uiMetadata: {
         activeView: 'LOBBY' | 'GAME' | 'GAME_OVER';
         showTimer: boolean;
