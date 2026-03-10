@@ -38,6 +38,14 @@ export class ImpostorEngine extends BaseEngine {
     private secretWord: string | null = null;
     private currentImpostorIds: string[] = [];
 
+    // [Sprint P2 — Fase 1] Grace Period timers: userId → timer handle
+    // Map keyed by userId (not connectionId) to survive mobile reconnections with a new connectionId.
+    private _gracePeriodTimers = new Map<string, ReturnType<typeof setTimeout>>();
+    private static readonly GRACE_PERIOD_MS = 15_000;
+
+    // [Sprint P2 — Fase 3] Dirty flag: true when secrets mutated since last getSecretState() call.
+    private _secretsDirty = false;
+
     // Phase 1: Temporal Cache Provider (Isolated per Room)
     private wordProvider: ImpostorWordProvider; // Added property
 
@@ -163,6 +171,8 @@ export class ImpostorEngine extends BaseEngine {
     // [Sprint P1 — Fase 3] Returns a snapshot of private state for Storage persistence.
     // Called by server.ts Write-Behind when the engine is ImpostorEngine.
     public getSecretState(): ImpostorSecretState {
+        // [Sprint P2 — Fase 3] Mark as clean after reading — Write-Behind won't persist again until next mutation.
+        this._secretsDirty = false;
         return {
             secretWord: this.secretWord,
             currentImpostorIds: [...this.currentImpostorIds],
@@ -180,6 +190,8 @@ export class ImpostorEngine extends BaseEngine {
         this.activeCategoryIds = secret.activeCategoryIds;
         this.usedWords = new Set(secret.usedWords); // Deserialize array back to Set
         this.lastImpostorId = secret.lastImpostorId;
+        // [Sprint P2 — Fase 3] Mark dirty: restored secrets must be confirmed written before next hibernate.
+        this._secretsDirty = true;
         console.log(`[ImpostorEngine] 🔑 Secrets hydrated — impostors: [${secret.currentImpostorIds.join(', ')}], word: "${secret.secretWord}"`);
     }
 
@@ -190,6 +202,14 @@ export class ImpostorEngine extends BaseEngine {
         this.activeCategoryIds = [];
         this.usedWords.clear();
         this.lastImpostorId = null;
+        // [Sprint P2 — Fase 3] Mark dirty: cleared state must be persisted to avoid stale secrets on next hibernate.
+        this._secretsDirty = true;
+    }
+
+    // [Sprint P2 — Fase 3] Guard checked by server.ts Write-Behind before calling storage.put.
+    // Returns true only when secrets mutated since the last getSecretState() call.
+    public areSecretsDirty(): boolean {
+        return this._secretsDirty;
     }
 
     // --- CONNECTION MANAGEMENT (Minimal viable for lobby) ---
@@ -203,7 +223,7 @@ export class ImpostorEngine extends BaseEngine {
     }
 
     public playerDisconnected(connectionId: string): RoomState {
-        // [Sprint P1 — Fase 2] Anti-Zombie Protocol:
+        // [Sprint P1 — Fase 2 / Sprint P2 — Fase 1] Anti-Zombie Protocol with Grace Period:
         // Capture userId BEFORE remove() cleans the connection map.
         const userId = this._players.getPlayerId(connectionId);
 
@@ -216,11 +236,33 @@ export class ImpostorEngine extends BaseEngine {
             activeGameStatuses.includes(this.state.status) &&
             this.currentImpostorIds.includes(userId)
         ) {
-            console.log(`[ImpostorEngine] ⚠️ Anti-Zombie: Impostor ${userId} disconnected during ${this.state.status}. Forcing CREW victory.`);
-            this._forceCrewVictory('IMPOSTOR_DISCONNECTED');
+            // [Sprint P2 — Fase 1] Grace Period: give the Impostor 15s to reconnect before
+            // ending the game. Mobile networks may cause transient disconnections.
+            console.log(`[ImpostorEngine] ⚠️ Impostor ${userId} disconnected. Grace period of ${ImpostorEngine.GRACE_PERIOD_MS / 1000}s started.`);
+            const timer = setTimeout(() => {
+                // Double-check: if the impostor reconnected, the timer would have been cancelled.
+                // This callback should only fire if they truly abandoned.
+                if (this._gracePeriodTimers.has(userId)) {
+                    console.log(`[ImpostorEngine] 💀 Grace period expired for impostor ${userId}. Forcing CREW victory.`);
+                    this._gracePeriodTimers.delete(userId);
+                    this._forceCrewVictory('IMPOSTOR_DISCONNECTED');
+                }
+            }, ImpostorEngine.GRACE_PERIOD_MS);
+            this._gracePeriodTimers.set(userId, timer);
         }
 
         return this.state;
+    }
+
+    // [Sprint P2 — Fase 1] Cancels the grace period timer for a reconnecting user.
+    // Called by server.ts onConnect() after successful identity restoration.
+    public cancelGracePeriod(userId: string): void {
+        const timer = this._gracePeriodTimers.get(userId);
+        if (timer) {
+            clearTimeout(timer);
+            this._gracePeriodTimers.delete(userId);
+            console.log(`[ImpostorEngine] ✅ Grace period cancelled — impostor ${userId} reconnected in time.`);
+        }
     }
 
     public playerExited(connectionId: string): RoomState {
@@ -316,8 +358,10 @@ export class ImpostorEngine extends BaseEngine {
             // Sprint 2.1: Async Random Category Selection
             const count = this.state.config.impostor?.categoryCount || 3;
 
-            const { data: catData } = await this.supabase.from('categories').select('id').eq('game_mode', 'impostor');
-            const allCatIds = catData ? catData.map(c => c.id) : [];
+            // [Sprint P2 — Fase 4B] Use wordProvider abstraction instead of raw Supabase query.
+            // Consistent with GlobalCache layer and enables proper mocking in tests.
+            const allCategories = await this.wordProvider.getAllCategories(this.supabase);
+            const allCatIds = allCategories.map(c => c.id);
             const shuffled = [...allCatIds].sort(() => 0.5 - Math.random());
             this.activeCategoryIds = shuffled.slice(0, count);
 

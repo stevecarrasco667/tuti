@@ -106,10 +106,10 @@ export default class Server implements Party.Server {
         if (!this.saveTimeout) {
             this.saveTimeout = setTimeout(async () => {
                 await this.room.storage.put(STORAGE_KEY, this.engine.getState());
-                // [Sprint P1 — Fase 3] Also persist ImpostorEngine private secrets to durable storage.
-                // These fields (secretWord, impostorIds, etc.) never travel via WebSocket,
-                // so they must be stored separately to survive Worker hibernation.
-                if (this.engine instanceof ImpostorEngine) {
+                // [Sprint P1/P2 — Fase 3] Persist ImpostorEngine private secrets — but ONLY when dirty.
+                // Secrets mutate once per round (startNewRound), not every tick. This prevents
+                // redundant storage.put calls during the 60 ticks/min of the countdown.
+                if (this.engine instanceof ImpostorEngine && this.engine.areSecretsDirty()) {
                     await this.room.storage.put(IMPOSTOR_SECRET_KEY, this.engine.getSecretState());
                 }
                 this.saveTimeout = null;
@@ -234,7 +234,8 @@ export default class Server implements Party.Server {
             }
 
             // Update per-connection baseline (Deep Copy)
-            this.previousStates.set(conn.id, JSON.parse(JSON.stringify(clientState)));
+            // [Sprint P2 — Fase 4A] structuredClone is native V8, ~2x faster than JSON.parse(JSON.stringify)
+            this.previousStates.set(conn.id, structuredClone(clientState));
         }
 
         // Sprint 3.4: Whisper private role assignment on ROLE_REVEAL transition
@@ -367,6 +368,13 @@ export default class Server implements Party.Server {
             // 1. Handle Identity FIRST (adds/reconnects player in engine)
             await this.connectionHandler.handleConnect(conn, ctx);
 
+            // [Sprint P2 — Fase 1] Grace Period: if this user has a pending grace period timer
+            // (they were the Impostor and lost connection), cancel it — they reconnected in time.
+            const reconnectedUserId = (conn.state as any)?.userId;
+            if (reconnectedUserId && this.engine instanceof ImpostorEngine) {
+                this.engine.cancelGracePeriod(reconnectedUserId);
+            }
+
             // 2. Send current Game State to NEW client (AFTER player is added)
             //    AND register the baseline to prevent duplicate UPDATE_STATE from broadcastStateDelta
             const userId = (conn.state as any)?.userId || conn.id;
@@ -375,7 +383,8 @@ export default class Server implements Party.Server {
                 type: EVENTS.UPDATE_STATE,
                 payload: initialClientState
             }));
-            this.previousStates.set(conn.id, JSON.parse(JSON.stringify(initialClientState)));
+            // [Sprint P2 — Fase 4A] structuredClone is native V8, ~2x faster than JSON.parse(JSON.stringify)
+            this.previousStates.set(conn.id, structuredClone(initialClientState));
 
             // 3. Send Chat History
             conn.send(JSON.stringify({
@@ -488,14 +497,17 @@ export default class Server implements Party.Server {
                     const userId = (sender.state as any)?.userId || sender.id;
                     const fullState = this.engine.getClientState(userId);
                     sender.send(JSON.stringify({ type: EVENTS.UPDATE_STATE, payload: fullState }));
-                    this.previousStates.set(sender.id, JSON.parse(JSON.stringify(fullState)));
+                    // [Sprint P2 — Fase 4A] structuredClone is native V8, ~2x faster than JSON.parse(JSON.stringify)
+                    this.previousStates.set(sender.id, structuredClone(fullState));
                     break;
                 }
 
                 // --- CHAT SYSTEM (Phase 2.A + 2.E Security) ---
                 case EVENTS.CHAT_SEND: {
                     await this.chatHandler.handleChat(payload as any, sender);
-                    break;
+                    // [Sprint P2 — Fase 2] Chat does NOT mutate RoomState — skip delta sync and alarm scheduling.
+                    // Avoids a full JSON Patch compare cycle (clone → diff → empty patch) per chat message.
+                    return;
                 }
 
                 default:

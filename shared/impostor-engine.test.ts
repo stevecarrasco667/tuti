@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ImpostorEngine } from './engines/impostor-engine';
 import { SupabaseClient } from '@supabase/supabase-js';
 
@@ -46,24 +46,39 @@ function forceIntoTypingPhase(engine: ImpostorEngine, impostorIds: string[]) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// [Sprint P1 — Fase 2] Anti-Zombie Protocol Tests
+// [Sprint P1/P2] Anti-Zombie Protocol + Grace Period Tests
 // ══════════════════════════════════════════════════════════════════════════════
-describe('[P1-F2] Anti-Zombie Protocol', () => {
+describe('[P1/P2] Anti-Zombie Protocol + Grace Period', () => {
     let engine: ImpostorEngine;
     const stateChangeSpy = vi.fn();
 
     beforeEach(() => {
+        vi.useFakeTimers();             // Control setTimeout without real waiting
         stateChangeSpy.mockClear();
         engine = makeEngine(stateChangeSpy);
         addPlayers(engine, 3); // user-0 (host), user-1, user-2
     });
 
-    it('should force CREW victory when impostor disconnects during TYPING phase', () => {
-        // Setup: user-1 is the impostor
-        forceIntoTypingPhase(engine, ['user-1']);
+    afterEach(() => {
+        vi.useRealTimers();             // Restore real timers after each test
+    });
 
-        // Act: user-1 (impostor) disconnects
+    it('should NOT end game immediately when impostor disconnects (grace period active)', () => {
+        forceIntoTypingPhase(engine, ['user-1']);
         engine.playerDisconnected('conn-1');
+
+        // Game should still be running — grace period of 15s has not elapsed
+        expect(engine.getState().status).toBe('TYPING');
+        expect(engine.getState().gameOverReason).toBeUndefined();
+        expect(stateChangeSpy).not.toHaveBeenCalled();
+    });
+
+    it('should force CREW victory after grace period expires', () => {
+        forceIntoTypingPhase(engine, ['user-1']);
+        engine.playerDisconnected('conn-1');
+
+        // Advance fake clock past the 15s grace period
+        vi.advanceTimersByTime(15_001);
 
         const state = engine.getState();
         expect(state.status).toBe('GAME_OVER');
@@ -71,25 +86,45 @@ describe('[P1-F2] Anti-Zombie Protocol', () => {
         expect(state.impostorData?.cycleResult?.winner).toBe('CREW');
         expect(state.impostorData?.cycleResult?.matchOver).toBe(true);
         expect(state.impostorData?.cycleResult?.revealedImpostorIds).toContain('user-1');
-
-        // Verify that the server was notified via the callback
         expect(stateChangeSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should NOT trigger when a crewmate disconnects', () => {
-        // Setup: user-2 is the impostor, user-1 is a crewmate who disconnects
-        forceIntoTypingPhase(engine, ['user-2']);
+    it('should cancel grace period and continue game if impostor reconnects in time', () => {
+        forceIntoTypingPhase(engine, ['user-1']);
+        engine.playerDisconnected('conn-1');
 
-        engine.playerDisconnected('conn-1'); // user-1 disconnects (crewmate)
+        // Reconnect before 15s
+        vi.advanceTimersByTime(5_000);
+        engine.cancelGracePeriod('user-1');
 
-        const state = engine.getState();
-        expect(state.status).toBe('TYPING'); // Game must continue
-        expect(state.gameOverReason).toBeUndefined();
+        // Advance past the original deadline — timer should have been cleared
+        vi.advanceTimersByTime(15_000);
+
+        expect(engine.getState().status).toBe('TYPING'); // Game continues
         expect(stateChangeSpy).not.toHaveBeenCalled();
     });
 
-    it('should NOT trigger if disconnection happens in LOBBY', () => {
-        // Setup: engine stays in LOBBY, but inject impostor IDs
+    it('should score crewmates after grace period expires', () => {
+        forceIntoTypingPhase(engine, ['user-1']);
+        engine.playerDisconnected('conn-1');
+        vi.advanceTimersByTime(15_001);
+
+        const state = engine.getState();
+        expect(state.roundScores['user-0']).toBe(100);
+        expect(state.roundScores['user-2']).toBe(100);
+        expect(state.roundScores['user-1']).toBeUndefined();
+    });
+
+    it('should NOT trigger grace period when a crewmate disconnects', () => {
+        forceIntoTypingPhase(engine, ['user-2']);
+        engine.playerDisconnected('conn-1'); // user-1 is crewmate
+        vi.advanceTimersByTime(15_001);
+
+        expect(engine.getState().status).toBe('TYPING');
+        expect(stateChangeSpy).not.toHaveBeenCalled();
+    });
+
+    it('should NOT trigger grace period when disconnection happens in LOBBY', () => {
         engine.hydrateSecrets({
             secretWord: null,
             currentImpostorIds: ['user-1'],
@@ -97,27 +132,14 @@ describe('[P1-F2] Anti-Zombie Protocol', () => {
             usedWords: [],
             lastImpostorId: null,
         });
-
         engine.playerDisconnected('conn-1');
+        vi.advanceTimersByTime(15_001);
 
-        const state = engine.getState();
-        expect(state.status).toBe('LOBBY'); // No game phase change
+        expect(engine.getState().status).toBe('LOBBY');
         expect(stateChangeSpy).not.toHaveBeenCalled();
     });
-
-    it('should score crewmates upon Anti-Zombie victory', () => {
-        // user-1 is impostor, user-0 and user-2 are crewmates
-        forceIntoTypingPhase(engine, ['user-1']);
-        engine.playerDisconnected('conn-1');
-
-        const state = engine.getState();
-        // Crewmates should get 100 points
-        expect(state.roundScores['user-0']).toBe(100);
-        expect(state.roundScores['user-2']).toBe(100);
-        // Impostor gets no points
-        expect(state.roundScores['user-1']).toBeUndefined();
-    });
 });
+
 
 // ══════════════════════════════════════════════════════════════════════════════
 // [Sprint P1 — Fase 3] Secret Hydration Tests
