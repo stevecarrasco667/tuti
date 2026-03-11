@@ -10,6 +10,11 @@ export const PlayerSchema = z.object({
     lastSeenAt: z.number()
 });
 
+export const CategoryRefSchema = z.object({
+    id: z.string(),
+    name: z.string()
+});
+
 export const GameStatusSchema = z.enum(['LOBBY', 'LOADING_ROUND', 'PLAYING', 'REVIEW', 'RESULTS', 'GAME_OVER', 'ROLE_REVEAL', 'TYPING', 'VOTING']);
 
 export const AnswerStatusSchema = z.enum(['VALID', 'DUPLICATE', 'INVALID']);
@@ -23,8 +28,8 @@ export const GameConfigSchema = z.object({
         timeLimit: z.number().min(30).max(180),
         votingDuration: z.number().min(10).max(120),
         categoryCount: z.number().min(1).max(10).optional().default(5),
-        categories: z.array(z.string()),
-        customCategories: z.array(z.string()),
+        categories: z.array(CategoryRefSchema),
+        customCategories: z.array(CategoryRefSchema),
         mutators: z.object({
             suicidalStop: z.boolean(),
             anonymousVoting: z.boolean()
@@ -61,7 +66,7 @@ export const RoomStateSchema = z.object({
     // We can't strictly validate everything easily since it's dynamic keys
     roomId: z.string().nullable(),
     currentLetter: z.string().nullable(),
-    categories: z.array(z.string()),
+    categories: z.array(CategoryRefSchema),
     answers: z.record(z.string(), z.record(z.string(), z.string())),
     answerStatuses: z.record(z.string(), z.record(z.string(), AnswerStatusSchema)),
     roundsPlayed: z.number(),

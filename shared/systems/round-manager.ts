@@ -54,14 +54,18 @@ export class RoundManager {
         state.status = 'REVIEW';
         state.timers.roundEndsAt = null; // Clear round timer UI
 
-        // Start Voting Timer (Optional auto-end for voting could go here too, but for now we follow spec)
-        // state.timers.votingEndsAt = Date.now() + (config.votingDuration * 1000);
-        // We leave voting timer logic primarily to the Engine or separate Voting phase for now 
-        // as per current 'initReviewPhase' logic which might be moved later.
-        // But for this refactor, we just switch status.
-        // Wait, the original code initialized voting timer in 'initReviewPhase'. 
-        // Let's replicate that minimal logic here:
+        // Start Voting Timer (Auto-end logic or manual transition as per current spec)
         state.timers.votingEndsAt = Date.now() + (config.classic.votingDuration * 1000);
+
+        // [Sprint P7] Reparación de Temporizador de Votación en UI
+        // Este choke-point se ejecuta TANTO si el tiempo de escritura expira
+        // como si un jugador presiona BASTA. Propagamos el nuevo timer
+        // al frontend para que Renderice el Countdown en la fase REVIEW.
+        state.uiMetadata = {
+            activeView: 'GAME',
+            showTimer: true,
+            targetTime: state.timers.votingEndsAt
+        };
     }
 
     public nextRound(state: RoomState, config: GameConfig): boolean {
