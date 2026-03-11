@@ -117,17 +117,16 @@ const handleStart = () => {
             <div class="h-full grid grid-cols-1 lg:grid-cols-12 gap-3">
 
                 <!-- Left Panel: Player List -->
-                <div :class="{ 'hidden lg:flex': activeTab !== 'players' }">
-                    <PlayerList
-                        :players="players"
-                        :spectators="gameState.spectators"
-                        :max-players="localConfig.maxPlayers"
-                        :am-i-host="amIHost"
-                        :my-user-id="myUserId"
-                        @kick-player="handleKick"
-                        @update-max-players="(max) => handleConfigChange('maxPlayers', max)"
-                    />
-                </div>
+                <PlayerList
+                    :class="{ 'hidden lg:flex': activeTab !== 'players' }"
+                    :players="players"
+                    :spectators="gameState.spectators"
+                    :max-players="localConfig.maxPlayers"
+                    :am-i-host="amIHost"
+                    :my-user-id="myUserId"
+                    @kick-player="handleKick"
+                    @update-max-players="(max) => handleConfigChange('maxPlayers', max)"
+                />
 
                 <!-- Center + Right Panels: Settings -->
                 <div class="lg:col-span-9 lg:grid lg:grid-cols-9 lg:gap-3 flex flex-col gap-4 min-h-0 overflow-y-auto lg:overflow-hidden"
