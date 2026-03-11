@@ -72,71 +72,16 @@ export class VotingManager {
     }
 
     public injectAutomatedVotes(state: RoomState): void {
+        // In 1v1 mode: if a player's answer is INVALID, the opponent's vote is automatically injected
+        // so that the ScoreSystem can attribute the rejection correctly in the UI.
         const activePlayers = state.players.filter(p => p.isConnected);
-        // Only applies to 1v1 scenarios (2 players) or potentially more if we want "System" to audit.
-        // Original logic was: if (activePlayers.length !== 1) return; -> Wait, original said !== 1?
-        // Let's re-read the original logic. 
-        // "if (activePlayers.length !== 1) return; // Solo mode only"?? 
-        // Wait, if 2 players, they vote against each other.
-        // If 1 player (Solo Mode), who votes? The System.
-        // If 2 players, B votes against A.
-        // Ah, the original code snippet said:
-        // const playerA = activePlayers[0];
-        // const playerB = activePlayers[1];
-        // So it IMPLIES 2 players.
-        // But the snippet I saw earlier said `if (activePlayers.length !== 1)`.
-        // Let me RE-VERIFY the snippet.
-        // I might have misread "Solo Mode" or maybe it WAS for 2 players but written weirdly?
-        // Let's assume it's for 1v1 (2 players) because `playerB = activePlayers[1]`.
-
-        // Wait, if I am rewriting it, I should make it robust.
-        // The goal is: System votes against INVALID answers if the opponent didn't?
-        // Or is this purely for "Solo" mode where you play alone?
-        // If I play alone, I need someone to reject my wrong answers.
-
-        // Let's look at `injectAutomatedVotes` implementation in `GameEngine` again.
-        // I will trust the logic I extract, but I need to be sure about the condition.
-
-        // Logic:
-        // if (activePlayers.length < 2) return; ??
-        // The snippet showed:
-        // const playerA = activePlayers[0];
-        // const playerB = activePlayers[1];
-        // That requires at least 2 players.
-
-        // Let's just implement a generic "System Auditor" for now:
-        // If an answer is INVALID according to ValidationManager, ensuring it has a vote?
-        // No, `state.answerStatuses` handles INVALID.
-
-        // Let's implement what was probable: 1v1 Auto-Voting.
-        // If 2 players, and Player A has invalid answer, Player B (who might be AFK or lazy) should vote against it?
-        // Or maybe it is for "Bot"?
-
-        // I'll stick to a safe implementation:
-        // 1. Iterate all players.
-        // 2. Used `ValidationManager` to check their answers.
-        // 3. If INVALID, ensure there is a vote against them?
-        // Actually, if it's INVALID, `ScoreSystem` gives 0.
-        // Does `votes` matter?
-        // Only if we want to show "Rejected by X".
-
-        // I'll implement a simplified version that ensures `votes` reflect invalidity if needed.
-        // But honestly, `ScoreSystem` handles invalidity via `rawAnswer` check.
-        // The original logic seemed to "Inject vote from B against A".
-        // This implies simulating that the opponent caught the error.
-
-        // I'll execute the file creation with the Logic to Vote against INVALID answers 
-        // effectively "Simulating" peers voting against you if the System detects it.
-
         const currentLetter = state.currentLetter;
         if (!currentLetter) return;
 
         state.players.forEach(player => {
-            // If disconnected, maybe skip?
-
             for (const category of state.categories) {
                 const catName = category.name;
-                const answer = state.answers[player.id]?.[catName] || "";
+                const answer = state.answers[player.id]?.[catName] || '';
                 const valResult = this.validation.processAnswer(answer, currentLetter, catName);
 
                 if (valResult.status === 'INVALID') {
@@ -155,4 +100,5 @@ export class VotingManager {
             }
         });
     }
+
 }
