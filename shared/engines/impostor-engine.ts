@@ -10,6 +10,7 @@ import { PlayerManager } from '../systems/player-manager.js';
 import { ConfigurationManager } from '../systems/configuration-manager.js';
 import { ImpostorWordProvider } from '../dictionaries/impostor/manager.js'; // Changed import
 import { SupabaseClient } from '@supabase/supabase-js';
+import { shuffle } from '../utils/random.js';
 
 // [Sprint P1 — Fase 3] Serializable snapshot of private engine state.
 // Persisted in Worker storage under a SEPARATE key from the public RoomState.
@@ -362,7 +363,8 @@ export class ImpostorEngine extends BaseEngine {
             // Consistent with GlobalCache layer and enables proper mocking in tests.
             const allCategories = await this.wordProvider.getAllCategories(this.supabase);
             const allCatIds = allCategories.map(c => c.id);
-            const shuffled = [...allCatIds].sort(() => 0.5 - Math.random());
+            // [Sprint P6 — BUG-3] Fisher-Yates native shuffle resolves V8 TimSort bias
+            const shuffled = shuffle([...allCatIds]);
             this.activeCategoryIds = shuffled.slice(0, count);
 
             this.usedWords.clear();
@@ -419,7 +421,8 @@ export class ImpostorEngine extends BaseEngine {
         if (numImpostors === 1 && this.lastImpostorId && candidates.length > 2) {
             candidates = candidates.filter(p => p.id !== this.lastImpostorId);
         }
-        const shuffled = candidates.sort(() => Math.random() - 0.5);
+        // [Sprint P6 — BUG-3] True entropy via Fisher-Yates for Impostor assignment
+        const shuffled = shuffle(candidates);
         const impostorIds = shuffled.slice(0, numImpostors).map(p => p.id);
         if (numImpostors === 1) this.lastImpostorId = impostorIds[0];
 

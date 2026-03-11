@@ -69,12 +69,10 @@ export class ConnectionHandler extends BaseHandler {
 
             connection.setState({ userId });
 
-            // [SPRINT 10+11] COLD SYNC: Rehidratación Total de Retorno
-            connection.send(JSON.stringify({
-                type: EVENTS.UPDATE_STATE,
-                payload: this.engine.getClientState(userId)
-            }));
-
+            // [Sprint P6 — BUG-2] Removed double UPDATE_STATE here.
+            // When joinPlayer() is called below, it mutates state and triggers
+            // server.ts -> onStateChange -> broadcastStateDelta, which properly
+            // initializes previousStates baseline and sends the true initial state.
             if (this.messages.length > 0) {
                 connection.send(JSON.stringify({
                     type: EVENTS.CHAT_HISTORY,

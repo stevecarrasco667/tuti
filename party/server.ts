@@ -123,23 +123,9 @@ export default class Server implements Party.Server {
             }, 5000);
         }
 
-        // 5. [Phoenix Lobby] Heartbeat RPC to Orchestrator (fire-and-forget)
-        if (newState.config.isPublic) {
-            const activeConnCount = Array.from(this.room.getConnections()).length;
-            const snapshot: RoomSnapshot = {
-                id: this.room.id,
-                hostName: newState.players.find(p => p.isHost)?.name || 'Host',
-                currentPlayers: activeConnCount,
-                maxPlayers: newState.config.maxPlayers,
-                status: newState.status,
-                lastUpdate: Date.now()
-            };
-            this.room.context.parties.lobby.get("global").fetch("/heartbeat", {
-                method: "POST",
-                body: JSON.stringify(snapshot),
-                headers: { "Content-Type": "application/json" }
-            }).catch(e => logger.error('HEARTBEAT_FAILED', { roomId: this.room.id }, e instanceof Error ? e : new Error(String(e))));
-        }
+        // 5. [Sprint P6 — SMELL-2] Heartbeat RPC removed from hot path.
+        // It now runs strictly on a 10s interval via startHeartbeat(), preventing
+        // CPU strangle and Lobby rate-limit exhaustion during active gameplay.
     };
 
     constructor(room: Party.Room) {
@@ -333,35 +319,26 @@ export default class Server implements Party.Server {
     // [Sprint 1] Tick Loop Director: called on every state mutation.
     // Inspects the new game status and starts/stops the tick loop accordingly.
     // Using the existing timers (endsAt timestamps) to calculate remaining time precisely.
+    // [Sprint P6 — SMELL-1] Refactored to use a declarative Dictionary Map, removing O(4) WET branches.
     private manageTick(state: RoomState) {
-        const now = Date.now();
+        const timedStatuses: Partial<Record<string, number | null>> = {
+            'PLAYING': state.timers.roundEndsAt,
+            'REVIEW':  state.timers.votingEndsAt,
+            'TYPING':  state.timers.roundEndsAt,
+            'VOTING':  state.timers.votingEndsAt,
+        };
 
-        if (state.status === 'PLAYING' && state.timers.roundEndsAt) {
-            const msLeft = state.timers.roundEndsAt - now;
+        const targetTime = timedStatuses[state.status];
+        if (targetTime) {
+            const msLeft = targetTime - Date.now();
             if (msLeft > 0 && !this.tickInterval) {
                 this.startTick(msLeft);
+                return;
             }
-        } else if (state.status === 'REVIEW' && state.timers.votingEndsAt) {
-            const msLeft = state.timers.votingEndsAt - now;
-            if (msLeft > 0 && !this.tickInterval) {
-                this.startTick(msLeft);
-            }
-        } else if (state.status === 'TYPING' && state.timers.roundEndsAt) {
-            // Impostor mode: TYPING phase
-            const msLeft = state.timers.roundEndsAt - now;
-            if (msLeft > 0 && !this.tickInterval) {
-                this.startTick(msLeft);
-            }
-        } else if (state.status === 'VOTING' && state.timers.votingEndsAt) {
-            // Impostor mode: VOTING phase
-            const msLeft = state.timers.votingEndsAt - now;
-            if (msLeft > 0 && !this.tickInterval) {
-                this.startTick(msLeft);
-            }
-        } else {
-            // Any non-timed phase: LOBBY, RESULTS, GAME_OVER, ROLE_REVEAL → stop the tick
-            this.stopTick();
         }
+
+        // Any non-timed phase (LOBBY, RESULTS, etc.) or expired timer -> stop the tick
+        this.stopTick();
     }
 
     // [Sprint 1] Server-Authoritative Tick Loop
