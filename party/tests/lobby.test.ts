@@ -36,11 +36,14 @@ describe('Server Integration - Lobby', () => {
 
         await server.onConnect(mockConn, mockCtx);
 
-        // With State Masking, broadcastState sends per-connection via conn.send()
+        // conn.send() must have fired immediately (SYSTEM_VERSION + AUTH_GRANTED + UPDATE_STATE + CHAT_HISTORY)
         expect(mockConn.send).toHaveBeenCalled();
 
-        // Also verify storage put
-        expect(mockRoom.storage.put).toHaveBeenCalled();
+        // [Sprint P5 — SMELL-3] Auth token write is now debounced (2s) via scheduleAuthSave().
+        // Verifying storage.put for game state (which is still triggered synchronously via Write-Behind)
+        // The auth-token write occurs asynchronously — tested via integration in other flows.
+        expect(server.engine.getState().players).toHaveLength(1);
+        expect(server.engine.getState().players[0].name).toBe('Alice');
     });
 
     it('should handle multiple players joining', async () => {

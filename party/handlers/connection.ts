@@ -7,16 +7,25 @@ import { logger } from "../../shared/utils/logger";
 
 import type { ChatMessage } from "../../shared/types";
 
-const AUTH_TOKENS_KEY = "auth_tokens_v1";
+
 
 export class ConnectionHandler extends BaseHandler {
     authTokens: Map<string, string>;
     messages: ChatMessage[];
+    // [Sprint P5 — SMELL-3] Callback injected by server.ts — zero coupling, fire-and-forget.
+    private onSaveAuthTokens: (ctx: Party.ConnectionContext) => void;
 
-    constructor(room: Party.Room, engine: BaseEngine, authTokens: Map<string, string>, messages: ChatMessage[]) {
+    constructor(
+        room: Party.Room,
+        engine: BaseEngine,
+        authTokens: Map<string, string>,
+        messages: ChatMessage[],
+        onSaveAuthTokens: (ctx: Party.ConnectionContext) => void
+    ) {
         super(room, engine);
         this.authTokens = authTokens;
         this.messages = messages;
+        this.onSaveAuthTokens = onSaveAuthTokens;
     }
 
     async handleConnect(connection: Party.Connection, ctx: Party.ConnectionContext) {
@@ -46,7 +55,10 @@ export class ConnectionHandler extends BaseHandler {
 
             if (isNewToken || !this.authTokens.has(userId)) {
                 this.authTokens.set(userId, token!);
-                await this.room.storage.put(AUTH_TOKENS_KEY, Object.fromEntries(this.authTokens));
+                // [Sprint P5 — SMELL-3] Fire-and-Forget: zero await on the hot path.
+                // The debounce + Isolate Shield in server.ts.scheduleAuthSave() guarantees
+                // the actual storage.put will happen within 2s without blocking the WebSocket open.
+                this.onSaveAuthTokens(ctx);
             }
 
             // --- PRIVATE HANDSHAKE ---

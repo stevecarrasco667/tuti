@@ -81,12 +81,19 @@ export default class Server implements Party.Server {
     // Utilites
     private rateLimiter = new RateLimiter();
 
-    // Write-Behind: Debounced Persistence
+    // Write-Behind: Debounced Persistence (Game State)
     private saveTimeout: ReturnType<typeof setTimeout> | null = null;
     // [Phoenix Lobby] True Heartbeat Interval
     private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
     // [Sprint 1] Server-Authoritative Tick Loop
     private tickInterval: ReturnType<typeof setInterval> | null = null;
+
+    // [Sprint P5 — SMELL-3] Debounced Auth-Token persistence.
+    // Instead of blocking the onConnect hot path with an immediate storage.put,
+    // we batch writes within a 2s window. The authSaveTask Promise is handed to
+    // ctx.waitUntil() so the Isolate cannot die before the flush completes.
+    private authSaveTimeout: ReturnType<typeof setTimeout> | null = null;
+    private authSaveResolve: (() => void) | null = null;
 
     // Chat State
     messages: import('../shared/types').ChatMessage[] = [];
@@ -149,11 +156,46 @@ export default class Server implements Party.Server {
         this.engine = createEngine(this.supabase, 'CLASSIC', room.id, this.onStateChange);
 
         // Instantiate Handlers (typed against BaseEngine)
-        this.connectionHandler = new ConnectionHandler(room, this.engine, this.authTokens, this.messages);
+        // [Sprint P5 — SMELL-3] Pass a fire-and-forget callback so ConnectionHandler
+        // never needs a direct reference to Server, preserving the handler abstraction.
+        this.connectionHandler = new ConnectionHandler(
+            room, this.engine, this.authTokens, this.messages,
+            (ctx) => this.scheduleAuthSave(ctx)
+        );
         this.playerHandler = new PlayerHandler(room, this.engine);
         this.gameHandler = new GameHandler(room, this.engine);
         this.votingHandler = new VotingHandler(room, this.engine);
         this.chatHandler = new ChatHandler(this.engine, this.rateLimiter, this.messages, this.room);
+    }
+
+    // [Sprint P5 — SMELL-3] Debounced Write-Behind for Auth Tokens.
+    // Batches up to 2s of concurrent joins into a single storage.put.
+    // Wrapped in a Promise registered with ctx.waitUntil() = Isolate Shield:
+    // the Worker cannot hibernate until the flush resolves, preventing data loss.
+    public scheduleAuthSave(ctx: Party.ConnectionContext): void {
+        if (!this.authSaveTimeout) {
+            const task = new Promise<void>(resolve => {
+                this.authSaveResolve = resolve;
+            });
+            // Isolate Shield: keep the Worker alive until the flush is done.
+            // The guard covers runtimes that don't expose waitUntil (e.g. local dev).
+            if (typeof (ctx as any).waitUntil === 'function') {
+                (ctx as any).waitUntil(task);
+            }
+            this.authSaveTimeout = setTimeout(async () => {
+                try {
+                    await this.room.storage.put(AUTH_TOKENS_KEY, Object.fromEntries(this.authTokens));
+                    logger.info('AUTH_TOKENS_SAVED', { roomId: this.room.id, count: this.authTokens.size });
+                } catch (err) {
+                    logger.error('AUTH_TOKENS_SAVE_FAILED', { roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
+                } finally {
+                    this.authSaveTimeout = null;
+                    // Resolve closes the shield — Isolate is now free to hibernate.
+                    this.authSaveResolve?.();
+                    this.authSaveResolve = null;
+                }
+            }, 2000);
+        }
     }
 
     async onStart() {
@@ -167,7 +209,10 @@ export default class Server implements Party.Server {
                 if (stored.config.mode === 'IMPOSTOR') {
                     this.engine = createEngine(this.supabase, 'IMPOSTOR', this.room.id, this.onStateChange);
                     // Re-wire handlers to new engine
-                    this.connectionHandler = new ConnectionHandler(this.room, this.engine, this.authTokens, this.messages);
+                    this.connectionHandler = new ConnectionHandler(
+                        this.room, this.engine, this.authTokens, this.messages,
+                        (ctx) => this.scheduleAuthSave(ctx)
+                    );
                     this.playerHandler = new PlayerHandler(this.room, this.engine);
                     this.gameHandler = new GameHandler(this.room, this.engine);
                     this.votingHandler = new VotingHandler(this.room, this.engine);
@@ -469,7 +514,10 @@ export default class Server implements Party.Server {
                         this.engine.hydrate(currentState);
 
                         // Re-instanciar los handlers inyectando el nuevo motor
-                        this.connectionHandler = new ConnectionHandler(this.room, this.engine, this.authTokens, this.messages);
+                        this.connectionHandler = new ConnectionHandler(
+                            this.room, this.engine, this.authTokens, this.messages,
+                            (ctx) => this.scheduleAuthSave(ctx)
+                        );
                         this.playerHandler = new PlayerHandler(this.room, this.engine);
                         this.gameHandler = new GameHandler(this.room, this.engine);
                         this.votingHandler = new VotingHandler(this.room, this.engine);

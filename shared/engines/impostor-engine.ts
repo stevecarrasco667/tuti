@@ -426,6 +426,10 @@ export class ImpostorEngine extends BaseEngine {
         // Sprint 3.4: Store secrets in private properties (never written to public state)
         this.secretWord = secretWord;
         this.currentImpostorIds = impostorIds;
+        // [Sprint P5 — BUG-1] Mark dirty: startNewRound() is the primary mutation point for secrets.
+        // Without this flag, the Write-Behind in server.ts skips the storage.put and the new
+        // impostor identity + secret word are LOST on Worker hibernation.
+        this._secretsDirty = true;
 
         const alivePlayers = activePlayers.map(p => p.id);
 
@@ -690,15 +694,15 @@ export class ImpostorEngine extends BaseEngine {
         return this.state;
     }
 
-    public kickPlayer(_hostConnectionId: string, targetUserId: string): RoomState {
-        this._players.remove(this.state, targetUserId); // It normally expects connectionId but for this scope we'll just filter state
-        this.state.players = this.state.players.filter(p => p.id !== targetUserId);
+    public kickPlayer(hostConnectionId: string, targetUserId: string): RoomState {
+        // [Sprint P5 — BUG-4] Use _players.kick() which performs the connectionId reverse-lookup
+        // internally. Passing targetUserId directly to remove() would corrupt the connectionMap
+        // because remove() keys on connectionId, not userId.
+        this._players.kick(this.state, hostConnectionId, targetUserId);
 
         if (this.state.status !== 'LOBBY' && this.state.impostorData) {
             // Si el jugador aborta o lo kickean, lo descartamos de los vivos
             this.state.impostorData.alivePlayers = this.state.impostorData.alivePlayers.filter(id => id !== targetUserId);
-            // La victoria no se testea asíncronamente en el momento del desconecte,
-            // pero en el próximo RESULTS se evaluará matemáticamente.
         }
         return this.state;
     }
