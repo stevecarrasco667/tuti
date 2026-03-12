@@ -78,17 +78,29 @@ const handleFocus = () => {
 
         <!-- Input Area -->
         <div class="p-4 bg-panel-card/80 backdrop-blur-md border-t-[3px] border-white/10 shrink-0">
-            <input 
-                v-model="inputValue"
-                type="text" 
-                :placeholder="isDisabled ? '👻 Los fantasmas no hablan...' : 'Escribe un mensaje...'" 
-                :disabled="isDisabled"
-                class="w-full bg-panel-input rounded-full px-5 py-3 text-sm text-ink-main font-bold outline-none transition-all border-2 border-transparent focus:border-action-primary focus:ring-1 focus:ring-action-primary placeholder-ink-muted disabled:opacity-50 disabled:bg-panel-input/50 disabled:cursor-not-allowed"
-                :class="isDisabled ? 'placeholder-red-300' : 'placeholder-ink-muted/50'"
-                @keydown.enter.prevent="handleSend"
-                @focus="handleFocus"
-            />
-            <div class="text-[10px] font-bold text-ink-soft mt-2 text-center uppercase tracking-widest" v-if="!isDisabled">
+            <div class="flex items-center gap-2">
+                <input 
+                    v-model="inputValue"
+                    type="text" 
+                    :placeholder="isDisabled ? '👻 Los fantasmas no hablan...' : 'Escribe un mensaje...'" 
+                    :disabled="isDisabled"
+                    class="flex-1 min-w-0 bg-panel-input rounded-xl px-4 py-3 text-sm text-ink-main font-bold outline-none transition-all border-2 border-transparent focus:border-action-primary focus:ring-1 focus:ring-action-primary placeholder-ink-muted disabled:opacity-50 disabled:bg-panel-input/50 disabled:cursor-not-allowed"
+                    :class="isDisabled ? 'placeholder-red-300' : 'placeholder-ink-muted/50'"
+                    @keydown.enter.prevent="handleSend"
+                    @focus="handleFocus"
+                />
+                <button 
+                    @click="handleSend" 
+                    :disabled="isDisabled || !inputValue.trim()"
+                    class="flex-none bg-action-primary hover:bg-emerald-400 text-panel-base p-3 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-action-primary flex items-center justify-center border-2 border-transparent focus:border-white focus:outline-none"
+                    aria-label="Enviar mensaje"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 translate-x-0.5">
+                        <path d="M3.478 2.404a.75.75 0 00-.926.941l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.404z" />
+                    </svg>
+                </button>
+            </div>
+            <div class="text-[10px] font-bold text-ink-soft mt-2 text-center uppercase tracking-widest hidden sm:block" v-if="!isDisabled">
                 Presiona <span class="text-ink-main">Enter</span> para enviar
             </div>
         </div>

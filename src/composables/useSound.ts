@@ -1,3 +1,6 @@
+import { ref } from 'vue';
+
+const isMuted = ref(false);
 
 const SFX = {
     click: '/sounds/click.mp3',
@@ -12,6 +15,8 @@ const audioCache: Record<string, HTMLAudioElement> = {};
 export function useSound() {
 
     const play = (url: string, volume = 0.5) => {
+        if (isMuted.value) return;
+
         try {
             // Simple cache to avoid re-fetching, but allow overlapping sounds (cloneNode)
             if (!audioCache[url]) {
@@ -45,7 +50,13 @@ export function useSound() {
     const playAlarm = () => play(SFX.error, 0.4);
     const playSuccess = () => play(SFX.win, 0.5);
 
+    const toggleMute = () => {
+        isMuted.value = !isMuted.value;
+    };
+
     return {
+        isMuted,
+        toggleMute,
         playClick,
         playStop,
         playError,
