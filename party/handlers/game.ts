@@ -78,4 +78,25 @@ export class GameHandler extends BaseHandler {
             sendError(sender, (err as Error).message);
         }
     }
+
+    async handleWordReact(
+        payload: { targetPlayerId: string; categoryId: string; emoji: string },
+        sender: Party.Connection,
+        room: Party.Room
+    ) {
+        // Validate sender identity
+        const trustedSenderId = this.engine.players.getPlayerId(sender.id);
+        if (!trustedSenderId) return;
+
+        // Relay the reaction to ALL clients instantly — no state mutation
+        room.broadcast(JSON.stringify({
+            type: EVENTS.WORD_REACT,
+            payload: {
+                targetPlayerId: payload.targetPlayerId,
+                categoryId: payload.categoryId,
+                emoji: payload.emoji,
+                senderId: trustedSenderId
+            }
+        }));
+    }
 }

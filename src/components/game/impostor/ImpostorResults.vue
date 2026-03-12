@@ -2,6 +2,10 @@
 import { computed } from 'vue';
 import type { ImpostorData, Player } from '../../../../shared/types';
 import { useSound } from '../../../composables/useSound';
+import ReactionMenu from '../ReactionMenu.vue';
+import { useReactions } from '../../../composables/useReactions';
+import { useSocket } from '../../../composables/useSocket';
+import { EVENTS } from '../../../../shared/consts';
 
 const props = defineProps<{
     impostorData: ImpostorData;
@@ -11,6 +15,17 @@ const props = defineProps<{
 }>();
 
 const { playAlarm, playSuccess } = useSound();
+const { pushReaction } = useReactions();
+const { socket } = useSocket();
+
+const sendReaction = (targetPlayerId: string, categoryId: string, emoji: string) => {
+    socket.value?.send(JSON.stringify({
+        type: EVENTS.WORD_REACT,
+        payload: { targetPlayerId, categoryId, emoji }
+    }));
+    // Optimistic local prediction for the sender
+    pushReaction(targetPlayerId, categoryId, emoji);
+};
 
 const result = computed(() => props.impostorData.cycleResult);
 const matchOver = computed(() => result.value?.matchOver);
@@ -81,6 +96,28 @@ if (matchOver.value) {
                 </div>
             </template>
             
+        </div>
+
+        <!-- PALABRAS POR JUGADOR + REACCIONES -->
+        <div v-if="!matchOver" class="w-full max-w-xl mt-4 flex flex-col gap-2">
+            <div
+                v-for="player in players"
+                :key="player.id"
+                class="flex items-center justify-between bg-panel-card/60 rounded-2xl px-4 py-2 border border-white/5"
+            >
+                <div class="flex items-center gap-2 min-w-0">
+                    <span class="text-base flex-shrink-0">{{ player.avatar || '👤' }}</span>
+                    <span class="text-xs font-black text-ink-muted truncate">{{ player.name }}</span>
+                    <span class="text-sm font-black text-ink-main ml-1 truncate">
+                        {{ impostorData.words[player.id] || '—' }}
+                    </span>
+                </div>
+                <ReactionMenu
+                    :target-player-id="player.id"
+                    :category-id="impostorData.currentCategoryName"
+                    @react="(emoji, tid, cid) => sendReaction(tid, cid, emoji)"
+                />
+            </div>
         </div>
         
         <!-- TIMER -->

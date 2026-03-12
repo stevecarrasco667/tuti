@@ -535,6 +535,14 @@ export default class Server implements Party.Server {
                     return;
                 }
 
+                // --- REACTIONS (Stateless, P9) ---
+                case EVENTS.WORD_REACT: {
+                    // Zero-mutation relay: broadcast emoji to all connections without touching RoomState.
+                    // The sender gets an echo back (client uses it for self-prediction as fallback).
+                    await this.gameHandler.handleWordReact(payload as any, sender, this.room);
+                    return; // skip delta sync — no state was mutated
+                }
+
                 default:
                     console.warn(`Unknown message type: ${type}`);
             }
