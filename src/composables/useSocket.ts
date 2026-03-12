@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import PartySocket from "partysocket";
+import { supabase } from '../lib/supabase';
 
 // Si es DEV, usa localhost. Si es PROD, usa el host actual del navegador.
 // Si es DEV, usa localhost. Si es PROD, usa la variable de entorno, o el host actual como respaldo.
@@ -14,7 +15,7 @@ const lastMessage = ref<string>('');
 const isIntentionalDisconnect = ref(false);
 
 export function useSocket() {
-    const setRoomId = (roomId: string | null, userInfo?: { userId: string, name: string, avatar: string, token?: string, public?: string }) => {
+    const setRoomId = async (roomId: string | null, userInfo?: { userId: string, name: string, avatar: string, token?: string, public?: string }) => {
         // 1. Close existing connection if any
         if (socket.value) {
             console.log('🔌 Switching rooms... Closing old connection.');
@@ -27,18 +28,31 @@ export function useSocket() {
 
         if (!roomId) return;
 
+        // --- FASE 4: HANDSHAKE BLINDADO ZERO-TRUST ---
+        let currentToken = userInfo?.token;
+        try {
+            const { data } = await supabase.auth.getSession();
+            if (data?.session?.access_token) {
+                currentToken = data.session.access_token;
+            }
+        } catch (error) {
+            console.warn('No se pudo obtener el token de identidad:', error);
+        }
+
+        const enrichedUserInfo = userInfo ? { ...userInfo, token: currentToken } : undefined;
+
         // 2. Create new connection
         console.log(`🔌 Connecting to room: ${roomId} on host: ${PARTYKIT_HOST}`);
 
         if (import.meta.env.DEV) {
             // Mock Server Connection (Native WebSocket)
             const query = new URLSearchParams({ roomId });
-            if (userInfo) {
-                query.append('userId', userInfo.userId);
-                query.append('name', userInfo.name);
-                query.append('avatar', userInfo.avatar);
-                if (userInfo.token) query.append('token', userInfo.token);
-                if (userInfo.public) query.append('public', userInfo.public);
+            if (enrichedUserInfo) {
+                query.append('userId', enrichedUserInfo.userId);
+                query.append('name', enrichedUserInfo.name);
+                query.append('avatar', enrichedUserInfo.avatar);
+                if (enrichedUserInfo.token) query.append('token', enrichedUserInfo.token);
+                if (enrichedUserInfo.public) query.append('public', enrichedUserInfo.public);
             }
             const ws = new WebSocket(`ws://${PARTYKIT_HOST}?${query.toString()}`);
 
@@ -67,7 +81,7 @@ export function useSocket() {
             socket.value = new PartySocket({
                 host: PARTYKIT_HOST,
                 room: roomId,
-                query: userInfo // PartySocket handles object to query string conversion
+                query: enrichedUserInfo // PartySocket handles object to query string conversion
             });
 
             socket.value.addEventListener('open', () => {

@@ -33,6 +33,7 @@ export interface Player {
     disconnectedAt?: number; // For Zombie State
     avatar: string;
     filledCount?: number;
+    isAuthenticated?: boolean;
 }
 
 export interface GameConfig {

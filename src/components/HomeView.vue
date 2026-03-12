@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { generateRoomId, generateRandomName } from '../utils/random';
 import { useGame } from '../composables/useGame';
 import { useLobby } from '../composables/useLobby';
+import { useAuth } from '../composables/useAuth';
 import TCard from './ui/TCard.vue';
 import TButton from './ui/TButton.vue';
 import TInput from './ui/TInput.vue';
@@ -10,6 +11,7 @@ import TInput from './ui/TInput.vue';
 const emit = defineEmits(['navigate']);
 const { joinGame, myUserName, myUserAvatar } = useGame();
 const { publicRooms, connect, refreshRooms } = useLobby();
+const { user, isAuthenticated, isLoading, signInWithGoogle, signOut } = useAuth();
 
 const showJoinInput = ref(false);
 const joinCode = ref('');
@@ -44,6 +46,15 @@ onMounted(() => {
         selectedAvatar.value = AVATARS[Math.floor(Math.random() * AVATARS.length)];
     }
 });
+
+// Reactividad a cambios de autenticación
+watch(user, (newUser) => {
+    if (newUser) {
+        // Autocompletar con los datos de Google si el usuario acaba de iniciar sesión
+        myUserName.value = newUser.user_metadata.full_name || newUser.user_metadata.name || myUserName.value;
+        // La foto de perfil de Google podríamos usarla, pero por ahora en Tuti se usa emojies, a menos que en el futuro rendericemos imgs de perfil
+    }
+}, { immediate: true });
 
 // --- Action Handlers ---
 
@@ -90,8 +101,53 @@ const handleRefresh = () => {
 </script>
 
 <template>
-    <div class="h-full w-full flex flex-col items-center justify-center p-4">
-        <div class="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-7 gap-6 lg:gap-8">
+    <div class="h-full w-full flex flex-col items-center justify-start sm:justify-center p-4">
+        
+        <!-- FASE 2: PANEL DE AUTENTICACIÓN (EL METAJUEGO) -->
+        <div class="w-full max-w-5xl mx-auto mb-6">
+            <div v-if="isLoading" class="flex justify-center h-10 items-center">
+                <span class="animate-pulse text-ink-muted text-xs font-bold tracking-widest uppercase">Cargando Identidad...</span>
+            </div>
+            
+            <div v-else-if="!isAuthenticated" class="bg-indigo-900/40 border-2 border-indigo-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl backdrop-blur-sm">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-panel-base border-2 border-indigo-400 flex items-center justify-center text-xl shadow-inner bg-gradient-to-br from-indigo-500/20 to-fuchsia-500/20">
+                        ⭐
+                    </div>
+                    <div class="text-left hidden sm:block">
+                        <h4 class="text-white font-black text-sm tracking-tight drop-shadow-md">Únete al Metajuego</h4>
+                        <p class="text-indigo-200 text-[10px] font-bold uppercase tracking-wider">Inicia sesión para reclamar tu nombre y beneficios</p>
+                    </div>
+                </div>
+                <!-- Call To Action -->
+                <button @click="signInWithGoogle" class="w-full sm:w-auto bg-white hover:bg-gray-100 text-black px-4 py-2.5 rounded-xl font-bold uppercase tracking-wide text-xs shadow-md shadow-white/10 active:scale-95 transition-all flex items-center justify-center gap-2 border-[3px] border-white">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.2,4.73C15.29,4.73 17.1,6.7 17.1,6.7L19,4.72C19,4.72 16.56,2 12.1,2C6.42,2 2.03,6.8 2.03,12C2.03,17.05 6.16,22 12.25,22C17.6,22 21.5,18.33 21.5,12.91C21.5,11.76 21.35,11.1 21.35,11.1V11.1Z" /></svg>
+                    Iniciar con Google
+                </button>
+            </div>
+
+            <div v-else class="bg-panel-card border-2 border-white/10 rounded-2xl p-3 flex items-center justify-between gap-4 shadow-lg">
+                <div class="flex items-center gap-3">
+                    <!-- Google Avatar -->
+                    <img v-if="user?.user_metadata.avatar_url" :src="user.user_metadata.avatar_url" class="w-10 h-10 rounded-xl border-2 border-action-primary shadow-sm" alt="Avatar">
+                    <div v-else class="w-10 h-10 rounded-xl bg-panel-base border-2 border-action-primary flex items-center justify-center text-lg shadow-inner">
+                        👤
+                    </div>
+                    <div class="text-left">
+                        <p class="text-ink-soft text-[9px] font-black uppercase tracking-widest text-action-primary flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3 text-action-primary"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            Verificado
+                        </p>
+                        <h4 class="text-white font-black text-sm tracking-tight truncate max-w-[150px] sm:max-w-none">{{ user?.user_metadata.full_name || user?.email }}</h4>
+                    </div>
+                </div>
+                <button @click="signOut" class="text-ink-muted hover:text-red-400 bg-white/5 hover:bg-red-400/10 px-3 py-2 rounded-lg font-bold text-xs transition-colors">
+                    Cerrar sesión
+                </button>
+            </div>
+        </div>
+
+        <div class="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-7 gap-6 lg:gap-8 min-h-0">
 
             <!-- ═══════════════════════════════════════════════ -->
             <!-- COLUMN LEFT: "LA CONSOLA" (Main Action Hub)    -->
@@ -160,9 +216,15 @@ const handleRefresh = () => {
             <!-- IDENTITY CARD -->
             <TCard padding="md">
                 <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-xs font-black text-ink-main uppercase tracking-widest">Tu Identidad</h3>
-                    <button @click="isEditingProfile = !isEditingProfile" class="text-[10px] font-bold text-white bg-white/5 hover:bg-white/10 px-2 py-1 rounded border border-white/10 transition-colors uppercase">
+                    <h3 class="text-xs font-black text-ink-main uppercase tracking-widest flex items-center gap-1">
+                        Tu Identidad
+                        <span v-if="!isAuthenticated" title="Inicia sesión para editar tu nombre" class="cursor-help w-4 h-4 rounded-full bg-panel-input flex items-center justify-center text-[10px] font-bold ml-1 border border-white/5">?</span>
+                    </h3>
+                    <button v-if="isAuthenticated" @click="isEditingProfile = !isEditingProfile" class="text-[10px] font-bold text-white bg-white/5 hover:bg-white/10 px-2 py-1 rounded border border-white/10 transition-colors uppercase">
                         {{ isEditingProfile ? 'Guardar' : 'Editar' }}
+                    </button>
+                    <button v-else @click="signInWithGoogle" class="text-[10px] font-bold text-action-blue opacity-80 hover:opacity-100 uppercase underline">
+                        Personalizar
                     </button>
                 </div>
 
@@ -177,14 +239,25 @@ const handleRefresh = () => {
                     <!-- Name Display/Input -->
                     <div class="flex-1 min-w-0">
                         <p class="text-ink-soft text-[10px] font-bold tracking-wider uppercase mb-1">Nombre Público</p>
+                        
+                        <!-- Si no está logueado, Nombre es Inmutable -->
+                        <div v-if="!isAuthenticated" class="group flex items-center justify-between bg-panel-base/50 p-3 rounded-xl border-2 border-transparent">
+                            <span class="text-2xl sm:text-3xl font-black text-ink-muted truncate tracking-tight">{{ playerName }}</span>
+                            <span class="text-[10px] text-action-error font-bold uppercase ml-2 opacity-80 select-none hidden sm:inline-block">Requiere Login</span>
+                        </div>
+
+                        <!-- Si está logueado y editando -->
                         <TInput
-                            v-if="isEditingProfile"
+                            v-else-if="isEditingProfile"
                             v-model="playerName"
                             placeholder="Tu nombre..."
-                            :maxlength="12"
+                            :maxlength="20"
                             input-class="rounded-lg py-2 text-lg"
                         />
-                        <p v-else class="text-2xl sm:text-3xl font-black text-ink-main truncate tracking-tight">{{ playerName }}</p>
+                        <!-- Si está logueado y NO edita -->
+                        <div v-else class="flex flex-col">
+                            <p class="text-2xl sm:text-3xl font-black text-ink-main truncate tracking-tight">{{ playerName }}</p>
+                        </div>
                     </div>
                 </div>
 

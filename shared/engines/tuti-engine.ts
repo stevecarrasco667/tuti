@@ -90,7 +90,7 @@ export class TutiEngine extends BaseEngine {
 
     // --- CONNECTION MANAGEMENT ---
 
-    public joinPlayer(userId: string, name: string, avatar: string, connectionId: string): RoomState {
+    public joinPlayer(userId: string, name: string, avatar: string, connectionId: string, isAuthenticated?: boolean): RoomState {
         // Try Reconnect First (check both players AND spectators)
         if (this._players.reconnect(this.state, connectionId, userId)) {
             return this.state;
@@ -101,7 +101,7 @@ export class TutiEngine extends BaseEngine {
         const canJoinAsPlayer = (this.state.status === 'LOBBY' || this.state.status === 'GAME_OVER') && !isFull;
 
         if (canJoinAsPlayer) {
-            this._players.add(this.state, connectionId, { id: userId, name, avatar });
+            this._players.add(this.state, connectionId, { id: userId, name, avatar, isAuthenticated });
         } else {
             // Room full or game active → Spectator (with idempotency guard)
             const existingSpec = this.state.spectators.find(s => s.id === userId);
@@ -120,7 +120,8 @@ export class TutiEngine extends BaseEngine {
                     isHost: false,
                     isConnected: true,
                     lastSeenAt: Date.now(),
-                    filledCount: 0
+                    filledCount: 0,
+                    isAuthenticated
                 };
                 this.state.spectators.push(newPlayer);
             }

@@ -5,7 +5,7 @@ export class PlayerManager {
     // This is the source of truth for "who is this socket"
     private connectionMap: Record<string, string> = {};
 
-    public add(state: RoomState, connectionId: string, profile: { id: string; name: string; avatar: string }) {
+    public add(state: RoomState, connectionId: string, profile: { id: string; name: string; avatar: string; isAuthenticated?: boolean }) {
         // === IDEMPOTENCY GATE ===
         // If userId already exists in the room, update in-place instead of pushing a duplicate.
         // This prevents ghost players on page reload or worker hibernation wake-up.
@@ -16,6 +16,7 @@ export class PlayerManager {
             existingPlayer.name = profile.name;
             existingPlayer.avatar = profile.avatar;
             delete existingPlayer.disconnectedAt;
+            if (profile.isAuthenticated !== undefined) existingPlayer.isAuthenticated = profile.isAuthenticated;
             // Preserve isHost and score — don't reset them
             this.connectionMap[connectionId] = profile.id;
             return;
@@ -29,6 +30,7 @@ export class PlayerManager {
             existingSpectator.name = profile.name;
             existingSpectator.avatar = profile.avatar;
             delete existingSpectator.disconnectedAt;
+            if (profile.isAuthenticated !== undefined) existingSpectator.isAuthenticated = profile.isAuthenticated;
             this.connectionMap[connectionId] = profile.id;
             return;
         }
@@ -45,7 +47,8 @@ export class PlayerManager {
             score: 0,
             isHost: state.players.length === 0, // First joiner acts as Host
             isConnected: true,
-            lastSeenAt: Date.now()
+            lastSeenAt: Date.now(),
+            isAuthenticated: profile.isAuthenticated
         };
 
         state.players.push(newPlayer);

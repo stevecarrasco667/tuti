@@ -215,11 +215,11 @@ export class ImpostorEngine extends BaseEngine {
 
     // --- CONNECTION MANAGEMENT (Minimal viable for lobby) ---
 
-    public joinPlayer(userId: string, name: string, avatar: string, connectionId: string): RoomState {
+    public joinPlayer(userId: string, name: string, avatar: string, connectionId: string, isAuthenticated?: boolean): RoomState {
         if (this._players.reconnect(this.state, connectionId, userId)) {
             return this.state;
         }
-        this._players.add(this.state, connectionId, { id: userId, name, avatar });
+        this._players.add(this.state, connectionId, { id: userId, name, avatar, isAuthenticated });
         return this.state;
     }
 

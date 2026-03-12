@@ -37,7 +37,9 @@ export class ConnectionHandler extends BaseHandler {
             let token = url.searchParams.get("token");
             const isPublicRequest = url.searchParams.get('public') === 'true';
 
-            // --- ANTI-SPOOFING SECURITY ---
+            // --- FASE 4: ANTI-SPOOFING & IDENTITY SECURITY ---
+            // Validación local sincrona: Si es un JWT de Supabase, lo asumimos como autenticado (Zero-Trust Nivel 1)
+            const isAuthenticated = !!token && token.startsWith('eyJ');
             let isNewToken = false;
 
             if (this.authTokens.has(userId)) {
@@ -89,7 +91,7 @@ export class ConnectionHandler extends BaseHandler {
             }
 
             // Join Player in Engine (state mutation only — server.ts broadcasts)
-            this.engine.joinPlayer(userId, name, avatar, connection.id);
+            this.engine.joinPlayer(userId, name, avatar, connection.id, isAuthenticated);
         } catch (err) {
             logger.error('CONNECT_FAILED', { connectionId: connection.id, roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
             sendError(connection, "Failed to join room: " + (err instanceof Error ? err.message : String(err)));

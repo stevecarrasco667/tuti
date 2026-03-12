@@ -7,7 +7,8 @@ export const PlayerSchema = z.object({
     score: z.number(),
     isHost: z.boolean(),
     isConnected: z.boolean(),
-    lastSeenAt: z.number()
+    lastSeenAt: z.number(),
+    isAuthenticated: z.boolean().optional()
 });
 
 export const CategoryRefSchema = z.object({

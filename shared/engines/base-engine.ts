@@ -24,7 +24,7 @@ export abstract class BaseEngine {
     abstract hydrate(newState: RoomState): void;
 
     // --- CONNECTION MANAGEMENT ---
-    abstract joinPlayer(userId: string, name: string, avatar: string, connectionId: string): RoomState;
+    abstract joinPlayer(userId: string, name: string, avatar: string, connectionId: string, isAuthenticated?: boolean): RoomState;
     abstract playerDisconnected(connectionId: string): RoomState;
     abstract playerExited(connectionId: string): RoomState;
 
