@@ -177,6 +177,14 @@ export function useGameActions(
         }));
     };
 
+    const sendReaction = (targetPlayerId: string, categoryId: string, emoji: string) => {
+        if (!socket.value) return;
+        socket.value.send(JSON.stringify({
+            type: EVENTS.WORD_REACT,
+            payload: { targetPlayerId, categoryId, emoji, senderId: state.myUserId.value }
+        }));
+    };
+
     return {
         joinGame,
         startGame,
@@ -192,6 +200,7 @@ export function useGameActions(
         kickPlayer,
         forceDictionaryReload,
         leaveGame,
-        sendChatMessage
+        sendChatMessage,
+        sendReaction
     };
 }

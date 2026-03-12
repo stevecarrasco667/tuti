@@ -153,6 +153,7 @@ export type ClientMessage =
     | { type: typeof EVENTS.KICK_PLAYER; payload: { targetUserId: string } }
     | { type: typeof EVENTS.EXIT_GAME }
     | { type: typeof EVENTS.REQUEST_FULL_SYNC }
+    | { type: typeof EVENTS.WORD_REACT; payload: { targetPlayerId: string; categoryId: string; emoji: string; senderId: string } }
     | { type: typeof EVENTS.CHAT_SEND; payload: { text: string } };
 
 // Messages sent from Server to Client
@@ -160,6 +161,7 @@ export type ServerMessage =
     | { type: typeof EVENTS.UPDATE_STATE; payload: RoomState }
     | { type: typeof EVENTS.PATCH_STATE; payload: { stateVersion: number, patches: any[] } } // [Phoenix] Checked Delta Sync
     | { type: typeof EVENTS.AUTH_GRANTED; payload: { userId: string; sessionToken: string } } // [Phoenix] Anti-Spoofing
+    | { type: typeof EVENTS.WORD_REACT; payload: { targetPlayerId: string; categoryId: string; emoji: string; senderId: string } }
     | { type: typeof EVENTS.RIVAL_UPDATE; payload: { playerId: string; filledCount: number } }
     | { type: typeof EVENTS.PRIVATE_ROLE_ASSIGNMENT; payload: PrivateRolePayload } // [Sprint 3.4] Whisper
     | { type: typeof EVENTS.SYSTEM_MESSAGE; payload: string }

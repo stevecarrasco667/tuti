@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import VoteSwitch from './VoteSwitch.vue';
+import ReactionMenu from '../ReactionMenu.vue';
 
 defineProps<{
     playerName: string;
@@ -15,11 +16,16 @@ defineProps<{
     modelValue: boolean;
     // Phase 3+4: compact mode for 7+ players
     isCompact?: boolean;
+    // Phase 9: Reactions
+    playerId: string;
+    categoryId: string;
+    recentReactions: Array<{id: string, emoji: string}>;
 }>();
 
 const emit = defineEmits<{
     (e: 'update:modelValue', value: boolean): void;
     (e: 'vote'): void;
+    (e: 'react', emoji: string, targetId: string, catId: string): void;
 }>();
 </script>
 
@@ -74,6 +80,17 @@ const emit = defineEmits<{
                   class="mt-1 text-[8px] md:text-[10px] font-bold bg-action-warning/20 text-action-warning px-2 py-0.5 rounded-full border border-action-warning/30 uppercase tracking-widest">
                 Repetida
             </span>
+
+            <!-- Phase 9: Floating Reactions Container -->
+            <div class="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
+                <TransitionGroup name="float-up">
+                    <span v-for="reaction in recentReactions" :key="reaction.id" 
+                          class="absolute font-emoji text-3xl animate-float-up opacity-0"
+                          :style="{ left: `${Math.random() * 60 + 20}%`, bottom: '20%' }">
+                        {{ reaction.emoji }}
+                    </span>
+                </TransitionGroup>
+            </div>
         </div>
 
         <!-- Phase 3: ROW 3 — Switch o self-icon -->
@@ -96,6 +113,33 @@ const emit = defineEmits<{
                   :class="isCompact ? 'w-7 h-7 text-base' : 'w-8 h-8 md:w-10 md:h-10 text-lg md:text-xl'">
                 {{ selfStatusIcon }}
             </span>
+            
+            <!-- Phase 9: Reaction Trigger -->
+            <div class="absolute bottom-2 right-2 z-10" v-if="!isMe && word && !isCompact">
+                 <ReactionMenu 
+                    :target-player-id="playerId" 
+                    :category-id="categoryId"
+                    @react="(emj, tid, cid) => emit('react', emj, tid, cid)"
+                 />
+            </div>
         </div>
     </div>
 </template>
+
+<style scoped>
+.font-emoji { font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif; }
+.float-up-enter-active { transition: all 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.float-up-enter-from { opacity: 0; transform: translateY(20px) scale(0.5); }
+.float-up-enter-to { opacity: 1; transform: translateY(-40px) scale(1.5); }
+.float-up-leave-active { transition: all 0.5s ease-in; }
+.float-up-leave-to { opacity: 0; transform: translateY(-60px) scale(0.8); }
+
+@keyframes float-up {
+    0% { transform: translateY(0) scale(0.8); opacity: 0; }
+    20% { opacity: 1; transform: translateY(-20px) scale(1.2); }
+    100% { transform: translateY(-80px) scale(1.5); opacity: 0; }
+}
+.animate-float-up {
+    animation: float-up 2s ease-out forwards;
+}
+</style>

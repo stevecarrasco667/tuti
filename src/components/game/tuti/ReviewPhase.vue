@@ -2,6 +2,9 @@
 import { ref, computed } from 'vue';
 import VotingCard from './VotingCard.vue';
 import TButton from '../../ui/TButton.vue';
+import { useGameActions } from '../../../composables/useGameActions';
+import { useGameState } from '../../../composables/useGameState';
+import { useReactions } from '../../../composables/useReactions';
 import type { Player, CategoryRef } from '../../../../shared/types';
 
 const props = defineProps<{
@@ -19,6 +22,9 @@ const emit = defineEmits<{
     (e: 'vote', playerId: string, category: string): void;
     (e: 'submit-votes'): void;
 }>();
+
+const { sendReaction } = useGameActions(useGameState());
+const { getReactionsForTarget } = useReactions();
 
 // ─── Wizard Navigation ────────────────────────────────────────────────────────
 const currentCategoryIndex = ref(0);
@@ -117,7 +123,11 @@ const selfStatusIcon = (playerId: string, category: string) => {
                     :self-status-icon="selfStatusIcon(player.id, activeCategory.name)"
                     :model-value="isApproved(player.id, activeCategory.name)"
                     :is-compact="isCompact"
+                    :player-id="player.id"
+                    :category-id="activeCategory.name"
+                    :recent-reactions="getReactionsForTarget(player.id, activeCategory.name)"
                     @update:model-value="emit('vote', player.id, activeCategory.name)"
+                    @react="(emoji: string, targetId: string, catId: string) => sendReaction(targetId, catId, emoji)"
                 />
             </div>
         </div>

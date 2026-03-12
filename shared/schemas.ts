@@ -183,6 +183,16 @@ export const ChatSendSchema = z.object({
     })
 });
 
+export const WordReactSchema = z.object({
+    type: z.literal(EVENTS.WORD_REACT),
+    payload: z.object({
+        targetPlayerId: z.string(),
+        categoryId: z.string(),
+        emoji: z.string(),
+        senderId: z.string().optional() // Solo server -> client, por seguridad lo valida el backend 
+    })
+});
+
 export const ClientMessageSchema = z.discriminatedUnion('type', [
     JoinRoomSchema,
     StartGameSchema,
@@ -196,5 +206,6 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
     KickPlayerSchema,
     ExitGameSchema,
     RequestFullSyncSchema,
+    WordReactSchema,
     ChatSendSchema
 ]);

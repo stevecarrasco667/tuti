@@ -12,6 +12,7 @@ export const EVENTS = {
     KICK_PLAYER: 'KICK_PLAYER',
     EXIT_GAME: 'EXIT_GAME',
     REQUEST_FULL_SYNC: 'REQUEST_FULL_SYNC',
+    WORD_REACT: 'WORD_REACT',
 
     // Chat Events (Client -> Server)
     CHAT_SEND: 'CHAT_SEND',
