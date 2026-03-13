@@ -3,7 +3,6 @@ import { computed } from 'vue';
 import type { ImpostorData, Player } from '../../../../shared/types';
 import { useSound } from '../../../composables/useSound';
 import ReactionMenu from '../ReactionMenu.vue';
-import { useReactions } from '../../../composables/useReactions';
 import { useSocket } from '../../../composables/useSocket';
 import { EVENTS } from '../../../../shared/consts';
 
@@ -15,7 +14,6 @@ const props = defineProps<{
 }>();
 
 const { playAlarm, playSuccess } = useSound();
-const { pushReaction } = useReactions();
 const { socket } = useSocket();
 
 const sendReaction = (targetPlayerId: string, categoryId: string, emoji: string) => {
@@ -23,8 +21,6 @@ const sendReaction = (targetPlayerId: string, categoryId: string, emoji: string)
         type: EVENTS.WORD_REACT,
         payload: { targetPlayerId, categoryId, emoji }
     }));
-    // Optimistic local prediction for the sender
-    pushReaction(targetPlayerId, categoryId, emoji);
 };
 
 const result = computed(() => props.impostorData.cycleResult);
