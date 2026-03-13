@@ -4,6 +4,10 @@ import type { ImpostorData, Player } from '../../../../shared/types';
 import { useGame } from '../../../composables/useGame';
 import { localImpostorRole } from '../../../composables/useGameState';
 import { useSound } from '../../../composables/useSound';
+import ReactionMenu from '../ReactionMenu.vue';
+import { useReactions } from '../../../composables/useReactions';
+import { useSocket } from '../../../composables/useSocket';
+import { EVENTS } from '../../../../shared/consts';
 
 const props = defineProps<{
     impostorData: ImpostorData;
@@ -15,6 +19,18 @@ const props = defineProps<{
 
 const { toggleVote } = useGame();
 const { playClick } = useSound();
+const { pushReaction, getReactionsForTarget } = useReactions();
+const { socket } = useSocket();
+
+const sendReaction = (targetPlayerId: string, categoryId: string, emoji: string) => {
+    socket.value?.send(JSON.stringify({
+        type: EVENTS.WORD_REACT,
+        payload: { targetPlayerId, categoryId, emoji }
+    }));
+    // Optimistic local prediction
+    pushReaction(targetPlayerId, categoryId, emoji);
+    playClick();
+};
 
 const myVote = computed(() => props.impostorData.votes?.[props.myUserId] || null);
 const isDead = computed(() => !props.impostorData.alivePlayers.includes(props.myUserId));
@@ -132,7 +148,7 @@ const votingProgress = computed(() =>
             <div class="grid gap-3 w-full" :class="gridClass">
 
                 <div v-for="s in suspects" :key="s.id"
-                     class="relative bg-panel-card backdrop-blur-md border-[3px] rounded-2xl flex flex-col transition-all duration-300 shadow-sm overflow-hidden"
+                     class="relative bg-panel-card backdrop-blur-md border-[3px] rounded-2xl flex flex-col transition-all duration-300 shadow-sm"
                      :class="[
                          s.isSelectedByMe
                              ? 'border-action-primary bg-action-primary/5 shadow-[0_0_16px_rgba(46,204,113,0.25)]'
@@ -146,11 +162,20 @@ const votingProgress = computed(() =>
                         <!-- Row: Avatar + Name -->
                         <div class="flex items-center gap-2">
                             <!-- Avatar -->
-                            <div class="flex-none rounded-full bg-panel-input flex items-center justify-center overflow-hidden border-2 border-white/10 shadow-sm"
+                            <div class="relative flex-none rounded-full bg-panel-input flex items-center justify-center border-2 border-white/10 shadow-sm"
                                  :class="isCompact ? 'w-8 h-8' : 'w-10 h-10 md:w-11 md:h-11'">
                                 <img v-if="s.avatar && (s.avatar.startsWith('/') || s.avatar.startsWith('http'))"
-                                     :src="s.avatar" class="w-full h-full object-cover" />
+                                     :src="s.avatar" class="w-full h-full object-cover rounded-full overflow-hidden" />
                                 <span v-else :class="isCompact ? 'text-lg' : 'text-xl md:text-2xl'">{{ s.avatar || '👤' }}</span>
+                                
+                                <!-- Reaction Trigger -->
+                                <div class="absolute -right-1 -bottom-1 z-10" v-if="!s.isMe && s.word && !s.isPlayerDead">
+                                    <ReactionMenu 
+                                        :target-player-id="s.id" 
+                                        :category-id="impostorData.currentCategoryName"
+                                        @react="(emoji, tid, cid) => sendReaction(tid, cid, emoji)"
+                                    />
+                                </div>
                             </div>
 
                             <!-- Name -->
@@ -248,8 +273,24 @@ const votingProgress = computed(() =>
 
                     <!-- Dead overlay -->
                     <div v-if="s.isPlayerDead"
-                         class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 bg-panel-base/80 backdrop-blur-[1px]">
+                         class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 bg-panel-base/80 backdrop-blur-[1px] rounded-xl overflow-hidden">
                         <span class="text-5xl drop-shadow-md">💀</span>
+                    </div>
+
+                    <!-- Floating Reactions Container -->
+                    <div class="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden rounded-2xl z-20">
+                        <TransitionGroup name="float-up">
+                            <div v-for="r in getReactionsForTarget(s.id, impostorData.currentCategoryName)" 
+                                 :key="r.id"
+                                 class="absolute font-emoji drop-shadow-lg"
+                                 :class="isCompact ? 'text-3xl' : 'text-5xl lg:text-6xl'"
+                                 :style="{
+                                     left: `${40 + Math.random() * 20}%`, 
+                                     bottom: '10%'
+                                 }">
+                                {{ r.emoji }}
+                            </div>
+                        </TransitionGroup>
                     </div>
                 </div>
 
@@ -257,3 +298,21 @@ const votingProgress = computed(() =>
         </div>
     </div>
 </template>
+
+<style scoped>
+.font-emoji { font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif; }
+.float-up-enter-active { transition: all 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.float-up-enter-from { opacity: 0; transform: translateY(20px) scale(0.5); }
+.float-up-enter-to { opacity: 1; transform: translateY(-40px) scale(1.5); }
+.float-up-leave-active { transition: all 0.5s ease-in; }
+.float-up-leave-to { opacity: 0; transform: translateY(-60px) scale(0.8); }
+
+@keyframes float-up {
+    0% { transform: translateY(0) scale(0.8); opacity: 0; }
+    20% { opacity: 1; transform: translateY(-20px) scale(1.2); }
+    100% { transform: translateY(-80px) scale(1.5); opacity: 0; }
+}
+.animate-float-up {
+    animation: float-up 2s ease-out forwards;
+}
+</style>

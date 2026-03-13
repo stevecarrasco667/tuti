@@ -22,6 +22,7 @@ const sendReaction = (emoji: string) => {
 const handleMouseLeave = () => {
     isOpen.value = false;
 };
+
 </script>
 
 <template>
@@ -29,8 +30,7 @@ const handleMouseLeave = () => {
         
         <!-- Botón Trigger -->
         <button 
-            @mouseenter="isOpen = true"
-            @click="isOpen = !isOpen"
+            @click.stop.prevent="isOpen = !isOpen"
             class="w-6 h-6 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/20 transition-colors text-white/50 hover:text-white"
             title="Añadir reacción"
         >
@@ -55,7 +55,7 @@ const handleMouseLeave = () => {
                 <button
                     v-for="emj in EMOJIS"
                     :key="emj"
-                    @click="sendReaction(emj)"
+                    @click.stop.prevent="sendReaction(emj)"
                     class="w-8 h-8 flex items-center justify-center text-lg hover:bg-white/10 rounded-full transition-transform hover:scale-125 active:scale-95"
                 >
                     {{ emj }}

@@ -31,7 +31,8 @@ const emit = defineEmits<{
 
 <template>
     <!-- Phase 1: max-h added, no more stretching -->
-    <div class="bg-panel-card rounded-2xl w-full flex flex-col overflow-hidden transition-all duration-500 [container-type:inline-size]"
+    <!-- Fix P9: Removed overflow-hidden so the absolute popover and upward floating particles don't get clipped/cut -->
+    <div class="bg-panel-card rounded-2xl w-full flex flex-col transition-all duration-500 [container-type:inline-size]"
          :class="[
             isCompact ? 'p-2 min-h-[130px] max-h-[220px]' : 'p-2.5 md:p-3 min-h-[160px] max-h-[320px]',
             isAutoValidated
