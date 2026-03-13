@@ -225,14 +225,16 @@ const votingProgress = computed(() =>
                             </div>
                         </div>
 
-                        <!-- ReactionBar + Trigger inline bajo la palabra -->
-                        <div class="flex items-center gap-1" v-if="!s.isMe && s.word && !s.isPlayerDead">
+                        <!-- Reacciones: bar visible para TODOS (incluso el propio jugador ve las reacciones en su carta) -->
+                        <div class="flex items-center gap-1" v-if="s.word && !s.isPlayerDead">
                             <ReactionBar
                                 :counts="getCountsForTarget(s.id, impostorData.currentCategoryName)"
                                 :is-compact="isCompact"
                                 class="flex-1 min-w-0"
                             />
+                            <!-- Trigger solo para otros jugadores -->
                             <ReactionMenu
+                                v-if="!s.isMe"
                                 :target-player-id="s.id"
                                 :category-id="impostorData.currentCategoryName"
                                 :is-compact="isCompact"

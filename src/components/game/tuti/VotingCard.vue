@@ -102,13 +102,16 @@ const emit = defineEmits<{
         </div>
 
         <!-- ROW 3 — ReactionBar + Trigger (inline) -->
-        <div class="flex-none flex items-center gap-1.5 mt-1.5 min-h-[22px]" v-if="!isMe && word">
+        <!-- Bar visible para TODOS: el jugador target también ve las reacciones en su propia carta -->
+        <div class="flex-none flex items-center gap-1.5 mt-1.5 min-h-[22px]" v-if="word">
             <ReactionBar
                 :counts="reactionCounts"
                 :is-compact="isCompact"
                 class="flex-1 min-w-0"
             />
+            <!-- Trigger solo para otros jugadores (no puedes reaccionar a ti mismo) -->
             <ReactionMenu
+                v-if="!isMe"
                 :target-player-id="playerId"
                 :category-id="categoryId"
                 :is-compact="isCompact"
