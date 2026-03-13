@@ -24,7 +24,7 @@ const emit = defineEmits<{
 }>();
 
 const { sendReaction } = useGameActions(useGameState());
-const { getReactionsForTarget } = useReactions();
+const { getCountsForTarget, getBurstsForTarget } = useReactions();
 
 // ─── Wizard Navigation ────────────────────────────────────────────────────────
 const currentCategoryIndex = ref(0);
@@ -125,7 +125,8 @@ const selfStatusIcon = (playerId: string, category: string) => {
                     :is-compact="isCompact"
                     :player-id="player.id"
                     :category-id="activeCategory.name"
-                    :recent-reactions="getReactionsForTarget(player.id, activeCategory.name)"
+                    :reaction-counts="getCountsForTarget(player.id, activeCategory.name)"
+                    :reaction-bursts="getBurstsForTarget(player.id, activeCategory.name)"
                     @update:model-value="emit('vote', player.id, activeCategory.name)"
                     @react="(emoji: string, targetId: string, catId: string) => sendReaction(targetId, catId, emoji)"
                 />

@@ -5,6 +5,7 @@ import { useGame } from '../../../composables/useGame';
 import { localImpostorRole } from '../../../composables/useGameState';
 import { useSound } from '../../../composables/useSound';
 import ReactionMenu from '../ReactionMenu.vue';
+import ReactionBar from '../ReactionBar.vue';
 import { useReactions } from '../../../composables/useReactions';
 import { useSocket } from '../../../composables/useSocket';
 import { EVENTS } from '../../../../shared/consts';
@@ -19,7 +20,7 @@ const props = defineProps<{
 
 const { toggleVote } = useGame();
 const { playClick } = useSound();
-const { pushReaction, getReactionsForTarget } = useReactions();
+const { pushReaction, getCountsForTarget, getBurstsForTarget } = useReactions();
 const { socket } = useSocket();
 
 const sendReaction = (targetPlayerId: string, categoryId: string, emoji: string) => {
@@ -173,6 +174,7 @@ const votingProgress = computed(() =>
                                     <ReactionMenu 
                                         :target-player-id="s.id" 
                                         :category-id="impostorData.currentCategoryName"
+                                        :is-compact="isCompact"
                                         @react="(emoji, tid, cid) => sendReaction(tid, cid, emoji)"
                                     />
                                 </div>
@@ -204,7 +206,7 @@ const votingProgress = computed(() =>
                         </div>
 
                         <!-- Phase 2: WORD — Visual protagonist -->
-                        <div class="w-full rounded-xl px-3 py-2 text-center transition-colors duration-300"
+                        <div class="relative w-full rounded-xl px-3 py-2 text-center transition-colors duration-300"
                              :class="s.word
                                  ? 'bg-tuti-teal/10 border border-tuti-teal/30'
                                  : 'bg-panel-input/60 border border-white/10 border-dashed'"
@@ -218,6 +220,28 @@ const votingProgress = computed(() =>
                                   :class="isCompact ? 'text-[10px]' : 'text-xs'">
                                 ⏳ Pensando...
                             </span>
+
+                            <!-- Burst de animación de reacciones (posición fija en datos) -->
+                            <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
+                                <TransitionGroup name="burst">
+                                    <span
+                                        v-for="b in getBurstsForTarget(s.id, impostorData.currentCategoryName)"
+                                        :key="b.id"
+                                        class="absolute bottom-0 font-emoji"
+                                        :class="isCompact ? 'text-2xl' : 'text-4xl'"
+                                        :style="{ left: `${b.offsetX}%` }"
+                                    >{{ b.emoji }}</span>
+                                </TransitionGroup>
+                            </div>
+                        </div>
+
+                        <!-- ReactionBar inline bajo la palabra -->
+                        <div class="flex items-center gap-1" v-if="!s.isMe && s.word && !s.isPlayerDead">
+                            <ReactionBar
+                                :counts="getCountsForTarget(s.id, impostorData.currentCategoryName)"
+                                :is-compact="isCompact"
+                                class="flex-1 min-w-0"
+                            />
                         </div>
 
                         <!-- Phase 3: ACUSAR button — guaranteed min size -->
@@ -275,22 +299,6 @@ const votingProgress = computed(() =>
                     <div v-if="s.isPlayerDead"
                          class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 bg-panel-base/80 backdrop-blur-[1px] rounded-xl overflow-hidden">
                         <span class="text-5xl drop-shadow-md">💀</span>
-                    </div>
-
-                    <!-- Floating Reactions Container -->
-                    <div class="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden rounded-2xl z-20">
-                        <TransitionGroup name="float-up">
-                            <div v-for="r in getReactionsForTarget(s.id, impostorData.currentCategoryName)" 
-                                 :key="r.id"
-                                 class="absolute font-emoji drop-shadow-lg"
-                                 :class="isCompact ? 'text-3xl' : 'text-5xl lg:text-6xl'"
-                                 :style="{
-                                     left: `${40 + Math.random() * 20}%`, 
-                                     bottom: '10%'
-                                 }">
-                                {{ r.emoji }}
-                            </div>
-                        </TransitionGroup>
                     </div>
                 </div>
 

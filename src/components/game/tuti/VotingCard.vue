@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import VoteSwitch from './VoteSwitch.vue';
 import ReactionMenu from '../ReactionMenu.vue';
+import ReactionBar from '../ReactionBar.vue';
 
-defineProps<{
+const props = defineProps<{
     playerName: string;
     playerAvatar: string;
     word: string;
@@ -16,10 +17,11 @@ defineProps<{
     modelValue: boolean;
     // Phase 3+4: compact mode for 7+ players
     isCompact?: boolean;
-    // Phase 9: Reactions
+    // Phase 9 (refactored): Persistent reaction counters
     playerId: string;
     categoryId: string;
-    recentReactions: Array<{id: string, emoji: string}>;
+    reactionCounts: Record<string, number>;  // emoji → count (from useReactions.getCountsForTarget)
+    reactionBursts: Array<{ id: string; emoji: string; offsetX: number }>; // from useReactions.getBurstsForTarget
 }>();
 
 const emit = defineEmits<{
@@ -30,11 +32,11 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <!-- Phase 1: max-h added, no more stretching -->
-    <!-- Fix P9: Removed overflow-hidden so the absolute popover and upward floating particles don't get clipped/cut -->
-    <div class="bg-panel-card rounded-2xl w-full flex flex-col transition-all duration-500 [container-type:inline-size]"
-         :class="[
-            isCompact ? 'p-2 min-h-[130px] max-h-[220px]' : 'p-2.5 md:p-3 min-h-[160px] max-h-[320px]',
+    <!-- No overflow-hidden en el contenedor raíz: permite que el popover salga hacia arriba -->
+    <div
+        class="bg-panel-card rounded-2xl w-full flex flex-col transition-all duration-500 [container-type:inline-size]"
+        :class="[
+            isCompact ? 'p-2 min-h-[130px] max-h-[240px]' : 'p-2.5 md:p-3 min-h-[160px] max-h-[340px]',
             isAutoValidated
                 ? 'border border-amber-500/30 shadow-[0_0_30px_-5px_rgba(251,191,36,0.25)]'
                 : isRejected || !isApproved
@@ -42,15 +44,15 @@ const emit = defineEmits<{
                     : isDuplicate
                         ? 'border border-amber-900/50 shadow-[0_0_30px_-5px_rgba(245,158,11,0.3)]'
                         : 'border border-white/5 shadow-2xl'
-         ]">
+        ]"
+    >
 
-        <!-- Phase 4: ROW 1 — Avatar + Nombre con mejor legibilidad -->
+        <!-- ROW 1 — Avatar + Nombre -->
         <div class="flex-none flex items-center gap-2 mb-2">
             <span class="leading-none drop-shadow-md flex-shrink-0"
                   :class="isCompact ? 'text-sm' : 'text-base md:text-lg'">
                 {{ playerAvatar || '👤' }}
             </span>
-            <!-- Phase 4: name siempre legible, nunca 10px -->
             <span class="text-xs font-black text-ink-main drop-shadow-md truncate"
                   :title="playerName">
                 {{ playerName }}
@@ -58,22 +60,23 @@ const emit = defineEmits<{
             <span v-if="isAutoValidated" class="text-xs flex-shrink-0 ml-auto">🛡️</span>
         </div>
 
-        <!-- Phase 4: ROW 2 — La Palabra (protagonista con clamp apropiado) -->
-        <div class="flex-1 flex flex-col items-center justify-center w-full px-1 min-h-0">
-            <span class="font-black text-center uppercase tracking-wide break-words break-all drop-shadow-xl transition-all duration-300 leading-tight"
-                  :class="[
-                      // Phase 4: clamp más bajo para evitar gigantismo, line-clamp-1 en compacto
-                      isCompact
-                          ? 'text-[clamp(0.875rem,9cqi,2rem)] line-clamp-2'
-                          : 'text-[clamp(1.25rem,10cqi,3.5rem)] line-clamp-2',
-                      isRejected || !isApproved
-                          ? 'line-through opacity-40 text-red-400'
-                          : isAutoValidated
-                              ? 'text-amber-300'
-                              : isDuplicate
-                                  ? 'text-action-warning'
-                                  : 'text-ink-main'
-                  ]">
+        <!-- ROW 2 — La Palabra (protagonista) -->
+        <div class="relative flex-1 flex flex-col items-center justify-center w-full px-1 min-h-0">
+            <span
+                class="font-black text-center uppercase tracking-wide break-words break-all drop-shadow-xl transition-all duration-300 leading-tight"
+                :class="[
+                    isCompact
+                        ? 'text-[clamp(0.875rem,9cqi,2rem)] line-clamp-2'
+                        : 'text-[clamp(1.25rem,10cqi,3.5rem)] line-clamp-2',
+                    isRejected || !isApproved
+                        ? 'line-through opacity-40 text-red-400'
+                        : isAutoValidated
+                            ? 'text-amber-300'
+                            : isDuplicate
+                                ? 'text-action-warning'
+                                : 'text-ink-main'
+                ]"
+            >
                 {{ word || '—' }}
             </span>
 
@@ -82,19 +85,38 @@ const emit = defineEmits<{
                 Repetida
             </span>
 
-            <!-- Phase 9: Floating Reactions Container -->
-            <div class="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
-                <TransitionGroup name="float-up">
-                    <span v-for="reaction in recentReactions" :key="reaction.id" 
-                          class="absolute font-emoji text-3xl animate-float-up opacity-0"
-                          :style="{ left: `${Math.random() * 60 + 20}%`, bottom: '20%' }">
-                        {{ reaction.emoji }}
+            <!-- Phase 9: Burst de animación (solo visual, 1.5s, posición fija en datos) -->
+            <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
+                <TransitionGroup name="burst">
+                    <span
+                        v-for="b in reactionBursts"
+                        :key="b.id"
+                        class="absolute bottom-0 font-emoji"
+                        :class="isCompact ? 'text-2xl' : 'text-4xl'"
+                        :style="{ left: `${b.offsetX}%` }"
+                    >
+                        {{ b.emoji }}
                     </span>
                 </TransitionGroup>
             </div>
         </div>
 
-        <!-- Phase 3: ROW 3 — Switch o self-icon -->
+        <!-- ROW 3 — ReactionBar + Trigger (inline) -->
+        <div class="flex-none flex items-center gap-1.5 mt-1.5 min-h-[22px]" v-if="!isMe && word">
+            <ReactionBar
+                :counts="reactionCounts"
+                :is-compact="isCompact"
+                class="flex-1 min-w-0"
+            />
+            <ReactionMenu
+                :target-player-id="playerId"
+                :category-id="categoryId"
+                :is-compact="isCompact"
+                @react="(emj, tid, cid) => emit('react', emj, tid, cid)"
+            />
+        </div>
+
+        <!-- ROW 4 — Switch o self-icon -->
         <div class="flex-none flex flex-col items-center justify-center gap-1 mt-2">
             <span v-if="voteCount > 0 && !isAutoValidated"
                   class="bg-action-warning text-ink-base border border-white/10 px-2 py-0.5 rounded-full text-[8px] md:text-[10px] font-black whitespace-nowrap shadow-sm">
@@ -114,33 +136,25 @@ const emit = defineEmits<{
                   :class="isCompact ? 'w-7 h-7 text-base' : 'w-8 h-8 md:w-10 md:h-10 text-lg md:text-xl'">
                 {{ selfStatusIcon }}
             </span>
-            
-            <!-- Phase 9: Reaction Trigger -->
-            <div class="absolute bottom-2 right-2 z-10" v-if="!isMe && word && !isCompact">
-                 <ReactionMenu 
-                    :target-player-id="playerId" 
-                    :category-id="categoryId"
-                    @react="(emj, tid, cid) => emit('react', emj, tid, cid)"
-                 />
-            </div>
         </div>
+
     </div>
 </template>
 
 <style scoped>
 .font-emoji { font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif; }
-.float-up-enter-active { transition: all 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
-.float-up-enter-from { opacity: 0; transform: translateY(20px) scale(0.5); }
-.float-up-enter-to { opacity: 1; transform: translateY(-40px) scale(1.5); }
-.float-up-leave-active { transition: all 0.5s ease-in; }
-.float-up-leave-to { opacity: 0; transform: translateY(-60px) scale(0.8); }
 
-@keyframes float-up {
-    0% { transform: translateY(0) scale(0.8); opacity: 0; }
-    20% { opacity: 1; transform: translateY(-20px) scale(1.2); }
-    100% { transform: translateY(-80px) scale(1.5); opacity: 0; }
+/* Burst: sube y desaparece en 1.5s */
+.burst-enter-active {
+    animation: burst-fly 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
-.animate-float-up {
-    animation: float-up 2s ease-out forwards;
+.burst-leave-active { transition: opacity 0.2s; }
+.burst-leave-to { opacity: 0; }
+
+@keyframes burst-fly {
+    0%   { transform: translateY(0)   scale(0.6); opacity: 0; }
+    15%  { transform: translateY(-10px) scale(1.3); opacity: 1; }
+    80%  { transform: translateY(-60px) scale(1.2); opacity: 0.8; }
+    100% { transform: translateY(-80px) scale(1.0); opacity: 0; }
 }
 </style>
