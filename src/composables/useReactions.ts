@@ -1,24 +1,22 @@
-import { ref,} from 'vue';
+import { ref } from 'vue';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-// Emoji burst: aparece brevemente al llegar una reacción nueva (animación de entrada)
 export interface ReactionBurst {
     id: string;
     targetPlayerId: string;
     categoryId: string;
     emoji: string;
-    // Posición fija asignada en el momento de creación (evita el anti-patrón Math.random en template)
-    offsetX: number;
+    offsetX: number; // posición fija asignada al crear (no Math.random en template)
 }
 
 // ─── Global Singleton State ───────────────────────────────────────────────────
 
-// Clave aplanada: `${targetPlayerId}::${categoryId}` → emoji → count
-// Aplanada para máxima reactividad en Vue 3 (evita problemas con nested Records)
-const reactionCounts = ref<Record<string, Record<string, number>>>({});
+// Modelo correcto: key = "targetId::catId" → senderId → emoji
+// Esto garantiza max 1 reacción por usuario y swap automático
+const reactionMap = ref<Record<string, Record<string, string>>>({});
 
-// Cola de bursts de entrada (se auto-destruyen en 1.5s — solo animación visual)
+// Cola de bursts efímeros para la animación de entrada (1.5s, no persiste)
 const reactionBursts = ref<ReactionBurst[]>([]);
 
 // ─── Composable ───────────────────────────────────────────────────────────────
@@ -26,29 +24,34 @@ const reactionBursts = ref<ReactionBurst[]>([]);
 export function useReactions() {
 
     /**
-     * Registra una nueva reacción.
-     * - Incrementa el contador persistente (no se pierde).
-     * - Encola un burst efímero para la animación de entrada.
+     * Registra/actualiza la reacción de un jugador.
+     * Si el jugador ya tenía una reacción anterior, la reemplaza (swap).
+     * Esto es el único punto de actualización del estado.
      */
-    const pushReaction = (targetPlayerId: string, categoryId: string, emoji: string) => {
-        // 1. Contador persistente
+    const registerReaction = (
+        targetPlayerId: string,
+        categoryId: string,
+        emoji: string,
+        senderId: string
+    ) => {
         const key = `${targetPlayerId}::${categoryId}`;
-        if (!reactionCounts.value[key]) {
-            reactionCounts.value[key] = {};
-        }
-        reactionCounts.value[key][emoji] = (reactionCounts.value[key][emoji] || 0) + 1;
 
-        // 2. Burst efímero de animación (posición fijada aquí, no en el template)
+        if (!reactionMap.value[key]) {
+            reactionMap.value[key] = {};
+        }
+
+        // Swap: si el mismo usuario vuelve a reaccionar, simplemente se sobreescribe
+        reactionMap.value[key][senderId] = emoji;
+
+        // Burst de animación de entrada (solo visual, 1.5s)
         const burstId = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
         reactionBursts.value.push({
             id: burstId,
             targetPlayerId,
             categoryId,
             emoji,
-            offsetX: 25 + Math.random() * 50, // 25%–75% dentro de la tarjeta
+            offsetX: 20 + Math.random() * 60,
         });
-
-        // Destruir el burst pasado 1.5s (solo la animación, no el contador)
         setTimeout(() => {
             const idx = reactionBursts.value.findIndex(b => b.id === burstId);
             if (idx > -1) reactionBursts.value.splice(idx, 1);
@@ -56,16 +59,23 @@ export function useReactions() {
     };
 
     /**
-     * Retorna el mapa emoji → count para un jugador/categoría específicos.
-     * usado por ReactionBar.vue
+     * Retorna los contadores agrupados: emoji → número de usuarios que lo pusieron.
+     * Derivado del reactionMap, siempre consistente.
      */
     const getCountsForTarget = (targetPlayerId: string, categoryId: string): Record<string, number> => {
         const key = `${targetPlayerId}::${categoryId}`;
-        return reactionCounts.value[key] ?? {};
+        const senderMap = reactionMap.value[key];
+        if (!senderMap) return {};
+
+        const counts: Record<string, number> = {};
+        for (const emoji of Object.values(senderMap)) {
+            counts[emoji] = (counts[emoji] || 0) + 1;
+        }
+        return counts;
     };
 
     /**
-     * Retorna los bursts activos para un jugador (para la animación de entrada).
+     * Retorna los bursts activos para un jugador (animación de entrada).
      */
     const getBurstsForTarget = (targetPlayerId: string, categoryId: string): ReactionBurst[] => {
         return reactionBursts.value.filter(
@@ -74,15 +84,15 @@ export function useReactions() {
     };
 
     /**
-     * Limpia TODOS los contadores (llamar al cambiar de ronda/categoría).
+     * Limpia todo al cambiar de ronda/categoría.
      */
     const clearReactions = () => {
-        reactionCounts.value = {};
+        reactionMap.value = {};
         reactionBursts.value = [];
     };
 
     return {
-        pushReaction,
+        registerReaction,
         getCountsForTarget,
         getBurstsForTarget,
         clearReactions,

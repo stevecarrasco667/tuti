@@ -10,7 +10,7 @@ export function useGameSync(
     state: ReturnType<typeof useGameState>
 ) {
     const { socket, lastMessage, setRoomId, isConnected, connectToParty } = useSocket();
-    const { pushReaction } = useReactions();
+    const { registerReaction } = useReactions();
 
     // Inbound: Receive and Mutate
     watch(lastMessage, (newMsg) => {
@@ -91,8 +91,9 @@ export function useGameSync(
             } else if (parsed.type === EVENTS.SERVER_ERROR) {
                 console.error('[Server Error]:', (parsed.payload as { message: string }).message);
             } else if (parsed.type === EVENTS.WORD_REACT) {
-                const { targetPlayerId, categoryId, emoji } = parsed.payload;
-                pushReaction(targetPlayerId, categoryId, emoji);
+                const { targetPlayerId, categoryId, emoji, senderId } = parsed.payload;
+                // registerReaction es el ÚNICO punto de actualización — sin duplicado optimista
+                registerReaction(targetPlayerId, categoryId, emoji, senderId ?? 'unknown');
             }
         } catch (e) {
             console.error('Failed to parse message:', e);

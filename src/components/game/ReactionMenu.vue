@@ -4,7 +4,6 @@ import { ref } from 'vue';
 const props = defineProps<{
     targetPlayerId: string;
     categoryId: string;
-    /** Si true, el botón trigger es más pequeño (modo compacto) */
     isCompact?: boolean;
 }>();
 
@@ -14,25 +13,34 @@ const emit = defineEmits<{
 
 const isOpen = ref(false);
 const EMOJIS = ['😂', '💀', '🤡', '🤯', '❤️', '👍'];
+let closeTimer: ReturnType<typeof setTimeout> | null = null;
 
 const sendReaction = (emoji: string) => {
     emit('react', emoji, props.targetPlayerId, props.categoryId);
     isOpen.value = false;
 };
 
-const close = () => {
-    isOpen.value = false;
+// Cierre con delay: da tiempo al cursor de llegar al popover sin cerrarse
+const scheduleClose = () => {
+    closeTimer = setTimeout(() => {
+        isOpen.value = false;
+    }, 180);
+};
+
+const cancelClose = () => {
+    if (closeTimer) {
+        clearTimeout(closeTimer);
+        closeTimer = null;
+    }
 };
 </script>
 
 <template>
-    <!--
-      v-click-outside alternativa: cerramos con @blur en el div focusable.
-      El popover abre hacia ARRIBA (bottom-full mb-2) en lugar de hacia los lados,
-      así nunca invade otras tarjetas horizontales vecinas.
-    -->
-    <div class="relative inline-flex" @mouseleave="close">
-
+    <div
+        class="relative inline-flex"
+        @mouseleave="scheduleClose"
+        @mouseenter="cancelClose"
+    >
         <!-- Botón Trigger -->
         <button
             @click.stop.prevent="isOpen = !isOpen"
@@ -48,7 +56,7 @@ const close = () => {
             </svg>
         </button>
 
-        <!-- Popover abre hacia ARRIBA — z-[60] para superar stacking contexts de columnas vecinas -->
+        <!-- Popover hacia ARRIBA — z-[60] supera stacking contexts de columnas vecinas -->
         <Transition
             enter-active-class="transition ease-out duration-150"
             enter-from-class="opacity-0 scale-95 translate-y-1"
@@ -59,11 +67,12 @@ const close = () => {
         >
             <div
                 v-if="isOpen"
-                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-[60]
+                class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 z-[60]
                        flex items-center gap-1 p-1.5
                        bg-panel-card border border-white/15
                        rounded-full shadow-2xl backdrop-blur-md"
                 @click.stop
+                @mouseenter="cancelClose"
             >
                 <button
                     v-for="emj in EMOJIS"
@@ -76,6 +85,5 @@ const close = () => {
                 </button>
             </div>
         </Transition>
-
     </div>
 </template>

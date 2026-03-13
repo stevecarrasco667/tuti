@@ -20,16 +20,16 @@ const props = defineProps<{
 
 const { toggleVote } = useGame();
 const { playClick } = useSound();
-const { pushReaction, getCountsForTarget, getBurstsForTarget } = useReactions();
+const { getCountsForTarget, getBurstsForTarget } = useReactions();
 const { socket } = useSocket();
 
 const sendReaction = (targetPlayerId: string, categoryId: string, emoji: string) => {
+    // NO predicción optimista: el servidor brodcastea de vuelta al emisor,
+    // y useGameSync llama a registerReaction una única vez.
     socket.value?.send(JSON.stringify({
         type: EVENTS.WORD_REACT,
         payload: { targetPlayerId, categoryId, emoji }
     }));
-    // Optimistic local prediction
-    pushReaction(targetPlayerId, categoryId, emoji);
     playClick();
 };
 
@@ -163,21 +163,11 @@ const votingProgress = computed(() =>
                         <!-- Row: Avatar + Name -->
                         <div class="flex items-center gap-2">
                             <!-- Avatar -->
-                            <div class="relative flex-none rounded-full bg-panel-input flex items-center justify-center border-2 border-white/10 shadow-sm"
+                            <div class="flex-none rounded-full bg-panel-input flex items-center justify-center border-2 border-white/10 shadow-sm overflow-hidden"
                                  :class="isCompact ? 'w-8 h-8' : 'w-10 h-10 md:w-11 md:h-11'">
                                 <img v-if="s.avatar && (s.avatar.startsWith('/') || s.avatar.startsWith('http'))"
-                                     :src="s.avatar" class="w-full h-full object-cover rounded-full overflow-hidden" />
+                                     :src="s.avatar" class="w-full h-full object-cover rounded-full" />
                                 <span v-else :class="isCompact ? 'text-lg' : 'text-xl md:text-2xl'">{{ s.avatar || '👤' }}</span>
-                                
-                                <!-- Reaction Trigger -->
-                                <div class="absolute -right-1 -bottom-1 z-10" v-if="!s.isMe && s.word && !s.isPlayerDead">
-                                    <ReactionMenu 
-                                        :target-player-id="s.id" 
-                                        :category-id="impostorData.currentCategoryName"
-                                        :is-compact="isCompact"
-                                        @react="(emoji, tid, cid) => sendReaction(tid, cid, emoji)"
-                                    />
-                                </div>
                             </div>
 
                             <!-- Name -->
@@ -235,12 +225,18 @@ const votingProgress = computed(() =>
                             </div>
                         </div>
 
-                        <!-- ReactionBar inline bajo la palabra -->
+                        <!-- ReactionBar + Trigger inline bajo la palabra -->
                         <div class="flex items-center gap-1" v-if="!s.isMe && s.word && !s.isPlayerDead">
                             <ReactionBar
                                 :counts="getCountsForTarget(s.id, impostorData.currentCategoryName)"
                                 :is-compact="isCompact"
                                 class="flex-1 min-w-0"
+                            />
+                            <ReactionMenu
+                                :target-player-id="s.id"
+                                :category-id="impostorData.currentCategoryName"
+                                :is-compact="isCompact"
+                                @react="(emoji, tid, cid) => sendReaction(tid, cid, emoji)"
                             />
                         </div>
 
