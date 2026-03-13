@@ -3,14 +3,13 @@ import { useSocket } from './useSocket';
 import { applyPatch } from 'fast-json-patch';
 import { ServerMessage, PrivateRolePayload } from '../../shared/types';
 import { useGameState } from './useGameState';
-import { useReactions } from './useReactions';
 import { EVENTS, APP_VERSION } from '../../shared/consts';
 
 export function useGameSync(
     state: ReturnType<typeof useGameState>
 ) {
     const { socket, lastMessage, setRoomId, isConnected, connectToParty } = useSocket();
-    const { registerReaction } = useReactions();
+    // Reactions are handled by the singleton listener in useSocket.ts
 
     // Inbound: Receive and Mutate
     watch(lastMessage, (newMsg) => {
@@ -90,11 +89,8 @@ export function useGameSync(
                 }
             } else if (parsed.type === EVENTS.SERVER_ERROR) {
                 console.error('[Server Error]:', (parsed.payload as { message: string }).message);
-            } else if (parsed.type === EVENTS.WORD_REACT) {
-                const { targetPlayerId, categoryId, emoji, senderId } = parsed.payload;
-                // registerReaction es el ÚNICO punto de actualización — sin duplicado optimista
-                registerReaction(targetPlayerId, categoryId, emoji, senderId ?? 'unknown');
             }
+            // WORD_REACT is handled by the singleton in useSocket.ts — do NOT handle it here
         } catch (e) {
             console.error('Failed to parse message:', e);
         }

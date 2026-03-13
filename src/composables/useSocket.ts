@@ -1,6 +1,8 @@
 import { ref } from 'vue';
 import PartySocket from "partysocket";
 import { supabase } from '../lib/supabase';
+import { useReactions } from './useReactions';
+import { EVENTS } from '../../shared/consts';
 
 // Si es DEV, usa localhost. Si es PROD, usa el host actual del navegador.
 // Si es DEV, usa localhost. Si es PROD, usa la variable de entorno, o el host actual como respaldo.
@@ -13,6 +15,20 @@ const socket = ref<PartySocket | null>(null);
 const isConnected = ref(false);
 const lastMessage = ref<string>('');
 const isIntentionalDisconnect = ref(false);
+
+// ─── Singleton WORD_REACT handler ────────────────────────────────────────────
+// Se llama directamente desde el onmessage del socket (no desde watch)
+// para garantizar que registerReaction se ejecute exactamente 1 vez por mensaje.
+function handleReactionMessage(raw: string) {
+    try {
+        const msg = JSON.parse(raw);
+        if (msg.type === EVENTS.WORD_REACT) {
+            const { targetPlayerId, categoryId, emoji, senderId } = msg.payload;
+            const { registerReaction } = useReactions();
+            registerReaction(targetPlayerId, categoryId, emoji, senderId ?? 'unknown');
+        }
+    } catch { /* ignorar mensajes no-JSON */ }
+}
 
 export function useSocket() {
     const setRoomId = async (roomId: string | null, userInfo?: { userId: string, name: string, avatar: string, token?: string, public?: string }) => {
@@ -72,7 +88,8 @@ export function useSocket() {
 
             ws.addEventListener('message', (event) => {
                 lastMessage.value = event.data;
-                // console.log('Received:', event.data);
+                // Singleton WORD_REACT handler — se ejecuta 1 sola vez sin importar cuántos useGame() estén montados
+                handleReactionMessage(event.data);
             });
 
             socket.value = ws as any; // Cast for compatibility
@@ -100,6 +117,8 @@ export function useSocket() {
 
             socket.value.addEventListener('message', (event: MessageEvent) => {
                 lastMessage.value = event.data as string;
+                // Singleton WORD_REACT handler — se ejecuta 1 sola vez sin importar cuántos useGame() estén montados
+                handleReactionMessage(event.data as string);
             });
         }
     };
