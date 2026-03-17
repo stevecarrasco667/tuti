@@ -16,7 +16,7 @@ export const CategoryRefSchema = z.object({
     name: z.string()
 });
 
-export const GameStatusSchema = z.enum(['LOBBY', 'LOADING_ROUND', 'PLAYING', 'REVIEW', 'RESULTS', 'GAME_OVER', 'ROLE_REVEAL', 'TYPING', 'VOTING']);
+export const GameStatusSchema = z.enum(['LOBBY', 'LOADING_ROUND', 'PLAYING', 'REVIEW', 'RESULTS', 'GAME_OVER', 'ROLE_REVEAL', 'TYPING', 'VOTING', 'last_wish']);
 
 export const AnswerStatusSchema = z.enum(['VALID', 'DUPLICATE', 'INVALID']);
 
@@ -193,6 +193,21 @@ export const WordReactSchema = z.object({
     })
 });
 
+// [P10] El Último Deseo
+export const LastWishTypingSchema = z.object({
+    type: z.literal(EVENTS.LAST_WISH_TYPING),
+    payload: z.object({
+        text: z.string().max(120)
+    })
+});
+
+export const SubmitLastWishSchema = z.object({
+    type: z.literal(EVENTS.SUBMIT_LAST_WISH),
+    payload: z.object({
+        guess: z.string().min(1).max(120)
+    })
+});
+
 export const ClientMessageSchema = z.discriminatedUnion('type', [
     JoinRoomSchema,
     StartGameSchema,
@@ -207,5 +222,7 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
     ExitGameSchema,
     RequestFullSyncSchema,
     WordReactSchema,
-    ChatSendSchema
+    ChatSendSchema,
+    LastWishTypingSchema,   // [P10]
+    SubmitLastWishSchema,   // [P10]
 ]);
