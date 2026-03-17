@@ -70,17 +70,30 @@ describe('Server Integration - Game Flow', () => {
         // 2. Submit Answers
         const answersPayload: ClientMessage = {
             type: 'SUBMIT_ANSWERS',
-            payload: { answers: { 'Nombre': 'Juan' } }
+            payload: { answers: { 'Nombre': 'Gloria' } }
         };
         await server.onMessage(JSON.stringify(answersPayload), guest);
 
-        // 3. Stop Round
-        const stopPayload: ClientMessage = {
-            type: 'STOP_ROUND',
-            payload: { answers: { 'Nombre': 'Pedro' } }
-        };
-        await server.onMessage(JSON.stringify(stopPayload), host);
+        // [P11] Bypassear el grace period retrotrayendo _roundStartTime al pasado (sin fake timers)
+        // Esto simula que la ronda lleva más de 10s en curso sin perturbar los timers reales del motor.
+        (server.engine as any)._roundStartTime = Date.now() - 15000;
 
-        expect(getState().status).toBe('REVIEW');
+        // 3. Stop Round → ENDING_COUNTDOWN (grace period superado)
+        vi.useFakeTimers();
+        try {
+            const stopPayload: ClientMessage = {
+                type: 'STOP_ROUND',
+                payload: { answers: { 'Nombre': 'Gloria' } }
+            };
+            await server.onMessage(JSON.stringify(stopPayload), host);
+            expect(getState().status).toBe('ENDING_COUNTDOWN');
+
+            // 4. Avanzar los 3s del pánico → _forceReview() → REVIEW
+            vi.advanceTimersByTime(3000);
+            expect(getState().status).toBe('REVIEW');
+        } finally {
+            vi.clearAllTimers();
+            vi.useRealTimers();
+        }
     });
 });
