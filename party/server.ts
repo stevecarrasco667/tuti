@@ -543,6 +543,19 @@ export default class Server implements Party.Server {
                     return; // skip delta sync — no state was mutated
                 }
 
+                // --- EL ÚLTIMO DESEO (P10) ---
+                case EVENTS.LAST_WISH_TYPING: {
+                    // Stateless relay — igual que WORD_REACT, NO toca RoomState
+                    await this.gameHandler.handleLastWishTyping(payload as any, sender, this.room);
+                    return; // skip delta sync
+                }
+
+                case EVENTS.SUBMIT_LAST_WISH: {
+                    // One-Shot: si falla → CREW gana inmediatamente. Sí muta estado → delta sync.
+                    await this.gameHandler.handleSubmitLastWish(payload as any, sender);
+                    break; // continúa al broadcastStateDelta
+                }
+
                 default:
                     console.warn(`Unknown message type: ${type}`);
             }

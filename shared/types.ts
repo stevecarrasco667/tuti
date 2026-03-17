@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { EVENTS } from './consts';
 import { RoomSnapshotSchema } from './schemas';
 
-export type GameStatus = 'LOBBY' | 'LOADING_ROUND' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER' | 'ROLE_REVEAL' | 'TYPING' | 'VOTING';
+export type GameStatus = 'LOBBY' | 'LOADING_ROUND' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER' | 'ROLE_REVEAL' | 'TYPING' | 'VOTING' | 'last_wish';
 
 /** Reference to a game category — id used for DB queries, name for UI display */
 export interface CategoryRef {
@@ -73,6 +73,8 @@ export interface ImpostorData {
         matchOver: boolean;
         winner?: 'IMPOSTOR' | 'CREW';
         revealedImpostorIds?: string[]; // Revealed AFTER match ends for results screen
+        lastWishGuess?: string;         // [P10] La adivinanza del Impostor (si hubo last_wish)
+        lastWishSuccess?: boolean;      // [P10] true si acertó la categoría
     };
 }
 
@@ -154,6 +156,8 @@ export type ClientMessage =
     | { type: typeof EVENTS.EXIT_GAME }
     | { type: typeof EVENTS.REQUEST_FULL_SYNC }
     | { type: typeof EVENTS.WORD_REACT; payload: { targetPlayerId: string; categoryId: string; emoji: string; senderId: string } }
+    | { type: typeof EVENTS.SUBMIT_LAST_WISH; payload: { guess: string } }             // [P10]
+    | { type: typeof EVENTS.LAST_WISH_TYPING; payload: { text: string } }              // [P10]
     | { type: typeof EVENTS.CHAT_SEND; payload: { text: string } };
 
 // Messages sent from Server to Client
@@ -162,6 +166,7 @@ export type ServerMessage =
     | { type: typeof EVENTS.PATCH_STATE; payload: { stateVersion: number, patches: any[] } } // [Phoenix] Checked Delta Sync
     | { type: typeof EVENTS.AUTH_GRANTED; payload: { userId: string; sessionToken: string } } // [Phoenix] Anti-Spoofing
     | { type: typeof EVENTS.WORD_REACT; payload: { targetPlayerId: string; categoryId: string; emoji: string; senderId: string } }
+    | { type: typeof EVENTS.LAST_WISH_TYPING; payload: { text: string } }              // [P10] broadcast en vivo
     | { type: typeof EVENTS.RIVAL_UPDATE; payload: { playerId: string; filledCount: number } }
     | { type: typeof EVENTS.PRIVATE_ROLE_ASSIGNMENT; payload: PrivateRolePayload } // [Sprint 3.4] Whisper
     | { type: typeof EVENTS.SYSTEM_MESSAGE; payload: string }

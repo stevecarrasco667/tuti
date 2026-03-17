@@ -16,16 +16,22 @@ const isConnected = ref(false);
 const lastMessage = ref<string>('');
 const isIntentionalDisconnect = ref(false);
 
-// ─── Singleton WORD_REACT handler ────────────────────────────────────────────
-// Se llama directamente desde el onmessage del socket (no desde watch)
-// para garantizar que registerReaction se ejecute exactamente 1 vez por mensaje.
-function handleReactionMessage(raw: string) {
+// [P10] Texto en vivo que escribe el Impostor durante last_wish (singleton)
+export const lastWishText = ref<string>('');
+
+// ─── Singleton ephemeral message handlers ──────────────────────────────────
+// Se llaman directamente desde el onmessage del socket (no desde watch),
+// garantizando que se ejecuten exactamente 1 vez por mensaje.
+function handleEphemeralMessages(raw: string) {
     try {
         const msg = JSON.parse(raw);
         if (msg.type === EVENTS.WORD_REACT) {
             const { targetPlayerId, categoryId, emoji, senderId } = msg.payload;
             const { registerReaction } = useReactions();
             registerReaction(targetPlayerId, categoryId, emoji, senderId ?? 'unknown');
+        } else if (msg.type === EVENTS.LAST_WISH_TYPING) {
+            // [P10] Actualizar el texto en tiempo real del Impostor
+            lastWishText.value = msg.payload.text ?? '';
         }
     } catch { /* ignorar mensajes no-JSON */ }
 }
@@ -88,8 +94,8 @@ export function useSocket() {
 
             ws.addEventListener('message', (event) => {
                 lastMessage.value = event.data;
-                // Singleton WORD_REACT handler — se ejecuta 1 sola vez sin importar cuántos useGame() estén montados
-                handleReactionMessage(event.data);
+                // Singleton handler — se ejecuta 1 sola vez sin importar cuántos useGame() estén montados
+                handleEphemeralMessages(event.data);
             });
 
             socket.value = ws as any; // Cast for compatibility
@@ -117,8 +123,8 @@ export function useSocket() {
 
             socket.value.addEventListener('message', (event: MessageEvent) => {
                 lastMessage.value = event.data as string;
-                // Singleton WORD_REACT handler — se ejecuta 1 sola vez sin importar cuántos useGame() estén montados
-                handleReactionMessage(event.data as string);
+                // Singleton handler — se ejecuta 1 sola vez sin importar cuántos useGame() estén montados
+                handleEphemeralMessages(event.data as string);
             });
         }
     };

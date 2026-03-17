@@ -13,6 +13,8 @@ export const EVENTS = {
     EXIT_GAME: 'EXIT_GAME',
     REQUEST_FULL_SYNC: 'REQUEST_FULL_SYNC',
     WORD_REACT: 'WORD_REACT',
+    SUBMIT_LAST_WISH: 'SUBMIT_LAST_WISH',   // [P10] Cliente → Servidor: intento de adivinanza de categoría
+    LAST_WISH_TYPING: 'LAST_WISH_TYPING',   // [P10] Bidireccional: retransmisión en vivo del texto del Impostor
 
     // Chat Events (Client -> Server)
     CHAT_SEND: 'CHAT_SEND',

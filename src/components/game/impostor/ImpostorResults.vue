@@ -39,6 +39,11 @@ const isEliminatedImpostor = computed(() => {
     return result.value?.revealedImpostorIds?.includes(eliminatedId.value) ?? false;
 });
 
+// [P10] Datos del Último Deseo
+const lastWishGuess = computed(() => result.value?.lastWishGuess ?? null);
+const lastWishSuccess = computed(() => result.value?.lastWishSuccess ?? false);
+const wasLastWish = computed(() => lastWishGuess.value !== null);
+
 // Sound effects on mount
 if (matchOver.value) {
     if (winner.value === 'IMPOSTOR') playAlarm();
@@ -80,8 +85,32 @@ if (matchOver.value) {
              :class="(!eliminatedPlayer || isEliminatedImpostor) ? 'border-tuti-teal bg-tuti-teal/5' : 'border-action-error bg-action-error/5'">
             
             <template v-if="matchOver">
-                <span class="text-6xl mb-4 drop-shadow-md">{{ winner === 'IMPOSTOR' ? '🦇' : '🎯' }}</span>
-                <p class="text-lg text-ink-main font-black uppercase tracking-widest">{{ winner === 'IMPOSTOR' ? 'Los impostores controlan la nave.' : 'La tripulación purificó la nave.' }}</p>
+                <!-- [P10] Impostor robó la victoria adivinando la categoría -->
+                <template v-if="lastWishSuccess">
+                    <span class="text-6xl mb-4 drop-shadow-md">🃏</span>
+                    <p class="text-lg text-ink-main font-black uppercase tracking-widest mb-2">Categoría robada en el último instante.</p>
+                    <p class="text-sm text-ink-soft">
+                        La tripulación lo atrapó, pero el Impostor adivinó
+                        <span class="font-black text-action-error">&ldquo;{{ impostorData.currentCategoryName }}&rdquo;</span>
+                        y robó la victoria.
+                    </p>
+                </template>
+                <!-- [P10] Impostor falló o tiempo agotó -->
+                <template v-else-if="wasLastWish">
+                    <span class="text-6xl mb-4 drop-shadow-md">🎯</span>
+                    <p class="text-lg text-ink-main font-black uppercase tracking-widest mb-2">El impostor intentó adivinar. Falló.</p>
+                    <p class="text-sm text-ink-soft">
+                        Escribió <span class="font-black text-white/70">&ldquo;{{ lastWishGuess }}&rdquo;</span>
+                        pero la categoría era
+                        <span class="font-black text-action-primary">&ldquo;{{ impostorData.currentCategoryName }}&rdquo;</span>.
+                        La Tripulación sobrevive.
+                    </p>
+                </template>
+                <!-- Flujo normal sin last_wish -->
+                <template v-else>
+                    <span class="text-6xl mb-4 drop-shadow-md">{{ winner === 'IMPOSTOR' ? '🦇' : '🎯' }}</span>
+                    <p class="text-lg text-ink-main font-black uppercase tracking-widest">{{ winner === 'IMPOSTOR' ? 'Los impostores controlan la nave.' : 'La tripulación purificó la nave.' }}</p>
+                </template>
             </template>
             <template v-else>
                 <div v-if="!eliminatedPlayer" class="text-sm font-black text-ink-muted bg-panel-input px-4 py-3 rounded-2xl shadow-inner border-2 border-white/10 w-full uppercase tracking-widest">

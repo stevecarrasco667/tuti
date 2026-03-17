@@ -99,4 +99,26 @@ export class GameHandler extends BaseHandler {
             }
         }));
     }
+
+    // [P10] Stateless relay: broadcast el texto del Impostor en tiempo real sin guardar en estado
+    async handleLastWishTyping(
+        payload: { text: string },
+        sender: Party.Connection,
+        room: Party.Room
+    ) {
+        const trustedSenderId = this.engine.players.getPlayerId(sender.id);
+        if (!trustedSenderId) return;
+        room.broadcast(JSON.stringify({
+            type: EVENTS.LAST_WISH_TYPING,
+            payload: { text: payload.text }
+        }));
+    }
+
+    // [P10] One-Shot: el Impostor intenta adivinar la categoría. Si falla → CREW gana inmediatamente.
+    async handleSubmitLastWish(
+        payload: { guess: string },
+        sender: Party.Connection
+    ) {
+        (this.engine as any).submitLastWish(sender.id, payload.guess ?? '');
+    }
 }

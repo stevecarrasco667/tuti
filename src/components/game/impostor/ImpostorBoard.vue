@@ -4,6 +4,7 @@ import { RoomState } from '../../../../shared/types';
 import ImpostorReveal from './ImpostorReveal.vue';
 import ImpostorTyping from './ImpostorTyping.vue';
 import ImpostorVoting from './ImpostorVoting.vue';
+import ImpostorLastWish from './ImpostorLastWish.vue';
 import ImpostorResults from './ImpostorResults.vue';
 import ChatWidget from '../../chat/ChatWidget.vue';
 import MobileChatDrawer from '../../chat/MobileChatDrawer.vue';
@@ -83,6 +84,16 @@ const handleSubmit = (word: string) => {
                 v-else-if="currentPhase === 'RESULTS' && impostorData"
                 :impostor-data="impostorData"
                 :players="gameState.players"
+                :time-remaining="timeRemaining"
+                :timer-color="timerColor"
+            />
+
+            <!-- PHASE: LAST_WISH [P10] -->
+            <ImpostorLastWish
+                v-else-if="currentPhase === 'last_wish' && impostorData"
+                :impostor-data="impostorData"
+                :players="gameState.players"
+                :my-user-id="myUserId"
                 :time-remaining="timeRemaining"
                 :timer-color="timerColor"
             />
