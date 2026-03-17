@@ -75,6 +75,7 @@ export interface ImpostorData {
         revealedImpostorIds?: string[]; // Revealed AFTER match ends for results screen
         lastWishGuess?: string;         // [P10] La adivinanza del Impostor (si hubo last_wish)
         lastWishSuccess?: boolean;      // [P10] true si acertó la categoría
+        revealedSecretWord?: string;    // [P10] Palabra secreta revelada tras resolver el last_wish
     };
 }
 

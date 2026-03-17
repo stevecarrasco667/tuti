@@ -560,6 +560,8 @@ export class ImpostorEngine extends BaseEngine {
 
         if (guess !== null) this.state.impostorData.cycleResult.lastWishGuess = guess;
         if (guess !== null) this.state.impostorData.cycleResult.lastWishSuccess = impostorWon;
+        // Revelar la palabra secreta en el resultado para que la UI pueda mostrarla
+        if (this.secretWord) this.state.impostorData.cycleResult.revealedSecretWord = this.secretWord;
         this.state.impostorData.cycleResult.matchOver = true;
 
         this.state.status = 'RESULTS';
@@ -711,8 +713,8 @@ export class ImpostorEngine extends BaseEngine {
         // Solo el Impostor puede enviar el guess
         if (!this.currentImpostorIds.includes(userId)) return this.state;
 
-        const impostorWon = this.state.impostorData
-            ? this._normalize(guess) === this._normalize(this.state.impostorData.currentCategoryName)
+        const impostorWon = this.secretWord
+            ? this._normalize(guess) === this._normalize(this.secretWord)
             : false;
 
         // Regla One-Shot: acierta o pierde instantáneamente (sin intentos extra)

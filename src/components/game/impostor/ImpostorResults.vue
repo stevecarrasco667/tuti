@@ -43,6 +43,7 @@ const isEliminatedImpostor = computed(() => {
 const lastWishGuess = computed(() => result.value?.lastWishGuess ?? null);
 const lastWishSuccess = computed(() => result.value?.lastWishSuccess ?? false);
 const wasLastWish = computed(() => lastWishGuess.value !== null);
+const revealedSecretWord = computed(() => result.value?.revealedSecretWord ?? null);
 
 // Sound effects on mount
 if (matchOver.value) {
@@ -85,13 +86,13 @@ if (matchOver.value) {
              :class="(!eliminatedPlayer || isEliminatedImpostor) ? 'border-tuti-teal bg-tuti-teal/5' : 'border-action-error bg-action-error/5'">
             
             <template v-if="matchOver">
-                <!-- [P10] Impostor robó la victoria adivinando la categoría -->
+                <!-- [P10] Impostor robó la victoria adivinando la palabra secreta -->
                 <template v-if="lastWishSuccess">
                     <span class="text-6xl mb-4 drop-shadow-md">🃏</span>
-                    <p class="text-lg text-ink-main font-black uppercase tracking-widest mb-2">Categoría robada en el último instante.</p>
+                    <p class="text-lg text-ink-main font-black uppercase tracking-widest mb-2">¡Palabra robada en el último instante!</p>
                     <p class="text-sm text-ink-soft">
-                        La tripulación lo atrapó, pero el Impostor adivinó
-                        <span class="font-black text-action-error">&ldquo;{{ impostorData.currentCategoryName }}&rdquo;</span>
+                        La tripulación lo atrapó, pero el Impostor adivinó la palabra
+                        <span class="font-black text-action-error">&ldquo;{{ revealedSecretWord || lastWishGuess }}&rdquo;</span>
                         y robó la victoria.
                     </p>
                 </template>
@@ -101,8 +102,10 @@ if (matchOver.value) {
                     <p class="text-lg text-ink-main font-black uppercase tracking-widest mb-2">El impostor intentó adivinar. Falló.</p>
                     <p class="text-sm text-ink-soft">
                         Escribió <span class="font-black text-white/70">&ldquo;{{ lastWishGuess }}&rdquo;</span>
-                        pero la categoría era
-                        <span class="font-black text-action-primary">&ldquo;{{ impostorData.currentCategoryName }}&rdquo;</span>.
+                        <template v-if="revealedSecretWord">
+                            pero la palabra era
+                            <span class="font-black text-action-primary">&ldquo;{{ revealedSecretWord }}&rdquo;</span>.
+                        </template>
                         La Tripulación sobrevive.
                     </p>
                 </template>

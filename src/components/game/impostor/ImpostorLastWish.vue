@@ -71,6 +71,7 @@ const eliminatedPlayer = computed(() =>
             ⚰️ Último Deseo
         </h1>
 
+
         <!-- Countdown -->
         <div class="text-5xl md:text-7xl font-mono font-black mb-6 z-10 tabular-nums"
              :class="timeRemaining <= 4 ? 'text-action-error animate-pulse' : 'text-white/90'">
@@ -80,7 +81,7 @@ const eliminatedPlayer = computed(() =>
         <!-- ── VISTA IMPOSTOR ── -->
         <template v-if="isImpostor">
             <p class="text-sm text-white/60 uppercase tracking-widest mb-4 z-10">
-                ¿Cuál era la categoría secreta?<br>
+                ¿Cuál era la <span class="text-action-error font-black">PALABRA SECRETA</span>?<br>
                 <span class="text-white/40 text-xs">Tienes una sola oportunidad. Si fallas, la tripulación gana.</span>
             </p>
 
@@ -89,7 +90,7 @@ const eliminatedPlayer = computed(() =>
                     v-model="guess"
                     :disabled="submitted"
                     type="text"
-                    placeholder="Escribe la categoría..."
+                    placeholder="Escribe la palabra secreta..."
                     maxlength="80"
                     autofocus
                     @input="onInput"
