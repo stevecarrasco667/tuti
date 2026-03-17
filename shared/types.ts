@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { EVENTS } from './consts';
 import { RoomSnapshotSchema } from './schemas';
 
-export type GameStatus = 'LOBBY' | 'LOADING_ROUND' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER' | 'ROLE_REVEAL' | 'TYPING' | 'VOTING' | 'last_wish';
+export type GameStatus = 'LOBBY' | 'LOADING_ROUND' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER' | 'ROLE_REVEAL' | 'TYPING' | 'VOTING' | 'last_wish' | 'ENDING_COUNTDOWN';
 
 /** Reference to a game category — id used for DB queries, name for UI display */
 export interface CategoryRef {
@@ -128,6 +128,7 @@ export interface RoomState {
     };
     remainingTime: number; // Server-canonical countdown in seconds (emitted every tick)
     stoppedBy: string | null;
+    endingCountdownBy?: string | null;  // [P11] Nombre del jugador que activó ENDING_COUNTDOWN
     // [Sprint P1 — Fase 2] 'IMPOSTOR_DISCONNECTED' triggers when the Impostor abandons mid-game
     gameOverReason?: 'NORMAL' | 'ABANDONED' | 'IMPOSTOR_DISCONNECTED';
     uiMetadata: {

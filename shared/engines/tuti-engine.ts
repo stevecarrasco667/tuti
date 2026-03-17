@@ -18,6 +18,14 @@ import { VotingManager } from '../systems/voting-manager.js';
 
 import { SupabaseClient } from '@supabase/supabase-js';
 
+/**
+ * [P11] Fórmula del Candado Anti-Troll.
+ * Exportada para que el FRONTEND pueda importarla y replicar exactamente el mismo cálculo.
+ * Grace period = 2s base + 4s por cada categoría.
+ */
+export const calcGracePeriod = (categoryCount: number): number =>
+    2000 + categoryCount * 4000;
+
 export class TutiEngine extends BaseEngine {
     private state: RoomState;
     public validation = new ValidationManager();
@@ -27,6 +35,12 @@ export class TutiEngine extends BaseEngine {
     private configManager = new ConfigurationManager();
     private voting = new VotingManager(this.validation);
     protected supabase: SupabaseClient;
+
+    // [P11] Anti-Troll: marca cuándo empezó la ronda para calcular el candado
+    private _roundStartTime: number = 0;
+
+    // [P11] ENDING_COUNTDOWN: timer del pánico de 3 segundos
+    private _endingTimer: ReturnType<typeof setTimeout> | null = null;
 
     constructor(
         supabase: SupabaseClient,
@@ -159,7 +173,7 @@ export class TutiEngine extends BaseEngine {
         }
 
         // ABANDONMENT CHECK (RELAXED)
-        if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW') {
+        if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW' || this.state.status === 'ENDING_COUNTDOWN') {
             if (this.state.players.length < 2) {
                 console.log(`[GAME OVER] Not enough players (Active+Zombie) to continue.`);
                 this.state.status = 'GAME_OVER';
@@ -191,7 +205,7 @@ export class TutiEngine extends BaseEngine {
         delete this.state.roundScores[userId];
         this.voting.cleanupPlayerVotes(this.state, userId);
 
-        if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW') {
+        if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW' || this.state.status === 'ENDING_COUNTDOWN') {
             if (this.state.players.length < 2) {
                 console.log(`[GAME OVER] Abandonment (Exited).`);
                 this.state.status = 'GAME_OVER';
@@ -213,7 +227,7 @@ export class TutiEngine extends BaseEngine {
 
         let stateChanged = changed;
 
-        if ((this.state.status === 'PLAYING' || this.state.status === 'REVIEW') && this.state.players.length < 2) {
+        if ((this.state.status === 'PLAYING' || this.state.status === 'REVIEW' || this.state.status === 'ENDING_COUNTDOWN') && this.state.players.length < 2) {
             console.log(`[GAME OVER] Abandonment after Zombie Purge.`);
             this.state.status = 'GAME_OVER';
             this.state.gameOverReason = 'ABANDONED';
@@ -332,6 +346,7 @@ export class TutiEngine extends BaseEngine {
             );
 
             this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
+            this._roundStartTime = Date.now(); // [P11] Registrar inicio de ronda para grace period
             this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
         }
 
@@ -356,14 +371,41 @@ export class TutiEngine extends BaseEngine {
         if (!player) throw new Error("Player not found in state");
         if (this.state.status !== 'PLAYING') throw new Error("Game is not in PLAYING state");
 
+        // [P11] M1 — Candado Anti-Troll: ignorar peticiones prematuras
+        const gracePeriodMs = calcGracePeriod(this.state.categories.length);
+        if (Date.now() - this._roundStartTime < gracePeriodMs) {
+            console.log(`[GRACE_PERIOD] stopRound rechazado por ${userId} (${Date.now() - this._roundStartTime}ms < ${gracePeriodMs}ms)`);
+            return this.state;
+        }
+
         const validated = this.validateAndSanitizeAnswers(answers);
         if (!validated) return this.state;
 
         this.state.answers[userId] = validated.answers;
         if (!this.state.answerStatuses[userId]) this.state.answerStatuses[userId] = {};
         Object.assign(this.state.answerStatuses[userId], validated.statuses);
-        this.state.stoppedBy = userId || 'SYSTEM';
+        this.state.stoppedBy = userId;
+        this.state.endingCountdownBy = player.name; // [P11] Para UI del contador
 
+        // [P11] M2 — Transicionar a ENDING_COUNTDOWN (3s de pánico)
+        this.state.status = 'ENDING_COUNTDOWN';
+        this.state.timers.roundEndsAt = Date.now() + 3000;
+        this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
+
+        if (this.onGameStateChange) this.onGameStateChange(this.state);
+
+        if (this._endingTimer) clearTimeout(this._endingTimer);
+        this._endingTimer = setTimeout(() => this._forceReview(), 3000);
+
+        return this.state;
+    }
+
+    // [P11] M2 — Transición forzosa a REVIEW al agotarse los 3 segundos
+    private _forceReview() {
+        if (this.state.status !== 'ENDING_COUNTDOWN') return;
+
+        this._endingTimer = null;
+        this.rounds.cancelTimer(); // Cancelar el timer natural original
         this.rounds.stopRound(this.state, this.state.config);
 
         // --- 1vs1 GHOST VOTING ---
@@ -373,7 +415,7 @@ export class TutiEngine extends BaseEngine {
             this.injectAutomatedVotes();
         }
 
-        return this.state;
+        if (this.onGameStateChange) this.onGameStateChange(this.state);
     }
 
     public async restartGame(requestorId: string): Promise<RoomState> {
@@ -424,7 +466,8 @@ export class TutiEngine extends BaseEngine {
         const player = this.state.players.find(p => p.id === userId);
         if (!player) throw new Error("Player not found in state");
 
-        if (this.state.status !== 'PLAYING' && this.state.status !== 'REVIEW') {
+        // [P11] Permitir submitAnswers durante ENDING_COUNTDOWN (pánico de 3s)
+        if (this.state.status !== 'PLAYING' && this.state.status !== 'REVIEW' && this.state.status !== 'ENDING_COUNTDOWN') {
             // Strict check? For now allow in review for corrections just in case
         }
 
@@ -441,8 +484,9 @@ export class TutiEngine extends BaseEngine {
         const userId = this._players.getPlayerId(connectionId);
         if (!userId) return this.state;
 
-        // [Sprint 1 - Phase 2] Grace Period: reject updates if time already expired
-        if (this.state.remainingTime <= -1) {
+        // [Sprint 1 - Phase 2] Grace Period (anti-cheat): reject updates if time already expired
+        // [P11] También permitir durante ENDING_COUNTDOWN para que los demás jugadores sigan escribiendo
+        if (this.state.remainingTime <= -1 && this.state.status !== 'ENDING_COUNTDOWN') {
             console.log(`[SECURITY] UPDATE_ANSWERS rejected: time expired (${this.state.remainingTime}s) for ${userId}`);
             return this.state;
         }

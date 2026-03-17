@@ -16,7 +16,7 @@ export const CategoryRefSchema = z.object({
     name: z.string()
 });
 
-export const GameStatusSchema = z.enum(['LOBBY', 'LOADING_ROUND', 'PLAYING', 'REVIEW', 'RESULTS', 'GAME_OVER', 'ROLE_REVEAL', 'TYPING', 'VOTING', 'last_wish']);
+export const GameStatusSchema = z.enum(['LOBBY', 'LOADING_ROUND', 'PLAYING', 'REVIEW', 'RESULTS', 'GAME_OVER', 'ROLE_REVEAL', 'TYPING', 'VOTING', 'last_wish', 'ENDING_COUNTDOWN']);
 
 export const AnswerStatusSchema = z.enum(['VALID', 'DUPLICATE', 'INVALID']);
 

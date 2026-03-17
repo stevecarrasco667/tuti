@@ -539,22 +539,21 @@ export class ImpostorEngine extends BaseEngine {
         this.clearTimer();
 
         if (impostorWon) {
-            // El Impostor robó la victoria
+            // El Impostor robó la victoria — +300 al Impostor
             for (const impId of this.currentImpostorIds) {
                 this.state.roundScores[impId] = (this.state.roundScores[impId] || 0) + 300;
                 const p = this.state.players.find(pl => pl.id === impId);
                 if (p) p.score += 300;
             }
-            // Revocar puntos de tripulación que se asignaron preventivamente en calculateResults
-            for (const p of this.state.players) {
-                if (!this.currentImpostorIds.includes(p.id)) {
-                    this.state.roundScores[p.id] = Math.max(0, (this.state.roundScores[p.id] || 0) - 100);
-                    p.score = Math.max(0, p.score - 100);
-                }
-            }
             this.state.impostorData.cycleResult.winner = 'IMPOSTOR';
         } else {
-            // Tripulación gana (timeout o fallo en el guess)
+            // Tripulación gana (timeout o fallo en el guess) — +100 a cada tripulante
+            for (const p of this.state.players) {
+                if (!this.currentImpostorIds.includes(p.id)) {
+                    this.state.roundScores[p.id] = (this.state.roundScores[p.id] || 0) + 100;
+                    p.score += 100;
+                }
+            }
             this.state.impostorData.cycleResult.winner = 'CREW';
         }
 
@@ -670,22 +669,19 @@ export class ImpostorEngine extends BaseEngine {
             winner = 'IMPOSTOR';
         }
 
-        // [P10] Asignar puntos preventivos a la tripulación si 'CREW' (pueden revertirse en _resolveLastWish)
+        // [P10] Asignar puntos al Impostor si gana por superación numérica.
+        // Cuando aliveImpostors === 0, los puntos de la tripulación se asignan
+        // en _resolveLastWish (flujo last_wish) para evitar la condición inalcanzable.
         if (winner === 'IMPOSTOR') {
             for (const impId of this.currentImpostorIds) {
                 this.state.roundScores[impId] = (this.state.roundScores[impId] || 0) + 300;
                 const p = this.state.players.find(pl => pl.id === impId);
                 if (p) p.score += 300;
             }
-        } else if (matchOver && winner === 'CREW') {
-            for (const p of this.state.players) {
-                // Tripulantes que no sean impostores ganan puntaje, incluso si murieron heroicamente
-                if (!this.currentImpostorIds.includes(p.id)) {
-                    this.state.roundScores[p.id] = (this.state.roundScores[p.id] || 0) + 100;
-                    p.score += 100;
-                }
-            }
         }
+        // Nota: winner === 'CREW' con matchOver=false (last_wish pendiente)
+        // → los puntos se asignan en _resolveLastWish.else para garantizar
+        //   que se entreguen justo cuando se confirma la victoria de la tripulación.
 
         this.state.impostorData.cycleResult = {
             eliminatedId,
