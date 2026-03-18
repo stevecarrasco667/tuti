@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import VoteSwitch from './VoteSwitch.vue';
 import ReactionMenu from '../ReactionMenu.vue';
 import ReactionBar from '../ReactionBar.vue';
+
+type CardSize = 'xl' | 'lg' | 'md' | 'sm';
 
 const props = defineProps<{
     playerName: string;
@@ -15,13 +18,12 @@ const props = defineProps<{
     isMe: boolean;
     selfStatusIcon: string;
     modelValue: boolean;
-    // Phase 3+4: compact mode for 7+ players
-    isCompact?: boolean;
-    // Phase 9 (refactored): Persistent reaction counters
+    // Sistema de tamaño adaptativo por N jugadores
+    cardSize?: CardSize;  // 'xl'=2p | 'lg'=3-4p | 'md'=5-6p | 'sm'=7-8p
     playerId: string;
     categoryId: string;
-    reactionCounts: Record<string, number>;  // emoji → count (from useReactions.getCountsForTarget)
-    reactionBursts: Array<{ id: string; emoji: string; offsetX: number }>; // from useReactions.getBurstsForTarget
+    reactionCounts: Record<string, number>;
+    reactionBursts: Array<{ id: string; emoji: string; offsetX: number }>;
 }>();
 
 const emit = defineEmits<{
@@ -29,6 +31,40 @@ const emit = defineEmits<{
     (e: 'vote'): void;
     (e: 'react', emoji: string, targetId: string, catId: string): void;
 }>();
+
+// Mapa cardSize → clases de estilo para cada zona de la tarjeta
+const sizeConfig = computed(() => {
+    const s = props.cardSize ?? 'md';
+    return {
+        // Contenedor principal
+        card:    s === 'xl' ? 'p-4 md:p-5 min-h-[240px]'
+               : s === 'lg' ? 'p-3 md:p-4 min-h-[200px]'
+               : s === 'md' ? 'p-2.5 md:p-3 min-h-[160px]'
+                            : 'p-2 min-h-[130px]',
+        // Avatar emoji
+        avatar:  s === 'xl' ? 'text-2xl'
+               : s === 'lg' ? 'text-xl'
+               : s === 'md' ? 'text-base md:text-lg'
+                            : 'text-sm',
+        // Nombre del jugador
+        name:    s === 'xl' ? 'text-sm md:text-base'
+               : s === 'lg' ? 'text-xs md:text-sm'
+                            : 'text-xs',
+        // Palabra (clamp responsivo a container-query)
+        word:    s === 'xl' ? 'text-[clamp(2rem,14cqi,5rem)]'
+               : s === 'lg' ? 'text-[clamp(1.5rem,11cqi,4rem)]'
+               : s === 'md' ? 'text-[clamp(1.25rem,10cqi,3.5rem)]'
+                            : 'text-[clamp(0.875rem,9cqi,2rem)]',
+        // Icono propio (self-status)
+        selfIcon: s === 'xl' ? 'w-12 h-12 text-2xl'
+                : s === 'lg' ? 'w-10 h-10 text-xl'
+                : s === 'md' ? 'w-8 h-8 md:w-10 md:h-10 text-lg md:text-xl'
+                             : 'w-7 h-7 text-base',
+        // Burst de reacciones
+        burst:   s === 'sm' ? 'text-2xl' : 'text-4xl',
+        isCompact: s === 'sm',
+    };
+});
 </script>
 
 <template>
@@ -36,7 +72,7 @@ const emit = defineEmits<{
     <div
         class="bg-panel-card rounded-2xl w-full flex flex-col transition-all duration-500 [container-type:inline-size]"
         :class="[
-            isCompact ? 'p-2 min-h-[130px] max-h-[240px]' : 'p-2.5 md:p-3 min-h-[160px] max-h-[340px]',
+            sizeConfig.card,
             isAutoValidated
                 ? 'border border-amber-500/30 shadow-[0_0_30px_-5px_rgba(251,191,36,0.25)]'
                 : isRejected || !isApproved
@@ -49,11 +85,10 @@ const emit = defineEmits<{
 
         <!-- ROW 1 — Avatar + Nombre -->
         <div class="flex-none flex items-center gap-2 mb-2">
-            <span class="leading-none drop-shadow-md flex-shrink-0"
-                  :class="isCompact ? 'text-sm' : 'text-base md:text-lg'">
+            <span class="leading-none drop-shadow-md flex-shrink-0" :class="sizeConfig.avatar">
                 {{ playerAvatar || '👤' }}
             </span>
-            <span class="text-xs font-black text-ink-main drop-shadow-md truncate"
+            <span class="font-black text-ink-main drop-shadow-md truncate" :class="sizeConfig.name"
                   :title="playerName">
                 {{ playerName }}
             </span>
@@ -65,9 +100,8 @@ const emit = defineEmits<{
             <span
                 class="font-black text-center uppercase tracking-wide break-words break-all drop-shadow-xl transition-all duration-300 leading-tight"
                 :class="[
-                    isCompact
-                        ? 'text-[clamp(0.875rem,9cqi,2rem)] line-clamp-2'
-                        : 'text-[clamp(1.25rem,10cqi,3.5rem)] line-clamp-2',
+                    sizeConfig.word,
+                    'line-clamp-2',
                     isRejected || !isApproved
                         ? 'line-through opacity-40 text-red-400'
                         : isAutoValidated
@@ -85,14 +119,14 @@ const emit = defineEmits<{
                 Repetida
             </span>
 
-            <!-- Phase 9: Burst de animación (solo visual, 1.5s, posición fija en datos) -->
+            <!-- Burst de animación (solo visual, 1.5s) -->
             <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
                 <TransitionGroup name="burst">
                     <span
                         v-for="b in reactionBursts"
                         :key="b.id"
                         class="absolute bottom-0 font-emoji"
-                        :class="isCompact ? 'text-2xl' : 'text-4xl'"
+                        :class="sizeConfig.burst"
                         :style="{ left: `${b.offsetX}%` }"
                     >
                         {{ b.emoji }}
@@ -102,19 +136,17 @@ const emit = defineEmits<{
         </div>
 
         <!-- ROW 3 — ReactionBar + Trigger (inline) -->
-        <!-- Bar visible para TODOS: el jugador target también ve las reacciones en su propia carta -->
         <div class="flex-none flex items-center gap-1.5 mt-1.5 min-h-[22px]" v-if="word">
             <ReactionBar
                 :counts="reactionCounts"
-                :is-compact="isCompact"
+                :is-compact="sizeConfig.isCompact"
                 class="flex-1 min-w-0"
             />
-            <!-- Trigger solo para otros jugadores (no puedes reaccionar a ti mismo) -->
             <ReactionMenu
                 v-if="!isMe"
                 :target-player-id="playerId"
                 :category-id="categoryId"
-                :is-compact="isCompact"
+                :is-compact="sizeConfig.isCompact"
                 @react="(emj, tid, cid) => emit('react', emj, tid, cid)"
             />
         </div>
@@ -130,13 +162,13 @@ const emit = defineEmits<{
                 v-if="!isMe"
                 :model-value="modelValue"
                 :is-auto-validated="isAutoValidated"
-                :is-compact="isCompact"
+                :card-size="cardSize ?? 'md'"
                 :label="`Voto ${playerName}`"
                 @update:model-value="(val: boolean) => emit('update:modelValue', val)"
             />
             <span v-else
                   class="drop-shadow-sm flex items-center justify-center bg-panel-input rounded-full border-2 border-white/10"
-                  :class="isCompact ? 'w-7 h-7 text-base' : 'w-8 h-8 md:w-10 md:h-10 text-lg md:text-xl'">
+                  :class="sizeConfig.selfIcon">
                 {{ selfStatusIcon }}
             </span>
         </div>
