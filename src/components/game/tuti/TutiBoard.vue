@@ -95,16 +95,20 @@ const handleConfirmVotes = () => {
 };
 
 // Auto state transitions resets
-watch(() => props.gameState.status, (newStatus) => {
+// [P11 BUG FIX] immediate:true → arranca el tracking aunque el componente monte con PLAYING ya activo
+watch(() => props.gameState.status, (newStatus, oldStatus) => {
     if (newStatus === 'PLAYING') {
-        answers.value = {};
-        hasConfirmed.value = false;
-        startGraceTracking(); // [P11] Iniciar el contador del candado
+        // Sólo resetear respuestas cuando venimos de una fase anterior (no en el mount inicial)
+        if (oldStatus !== undefined) {
+            answers.value = {};
+            hasConfirmed.value = false;
+        }
+        startGraceTracking();
     } else if (newStatus !== 'ENDING_COUNTDOWN') {
         // Limpiar el interval cuando ya no estamos jugando
         if (_graceInterval) { clearInterval(_graceInterval); _graceInterval = null; }
     }
-});
+}, { immediate: true });
 
 const hydrateLocalState = () => {
     if (!props.myUserId) return;

@@ -38,19 +38,11 @@ const isButtonDisabled = computed(() =>
 );
 
 const buttonLabel = computed(() => {
-    if (isEnding.value) return `¡${props.endingCountdownBy ?? 'Alguien'} paró! ${props.graceSecondsLeft ?? ''}...`;
-    if (props.isStopping) return 'ENVIANDO...';
+    if (isEnding.value) return `⏳ ¡${props.endingCountdownBy ?? 'Alguien'} paró!`;
+    if (props.isStopping) return '⏳ ENVIANDO...';
     if (props.isGraceActive) return `🔒 Espera ${props.graceSecondsLeft}s...`;
     if (!props.canStop) return '✍️ Completa todo';
-    return '¡BASTA PARA MÍ!';
-});
-
-const buttonEmoji = computed(() => {
-    if (isEnding.value) return '⏳';
-    if (props.isStopping) return '⏳';
-    if (props.isGraceActive) return '🔒';
-    if (!props.canStop) return '✍️';
-    return '✋';
+    return '✋ ¡BASTA PARA MÍ!';
 });
 </script>
 
@@ -81,17 +73,16 @@ const buttonEmoji = computed(() => {
                 <!-- Botón BASTA con jerarquía P11 -->
                 <button
                     @click="$emit('stop')"
-                    class="w-full font-black text-2xl py-4 rounded-3xl shadow-game-btn transition-all active:scale-[0.98] flex items-center justify-center gap-3 border-4 uppercase tracking-widest"
+                    class="w-full font-black py-4 rounded-3xl shadow-game-btn transition-all active:scale-[0.98] flex items-center justify-center gap-3 border-4 uppercase tracking-widest"
                     :class="isEnding
-                        ? 'bg-action-error/60 border-red-400/60 text-white opacity-90 cursor-not-allowed animate-pulse'
+                        ? 'text-xl bg-action-error/60 border-red-400/60 text-white opacity-90 cursor-not-allowed animate-pulse'
                         : isButtonDisabled
-                            ? 'bg-panel-card border-white/20 text-ink-muted opacity-60 saturate-50 cursor-not-allowed shadow-none'
-                            : 'bg-action-error hover:bg-red-500 text-white border-white/90 shadow-[0_0_30px_-5px_rgba(239,68,68,0.6)]'
+                            ? 'text-xl bg-panel-card border-white/20 text-ink-muted opacity-60 saturate-50 cursor-not-allowed shadow-none'
+                            : 'text-2xl bg-action-error hover:bg-red-500 text-white border-white/90 shadow-[0_0_30px_-5px_rgba(239,68,68,0.6)]'
                     "
                     :disabled="isButtonDisabled"
                 >
-                    <span class="text-3xl drop-shadow-sm">{{ buttonEmoji }}</span>
-                    <span class="drop-shadow-sm text-xl">{{ buttonLabel }}</span>
+                    <span class="drop-shadow-sm">{{ buttonLabel }}</span>
                 </button>
             </template>
 
