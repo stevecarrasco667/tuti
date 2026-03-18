@@ -37,12 +37,11 @@ export class ChatHandler {
             }
         }
 
-        // [P12] EJE B: ESCUDO ANTI-SPOILER AUTORITATIVO
-        // Solo activo durante la fase TYPING del Modo Impostor.
-        // El impostor (que no sabe la palabra) puede escribir lo que quiera.
-        // Los tripulantes NO pueden revelar la categoría secreta.
+        // [P12.1] EJE B: ESCUDO ANTI-SPOILER AUTORITATIVO
+        // Activo durante las fases centrales del Modo Impostor.
+        // El impostor no revela el secreto, pero los tripulantes NO pueden revelar la palabra.
         if (
-            state.status === 'TYPING' &&
+            ['ROLE_REVEAL', 'TYPING', 'VOTING'].includes(state.status) &&
             state.config.mode === 'IMPOSTOR' &&
             state.impostorData
         ) {

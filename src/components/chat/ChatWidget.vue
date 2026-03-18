@@ -21,7 +21,7 @@ const isImpostor = computed(() => localImpostorRole.value?.role === 'impostor');
 const secretWord = computed(() => localImpostorRole.value?.word ?? null);
 
 const spoilerDetected = computed(() => {
-    if (gameState.value.status !== 'TYPING' || gameState.value.config.mode !== 'IMPOSTOR') return false;
+    if (!['ROLE_REVEAL', 'TYPING', 'VOTING'].includes(gameState.value.status) || gameState.value.config.mode !== 'IMPOSTOR') return false;
     if (isImpostor.value || !secretWord.value) return false;
     return isSpoiler(inputValue.value, secretWord.value);
 });
