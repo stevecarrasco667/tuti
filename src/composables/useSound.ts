@@ -43,6 +43,7 @@ export function useSound() {
     const playError = () => play(SFX.error, 0.4);
     const playWin = () => play(SFX.win, 0.5);
     const playTally = () => play(SFX.tally, 0.3);
+    const playUrgency = () => play(SFX.stop, 0.85);  // [P11] Sonido de pánico para ENDING_COUNTDOWN
 
     // Aliases for Backward Compatibility
     const playJoin = () => play(SFX.click, 0.4);
@@ -62,6 +63,7 @@ export function useSound() {
         playError,
         playWin,
         playTally,
+        playUrgency,   // [P11]
         // Compat
         playJoin,
         playTick,

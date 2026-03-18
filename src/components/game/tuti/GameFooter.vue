@@ -10,6 +10,10 @@ const props = defineProps<{
     hasConfirmed: boolean;
     myProgress: { current: number, total: number };
     isStopping?: boolean;
+    // [P11] Nuevas props
+    graceSecondsLeft?: number;
+    isGraceActive?: boolean;
+    endingCountdownBy?: string | null;
 }>();
 
 defineEmits<{
@@ -23,6 +27,31 @@ const progressPercent = computed(() => {
     if (!props.myProgress.total) return 0;
     return Math.round((props.myProgress.current / props.myProgress.total) * 100);
 });
+
+// [P11] Jerarquía de estados del botón Basta
+const isEnding = computed(() => props.status === 'ENDING_COUNTDOWN');
+const isButtonDisabled = computed(() =>
+    props.isStopping ||
+    isEnding.value ||
+    !!props.isGraceActive ||
+    !props.canStop
+);
+
+const buttonLabel = computed(() => {
+    if (isEnding.value) return `¡${props.endingCountdownBy ?? 'Alguien'} paró! ${props.graceSecondsLeft ?? ''}...`;
+    if (props.isStopping) return 'ENVIANDO...';
+    if (props.isGraceActive) return `🔒 Espera ${props.graceSecondsLeft}s...`;
+    if (!props.canStop) return '✍️ Completa todo';
+    return '¡BASTA PARA MÍ!';
+});
+
+const buttonEmoji = computed(() => {
+    if (isEnding.value) return '⏳';
+    if (props.isStopping) return '⏳';
+    if (props.isGraceActive) return '🔒';
+    if (!props.canStop) return '✍️';
+    return '✋';
+});
 </script>
 
 <template>
@@ -32,9 +61,9 @@ const progressPercent = computed(() => {
         <div class="w-full max-w-xl mx-auto flex flex-col items-center gap-2 pointer-events-auto">
 
             <!-- ═══════════════════════════════════════════ -->
-            <!-- PLAYING: Barra de Progreso + Botón BASTA   -->
+            <!-- PLAYING / ENDING_COUNTDOWN: Botón BASTA    -->
             <!-- ═══════════════════════════════════════════ -->
-            <template v-if="status === 'PLAYING'">
+            <template v-if="status === 'PLAYING' || status === 'ENDING_COUNTDOWN'">
                 <!-- Barra de progreso integrada (FASE 3) -->
                 <div class="w-full flex items-center gap-3 px-1">
                     <div class="flex-1 h-1.5 bg-panel-card/80 rounded-full overflow-hidden shadow-inner">
@@ -49,19 +78,20 @@ const progressPercent = computed(() => {
                     </span>
                 </div>
 
-                <!-- Botón BASTA (ancho completo, centrado, prominente) -->
+                <!-- Botón BASTA con jerarquía P11 -->
                 <button
                     @click="$emit('stop')"
-                    class="w-full bg-action-error hover:bg-red-500 text-white font-black text-2xl py-4 rounded-3xl shadow-game-btn transition-all active:scale-[0.98] flex items-center justify-center gap-3 border-4 border-white/90 uppercase tracking-widest"
-                    :class="{
-                        'opacity-60 saturate-50 cursor-not-allowed shadow-none': (!canStop && !cooldown) || isStopping,
-                        'animate-shake': cooldown,
-                        'shadow-[0_0_30px_-5px_rgba(239,68,68,0.6)]': canStop && !isStopping
-                    }"
-                    :disabled="isStopping"
+                    class="w-full font-black text-2xl py-4 rounded-3xl shadow-game-btn transition-all active:scale-[0.98] flex items-center justify-center gap-3 border-4 uppercase tracking-widest"
+                    :class="isEnding
+                        ? 'bg-action-error/60 border-red-400/60 text-white opacity-90 cursor-not-allowed animate-pulse'
+                        : isButtonDisabled
+                            ? 'bg-panel-card border-white/20 text-ink-muted opacity-60 saturate-50 cursor-not-allowed shadow-none'
+                            : 'bg-action-error hover:bg-red-500 text-white border-white/90 shadow-[0_0_30px_-5px_rgba(239,68,68,0.6)]'
+                    "
+                    :disabled="isButtonDisabled"
                 >
-                    <span class="text-3xl drop-shadow-sm">{{ isStopping ? '⏳' : '✋' }}</span>
-                    <span class="drop-shadow-sm">{{ isStopping ? 'ENVIANDO...' : 'BASTA' }}</span>
+                    <span class="text-3xl drop-shadow-sm">{{ buttonEmoji }}</span>
+                    <span class="drop-shadow-sm text-xl">{{ buttonLabel }}</span>
                 </button>
             </template>
 

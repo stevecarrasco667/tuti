@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onUnmounted } from 'vue';
 import { RoomState, Player } from '../../../../shared/types';
 import { useSmartReview } from '../../../composables/useSmartReview';
+import { calcGracePeriod } from '../../../../shared/engines/tuti-engine';
 
 import RoundStatusHeader from './RoundStatusHeader.vue';
 import RivalsHeader from './RivalsHeader.vue';
@@ -40,6 +41,30 @@ const answers = ref<Record<string, string>>({});
 const hasConfirmed = ref(false);
 const validationCooldown = ref(false);
 
+// [P11] Grace period: tiempo elapsed desde que empezó PLAYING
+const _roundStartedAt = ref<number | null>(null);
+const elapsedMs = ref(0);
+let _graceInterval: ReturnType<typeof setInterval> | null = null;
+
+const startGraceTracking = () => {
+    _roundStartedAt.value = Date.now();
+    elapsedMs.value = 0;
+    if (_graceInterval) clearInterval(_graceInterval);
+    _graceInterval = setInterval(() => {
+        if (_roundStartedAt.value !== null) {
+            elapsedMs.value = Date.now() - _roundStartedAt.value;
+        }
+    }, 100);
+};
+
+onUnmounted(() => { if (_graceInterval) clearInterval(_graceInterval); });
+
+const gracePeriodMs = computed(() => calcGracePeriod(props.gameState.categories.length));
+const isGracePeriodActive = computed(() => elapsedMs.value < gracePeriodMs.value);
+const graceSecondsLeft = computed(() =>
+    Math.max(0, Math.ceil((gracePeriodMs.value - elapsedMs.value) / 1000))
+);
+
 const canStopRound = computed(() => {
     return props.gameState.categories.every(cat => {
         const val = answers.value[cat.name];
@@ -53,6 +78,8 @@ const getReviewItem = (playerId: string, category: string) => getPlayerStatus(pl
 
 const handleStop = () => {
     if (validationCooldown.value) return;
+    // [P11] Candado Anti-Troll: bloquear si aún está en grace period
+    if (isGracePeriodActive.value) return;
     if (!canStopRound.value) {
         emit('toast', "⚠️ Completa todas las categorías para parar", 'stop-warning', 'stop-validation'); 
         validationCooldown.value = true;
@@ -72,6 +99,10 @@ watch(() => props.gameState.status, (newStatus) => {
     if (newStatus === 'PLAYING') {
         answers.value = {};
         hasConfirmed.value = false;
+        startGraceTracking(); // [P11] Iniciar el contador del candado
+    } else if (newStatus !== 'ENDING_COUNTDOWN') {
+        // Limpiar el interval cuando ya no estamos jugando
+        if (_graceInterval) { clearInterval(_graceInterval); _graceInterval = null; }
     }
 });
 
@@ -201,10 +232,22 @@ const rivalsActivity = computed(() => {
             :cooldown="validationCooldown"
             :has-confirmed="hasConfirmed"
             :my-progress="{ current: Object.values(answers).filter(v => v?.trim()).length, total: gameState.categories.length }"
+            :grace-seconds-left="graceSecondsLeft"
+            :is-grace-active="isGracePeriodActive"
+            :ending-countdown-by="gameState.endingCountdownBy ?? null"
             @stop="handleStop"
             @confirm-votes="handleConfirmVotes"
             @next-round="emit('next-round')"
             :is-stopping="isStopping"
         />
+
+        <!-- [P11] M3: Viñeteado de Sangre — ENDING_COUNTDOWN panic overlay -->
+        <Teleport to="body">
+            <div
+                v-if="gameState.status === 'ENDING_COUNTDOWN'"
+                class="fixed inset-0 pointer-events-none z-50 animate-pulse"
+                style="box-shadow: inset 0 0 150px rgba(239,68,68,0.5);"
+            />
+        </Teleport>
     </div>
 </template>

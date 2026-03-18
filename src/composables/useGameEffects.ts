@@ -14,7 +14,7 @@ export function useGameEffects(
     myUserId: Ref<string>,
     amIHost: Ref<boolean>
 ) {
-    const { playClick, playJoin, playTick, playAlarm, playSuccess } = useSound();
+    const { playClick, playJoin, playTick, playAlarm, playSuccess, playUrgency } = useSound();
 
     // --- TIMERS ---
     const timeRemaining = ref<number | null>(null);
@@ -138,7 +138,10 @@ export function useGameEffects(
     });
 
     watch(() => gameState.value.status, (newStatus, oldStatus) => {
-        if (newStatus === 'REVIEW' && oldStatus === 'PLAYING') {
+        if (newStatus === 'ENDING_COUNTDOWN') {
+            // [P11] M4: Sonido de urgencia al activarse el panic countdown
+            playUrgency();
+        } else if (newStatus === 'REVIEW' && (oldStatus === 'PLAYING' || oldStatus === 'ENDING_COUNTDOWN')) {
             showStopAlert.value = true;
             playAlarm();
             setTimeout(() => {
