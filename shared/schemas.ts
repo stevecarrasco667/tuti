@@ -52,6 +52,7 @@ export const ImpostorDataSchema = z.object({
     words: z.record(z.string(), z.string()),
     votes: z.record(z.string(), z.string()),
     voteCounts: z.record(z.string(), z.number()).optional(),
+    readyPlayers: z.array(z.string()).default([]),   // [P12]
     cycleResult: z.object({
         eliminatedId: z.string().nullable(),
         matchOver: z.boolean(),
@@ -208,6 +209,18 @@ export const SubmitLastWishSchema = z.object({
     })
 });
 
+// [P12] Live Drafts
+export const UpdateImpostorDraftSchema = z.object({
+    type: z.literal(EVENTS.UPDATE_IMPOSTOR_DRAFT),
+    payload: z.object({
+        word: z.string().max(60)
+    })
+});
+
+export const ConfirmImpostorWordSchema = z.object({
+    type: z.literal(EVENTS.CONFIRM_IMPOSTOR_WORD)
+});
+
 export const ClientMessageSchema = z.discriminatedUnion('type', [
     JoinRoomSchema,
     StartGameSchema,
@@ -225,4 +238,6 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
     ChatSendSchema,
     LastWishTypingSchema,   // [P10]
     SubmitLastWishSchema,   // [P10]
+    UpdateImpostorDraftSchema,  // [P12]
+    ConfirmImpostorWordSchema,  // [P12]
 ]);

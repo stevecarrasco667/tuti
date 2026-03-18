@@ -61,6 +61,10 @@ export function useGame() {
         kickPlayer: actions.kickPlayer,
         forceDictionaryReload: actions.forceDictionaryReload,
         leaveGame: actions.leaveGame,
-        sendChatMessage: actions.sendChatMessage
+        sendChatMessage: actions.sendChatMessage,
+        sendReaction: actions.sendReaction,
+        updateImpostorDraft: actions.updateImpostorDraft,
+        debouncedUpdateImpostorDraft: actions.debouncedUpdateImpostorDraft,
+        confirmImpostorWord: actions.confirmImpostorWord
     };
 }

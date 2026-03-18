@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { ImpostorData, Player } from '../../../../shared/types';
 import { localImpostorRole } from '../../../composables/useGameState';
+import { useGame } from '../../../composables/useGame';
+import { isSpoiler } from '../../../../shared/utils/spoiler';
 
 const props = defineProps<{
     impostorData: ImpostorData;
@@ -11,18 +13,14 @@ const props = defineProps<{
     timerColor: string;
 }>();
 
-const emit = defineEmits<{
-    (e: 'submit', word: string): void;
-}>();
-
 const inputWord = ref('');
-const hasSubmitted = ref(false);
+// [P12] En lugar de hasSubmitted pasamos a evaluar if player in readyPlayers
+const hasConfirmed = computed(() => props.impostorData.readyPlayers?.includes(props.myUserId));
 
 const isDead = computed(() => !props.impostorData.alivePlayers.includes(props.myUserId));
 // Sprint 3.4: Read role from private whisper instead of public state
 const isImpostor = computed(() => localImpostorRole.value?.role === 'impostor');
 const secretWord = computed(() => localImpostorRole.value?.word ?? null);
-
 
 const impostorAllies = computed(() => {
     if (!isImpostor.value || !localImpostorRole.value) return [];
@@ -32,13 +30,26 @@ const impostorAllies = computed(() => {
 
 const isLocked = computed(() => {
     // UX Locking rule: if time is 0 or less, disable immediately, or if dead
-    return props.timeRemaining <= 0 || hasSubmitted.value || isDead.value;
+    return props.timeRemaining <= 0 || hasConfirmed.value || isDead.value;
 });
 
-const submitWord = () => {
-    if (isLocked.value || !inputWord.value.trim()) return;
-    hasSubmitted.value = true;
-    emit('submit', inputWord.value.trim());
+// [P12] UX Anti-Spoiler
+const spoilerDetected = computed(() => {
+    if (isImpostor.value || !secretWord.value) return false;
+    return isSpoiler(inputWord.value, secretWord.value);
+});
+
+const { debouncedUpdateImpostorDraft, confirmImpostorWord } = useGame();
+
+// [P12] Live Drafts: enviar borrador al escribir
+watch(inputWord, (newWord) => {
+    if (isLocked.value) return;
+    debouncedUpdateImpostorDraft(newWord);
+});
+
+const confirmWord = () => {
+    if (isLocked.value || !inputWord.value.trim() || spoilerDetected.value) return;
+    confirmImpostorWord(); // [P12] Marca listo, el borrador ya viaja por debounce
 };
 
 const activePlayers = computed(() => {
@@ -115,28 +126,47 @@ const isPlayerDead = (playerId: string) => {
                 Escribe una palabra que te camufle...
             </h2>
             
-            <form @submit.prevent="submitWord" class="w-full relative group">
+            <form @submit.prevent="confirmWord" class="w-full relative group">
                 <input 
                     type="text" 
                     v-model="inputWord"
                     :disabled="isLocked"
                     placeholder="Tu palabra aquí..."
-                    class="w-full bg-panel-input border-[4px] border-white/10 text-ink-main text-center text-4xl py-6 px-12 rounded-[2.5rem] backdrop-blur-xl focus:outline-none focus:border-action-primary focus:bg-panel-input transition-all font-black placeholder:text-ink-muted/40 shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="w-full bg-panel-input border-[4px] text-center text-4xl py-6 px-12 rounded-[2.5rem] backdrop-blur-xl focus:outline-none transition-all font-black shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                    :class="[
+                        spoilerDetected 
+                            ? 'border-action-error text-action-error placeholder:text-action-error/40 focus:border-action-error focus:bg-action-error/10' 
+                            : 'border-white/10 text-ink-main placeholder:text-ink-muted/40 focus:border-action-primary focus:bg-panel-input'
+                    ]"
                     autofocus
                 />
+                
+                <!-- [P12] Botón "Listo" -->
                 <button 
                     type="submit"
-                    :disabled="isLocked || !inputWord.trim()"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 bg-action-primary hover:bg-action-hover text-white p-4 rounded-3xl font-black transition-colors disabled:opacity-0 shadow-game-btn border-2 border-white/20 active:scale-95"
+                    :disabled="isLocked || !inputWord.trim() || spoilerDetected"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 p-4 rounded-3xl font-black transition-all shadow-game-btn border-2"
+                    :class="[
+                        hasConfirmed 
+                            ? 'bg-tuti-teal text-white border-white/20 opacity-100 scale-95' 
+                            : 'bg-action-primary hover:bg-action-hover text-white border-white/20 active:scale-95 disabled:opacity-0',
+                        spoilerDetected && !hasConfirmed ? '!bg-action-error !opacity-50 !cursor-not-allowed' : ''
+                    ]"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-7 h-7">
+                    <span v-if="hasConfirmed" class="text-xl px-1">✓</span>
+                    <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-7 h-7">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                     </svg>
                 </button>
             </form>
+
+            <!-- [P12] Anti-Spoiler Feedback Msg -->
+            <p v-if="spoilerDetected && !hasConfirmed" class="mt-4 text-action-error font-black uppercase tracking-widest animate-pulse text-sm text-center px-4">
+                🚨 Peligro: Tu palabra revela la categoría secreta. ¡Cámbiala!
+            </p>
             
-            <p v-if="hasSubmitted" class="mt-6 text-action-primary font-black uppercase tracking-widest animate-pulse text-sm">
-                ¡Palabra enviada! Esperando al resto...
+            <p v-else-if="hasConfirmed" class="mt-6 text-tuti-teal font-black uppercase tracking-widest text-sm">
+                ¡Estás Listo! Esperando al resto...
             </p>
             <p v-else-if="timeRemaining <= 0" class="mt-6 text-action-error font-black uppercase tracking-widest text-sm">
                 ¡Tiempo agotado!
@@ -144,6 +174,7 @@ const isPlayerDead = (playerId: string) => {
         </div>
 
         <!-- BOTTOM: Social Grid (Feedback visual) -->
+
         <div class="w-full max-w-4xl mt-auto pb-4 pt-12">
             <h3 class="text-[10px] uppercase tracking-[0.2em] text-ink-muted font-black text-center mb-6">Estado de la Tripulación</h3>
             

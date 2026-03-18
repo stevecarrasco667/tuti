@@ -556,6 +556,17 @@ export default class Server implements Party.Server {
                     break; // continúa al broadcastStateDelta
                 }
 
+                // --- LIVE DRAFTS + CONFIRMACIÓN (P12) ---
+                case EVENTS.UPDATE_IMPOSTOR_DRAFT: {
+                    await this.gameHandler.handleUpdateImpostorDraft(payload as any, sender);
+                    break; // muta state.answers y impostorData.words → delta sync
+                }
+
+                case EVENTS.CONFIRM_IMPOSTOR_WORD: {
+                    await this.gameHandler.handleConfirmImpostorWord(sender);
+                    break; // muta readyPlayers → delta sync
+                }
+
                 default:
                     console.warn(`Unknown message type: ${type}`);
             }

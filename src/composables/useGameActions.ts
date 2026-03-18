@@ -185,6 +185,25 @@ export function useGameActions(
         }));
     };
 
+    // [P12] Live Drafts autoguardado vía socket
+    const updateImpostorDraft = (word: string) => {
+        if (!socket.value) return;
+        socket.value.send(JSON.stringify({
+            type: EVENTS.UPDATE_IMPOSTOR_DRAFT,
+            payload: { word }
+        }));
+    };
+
+    const debouncedUpdateImpostorDraft = debounce(updateImpostorDraft, 500);
+
+    // [P12] Confirmación explícita (el botón 'Listo')
+    const confirmImpostorWord = () => {
+        if (!socket.value) return;
+        socket.value.send(JSON.stringify({
+            type: EVENTS.CONFIRM_IMPOSTOR_WORD
+        }));
+    };
+
     return {
         joinGame,
         startGame,
@@ -201,6 +220,9 @@ export function useGameActions(
         forceDictionaryReload,
         leaveGame,
         sendChatMessage,
-        sendReaction
+        sendReaction,
+        updateImpostorDraft,
+        debouncedUpdateImpostorDraft,
+        confirmImpostorWord
     };
 }

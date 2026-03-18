@@ -15,6 +15,8 @@ export const EVENTS = {
     WORD_REACT: 'WORD_REACT',
     SUBMIT_LAST_WISH: 'SUBMIT_LAST_WISH',   // [P10] Cliente → Servidor: intento de adivinanza de categoría
     LAST_WISH_TYPING: 'LAST_WISH_TYPING',   // [P10] Bidireccional: retransmisión en vivo del texto del Impostor
+    UPDATE_IMPOSTOR_DRAFT: 'UPDATE_IMPOSTOR_DRAFT', // [P12] Live draft autoguardado (debounce)
+    CONFIRM_IMPOSTOR_WORD: 'CONFIRM_IMPOSTOR_WORD', // [P12] El jugador declara "estoy listo"
 
     // Chat Events (Client -> Server)
     CHAT_SEND: 'CHAT_SEND',

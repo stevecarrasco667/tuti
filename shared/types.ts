@@ -68,6 +68,7 @@ export interface ImpostorData {
     words: Record<string, string>; // userId -> palabra
     votes: Record<string, string>; // voterId -> accusedId
     voteCounts?: Record<string, number>; // targetUserId -> count
+    readyPlayers: string[];         // [P12] userId[] que ya confirmaron su borrador
     cycleResult?: {
         eliminatedId: string | null;
         matchOver: boolean;
@@ -160,6 +161,8 @@ export type ClientMessage =
     | { type: typeof EVENTS.WORD_REACT; payload: { targetPlayerId: string; categoryId: string; emoji: string; senderId: string } }
     | { type: typeof EVENTS.SUBMIT_LAST_WISH; payload: { guess: string } }             // [P10]
     | { type: typeof EVENTS.LAST_WISH_TYPING; payload: { text: string } }              // [P10]
+    | { type: typeof EVENTS.UPDATE_IMPOSTOR_DRAFT; payload: { word: string } }         // [P12] Live draft autoguardado
+    | { type: typeof EVENTS.CONFIRM_IMPOSTOR_WORD }                                    // [P12] Jugador listo
     | { type: typeof EVENTS.CHAT_SEND; payload: { text: string } };
 
 // Messages sent from Server to Client

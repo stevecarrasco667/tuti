@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted } from 'vue';
+import { ref, watch, nextTick, onMounted, computed } from 'vue';
 import { useChat } from '../../composables/useChat';
 import { useGame } from '../../composables/useGame';
+import { useGameState } from '../../composables/useGameState';
+import { isSpoiler } from '../../../shared/utils/spoiler';
 import ChatBubble from './ChatBubble.vue';
 
 const props = defineProps<{
@@ -10,11 +12,27 @@ const props = defineProps<{
 
 const { messages, sendMessage, unreadCount, resetUnread } = useChat();
 const { myUserId } = useGame();
+const { localImpostorRole, gameState } = useGameState();
 
 const inputValue = ref('');
 const scrollContainer = ref<HTMLElement | null>(null);
 
+const isImpostor = computed(() => localImpostorRole.value?.role === 'impostor');
+const secretWord = computed(() => localImpostorRole.value?.word ?? null);
+
+const spoilerDetected = computed(() => {
+    if (gameState.value.status !== 'TYPING' || gameState.value.config.mode !== 'IMPOSTOR') return false;
+    if (isImpostor.value || !secretWord.value) return false;
+    return isSpoiler(inputValue.value, secretWord.value);
+});
+
+const isSubmitDisabled = computed(() => {
+    return props.isDisabled || !inputValue.value.trim() || spoilerDetected.value;
+});
+
 const handleSend = () => {
+    if (isSubmitDisabled.value) return; // Preventivo
+
     const text = inputValue.value.trim();
     if (!text) return;
 
@@ -84,15 +102,23 @@ const handleFocus = () => {
                     type="text" 
                     :placeholder="isDisabled ? '👻 Los fantasmas no hablan...' : 'Escribe un mensaje...'" 
                     :disabled="isDisabled"
-                    class="flex-1 min-w-0 bg-panel-input rounded-xl px-4 py-3 text-sm text-ink-main font-bold outline-none transition-all border-2 border-transparent focus:border-action-primary focus:ring-1 focus:ring-action-primary placeholder-ink-muted disabled:opacity-50 disabled:bg-panel-input/50 disabled:cursor-not-allowed"
-                    :class="isDisabled ? 'placeholder-red-300' : 'placeholder-ink-muted/50'"
+                    class="flex-1 min-w-0 bg-panel-input rounded-xl px-4 py-3 text-sm text-ink-main font-bold outline-none transition-all border-2 focus:ring-1 disabled:opacity-50 disabled:bg-panel-input/50 disabled:cursor-not-allowed"
+                    :class="[
+                        isDisabled ? 'placeholder-red-300 border-transparent' : 'placeholder-ink-muted/50 border-transparent focus:border-action-primary focus:ring-action-primary',
+                        spoilerDetected ? '!border-action-error !text-action-error !ring-action-error' : ''
+                    ]"
                     @keydown.enter.prevent="handleSend"
                     @focus="handleFocus"
                 />
                 <button 
                     @click="handleSend" 
-                    :disabled="isDisabled || !inputValue.trim()"
-                    class="flex-none bg-action-primary hover:bg-emerald-400 text-panel-base p-3 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-action-primary flex items-center justify-center border-2 border-transparent focus:border-white focus:outline-none"
+                    :disabled="isSubmitDisabled"
+                    class="flex-none p-3 rounded-xl shadow-md transition-all border-2 focus:outline-none flex items-center justify-center"
+                    :class="[
+                        spoilerDetected && !isDisabled
+                            ? 'bg-action-error border-action-error text-white opacity-50 cursor-not-allowed'
+                            : 'bg-action-primary hover:bg-action-hover text-white border-transparent focus:border-white active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-action-primary'
+                    ]"
                     aria-label="Enviar mensaje"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 translate-x-0.5">
@@ -100,7 +126,12 @@ const handleFocus = () => {
                     </svg>
                 </button>
             </div>
-            <div class="text-[10px] font-bold text-ink-soft mt-2 text-center uppercase tracking-widest hidden sm:block" v-if="!isDisabled">
+
+            <!-- Anti-Spoiler Feedback Msg for Chat -->
+            <div v-if="spoilerDetected" class="text-[10px] font-black text-action-error mt-2 text-center uppercase tracking-widest animate-pulse">
+                🚨 No puedes revelar la palabra
+            </div>
+            <div v-else-if="!isDisabled" class="text-[10px] font-bold text-ink-soft mt-2 text-center uppercase tracking-widest hidden sm:block">
                 Presiona <span class="text-ink-main">Enter</span> para enviar
             </div>
         </div>

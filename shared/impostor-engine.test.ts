@@ -34,6 +34,7 @@ function forceIntoTypingPhase(engine: ImpostorEngine, impostorIds: string[]) {
         words: {},
         votes: {},
         voteCounts: {},
+        readyPlayers: [],  // [P12]
     };
     // Inject impostor IDs directly into private field via hydrateSecrets
     engine.hydrateSecrets({

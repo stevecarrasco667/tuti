@@ -453,7 +453,8 @@ export class ImpostorEngine extends BaseEngine {
             alivePlayers,
             words: {},
             votes: {},
-            voteCounts: {}
+            voteCounts: {},
+            readyPlayers: [],       // [P12] Jugadores que confirmaron su borrador
         };
 
         this.state.status = 'ROLE_REVEAL';
@@ -600,6 +601,7 @@ export class ImpostorEngine extends BaseEngine {
                 this.state.impostorData.words = {};
                 this.state.impostorData.votes = {};
                 this.state.impostorData.voteCounts = {};
+                this.state.impostorData.readyPlayers = [];  // [P12] Reset al reiniciar ciclo
                 this.state.impostorData.cycleResult = undefined;
             }
             this.state.status = 'TYPING';
@@ -759,6 +761,53 @@ export class ImpostorEngine extends BaseEngine {
     public updateAnswers(_connectionId: string, _answers: Record<string, string>): RoomState {
         // Live updates no son críticos por privacidad del impostor
         return this.state;
+    }
+
+    // [P12] EJE A: Live Draft autoguardado por debounce
+    // El servidor guarda silenciosamente el borrador del jugador en state.answers.
+    // Si el timer expira, handleTypingTimeUp ya usa state.answers existente → cero pérdidas.
+    public updateDraft(connectionId: string, word: string): RoomState {
+        if (this.state.status !== 'TYPING') return this.state;
+        const userId = this._players.getPlayerId(connectionId);
+        if (!userId) return this.state;
+        if (!this.state.impostorData?.alivePlayers.includes(userId)) return this.state;
+
+        // Guardar el borrador como answer (mismo slot que submitAnswers)
+        if (!this.state.answers[userId]) this.state.answers[userId] = {};
+        this.state.answers[userId]['__draft__'] = word;
+
+        // También actualizar words para que el badge de "escribiendo" aparezca en el grid
+        // Solo marca que el campo no está vacío (la palabra real se revela en VOTING)
+        if (word.trim().length > 0) {
+            this.state.impostorData.words[userId] = word;
+        } else {
+            delete this.state.impostorData.words[userId];
+        }
+
+        return this.state;
+    }
+
+    // [P12] EJE A: Confirmación — marca al jugador como "listo"
+    // El botón pasa de "Enviar" a "Listo". Semánticamente declara que
+    // está conforme con su borrador, sin enviar un payload de palabra.
+    public confirmWord(connectionId: string): RoomState {
+        if (this.state.status !== 'TYPING') return this.state;
+        const userId = this._players.getPlayerId(connectionId);
+        if (!userId) return this.state;
+        if (!this.state.impostorData?.alivePlayers.includes(userId)) return this.state;
+
+        // Añadir a readyPlayers si no está ya (sin duplicados)
+        if (!this.state.impostorData.readyPlayers.includes(userId)) {
+            this.state.impostorData.readyPlayers.push(userId);
+        }
+
+        return this.state;
+    }
+
+    // [P12] EJE B: Exponer la PALABRA secreta para el ChatHandler anti-spoiler
+    // Devuelve la palabra privada (ej. "perro") que los tripulantes conocen pero no deben revelar
+    public getSecretWord(): string | null {
+        return this.secretWord ?? null;
     }
 
     public toggleVote(connectionId: string, targetUserId: string, _category: string): RoomState {

@@ -3,6 +3,7 @@ import { BaseEngine } from "../../shared/engines/base-engine";
 import { EVENTS } from "../../shared/consts";
 import type { ChatMessage } from "../../shared/types";
 import { RateLimiter } from "../utils/rate-limiter";
+import { isSpoiler } from "../../shared/utils/spoiler";
 
 
 
@@ -36,11 +37,24 @@ export class ChatHandler {
             }
         }
 
-        // [SPRINT 9] EL FILTRO ANTI-SPOILERS
-        // Sprint 3.4: secretWord no existe en el estado público (ahora es una propiedad privada del motor).
-        // El impostor ya no puede revelar la palabra accidentalmente desde el chat —
-        // simplemente no la conoce. Si en el futuro se desea reactivar este filtro,
-        // se deberá exponer un método auxiliar en ImpostorEngine como getSecretWord().
+        // [P12] EJE B: ESCUDO ANTI-SPOILER AUTORITATIVO
+        // Solo activo durante la fase TYPING del Modo Impostor.
+        // El impostor (que no sabe la palabra) puede escribir lo que quiera.
+        // Los tripulantes NO pueden revelar la categoría secreta.
+        if (
+            state.status === 'TYPING' &&
+            state.config.mode === 'IMPOSTOR' &&
+            state.impostorData
+        ) {
+            const secretWord = (this.engine as any).getSecretWord?.() as string | null;
+            // Solo filtramos si el remitente es Tripulante (no Impostor)
+            // La identidad privada del Impostor vive en el motor, no en el estado.
+            // Usamos getSecretWord() como proxy: si el mensaje contiene la palabra, es spoiler.
+            if (secretWord && isSpoiler(trimmed, secretWord)) {
+                // Mutar el texto y continuar el broadcast (el jugador ve el resultado, disuade reintento)
+                trimmed = '[Mensaje bloqueado por seguridad 🛡️]';
+            }
+        }
 
         const finalText = trimmed.slice(0, 140);
         const player = state.players.find(p => p.id === senderId);

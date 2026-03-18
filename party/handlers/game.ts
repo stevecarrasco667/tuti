@@ -121,4 +121,22 @@ export class GameHandler extends BaseHandler {
     ) {
         (this.engine as any).submitLastWish(sender.id, payload.guess ?? '');
     }
+
+    // [P12] EJE A: Live Draft — debounce autoguardado
+    async handleUpdateImpostorDraft(payload: { word: string }, sender: Party.Connection) {
+        try {
+            (this.engine as any).updateDraft(sender.id, payload.word ?? '');
+        } catch (err) {
+            sendError(sender, (err as Error).message);
+        }
+    }
+
+    // [P12] EJE A: Confirmación — el jugador declara "estoy listo"
+    async handleConfirmImpostorWord(sender: Party.Connection) {
+        try {
+            (this.engine as any).confirmWord(sender.id);
+        } catch (err) {
+            sendError(sender, (err as Error).message);
+        }
+    }
 }
