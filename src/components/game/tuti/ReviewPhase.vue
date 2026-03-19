@@ -46,30 +46,35 @@ const layoutConfig = computed(() => {
         gridClass:    'grid-cols-2',
         maxWidthClass:'max-w-2xl mx-auto',
         cardSize:     'xl' as CardSize,
+        centerVertically: true,
     };
     // 3 jugadores: 3 en fila pero grandes, sin dejar espacio muerto
     if (n === 3) return {
         gridClass:    'grid-cols-3',
         maxWidthClass:'max-w-3xl mx-auto',
         cardSize:     'lg' as CardSize,
+        centerVertically: true,
     };
     // 4 jugadores: 2×2 simétrico — NO 4 en fila
     if (n === 4) return {
         gridClass:    'grid-cols-2',
         maxWidthClass:'max-w-3xl mx-auto',
         cardSize:     'lg' as CardSize,
+        centerVertically: false,
     };
     // 5-6 jugadores: 3 cols (referencia que funciona bien)
     if (n <= 6) return {
         gridClass:    'grid-cols-2 md:grid-cols-3',
         maxWidthClass:'max-w-full',
         cardSize:     'md' as CardSize,
+        centerVertically: false,
     };
     // 7-8 jugadores: modo compacto 4 cols
     return {
         gridClass:    'grid-cols-2 md:grid-cols-4',
         maxWidthClass:'max-w-full',
         cardSize:     'sm' as CardSize,
+        centerVertically: false,
     };
 });
 
@@ -123,9 +128,9 @@ const selfStatusIcon = (playerId: string, category: string) => {
         </div>
 
         <!-- ARENA — Adaptive Grid por número de jugadores -->
-        <div class="flex-1 min-h-0 w-full overflow-y-auto" :class="layoutConfig.maxWidthClass">
-            <div class="grid gap-2 md:gap-3 w-full px-1 transition-all duration-500 ease-in-out content-start"
-                 :class="layoutConfig.gridClass">
+        <div class="flex-1 min-h-0 w-full overflow-y-auto flex flex-col" :class="layoutConfig.maxWidthClass">
+            <div class="grid gap-2 md:gap-3 w-full px-1 transition-all duration-500 ease-in-out"
+                 :class="[layoutConfig.gridClass, layoutConfig.centerVertically ? 'my-auto pb-6' : 'content-start']">
                 <VotingCard
                     v-for="player in players" :key="player.id"
                     :player-name="player.name"

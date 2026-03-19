@@ -37,8 +37,8 @@ const sizeConfig = computed(() => {
     const s = props.cardSize ?? 'md';
     return {
         // Contenedor principal
-        card:    s === 'xl' ? 'p-4 md:p-5 min-h-[240px]'
-               : s === 'lg' ? 'p-3 md:p-4 min-h-[200px]'
+        card:    s === 'xl' ? 'p-4 md:p-5 min-h-[300px] md:min-h-[340px]'
+               : s === 'lg' ? 'p-3 md:p-4 min-h-[240px] md:min-h-[280px]'
                : s === 'md' ? 'p-2.5 md:p-3 min-h-[160px]'
                             : 'p-2 min-h-[130px]',
         // Avatar emoji
