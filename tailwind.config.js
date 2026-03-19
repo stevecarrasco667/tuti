@@ -19,14 +19,14 @@ export default {
                 },
                 panel: {
                     base: '#2E0249', // Violeta nocturno profundo
-                    card: 'rgba(255, 255, 255, 0.1)', // Glassmorfismo
-                    input: 'rgba(255, 255, 255, 0.15)', // Glass orgánico
+                    card: '#49107A', // Violeta sólido rico
+                    input: '#60199E', // Violeta vibrante y maleable
                 },
                 action: {
                     primary: '#fbbf24', // Amber-400 ultra vibrante
                     'primary-hover': '#f59e0b',
-                    secondary: 'rgba(255, 255, 255, 0.2)', // Cápsulas secundarias translúcidas
-                    'secondary-hover': 'rgba(255, 255, 255, 0.3)',
+                    secondary: '#57138A', // Cápsulas secundarias translúcidas
+                    'secondary-hover': '#6C1AAB',
                     accent: '#fbbf24',
                     error: '#f43f5e', // Rose-500 palpitante
                     warning: '#fbbf24',
