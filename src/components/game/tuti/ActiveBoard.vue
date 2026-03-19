@@ -109,7 +109,7 @@ onUnmounted(() => {
     <!-- FASE 1: flex-col justify-center min-h-full para centrado vertical real -->
     <div class="w-full max-w-[95%] xl:max-w-7xl mx-auto flex flex-col justify-center min-h-full transition-all duration-500 ease-out">
         
-        <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-game-panel overflow-hidden relative transition-all">
+        <div class="bg-panel-base border-[3px] border-white/20 rounded-[2.5rem] shadow-game-panel overflow-hidden relative transition-all duration-300">
             
             <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-action-primary via-action-accent to-action-primary opacity-90"></div>
 

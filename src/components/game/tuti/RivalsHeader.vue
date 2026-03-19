@@ -18,7 +18,7 @@ defineProps<{
 </script>
 
 <template>
-    <div class="flex flex-wrap items-center justify-center gap-6 mb-6 w-full max-w-6xl mx-auto z-10 lg:flex-col lg:h-full lg:w-full lg:justify-start lg:gap-4 lg:bg-indigo-950/30 lg:p-4 lg:rounded-2xl lg:mb-0 lg:border lg:border-white/5">
+    <div class="flex flex-wrap items-center justify-center gap-6 mb-6 w-full max-w-6xl mx-auto z-10 lg:flex-col lg:h-full lg:w-full lg:justify-start lg:gap-4 lg:bg-white/5 lg:backdrop-blur-md lg:p-4 lg:rounded-[2.5rem] lg:mb-0 lg:border lg:border-white/10">
         <h3 class="hidden lg:block text-xs font-bold text-white/50 w-full uppercase tracking-wider mb-2">Rivales</h3>
         
         <div v-for="rival in rivals" :key="rival.id" 

@@ -22,18 +22,18 @@ const formattedTime = computed(() => {
             </span>
 
             <!-- Bubble -->
-            <div class="px-3 py-2 text-sm shadow-sm break-words relative min-w-[60px] font-bold"
+            <div class="px-4 py-2 text-[15px] break-words relative min-w-[60px] font-bold"
                 :class="[
                     isMine 
-                        ? 'bg-action-primary border-action-primary/50 text-white rounded-[1.2rem] rounded-tr-[4px]' 
-                        : 'bg-panel-input border-[3px] border-white/10 text-ink-main rounded-[1.2rem] rounded-tl-[4px]'
+                        ? 'bg-action-primary text-ink-base shadow-glow-primary rounded-t-[1.5rem] rounded-bl-[1.5rem] rounded-br-sm' 
+                        : 'bg-white/10 backdrop-blur-md border-[2px] border-white/10 text-ink-main shadow-sm rounded-t-[1.5rem] rounded-br-[1.5rem] rounded-bl-sm'
                 ]"
             >
                 <div>{{ message.text }}</div>
                 
                 <!-- Timestamp -->
-                <div class="text-[9px] mt-1 text-right w-full mix-blend-normal font-black"
-                     :class="isMine ? 'text-white/60' : 'text-ink-muted'">
+                <div class="text-[9px] mt-1 text-right w-full mix-blend-normal font-black tracking-widest"
+                     :class="isMine ? 'text-ink-base/70' : 'text-ink-muted'">
                     {{ formattedTime }}
                 </div>
             </div>

@@ -6,6 +6,10 @@ export default {
     ],
     theme: {
         extend: {
+            fontFamily: {
+                // Inyectamos Nunito como fuente principal geométrica y playful
+                sans: ['Nunito', 'sans-serif'],
+            },
             colors: {
                 tuti: {
                     base: '#4F8CFF',
@@ -14,28 +18,31 @@ export default {
                     teal: '#6AD7E5',
                 },
                 panel: {
-                    base: '#0f172a',
-                    card: '#1e293b',
-                    input: '#334155',
+                    base: '#2E0249', // Violeta nocturno profundo
+                    card: 'rgba(255, 255, 255, 0.1)', // Glassmorfismo
+                    input: 'rgba(255, 255, 255, 0.15)', // Glass orgánico
                 },
                 action: {
-                    primary: '#d97706',
-                    'primary-hover': '#b45309',
-                    secondary: '#475569',
-                    'secondary-hover': '#334155',
-                    accent: '#f59e0b',
-                    error: '#ef4444',
-                    warning: '#FACC15',
+                    primary: '#fbbf24', // Amber-400 ultra vibrante
+                    'primary-hover': '#f59e0b',
+                    secondary: 'rgba(255, 255, 255, 0.2)', // Cápsulas secundarias translúcidas
+                    'secondary-hover': 'rgba(255, 255, 255, 0.3)',
+                    accent: '#fbbf24',
+                    error: '#f43f5e', // Rose-500 palpitante
+                    warning: '#fbbf24',
                 },
                 ink: {
-                    main: '#f1f5f9',
-                    muted: '#94a3b8',
+                    main: '#ede9fe', // Violet-100 anti fatiga
+                    muted: '#ddd6fe', // Violet-200
                 }
             },
             boxShadow: {
                 'game-btn': '0 4px 0 0 rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.1)',
-                'game-panel': 'inset 0 2px 4px rgba(255,255,255,0.4), 0 4px 12px rgba(0,0,0,0.05)',
-                'game-card': '0 2px 8px rgba(79, 140, 255, 0.15)',
+                'game-panel': 'inset 0 2px 4px rgba(255,255,255,0.1), 0 4px 12px rgba(0,0,0,0.2)',
+                'game-card': '0 4px 20px rgba(0,0,0,0.15)',
+                // SPRINT V1 GLOWS: Elimina sombras negras por auras de color
+                'glow-primary': '0 4px 15px rgba(251,191,36,0.5)',
+                'glow-panic': 'inset 0 0 150px rgba(244,63,94,0.4)',
                 'warm': '0 10px 25px -5px rgba(44, 42, 41, 0.08), 0 8px 10px -6px rgba(44, 42, 41, 0.04)',
             }
         },

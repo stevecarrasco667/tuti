@@ -66,12 +66,12 @@ const handleFocus = () => {
 </script>
 
 <template>
-    <div class="flex flex-col h-full overflow-hidden bg-panel-base border-l-[4px] border-white/10 rounded-r-[2rem] border-y-0 lg:border-r-0">
+    <div class="flex flex-col h-full overflow-hidden bg-panel-base/50 backdrop-blur-2xl border-l-[4px] border-white/10 rounded-r-[2.5rem] border-y-0 lg:border-r-0">
         
         <!-- Header -->
-        <div class="h-12 flex items-center px-4 bg-panel-card/80 backdrop-blur-md border-b-[3px] border-white/10 shrink-0 justify-between">
+        <div class="h-12 flex items-center px-4 bg-white/5 backdrop-blur-md border-b-[3px] border-white/10 shrink-0 justify-between">
             <h3 class="text-[11px] font-black text-ink-muted uppercase tracking-[0.2em] drop-shadow-sm">Sala de Chat</h3>
-            <div v-if="unreadCount > 0" class="bg-action-error text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm animate-bounce">
+            <div v-if="unreadCount > 0" class="bg-action-error text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-glow-panic animate-bounce">
                 {{ unreadCount }}
             </div>
         </div>
@@ -95,17 +95,17 @@ const handleFocus = () => {
         </div>
 
         <!-- Input Area -->
-        <div class="p-4 bg-panel-card/80 backdrop-blur-md border-t-[3px] border-white/10 shrink-0">
+        <div class="p-4 bg-white/5 backdrop-blur-xl border-t-[3px] border-white/10 shrink-0">
             <div class="flex items-center gap-2">
                 <input 
                     v-model="inputValue"
                     type="text" 
                     :placeholder="isDisabled ? '👻 Los fantasmas no hablan...' : 'Escribe un mensaje...'" 
                     :disabled="isDisabled"
-                    class="flex-1 min-w-0 bg-panel-input rounded-xl px-4 py-3 text-sm text-ink-main font-bold outline-none transition-all border-2 focus:ring-1 disabled:opacity-50 disabled:bg-panel-input/50 disabled:cursor-not-allowed"
+                    class="flex-1 min-w-0 bg-white/10 backdrop-blur-md rounded-full px-5 py-3 text-sm text-ink-main font-black outline-none transition-all border-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)]"
                     :class="[
-                        isDisabled ? 'placeholder-red-300 border-transparent' : 'placeholder-ink-muted/50 border-transparent focus:border-action-primary focus:ring-action-primary',
-                        spoilerDetected ? '!border-action-error !text-action-error !ring-action-error' : ''
+                        isDisabled ? 'placeholder-red-300 border-transparent' : 'placeholder-ink-muted/50 border-white/20 focus:border-action-primary focus:shadow-glow-primary',
+                        spoilerDetected ? '!border-action-error !text-action-error focus:!shadow-glow-panic' : ''
                     ]"
                     @keydown.enter.prevent="handleSend"
                     @focus="handleFocus"
@@ -113,11 +113,11 @@ const handleFocus = () => {
                 <button 
                     @click="handleSend" 
                     :disabled="isSubmitDisabled"
-                    class="flex-none p-3 rounded-xl shadow-md transition-all border-2 focus:outline-none flex items-center justify-center"
+                    class="flex-none p-3.5 rounded-full shadow-glow-primary transition-all border-2 focus:outline-none flex items-center justify-center"
                     :class="[
                         spoilerDetected && !isDisabled
-                            ? 'bg-action-error border-action-error text-white opacity-50 cursor-not-allowed'
-                            : 'bg-action-primary hover:bg-action-hover text-white border-transparent focus:border-white active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-action-primary'
+                            ? 'bg-action-error border-action-error text-white opacity-50 cursor-not-allowed shadow-none'
+                            : 'bg-action-primary hover:bg-action-hover text-ink-base border-white/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-action-primary disabled:shadow-none'
                     ]"
                     aria-label="Enviar mensaje"
                 >

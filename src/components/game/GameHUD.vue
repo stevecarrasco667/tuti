@@ -13,7 +13,7 @@ defineEmits<{
 </script>
 
 <template>
-    <div class="flex-none h-16 bg-indigo-950/20 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 z-40 relative">
+    <div class="flex-none h-16 bg-panel-card/20 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 z-40 relative">
             
         <!-- Left: Exit & Round -->
         <div class="flex items-center gap-4">
@@ -25,7 +25,7 @@ defineEmits<{
             </button>
 
             <div class="flex flex-col">
-                <span class="text-[10px] uppercase font-bold text-indigo-300 tracking-widest">Ronda</span>
+                <span class="text-[10px] uppercase font-bold text-ink-muted tracking-widest">Ronda</span>
                 <span class="text-xl font-black text-yellow-400 leading-none">
                     {{ round }}<span class="text-xs text-white/40 ml-0.5">/{{ totalRounds }}</span>
                 </span>

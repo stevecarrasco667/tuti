@@ -70,16 +70,16 @@ const sizeConfig = computed(() => {
 <template>
     <!-- No overflow-hidden en el contenedor raíz: permite que el popover salga hacia arriba -->
     <div
-        class="bg-panel-card rounded-2xl w-full flex flex-col transition-all duration-500 [container-type:inline-size]"
+        class="bg-panel-card backdrop-blur-xl rounded-[2.5rem] w-full flex flex-col transition-all duration-500 [container-type:inline-size]"
         :class="[
             sizeConfig.card,
             isAutoValidated
-                ? 'border border-amber-500/30 shadow-[0_0_30px_-5px_rgba(251,191,36,0.25)]'
+                ? 'border border-action-primary/50 shadow-glow-primary'
                 : isRejected || !isApproved
-                    ? 'border border-red-900/50 shadow-[0_0_30px_-5px_rgba(239,68,68,0.3)]'
+                    ? 'border border-action-error/50 shadow-glow-panic'
                     : isDuplicate
-                        ? 'border border-amber-900/50 shadow-[0_0_30px_-5px_rgba(245,158,11,0.3)]'
-                        : 'border border-white/5 shadow-2xl'
+                        ? 'border border-action-warning/50 shadow-glow-primary'
+                        : 'border border-white/10 shadow-game-card'
         ]"
     >
 

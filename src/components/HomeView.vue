@@ -109,18 +109,18 @@ const handleRefresh = () => {
                 <span class="animate-pulse text-ink-muted text-xs font-bold tracking-widest uppercase">Cargando Identidad...</span>
             </div>
             
-            <div v-else-if="!isAuthenticated" class="bg-indigo-900/40 border-2 border-indigo-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl backdrop-blur-sm">
+            <div v-else-if="!isAuthenticated" class="bg-panel-card/40 border-2 border-white/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl backdrop-blur-sm">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-panel-base border-2 border-indigo-400 flex items-center justify-center text-xl shadow-inner bg-gradient-to-br from-indigo-500/20 to-fuchsia-500/20">
+                    <div class="w-10 h-10 rounded-xl bg-panel-base border-2 border-action-primary flex items-center justify-center text-xl shadow-inner bg-gradient-to-br from-action-primary/20 to-tuti-teal/20">
                         ⭐
                     </div>
                     <div class="text-left hidden sm:block">
                         <h4 class="text-white font-black text-sm tracking-tight drop-shadow-md">Únete al Metajuego</h4>
-                        <p class="text-indigo-200 text-[10px] font-bold uppercase tracking-wider">Inicia sesión para reclamar tu nombre y beneficios</p>
+                        <p class="text-ink-muted text-[10px] font-bold uppercase tracking-wider">Inicia sesión para reclamar tu nombre y beneficios</p>
                     </div>
                 </div>
                 <!-- Call To Action -->
-                <button @click="signInWithGoogle" class="w-full sm:w-auto bg-white hover:bg-gray-100 text-black px-4 py-2.5 rounded-xl font-bold uppercase tracking-wide text-xs shadow-md shadow-white/10 active:scale-95 transition-all flex items-center justify-center gap-2 border-[3px] border-white">
+                <button @click="signInWithGoogle" class="w-full sm:w-auto bg-white hover:bg-white/90 text-panel-base px-4 py-2.5 rounded-xl font-bold uppercase tracking-wide text-xs shadow-glow-primary active:scale-95 transition-all flex items-center justify-center gap-2 border-[3px] border-white">
                     <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.2,4.73C15.29,4.73 17.1,6.7 17.1,6.7L19,4.72C19,4.72 16.56,2 12.1,2C6.42,2 2.03,6.8 2.03,12C2.03,17.05 6.16,22 12.25,22C17.6,22 21.5,18.33 21.5,12.91C21.5,11.76 21.35,11.1 21.35,11.1V11.1Z" /></svg>
                     Iniciar con Google
                 </button>

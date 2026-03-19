@@ -36,13 +36,13 @@ const close = () => {
             <button 
                 v-if="!isOpen"
                 @click="isOpen = true"
-                class="fixed bottom-4 left-4 z-40 w-12 h-12 bg-indigo-600 rounded-full shadow-lg border border-white/10 flex items-center justify-center active:scale-95 transition-transform"
+                class="fixed bottom-4 left-4 z-40 w-14 h-14 bg-action-primary text-ink-base rounded-full shadow-glow-primary border-[3px] border-white/20 flex items-center justify-center active:scale-95 transition-transform"
                 aria-label="Abrir chat"
             >
-                <span class="text-xl">💬</span>
+                <span class="text-2xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)]">💬</span>
                 
                 <!-- Notification Badge -->
-                <div v-if="unreadCount > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm animate-bounce">
+                <div v-if="unreadCount > 0" class="absolute -top-1 -right-1 bg-action-error text-white text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full shadow-glow-panic animate-bounce">
                     {{ unreadCount > 9 ? '9+' : unreadCount }}
                 </div>
             </button>
@@ -61,7 +61,7 @@ const close = () => {
         <Transition name="slide-up">
             <div 
                 v-if="isOpen"
-                class="fixed bottom-0 left-0 right-0 h-[65vh] bg-gray-900 rounded-t-2xl shadow-2xl z-50 overflow-hidden flex flex-col border-t border-white/10"
+                class="fixed bottom-0 left-0 right-0 h-[65vh] bg-panel-base/90 backdrop-blur-3xl rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.3)] z-50 overflow-hidden flex flex-col border-t-[3px] border-white/20"
             >
                 <!-- Drawer Handle / Header -->
                 <div class="h-10 bg-black/20 shrink-0 flex items-center justify-center relative cursor-pointer" @click="close">

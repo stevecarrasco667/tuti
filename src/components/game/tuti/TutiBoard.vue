@@ -245,12 +245,11 @@ const rivalsActivity = computed(() => {
             :is-stopping="isStopping"
         />
 
-        <!-- [P11] M3: Viñeteado de Sangre — ENDING_COUNTDOWN panic overlay -->
+        <!-- [P11] M3: Viñeteado de Pánico — ENDING_COUNTDOWN overlay -->
         <Teleport to="body">
             <div
                 v-if="gameState.status === 'ENDING_COUNTDOWN'"
-                class="fixed inset-0 pointer-events-none z-50 animate-pulse"
-                style="box-shadow: inset 0 0 150px rgba(239,68,68,0.5);"
+                class="fixed inset-0 pointer-events-none z-50 animate-pulse shadow-glow-panic"
             />
         </Teleport>
     </div>

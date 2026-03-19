@@ -135,8 +135,8 @@ const isPlayerDead = (playerId: string) => {
                     class="w-full bg-panel-input border-[4px] text-center text-4xl py-6 px-12 rounded-[2.5rem] backdrop-blur-xl focus:outline-none transition-all font-black shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
                     :class="[
                         spoilerDetected 
-                            ? 'border-action-error text-action-error placeholder:text-action-error/40 focus:border-action-error focus:bg-action-error/10' 
-                            : 'border-white/10 text-ink-main placeholder:text-ink-muted/40 focus:border-action-primary focus:bg-panel-input'
+                            ? 'border-action-error text-action-error placeholder:text-action-error/40 focus:border-action-error focus:bg-action-error/10 focus:shadow-glow-panic' 
+                            : 'border-white/20 text-ink-main placeholder:text-ink-muted/40 focus:border-action-primary focus:bg-white/10 focus:shadow-glow-primary'
                     ]"
                     autofocus
                 />
@@ -145,12 +145,12 @@ const isPlayerDead = (playerId: string) => {
                 <button 
                     type="submit"
                     :disabled="isLocked || !inputWord.trim() || spoilerDetected"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 p-4 rounded-3xl font-black transition-all shadow-game-btn border-2"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 p-4 rounded-full font-black transition-all shadow-glow-primary border-2"
                     :class="[
                         hasConfirmed 
                             ? 'bg-tuti-teal text-white border-white/20 opacity-100 scale-95' 
-                            : 'bg-action-primary hover:bg-action-hover text-white border-white/20 active:scale-95 disabled:opacity-0',
-                        spoilerDetected && !hasConfirmed ? '!bg-action-error !opacity-50 !cursor-not-allowed' : ''
+                            : 'bg-action-primary hover:bg-action-hover text-ink-base border-white/20 active:scale-95 disabled:opacity-0',
+                        spoilerDetected && !hasConfirmed ? '!bg-action-error !opacity-50 !cursor-not-allowed !shadow-none' : ''
                     ]"
                 >
                     <span v-if="hasConfirmed" class="text-xl px-1">✓</span>
@@ -161,7 +161,7 @@ const isPlayerDead = (playerId: string) => {
             </form>
 
             <!-- [P12] Anti-Spoiler Feedback Msg -->
-            <p v-if="spoilerDetected && !hasConfirmed" class="mt-4 text-action-error font-black uppercase tracking-widest animate-pulse text-sm text-center px-4">
+            <p v-if="spoilerDetected && !hasConfirmed" class="mt-4 text-action-error font-black uppercase tracking-widest animate-pulse text-sm text-center px-4 drop-shadow-md">
                 🚨 Peligro: Tu palabra revela la categoría secreta. ¡Cámbiala!
             </p>
             
