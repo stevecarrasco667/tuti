@@ -37,16 +37,16 @@ const handleSubmit = (word: string) => {
 </script>
 
 <template>
-    <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 w-full h-full overflow-hidden p-4 relative">
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-4 w-full h-full overflow-hidden p-4 relative">
         
         <!-- JUEGO (Columna Izquierda 1fr) -->
         <div class="h-full w-full flex flex-col items-center justify-center relative rounded-3xl overflow-hidden shadow-inner">
-            <!-- TOP: Botón rápido de salida transparente en la cabecera -->
-            <div class="absolute top-4 right-4 z-[90]">
-            <button @click="emit('exit')" class="text-white bg-action-error/80 hover:bg-red-500 p-2 text-sm font-black uppercase tracking-widest rounded-xl shadow-game-btn border-2 border-white/50 backdrop-blur-sm transition-all active:scale-95 cursor-pointer">
-                SALIR
+            <!-- TOP-LEFT: Botón de salida, igual que GameHUD, sin solapamiento -->
+            <button @click="emit('exit')" class="absolute top-3 left-3 z-[90] text-white/60 hover:text-white transition-colors p-1" title="Salir">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
+                </svg>
             </button>
-        </div>
 
         <Transition name="phase-fade" mode="out-in">
             <!-- PHASE: ROLE_REVEAL -->

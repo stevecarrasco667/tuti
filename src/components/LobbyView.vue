@@ -9,7 +9,7 @@ import PlayerList from './lobby/PlayerList.vue';
 import GameConfigPanel from './lobby/GameConfigPanel.vue';
 import CategorySelector from './lobby/CategorySelector.vue';
 
-const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer } = useGame();
+const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer, leaveGame } = useGame();
 const { playClick, playJoin, playAlarm, playSuccess } = useSound();
 
 // ── Smart State (Orquestador) ─────────────────────────────────────────────────
@@ -72,6 +72,10 @@ const handleStart = () => {
     playAlarm();
     startGame();
 };
+
+const handleLeave = () => {
+    leaveGame();
+};
 </script>
 
 <template>
@@ -85,6 +89,7 @@ const handleStart = () => {
             :copied="copied"
             @toggle-privacy="handleTogglePrivacy"
             @copy-link="copyRoomLink"
+            @leave="handleLeave"
         />
 
         <!-- Tab Bar (Mobile only) -->

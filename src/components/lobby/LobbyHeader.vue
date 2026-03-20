@@ -12,6 +12,7 @@ const props = defineProps<{
 const emit = defineEmits<{
     (e: 'toggle-privacy'): void;
     (e: 'copy-link'): void;
+    (e: 'leave'): void;
 }>();
 </script>
 
@@ -19,8 +20,18 @@ const emit = defineEmits<{
     <!-- STICKY HEADER: Room Code + Pub/Priv -->
     <div class="flex-none px-3 pt-3 pb-2 lg:px-4 lg:pt-4">
         <TCard padding="none" class="p-3 flex items-center justify-between gap-3 rounded-2xl">
-            <!-- Left: Pub/Priv + Code -->
+            <!-- Left: Back Button + Pub/Priv + Code -->
             <div class="flex items-center gap-3 min-w-0">
+                <!-- Botón Volver al Home -->
+                <button
+                    @click="emit('leave')"
+                    class="flex-none w-9 h-9 rounded-xl border-2 border-white/10 bg-panel-input hover:bg-white/10 flex items-center justify-center text-ink-soft hover:text-ink-main transition-all active:scale-90"
+                    title="Volver al inicio"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                    </svg>
+                </button>
                 <!-- Public/Private Toggle (Host only) -->
                 <button v-if="props.amIHost"
                     @click="emit('toggle-privacy')"

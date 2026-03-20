@@ -101,7 +101,7 @@ const handleRefresh = () => {
 </script>
 
 <template>
-    <div class="w-full flex flex-col items-center justify-start sm:justify-center p-4 min-h-full">
+    <div class="w-full flex flex-col items-center justify-start sm:justify-center p-4 min-h-full overflow-y-auto">
         
         <!-- FASE 2: PANEL DE AUTENTICACIÓN (EL METAJUEGO) -->
         <div class="w-full max-w-5xl mx-auto mb-6">
@@ -206,14 +206,8 @@ const handleRefresh = () => {
                     </div>
                 </div>
             </TCard>
-        </div>
 
-            <!-- ═══════════════════════════════════════════════ -->
-            <!-- COLUMN RIGHT: Identity & Social Radar          -->
-            <!-- ═══════════════════════════════════════════════ -->
-            <div class="lg:col-span-3 flex flex-col gap-5 justify-center">
-            
-            <!-- IDENTITY CARD -->
+            <!-- IDENTITY CARD (moved here, below action buttons) -->
             <TCard padding="md">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-xs font-black text-ink-main uppercase tracking-widest flex items-center gap-1">
@@ -272,9 +266,15 @@ const handleRefresh = () => {
                     </button>
                 </div>
             </TCard>
+        </div>
+
+            <!-- ═══════════════════════════════════════════════ -->
+            <!-- COLUMN RIGHT: Solo Salas Públicas (aprovecha todo el alto) -->
+            <!-- ═══════════════════════════════════════════════ -->
+            <div class="lg:col-span-3 flex flex-col min-h-0">
 
             <!-- ACTIVE ROOMS RADAR -->
-            <TCard padding="none" class="flex flex-col overflow-hidden max-h-[400px]">
+            <TCard padding="none" class="flex flex-col overflow-hidden flex-1 min-h-[200px] max-h-[min(600px,70vh)]">
                 <div class="p-4 border-b border-white/10 bg-panel-card/90 flex items-center justify-between sticky top-0 z-10">
                     <h3 class="text-xs font-black text-ink-main uppercase tracking-widest flex items-center gap-2">
                          Salas Publicas
