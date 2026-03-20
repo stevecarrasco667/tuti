@@ -172,9 +172,9 @@ const rivalsActivity = computed(() => {
 
         <div class="flex-1 overflow-y-auto w-full scroll-smooth p-2 relative">
             <Transition name="fade" mode="out-in">
-                <!-- Grid dinámico: 3 columnas en PLAYING, 2 columnas en las demás fases -->
-                <div :key="gameState.status" class="w-full h-full flex flex-col items-center lg:grid lg:gap-8 lg:items-start lg:max-w-[1600px] lg:mx-auto" 
-                    :class="gameState.status === 'PLAYING' ? 'lg:grid-cols-[280px_1fr_200px]' : 'lg:grid-cols-[1fr_200px]'"> 
+                <!-- Grid dinámico: 2 columnas en PLAYING, 1 columna en las demás fases -->
+                <div :key="gameState.status" class="w-full h-full flex flex-col items-center lg:grid lg:gap-8 lg:items-start lg:max-w-[1200px] lg:mx-auto" 
+                    :class="gameState.status === 'PLAYING' ? 'lg:grid-cols-[280px_1fr]' : 'lg:grid-cols-1'"> 
                     
                     <!-- COLUMN 1: RIVALS (SOLO EN PLAYING) -->
                     <div v-if="gameState.status === 'PLAYING'" class="w-full lg:h-full lg:overflow-y-auto order-1 lg:order-1">
@@ -223,8 +223,13 @@ const rivalsActivity = computed(() => {
                         />
                     </div>
 
-                    <!-- COLUMN 3: CHAT -->
-                    <ChatWidget class="hidden lg:flex order-3 lg:order-3 w-full h-full max-h-[calc(100vh-140px)]" />
+                    <!-- FLOATING CHAT (Desktop Only) -->
+                    <div class="hidden lg:flex flex-col fixed bottom-24 right-6 z-[100] w-[320px] h-[500px] max-h-[60vh] pointer-events-none">
+                        <!-- El contenedor interior reintegra events-auto -->
+                        <div class="w-full h-full pointer-events-auto flex justify-end items-end">
+                            <ChatWidget />
+                        </div>
+                    </div>
                 </div>
             </Transition>
         </div>

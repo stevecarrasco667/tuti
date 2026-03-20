@@ -72,18 +72,7 @@ const isPlayerDead = (playerId: string) => {
 <template>
     <div class="h-full w-full flex flex-col items-center p-4">
         
-        <!-- HEADER: Timer & Info -->
-        <div class="w-full flex justify-between items-start mb-4 max-w-4xl">
-            <div class="bg-panel-card border-2 border-white/10 px-6 py-3 rounded-3xl backdrop-blur-md shadow-sm">
-                <span class="text-[10px] text-ink-muted uppercase tracking-widest block font-black mb-1">Categoría</span>
-                <span class="text-xl text-ink-main font-black">{{ impostorData.currentCategoryName }}</span>
-            </div>
-            
-            <div class="bg-panel-card border-2 border-white/10 px-6 py-2 rounded-3xl backdrop-blur-md flex flex-col items-center min-w-[120px] shadow-sm">
-                 <span class="text-[10px] text-ink-muted uppercase tracking-widest font-black mb-1">Tiempo</span>
-                 <span class="text-3xl font-mono font-black border bg-panel-input px-2 rounded-lg leading-none" :class="timerColor">{{ Math.max(0, timeRemaining) }}</span>
-            </div>
-        </div>
+
 
         <!-- BANNER DE FANTASMA -->
         <div v-if="isDead" class="w-full max-w-4xl mb-6 bg-panel-input/60 border-4 border-white/10 rounded-3xl px-6 py-4 backdrop-blur-md flex items-center justify-center gap-3 shadow-inner">

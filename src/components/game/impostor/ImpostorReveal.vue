@@ -62,15 +62,6 @@ const currentCategory = computed(() => props.impostorData.currentCategoryName);
                 </div>
             </div>
 
-            <!-- Timer con Margin Auto -->
-            <div class="mt-auto pt-2 flex-none">
-                <div class="text-center bg-panel-card/60 p-3 md:p-4 rounded-3xl border-2 border-white/10 shadow-sm inline-block min-w-[120px]">
-                    <p class="text-[9px] md:text-[10px] font-black tracking-widest text-ink-muted uppercase mb-1">El juego comienza en</p>
-                    <div class="text-5xl md:text-6xl font-black font-mono drop-shadow-sm leading-none" :class="timerColor">
-                        {{ Math.max(0, timeRemaining) }}
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </template>

@@ -4,6 +4,7 @@ import { generateRoomId, generateRandomName } from '../utils/random';
 import { useGame } from '../composables/useGame';
 import { useLobby } from '../composables/useLobby';
 import { useAuth } from '../composables/useAuth';
+import { useSound } from '../composables/useSound';
 import TCard from './ui/TCard.vue';
 import TButton from './ui/TButton.vue';
 import TInput from './ui/TInput.vue';
@@ -12,6 +13,7 @@ const emit = defineEmits(['navigate']);
 const { joinGame, myUserName, myUserAvatar } = useGame();
 const { publicRooms, connect, refreshRooms } = useLobby();
 const { user, isAuthenticated, isLoading, signInWithGoogle, signOut } = useAuth();
+const { isMuted, toggleMute } = useSound();
 
 const showJoinInput = ref(false);
 const joinCode = ref('');
@@ -206,13 +208,7 @@ const handleRefresh = () => {
                     </div>
                 </div>
             </TCard>
-        </div>
 
-            <!-- ═══════════════════════════════════════════════ -->
-            <!-- COLUMN RIGHT: Identity & Social Radar          -->
-            <!-- ═══════════════════════════════════════════════ -->
-            <div class="lg:col-span-3 flex flex-col gap-5 justify-center">
-            
             <!-- IDENTITY CARD -->
             <TCard padding="md">
                 <div class="flex items-center justify-between mb-4">
@@ -220,12 +216,28 @@ const handleRefresh = () => {
                         Tu Identidad
                         <span v-if="!isAuthenticated" title="Inicia sesión para editar tu nombre" class="cursor-help w-4 h-4 rounded-full bg-panel-input flex items-center justify-center text-[10px] font-bold ml-1 border border-white/5">?</span>
                     </h3>
-                    <button v-if="isAuthenticated" @click="isEditingProfile = !isEditingProfile" class="text-[10px] font-bold text-white bg-white/5 hover:bg-white/10 px-2 py-1 rounded border border-white/10 transition-colors uppercase">
-                        {{ isEditingProfile ? 'Guardar' : 'Editar' }}
-                    </button>
-                    <button v-else @click="signInWithGoogle" class="text-[10px] font-bold text-action-blue opacity-80 hover:opacity-100 uppercase underline">
-                        Personalizar
-                    </button>
+                    <div class="flex items-center gap-3">
+                        <button 
+                            @click="toggleMute"
+                            class="p-1.5 rounded-full bg-panel-input border border-white/10 hover:bg-white/10 transition-colors shadow-sm active:scale-95"
+                            :title="isMuted ? 'Activar Sonido' : 'Silenciar Sonido'"
+                        >
+                            <svg v-if="!isMuted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-ink-soft">
+                                <path d="M9.348 14.651l-2.853-2.852H4V8.201h2.495l2.853-2.852v9.302zM15.536 10a5.002 5.002 0 00-2.316-4.195v8.39A5.002 5.002 0 0015.536 10z" />
+                                <path d="M12.22 3.102v13.796A7.003 7.003 0 0018.5 10a7.003 7.003 0 00-6.28-6.898z" />
+                            </svg>
+                            <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-red-400 opacity-80">
+                                <path fill-rule="evenodd" d="M9.383 3.076a.75.75 0 011.066.079l.067.086 5.86 8.371a.75.75 0 01-1.127.949l-.067-.086-1.503-2.148H12v3.633a.75.75 0 01-1.077.677l-4.14-2.192H4a2 2 0 01-2-2V9.5a2 2 0 011.66-1.972l.34-.028h1.841l4.14-2.192a.75.75 0 011.402.399l.001 5.863L9.304 3.14a.75.75 0 01.079-1.064zM16.53 4.47a.75.75 0 011.06 0l1.94 1.94 1.94-1.94a.75.75 0 111.06 1.06L20.59 7.47l1.94 1.94a.75.75 0 11-1.06 1.06l-1.94-1.94-1.94 1.94a.75.75 0 01-1.06-1.06l1.94-1.94-1.94-1.94a.75.75 0 010-1.06z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+
+                        <button v-if="isAuthenticated" @click="isEditingProfile = !isEditingProfile" class="text-[10px] font-bold text-white bg-white/5 hover:bg-white/10 px-2 py-1 rounded border border-white/10 transition-colors uppercase">
+                            {{ isEditingProfile ? 'Guardar' : 'Editar' }}
+                        </button>
+                        <button v-else @click="signInWithGoogle" class="text-[10px] font-bold text-action-blue opacity-80 hover:opacity-100 uppercase underline">
+                            Personalizar
+                        </button>
+                    </div>
                 </div>
 
                 <div class="flex items-center gap-4">
@@ -272,9 +284,15 @@ const handleRefresh = () => {
                     </button>
                 </div>
             </TCard>
+        </div>
 
+            <!-- ═══════════════════════════════════════════════ -->
+            <!-- COLUMN RIGHT: Social Radar                     -->
+            <!-- ═══════════════════════════════════════════════ -->
+            <div class="lg:col-span-3 flex flex-col gap-5 justify-start h-full min-h-0 w-full pb-4">
+            
             <!-- ACTIVE ROOMS RADAR -->
-            <TCard padding="none" class="flex flex-col overflow-hidden max-h-[400px]">
+            <TCard padding="none" class="flex flex-col overflow-hidden h-full flex-1 min-h-0">
                 <div class="p-4 border-b border-white/10 bg-panel-card/90 flex items-center justify-between sticky top-0 z-10">
                     <h3 class="text-xs font-black text-ink-main uppercase tracking-widest flex items-center gap-2">
                          Salas Publicas

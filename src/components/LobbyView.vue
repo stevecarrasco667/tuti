@@ -9,6 +9,7 @@ import PlayerList from './lobby/PlayerList.vue';
 import GameConfigPanel from './lobby/GameConfigPanel.vue';
 import CategorySelector from './lobby/CategorySelector.vue';
 
+const emit = defineEmits(['navigate']);
 const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer } = useGame();
 const { playClick, playJoin, playAlarm, playSuccess } = useSound();
 
@@ -85,6 +86,7 @@ const handleStart = () => {
             :copied="copied"
             @toggle-privacy="handleTogglePrivacy"
             @copy-link="copyRoomLink"
+            @navigate="emit('navigate', $event)"
         />
 
         <!-- Tab Bar (Mobile only) -->

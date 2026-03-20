@@ -58,23 +58,47 @@ onMounted(() => {
     scrollToBottom();
 });
 
-// Reset unread count when hovering/active (simplified for now, ideally on focus)
+// Reset unread count when hovering/active
 const handleFocus = () => {
     resetUnread();
 };
 
+const isMinimized = ref(false);
 </script>
 
 <template>
-    <div class="flex flex-col h-full overflow-hidden bg-panel-base/50 backdrop-blur-2xl border-l-[4px] border-white/10 rounded-r-[2.5rem] border-y-0 lg:border-r-0">
+    <!-- Contenedor Principal Flotante (en Teniendo una clase container si es inyectado normal, o se usa su propio flujo en Mobile) -->
+    <div class="flex flex-col h-full pointer-events-auto transition-all duration-500 ease-in-out" :class="isMinimized ? 'w-16 h-16' : 'w-full'">
         
-        <!-- Header -->
-        <div class="h-12 flex items-center px-4 bg-white/5 backdrop-blur-md border-b-[3px] border-white/10 shrink-0 justify-between">
-            <h3 class="text-[11px] font-black text-ink-muted uppercase tracking-[0.2em] drop-shadow-sm">Sala de Chat</h3>
-            <div v-if="unreadCount > 0" class="bg-action-error text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-glow-panic animate-bounce">
+        <!-- ESTADO MINIMIZADO (Solo Desktop Flotante) -->
+        <button 
+            v-if="isMinimized" 
+            @click="isMinimized = false"
+            class="w-16 h-16 rounded-full bg-action-primary/90 hover:bg-action-primary text-white shadow-glow-primary border-2 border-white/20 flex items-center justify-center transition-transform hover:scale-105 relative"
+        >
+            <span class="text-2xl">💬</span>
+            <div v-if="unreadCount > 0" class="absolute -top-1 -right-1 bg-action-error text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-panel-base shadow-glow-panic animate-bounce">
                 {{ unreadCount }}
             </div>
-        </div>
+        </button>
+
+        <!-- ESTADO MAXIMIZADO -->
+        <div v-else class="flex flex-col h-full overflow-hidden bg-panel-base/80 backdrop-blur-3xl border-[3px] border-white/10 rounded-3xl shadow-2xl">
+            <!-- Header -->
+            <div class="h-12 flex items-center px-4 bg-white/10 backdrop-blur-md border-b border-white/10 shrink-0 justify-between">
+                <div class="flex items-center gap-2">
+                    <h3 class="text-[11px] font-black text-ink-muted uppercase tracking-[0.2em] drop-shadow-sm">Sala de Chat</h3>
+                    <div v-if="unreadCount > 0" class="bg-action-error text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-glow-panic animate-bounce">
+                        {{ unreadCount }}
+                    </div>
+                </div>
+                <!-- Toggle Mínimizar (Desktop) -->
+                <button @click="isMinimized = true" class="hidden lg:flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/10 text-ink-muted hover:text-white transition-colors" title="Minimizar">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 translate-y-0.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </button>
+            </div>
 
         <!-- Messages List -->
         <div ref="scrollContainer" class="flex-1 overflow-y-auto w-full p-4 flex flex-col gap-3 scroll-smooth">
@@ -135,6 +159,7 @@ const handleFocus = () => {
                 Presiona <span class="text-ink-main">Enter</span> para enviar
             </div>
         </div>
+        </div> <!-- Fin de Estado Maximizado -->
     </div>
 </template>
 

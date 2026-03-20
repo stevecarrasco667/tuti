@@ -8,6 +8,7 @@ import ImpostorLastWish from './ImpostorLastWish.vue';
 import ImpostorResults from './ImpostorResults.vue';
 import ChatWidget from '../../chat/ChatWidget.vue';
 import MobileChatDrawer from '../../chat/MobileChatDrawer.vue';
+import GameHUD from '../GameHUD.vue';
 
 const props = defineProps<{
     gameState: RoomState;
@@ -37,16 +38,21 @@ const handleSubmit = (word: string) => {
 </script>
 
 <template>
-    <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 w-full h-full overflow-hidden p-4 relative">
+    <div class="flex flex-col w-full h-full overflow-hidden p-4 relative">
         
-        <!-- JUEGO (Columna Izquierda 1fr) -->
-        <div class="h-full w-full flex flex-col items-center justify-center relative rounded-3xl overflow-hidden shadow-inner">
-            <!-- TOP: Botón rápido de salida transparente en la cabecera -->
-            <div class="absolute top-4 right-4 z-[90]">
-            <button @click="emit('exit')" class="text-white bg-action-error/80 hover:bg-red-500 p-2 text-sm font-black uppercase tracking-widest rounded-xl shadow-game-btn border-2 border-white/50 backdrop-blur-sm transition-all active:scale-95 cursor-pointer">
-                SALIR
-            </button>
-        </div>
+        <!-- JUEGO (Columna Central Expandida) -->
+        <div class="h-full w-full flex flex-col relative rounded-3xl overflow-hidden shadow-inner bg-panel-base/30">
+            <!-- TOP HUD ESTANDARIZADO -->
+            <GameHUD 
+                :title="impostorData?.currentCategoryName || 'Impostor'"
+                :subtitle="currentPhase === 'ROLE_REVEAL' ? 'Roles' : 'Categoría'"
+                :time-left="timeRemaining"
+                :timer-color="timerColor"
+                @exit="emit('exit')"
+            />
+            
+            <!-- MAIN CONTENT AREA -->
+            <div class="flex-1 flex flex-col items-center justify-center relative min-h-0 overflow-y-auto w-full">
 
         <Transition name="phase-fade" mode="out-in">
             <!-- PHASE: ROLE_REVEAL -->
@@ -101,10 +107,11 @@ const handleSubmit = (word: string) => {
             <!-- FALLBACK LOBBY / INTERMISSION -->
             <div v-else class="text-ink-main/40 font-black uppercase tracking-widest animate-pulse">Cargando modo Impostor...</div>
         </Transition>
+            </div>
         </div>
 
-        <!-- SOCIAL (Columna Derecha 320px Desktop Only) -->
-        <div class="hidden lg:flex flex-col h-full rounded-3xl overflow-hidden shadow-game-panel border-[3px] border-white/50 bg-panel-base/30">
+        <!-- CHAT FLOTANTE (Desktop Only) -->
+        <div class="hidden lg:flex flex-col fixed bottom-6 right-6 z-[100] w-[320px] h-[500px] max-h-[80vh]">
             <ChatWidget :is-disabled="isDead" />
         </div>
 
