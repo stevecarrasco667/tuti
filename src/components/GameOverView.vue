@@ -28,11 +28,11 @@ const exitGame = () => {
             <!-- CELEBRATION HEADER -->
             <!-- ABANDONMENT VICTORY HEADER -->
             <div v-if="gameState.gameOverReason === 'ABANDONED'" class="text-center mb-12 animate-bounce mt-8">
-                <h2 class="text-6xl font-black text-amber-500 drop-shadow-sm uppercase tracking-tighter">
+                <h2 class="text-6xl font-black text-action-primary drop-shadow-sm uppercase tracking-tighter">
                     ¡VICTORIA!
                 </h2>
-                <div class="mt-4 bg-panel-card backdrop-blur-md px-6 py-3 rounded-2xl inline-block border-[3px] border-white/10 shadow-sm">
-                     <p class="text-amber-600 text-xl font-black uppercase tracking-widest">🏆 Por Abandono</p>
+                <div class="mt-4 bg-panel-card backdrop-blur-md px-6 py-3 rounded-2xl inline-block border-[3px] border-white/10 shadow-glow-primary">
+                     <p class="text-action-primary text-xl font-black uppercase tracking-widest">🏆 Por Abandono</p>
                      <p class="text-ink-soft font-bold text-sm mt-1">Tus rivales se han rendido.</p>
                 </div>
             </div>
@@ -48,16 +48,16 @@ const exitGame = () => {
             <!-- PODIUM (Hide only if strictly 0 players, but standard flow keeps them) -->
             <div class="flex items-end justify-center gap-2 mb-12 w-full max-w-2xl mx-auto h-64 sm:h-80">
                 <!-- 2nd Place -->
-                <div v-if="top3[1]" class="flex flex-col items-center w-1/3 animate-[slideUp_1s_ease-out_0.2s_both]">
+                <div v-if="top3[1]" class="flex flex-col items-center w-1/3 animate-bounce" style="animation-duration: 2s; animation-delay: 500ms; animation-fill-mode: both;">
                     <div class="relative mb-2">
-                        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-white/10 overflow-hidden shadow-sm bg-panel-input flex items-center justify-center">
-                            <span class="text-4xl sm:text-5xl drop-shadow-sm">{{ top3[1].avatar || '👤' }}</span>
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-white/10 overflow-hidden shadow-glow-primary bg-panel-input flex items-center justify-center">
+                            <span class="text-4xl sm:text-5xl drop-shadow-md">{{ top3[1].avatar || '👤' }}</span>
                         </div>
-                        <div class="absolute -top-3 -right-3 bg-panel-input border-2 border-white/10 text-ink-muted font-black rounded-full w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center shadow-sm">
+                        <div class="absolute -top-3 -right-3 bg-panel-input border-2 border-white/10 text-ink-muted font-black rounded-full w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center shadow-lg">
                             2
                         </div>
                     </div>
-                    <div class="w-full bg-panel-input border-x-4 border-t-4 border-white/10 rounded-t-2xl h-32 sm:h-48 flex flex-col items-center justify-start pt-4 shadow-inner relative">
+                    <div class="w-full bg-panel-input border-x-4 border-t-4 border-white/10 rounded-t-3xl h-32 sm:h-48 flex flex-col items-center justify-start pt-4 shadow-inner relative">
                         <div class="absolute inset-0 bg-white/20 rounded-t-xl pointer-events-none"></div>
                        <span class="text-ink-main font-black text-xs sm:text-base uppercase tracking-wider truncate w-full text-center px-1 drop-shadow-sm z-10">{{ top3[1].name }}</span>
                        <span class="text-ink-muted font-black text-sm sm:text-lg mt-1 z-10">{{ top3[1].score }} pts</span>
@@ -65,39 +65,39 @@ const exitGame = () => {
                 </div>
 
                 <!-- 1st Place -->
-                <div v-if="top3[0]" class="flex flex-col items-center w-1/3 z-10 animate-[slideUp_1s_ease-out_both]">
+                <div v-if="top3[0]" class="flex flex-col items-center w-1/3 z-10 animate-bounce" style="animation-duration: 2s; animation-delay: 1000ms; animation-fill-mode: both;">
                      <div class="relative mb-4">
-                        <div class="w-20 h-20 sm:w-28 sm:h-28 rounded-full border-[6px] border-amber-400 overflow-hidden shadow-sm bg-panel-input flex items-center justify-center relative">
-                            <span class="text-5xl sm:text-7xl drop-shadow-sm">{{ top3[0].avatar || '👤' }}</span>
+                        <div class="w-20 h-20 sm:w-28 sm:h-28 rounded-full border-[6px] border-action-primary overflow-hidden shadow-glow-primary bg-panel-card flex items-center justify-center relative">
+                            <span class="text-5xl sm:text-7xl drop-shadow-md">{{ top3[0].avatar || '👤' }}</span>
                         </div>
-                         <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 text-4xl sm:text-5xl drop-shadow-md z-20">
+                         <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 text-4xl sm:text-5xl drop-shadow-glow z-20">
                             👑
                         </div>
-                        <div class="absolute -bottom-2 -right-2 bg-amber-400 border-2 border-amber-600 text-amber-900 font-black rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shadow-sm z-20">
+                        <div class="absolute -bottom-2 -right-2 bg-action-primary border-2 border-white/20 text-panel-base font-black rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shadow-lg z-20">
                             1
                         </div>
                     </div>
-                    <div class="w-full bg-amber-400 border-x-4 border-t-4 border-amber-500 rounded-t-2xl h-48 sm:h-64 flex flex-col items-center justify-start pt-6 shadow-inner relative">
-                        <div class="absolute inset-0 bg-white/20 rounded-t-xl pointer-events-none"></div>
-                        <span class="text-ink-main font-black text-sm sm:text-xl uppercase tracking-widest truncate w-full text-center px-1 drop-shadow-sm z-10">{{ top3[0].name }}</span>
-                        <span class="text-amber-800 font-black text-xl sm:text-2xl mt-2 z-10 bg-white/40 px-2 py-0.5 rounded-full border border-amber-500">{{ top3[0].score }} pts</span>
+                    <div class="w-full bg-action-primary border-x-4 border-t-4 border-action-primary rounded-t-3xl h-48 sm:h-64 flex flex-col items-center justify-start pt-6 shadow-inner relative">
+                        <div class="absolute inset-0 bg-white/20 rounded-t-2xl pointer-events-none"></div>
+                        <span class="text-panel-base font-black text-sm sm:text-xl uppercase tracking-widest truncate w-full text-center px-1 drop-shadow-md z-10">{{ top3[0].name }}</span>
+                        <span class="text-panel-base font-black text-xl sm:text-2xl mt-2 z-10 bg-white/40 px-2 py-0.5 rounded-full border border-white/30 shadow-sm">{{ top3[0].score }} pts</span>
                     </div>
                 </div>
 
                 <!-- 3rd Place -->
-                <div v-if="top3[2]" class="flex flex-col items-center w-1/3 animate-[slideUp_1s_ease-out_0.4s_both]">
+                <div v-if="top3[2]" class="flex flex-col items-center w-1/3 animate-bounce" style="animation-duration: 2s; animation-delay: 0ms; animation-fill-mode: both;">
                     <div class="relative mb-2">
-                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-4 border-orange-300 overflow-hidden shadow-sm bg-panel-input flex items-center justify-center">
-                            <span class="text-3xl sm:text-4xl drop-shadow-sm">{{ top3[2].avatar || '👤' }}</span>
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-4 border-white/5 overflow-hidden shadow-md bg-panel-card flex items-center justify-center">
+                            <span class="text-3xl sm:text-4xl drop-shadow-md">{{ top3[2].avatar || '👤' }}</span>
                         </div>
-                         <div class="absolute -top-3 -right-3 bg-orange-200 border-2 border-orange-400 text-orange-900 font-black rounded-full w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center shadow-sm">
+                         <div class="absolute -top-3 -right-3 bg-panel-card border-2 border-white/5 text-ink-muted font-black rounded-full w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center shadow-sm">
                             3
                         </div>
                     </div>
-                    <div class="w-full bg-orange-300 border-x-4 border-t-4 border-orange-400 rounded-t-2xl h-24 sm:h-36 flex flex-col items-center justify-start pt-4 shadow-inner relative">
-                       <div class="absolute inset-0 bg-white/20 rounded-t-xl pointer-events-none"></div>
+                    <div class="w-full bg-panel-card border-x-4 border-t-4 border-white/5 rounded-t-3xl h-24 sm:h-36 flex flex-col items-center justify-start pt-4 shadow-inner relative">
+                       <div class="absolute inset-0 bg-white/10 rounded-t-2xl pointer-events-none"></div>
                        <span class="text-ink-main font-black text-xs sm:text-sm uppercase tracking-wider truncate w-full text-center px-1 drop-shadow-sm z-10">{{ top3[2].name }}</span>
-                       <span class="text-orange-700 font-black text-sm sm:text-[15px] mt-1 z-10">{{ top3[2].score }} pts</span>
+                       <span class="text-ink-muted font-black text-sm sm:text-[15px] mt-1 z-10">{{ top3[2].score }} pts</span>
                     </div>
                 </div>
             </div>
@@ -144,8 +144,4 @@ const exitGame = () => {
 </template>
 
 <style scoped>
-@keyframes slideUp {
-    from { transform: translateY(100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
 </style>

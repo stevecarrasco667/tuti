@@ -1,6 +1,6 @@
 <script setup lang="ts">
 withDefaults(defineProps<{
-    variant?: 'primary' | 'secondary' | 'blue' | 'teal' | 'ghost' | 'danger';
+    variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'accent';
     size?: 'sm' | 'md' | 'lg';
     disabled?: boolean;
     type?: 'button' | 'submit';
@@ -12,12 +12,11 @@ withDefaults(defineProps<{
 });
 
 const VARIANT_MAP = {
-    primary:   'bg-action-primary hover:bg-action-primary-hover text-ink-base shadow-glow-primary disabled:opacity-50 text-panel-base', // Texto contrastante oscuro
+    primary:   'bg-action-primary hover:bg-action-primary-hover shadow-glow-primary disabled:opacity-50 text-panel-base', // Texto contrastante oscuro
     secondary: 'bg-action-secondary hover:bg-action-secondary-hover text-white backdrop-blur-sm',
-    blue:      'bg-action-secondary hover:bg-action-secondary-hover text-white',
-    teal:      'bg-action-accent hover:opacity-90 text-panel-base shadow-glow-primary',
     ghost:     'bg-transparent hover:bg-panel-input text-ink-main',
     danger:    'bg-action-error text-white shadow-glow-panic',
+    accent:    'bg-action-primary text-panel-base shadow-glow-primary hover:opacity-90',
 } as const;
 
 const SIZE_MAP = {
@@ -31,7 +30,7 @@ const SIZE_MAP = {
     <button
         :type="type"
         :disabled="disabled"
-        class="font-black uppercase tracking-[0.08em] flex items-center justify-center gap-2 transition-all transform hover:scale-[1.03] active:scale-95 cursor-pointer disabled:cursor-not-allowed"
+        class="font-black uppercase tracking-[0.08em] flex items-center justify-center gap-2 transition-all duration-300 ease-out hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer disabled:cursor-not-allowed min-h-[44px] focus:outline-none focus-visible:ring-4 focus-visible:ring-action-primary/50"
         :class="[VARIANT_MAP[variant], SIZE_MAP[size]]"
     >
         <slot />

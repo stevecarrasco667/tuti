@@ -102,9 +102,9 @@ const handleFocus = () => {
                     type="text" 
                     :placeholder="isDisabled ? '👻 Los fantasmas no hablan...' : 'Escribe un mensaje...'" 
                     :disabled="isDisabled"
-                    class="flex-1 min-w-0 bg-white/10 backdrop-blur-md rounded-full px-5 py-3 text-sm text-ink-main font-black outline-none transition-all border-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-[inset_0_2px_10px_rgba(0,0,0,0.1)]"
+                    class="flex-1 min-w-0 bg-white/10 backdrop-blur-md rounded-full px-5 py-3 text-sm text-ink-main font-black outline-none transition-all border-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
                     :class="[
-                        isDisabled ? 'placeholder-red-300 border-transparent' : 'placeholder-ink-muted/50 border-white/20 focus:border-action-primary focus:shadow-glow-primary',
+                        isDisabled ? 'placeholder-action-error/50 border-transparent' : 'placeholder-ink-muted/50 border-white/20 focus:border-action-primary focus:shadow-glow-primary',
                         spoilerDetected ? '!border-action-error !text-action-error focus:!shadow-glow-panic' : ''
                     ]"
                     @keydown.enter.prevent="handleSend"

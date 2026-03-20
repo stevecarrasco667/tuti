@@ -11,12 +11,6 @@ export default {
                 sans: ['Nunito', 'sans-serif'],
             },
             colors: {
-                tuti: {
-                    base: '#4F8CFF',
-                    soft: '#63B3FF',
-                    alt: '#7BA7FF',
-                    teal: '#6AD7E5',
-                },
                 panel: {
                     base: '#2E0249', // Violeta nocturno profundo
                     card: '#49107A', // Violeta sólido rico

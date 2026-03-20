@@ -33,19 +33,19 @@ const toggle = () => {
         role="switch"
         :disabled="isAutoValidated"
         @click="toggle"
-        class="relative inline-flex shrink-0 cursor-pointer rounded-full border-[3px] border-white/10 transition-colors duration-200 ease-in-out focus-visible:outline-none shadow-sm disabled:cursor-not-allowed"
+        class="relative inline-flex shrink-0 cursor-pointer rounded-full border-[3px] border-white/10 transition-all duration-300 ease-in-out focus-visible:outline-none disabled:cursor-not-allowed hover:-translate-y-0.5"
         :class="[
             cardSize === 'sm' ? 'h-8 w-12' : 'h-11 w-[4.5rem]',
             isAutoValidated
-                ? 'bg-action-warning shadow-inner'
+                ? 'bg-action-warning shadow-glow-primary'
                 : modelValue
-                    ? 'bg-action-primary shadow-inner'
-                    : 'bg-action-error shadow-inner'
+                    ? 'bg-action-primary shadow-glow-primary'
+                    : 'bg-action-error shadow-glow-panic'
         ]"
     >
         <!-- Knob -->
         <span
-            class="pointer-events-none inline-flex my-auto transform rounded-full bg-ink-main shadow-md transition-transform duration-200 ease-in-out items-center justify-center border-2 border-panel-card/50"
+            class="pointer-events-none inline-flex my-auto transform rounded-full bg-ink-main shadow-lg transition-transform duration-200 ease-in-out items-center justify-center border-2 border-panel-card/50"
             :class="[
                 cardSize === 'sm' ? 'h-6 w-6 text-xs' : 'h-9 w-9 text-sm',
                 cardSize === 'sm'

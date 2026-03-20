@@ -69,9 +69,9 @@ const layoutConfig = computed(() => {
         cardSize:     'md' as CardSize,
         centerVertically: false,
     };
-    // 7-8 jugadores: modo compacto 4 cols
+    // 7-8 jugadores: modo amigable móvil (1 col en mobile, 2 sm, 4 en lg)
     return {
-        gridClass:    'grid-cols-2 md:grid-cols-4',
+        gridClass:    'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
         maxWidthClass:'max-w-full',
         cardSize:     'sm' as CardSize,
         centerVertically: false,
@@ -108,11 +108,11 @@ const selfStatusIcon = (playerId: string, category: string) => {
 
         <!-- Stop Alert -->
         <div v-if="showStopAlert && stopperPlayer"
-             class="flex-none bg-red-500 border-4 border-red-300 rounded-3xl shadow-[0_4px_20px_rgba(239,68,68,0.4)] p-4 flex items-center justify-center gap-4 mb-4 mx-2">
+             class="flex-none bg-action-error/20 backdrop-blur-xl border border-action-error shadow-glow-panic rounded-3xl p-4 flex items-center justify-center gap-4 mb-4 mx-2">
             <div class="text-5xl animate-bounce drop-shadow-md">{{ stopperPlayer.avatar || '🛑' }}</div>
             <div class="flex flex-col items-center md:items-start text-center md:text-left gap-1">
-                <h3 class="font-black text-white text-3xl md:text-4xl uppercase tracking-tighter drop-shadow-sm leading-none">¡BASTA PARA MÍ!</h3>
-                <p class="text-red-100 text-xs font-black uppercase tracking-widest bg-red-900/40 px-3 py-1 rounded-full">Detenido por {{ stopperPlayer.name }}</p>
+                <h3 class="font-black text-action-error text-3xl md:text-4xl uppercase tracking-tighter drop-shadow-glow leading-none">¡BASTA PARA MÍ!</h3>
+                <p class="text-white text-xs font-black uppercase tracking-widest bg-action-error/40 border border-action-error/50 px-3 py-1 rounded-full shadow-inner">Detenido por {{ stopperPlayer.name }}</p>
             </div>
         </div>
 

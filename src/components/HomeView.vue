@@ -111,7 +111,7 @@ const handleRefresh = () => {
             
             <div v-else-if="!isAuthenticated" class="bg-panel-card/40 border-2 border-white/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl backdrop-blur-sm">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-panel-base border-2 border-action-primary flex items-center justify-center text-xl shadow-inner bg-gradient-to-br from-action-primary/20 to-tuti-teal/20">
+                    <div class="w-10 h-10 rounded-xl bg-panel-base border-2 border-action-primary flex items-center justify-center text-xl shadow-inner bg-gradient-to-br from-action-primary/20 to-panel-input/20">
                         ⭐
                     </div>
                     <div class="text-left hidden sm:block">
@@ -175,10 +175,10 @@ const handleRefresh = () => {
 
                 <!-- PRIMARY ACTION BUTTONS -->
                 <div class="grid grid-cols-2 gap-3">
-                    <TButton variant="blue" size="lg" @click="handleCreateRoom(true)">
+                    <TButton variant="primary" size="lg" @click="handleCreateRoom(true)">
                         <span class="text-xl">🌐</span> Sala Pública
                     </TButton>
-                    <TButton variant="teal" size="lg" @click="handleCreateRoom(false)">
+                    <TButton variant="secondary" size="lg" @click="handleCreateRoom(false)">
                         <span class="text-xl">🔒</span> Sala Privada
                     </TButton>
                 </div>

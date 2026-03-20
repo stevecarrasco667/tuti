@@ -93,7 +93,7 @@ function decrementImpostorCategoryCount() {
     >
         <div class="p-3 md:p-4 border-b-2 border-white/50 bg-panel-card/50 flex items-center justify-between flex-none gap-2">
             <h3 class="text-ink-main text-xs font-black uppercase tracking-widest">Ajustes</h3>
-            <span v-if="!props.amIHost" class="text-amber-500 text-[8px] font-black uppercase tracking-wider bg-amber-100 px-2 py-0.5 rounded-full border border-amber-300">Solo lectura</span>
+            <span v-if="!props.amIHost" class="text-action-warning text-[8px] font-black uppercase tracking-wider bg-action-warning/20 px-2 py-0.5 rounded-full border border-action-warning/50">Solo lectura</span>
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin min-h-0">
@@ -164,7 +164,7 @@ function decrementImpostorCategoryCount() {
                             <button
                                 @click="emit('update-mutator', 'suicidalStop', !props.config.classic?.mutators?.suicidalStop)"
                                 class="relative w-[3.25rem] h-8 rounded-full transition-all duration-300 border-[3px] flex-none"
-                                :class="props.config.classic?.mutators?.suicidalStop ? 'bg-action-error border-red-400' : 'bg-panel-input border-panel-card shadow-inner'"
+                                :class="props.config.classic?.mutators?.suicidalStop ? 'bg-action-error border-action-error' : 'bg-panel-input border-panel-card shadow-inner'"
                             >
                                 <span class="absolute top-0.5 w-5 h-5 rounded-full shadow-sm transition-all duration-300"
                                       :class="props.config.classic?.mutators?.suicidalStop ? 'bg-white left-[calc(100%-1.4rem)]' : 'bg-panel-card left-1'"></span>
@@ -183,7 +183,7 @@ function decrementImpostorCategoryCount() {
                             <button
                                 @click="emit('update-mutator', 'anonymousVoting', !props.config.classic?.mutators?.anonymousVoting)"
                                 class="relative w-[3.25rem] h-8 rounded-full transition-all duration-300 border-[3px] flex-none"
-                                :class="props.config.classic?.mutators?.anonymousVoting ? 'bg-purple-500 border-purple-300' : 'bg-panel-input border-panel-card shadow-inner'"
+                                :class="props.config.classic?.mutators?.anonymousVoting ? 'bg-action-blue border-action-blue' : 'bg-panel-input border-panel-card shadow-inner'"
                             >
                                 <span class="absolute top-0.5 w-5 h-5 rounded-full shadow-sm transition-all duration-300"
                                       :class="props.config.classic?.mutators?.anonymousVoting ? 'bg-white left-[calc(100%-1.4rem)]' : 'bg-panel-card left-1'"></span>

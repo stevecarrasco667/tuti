@@ -45,12 +45,12 @@ const gridClass = computed(() => {
 // Con pocas categorías el input es alto y cómodo; con muchas es compacto
 const inputHeightClass = computed(() => {
     const n = props.categories.length;
-    if (n <= 2) return 'h-24';   // 2 cat  — muy espacioso
+    if (n <= 2) return 'h-24';   // 2 cat
     if (n === 3) return 'h-20';  // 3 cat
     if (n === 4) return 'h-16';  // 4 cat
     if (n <= 6)  return 'h-14';  // 5-6 cat
-    if (n <= 8)  return 'h-11';  // 7-8 cat
-    return              'h-9';   // 9-10 cat — compacto
+    if (n <= 8)  return 'h-12';  // 7-8 cat
+    return              'h-11';  // 9-10 cat — min-h-[44px] garantizado
 });
 
 // Fuente del input: escala igual que la altura
@@ -133,14 +133,14 @@ onUnmounted(() => {
                                 :ref="(el) => setInputRef(el, index)"
                                 type="text"
                                 autocomplete="off"
-                                class="w-full bg-panel-input border-[3px] border-white/10 text-ink-main rounded-xl focus:bg-panel-input focus:border-action-primary focus:shadow-[0_0_0_4px_rgba(217,119,6,0.2)] outline-none transition-all placeholder-ink-muted/50 font-black py-2 px-4 disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
+                                class="w-full bg-panel-input border-[3px] border-white/10 text-ink-main rounded-xl focus:bg-panel-input focus:border-action-primary focus:ring-4 focus:ring-action-primary/50 outline-none transition-all placeholder-ink-muted/50 font-black py-2 px-4 disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
                                 :class="[inputHeightClass, inputTextClass]"
                                 :placeholder="(currentLetter || '') + '...'"
                                 :disabled="isBlocked"
                             >
-                            <!-- Filled indicator dot -->
+                            <!-- Filled indicator dot (Éxito Semántico) -->
                             <div v-if="modelValue[category.name]?.trim().length > 0"
-                                 class="absolute right-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-action-primary shadow-[0_0_8px_rgba(46,204,113,0.8)] pointer-events-none">
+                                 class="absolute right-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)] pointer-events-none">
                             </div>
                         </div>
                     </div>

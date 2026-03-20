@@ -64,7 +64,7 @@ function saveAndClose() {
             <p class="text-ink-main text-[9px] font-black uppercase tracking-[0.2em]">
                 Categorías <span class="text-ink-soft">({{ props.categories.length }})</span>
             </p>
-            <TButton v-if="props.amIHost" variant="teal" size="sm" @click="openModal">Editar +</TButton>
+            <TButton v-if="props.amIHost" variant="secondary" size="sm" @click="openModal">Editar +</TButton>
         </div>
         <div class="flex-1 overflow-y-auto p-4 min-h-0">
             <div v-if="props.categories.length > 0" class="flex flex-wrap gap-2 content-start">
@@ -116,7 +116,7 @@ function saveAndClose() {
                         <button v-for="tag in availableTags" :key="tag"
                             @click="activeFilterTag = activeFilterTag === tag ? null : tag"
                             :class="['px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide transition-all border-2 whitespace-nowrap',
-                                activeFilterTag === tag ? 'bg-tuti-teal border-teal-400 text-ink-main shadow-sm' : 'border-white/10 bg-panel-input text-ink-soft hover:text-ink-main hover:bg-panel-card']">
+                                activeFilterTag === tag ? 'bg-action-primary border-action-primary text-panel-base shadow-sm' : 'border-white/10 bg-panel-input text-ink-soft hover:text-ink-main hover:bg-panel-card']">
                             {{ tag }}
                         </button>
                     </div>

@@ -144,20 +144,20 @@ const handleStart = () => {
                                     @click="handleConfigChange('mode', 'CLASSIC')"
                                     class="relative p-3 lg:p-5 rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
                                     :class="localConfig.mode === 'CLASSIC'
-                                        ? 'border-yellow-400 bg-yellow-400/10 shadow-[0_0_15px_rgba(250,204,21,0.2)]'
-                                        : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input'"
+                                        ? 'border-action-primary bg-action-primary/10 shadow-glow-primary'
+                                        : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input shadow-sm hover:shadow-glow-primary/40'"
                                 >
                                     <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform">🎯</div>
                                     <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">TUTI CLÁSICO</h4>
                                     <p class="text-ink-soft text-[8px] font-bold mt-1">Categorías · Letras · Velocidad</p>
-                                    <div v-if="localConfig.mode === 'CLASSIC'" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-yellow-400 text-ink-main flex items-center justify-center text-[10px] font-black shadow-lg">✓</div>
+                                    <div v-if="localConfig.mode === 'CLASSIC'" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-action-primary text-panel-base flex items-center justify-center text-[10px] font-black shadow-lg">✓</div>
                                 </button>
                                 <button
                                     @click="handleConfigChange('mode', 'IMPOSTOR')"
                                     class="relative p-3 lg:p-5 rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
                                     :class="localConfig.mode === 'IMPOSTOR'
                                         ? 'border-action-blue bg-action-blue/10 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
-                                        : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input'"
+                                        : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input shadow-sm hover:shadow-glow-primary/40'"
                                 >
                                     <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform">🕵️</div>
                                     <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">IMPOSTOR</h4>
@@ -189,7 +189,7 @@ const handleStart = () => {
         </div>
 
         <!-- Sticky Footer: Start Button -->
-        <div class="flex-none px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] md:pb-3 lg:px-4 lg:pt-0 lg:pb-4 bg-panel-base/95 lg:bg-transparent border-t-2 border-white/10 lg:border-0 shadow-[0_-4px_20px_rgba(0,0,0,0.35)] lg:shadow-none backdrop-blur-xl lg:backdrop-blur-none">
+        <div class="flex-none px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] md:pb-3 lg:px-4 lg:pt-0 lg:pb-4 bg-panel-base/90 lg:bg-transparent border-t-[3px] border-white/10 lg:border-0 shadow-none backdrop-blur-2xl lg:backdrop-blur-none">
             <div class="max-w-[1400px] mx-auto">
                 <TButton v-if="amIHost"
                     variant="primary" size="md"

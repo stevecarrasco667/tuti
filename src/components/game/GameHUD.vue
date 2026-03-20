@@ -13,7 +13,7 @@ defineEmits<{
 </script>
 
 <template>
-    <div class="flex-none h-16 bg-panel-card/20 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 z-40 relative">
+    <div class="flex-none h-16 bg-panel-card/20 backdrop-blur-md border-b border-white/20 flex items-center justify-between px-4 z-40 relative">
             
         <!-- Left: Exit & Round -->
         <div class="flex items-center gap-4">
@@ -26,8 +26,8 @@ defineEmits<{
 
             <div class="flex flex-col">
                 <span class="text-[10px] uppercase font-bold text-ink-muted tracking-widest">Ronda</span>
-                <span class="text-xl font-black text-yellow-400 leading-none">
-                    {{ round }}<span class="text-xs text-white/40 ml-0.5">/{{ totalRounds }}</span>
+                <span class="text-xl font-black text-ink-main leading-none">
+                    {{ round }}<span class="text-xs text-ink-soft ml-0.5">/{{ totalRounds }}</span>
                 </span>
             </div>
         </div>
@@ -35,9 +35,9 @@ defineEmits<{
         <!-- Center: THE BADGE (Current Letter) -->
         <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <div class="relative group">
-                <div class="absolute inset-0 bg-fuchsia-500 rounded-xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                <div class="relative bg-action-secondary w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl border border-white/10 transform transition-transform group-hover:scale-105">
-                    <span class="text-4xl font-black text-white drop-shadow-md">{{ currentLetter }}</span>
+                <div class="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-40 group-hover:opacity-60 transition-opacity"></div>
+                <div class="relative bg-white/10 backdrop-blur-md border border-white/20 text-ink-main w-14 h-14 rounded-full flex items-center justify-center shadow-glow-primary transform transition-transform duration-300 group-hover:scale-105">
+                    <span class="text-4xl font-black text-ink-main drop-shadow-md">{{ currentLetter }}</span>
                 </div>
             </div>
         </div>
@@ -50,7 +50,7 @@ defineEmits<{
              >
                 {{ timeLeft }}
             </span>
-            <span v-else class="text-xl font-bold text-white/20">--</span>
+            <span v-else class="text-xl font-bold text-ink-muted">--</span>
         </div>
     </div>
 </template>
