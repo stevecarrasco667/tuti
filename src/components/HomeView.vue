@@ -101,7 +101,7 @@ const handleRefresh = () => {
 </script>
 
 <template>
-    <div class="h-full w-full flex flex-col items-center justify-start sm:justify-center p-4">
+    <div class="w-full flex flex-col items-center justify-start sm:justify-center p-4 min-h-full">
         
         <!-- FASE 2: PANEL DE AUTENTICACIÓN (EL METAJUEGO) -->
         <div class="w-full max-w-5xl mx-auto mb-6">
@@ -174,7 +174,7 @@ const handleRefresh = () => {
                     </div>
 
                 <!-- PRIMARY ACTION BUTTONS -->
-                <div class="grid grid-cols-2 gap-3">
+                <div class="flex flex-col sm:grid sm:grid-cols-2 gap-3">
                     <TButton variant="primary" size="lg" @click="handleCreateRoom(true)">
                         <span class="text-xl">🌐</span> Sala Pública
                     </TButton>

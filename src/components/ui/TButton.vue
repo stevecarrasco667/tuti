@@ -30,7 +30,7 @@ const SIZE_MAP = {
     <button
         :type="type"
         :disabled="disabled"
-        class="font-black uppercase tracking-[0.08em] flex items-center justify-center gap-2 transition-all duration-300 ease-out hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer disabled:cursor-not-allowed min-h-[44px] focus:outline-none focus-visible:ring-4 focus-visible:ring-action-primary/50"
+        class="font-black uppercase whitespace-nowrap tracking-[0.08em] flex items-center justify-center gap-2 transition-all duration-300 ease-out hover:-translate-y-1 active:scale-95 active:translate-y-0 cursor-pointer disabled:cursor-not-allowed min-h-[44px] focus:outline-none focus-visible:ring-4 focus-visible:ring-action-primary/50"
         :class="[VARIANT_MAP[variant], SIZE_MAP[size]]"
     >
         <slot />

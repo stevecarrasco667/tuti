@@ -70,7 +70,7 @@ watch(() => gameState.value.players, (newPlayers) => {
 </script>
 
 <template>
-  <div class="min-h-[100dvh] w-screen overflow-hidden bg-panel-base text-ink-main flex flex-col items-center relative transition-all duration-500 font-sans group"
+  <div class="h-[100dvh] max-h-[100dvh] w-screen overflow-hidden bg-panel-base text-ink-main flex flex-col items-center relative transition-all duration-500 font-sans group"
        :class="currentView === 'GAME' ? 'p-0' : 'p-2'">
     
     <!-- MUTE BUTTON LAYER -->
