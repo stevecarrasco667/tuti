@@ -8,6 +8,7 @@ import type { ChatMessage } from '../../shared/types';
 // Global Singleton State
 const messages = ref<ChatMessage[]>([]);
 const unreadCount = ref(0);
+const isChatMinimized = ref(false); // <--- NUEVO
 let isInitialized = false;
 const chatScope = effectScope(true); // Detached scope
 
@@ -76,6 +77,7 @@ export function useChat() {
     return {
         messages,
         unreadCount,
+        isChatMinimized,
         sendMessage,
         resetUnread
     };

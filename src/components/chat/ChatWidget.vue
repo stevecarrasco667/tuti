@@ -10,7 +10,7 @@ const props = defineProps<{
     isDisabled?: boolean;
 }>();
 
-const { messages, sendMessage, unreadCount, resetUnread } = useChat();
+const { messages, sendMessage, unreadCount, resetUnread, isChatMinimized } = useChat();
 const { myUserId } = useGame();
 const { localImpostorRole, gameState } = useGameState();
 
@@ -62,18 +62,16 @@ onMounted(() => {
 const handleFocus = () => {
     resetUnread();
 };
-
-const isMinimized = ref(false);
 </script>
 
 <template>
     <!-- Contenedor Principal Flotante (en Teniendo una clase container si es inyectado normal, o se usa su propio flujo en Mobile) -->
-    <div class="flex flex-col h-full pointer-events-auto transition-all duration-500 ease-in-out" :class="isMinimized ? 'w-16 h-16' : 'w-full'">
+    <div class="flex flex-col h-full pointer-events-auto transition-all duration-500 ease-in-out" :class="isChatMinimized ? 'w-16 h-16' : 'w-full'">
         
         <!-- ESTADO MINIMIZADO (Solo Desktop Flotante) -->
         <button 
-            v-if="isMinimized" 
-            @click="isMinimized = false"
+            v-if="isChatMinimized" 
+            @click="isChatMinimized = false"
             class="w-16 h-16 rounded-full bg-action-primary/90 hover:bg-action-primary text-white shadow-glow-primary border-2 border-white/20 flex items-center justify-center transition-transform hover:scale-105 relative"
         >
             <span class="text-2xl">💬</span>
@@ -93,7 +91,7 @@ const isMinimized = ref(false);
                     </div>
                 </div>
                 <!-- Toggle Mínimizar (Desktop) -->
-                <button @click="isMinimized = true" class="hidden lg:flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/10 text-ink-muted hover:text-white transition-colors" title="Minimizar">
+                <button @click="isChatMinimized = true" class="hidden lg:flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/10 text-ink-muted hover:text-white transition-colors" title="Minimizar">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 translate-y-0.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                     </svg>

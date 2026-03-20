@@ -9,6 +9,7 @@ import ImpostorResults from './ImpostorResults.vue';
 import ChatWidget from '../../chat/ChatWidget.vue';
 import MobileChatDrawer from '../../chat/MobileChatDrawer.vue';
 import GameHUD from '../GameHUD.vue';
+import { useChat } from '../../../composables/useChat';
 
 const props = defineProps<{
     gameState: RoomState;
@@ -24,6 +25,8 @@ const emit = defineEmits<{
     (e: 'submit-answers', answers: Record<string, string>): void;
 }>();
 
+const { isChatMinimized } = useChat();
+
 const impostorData = computed(() => props.gameState.impostorData);
 const currentPhase = computed(() => props.gameState.status);
 
@@ -38,7 +41,8 @@ const handleSubmit = (word: string) => {
 </script>
 
 <template>
-    <div class="flex flex-col w-full h-full overflow-hidden p-4 relative">
+    <div class="grid gap-4 w-full h-full overflow-hidden p-4 relative"
+         :class="isChatMinimized ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-[1fr_320px]'">
         
         <!-- JUEGO (Columna Central Expandida) -->
         <div class="h-full w-full flex flex-col relative rounded-3xl overflow-hidden shadow-inner bg-panel-base/30">
@@ -110,9 +114,15 @@ const handleSubmit = (word: string) => {
             </div>
         </div>
 
+        <!-- Espaciador Oculto para reservar el Grid cuando el Chat está Abierto -->
+        <div v-if="!isChatMinimized" class="hidden lg:block w-full h-full"></div>
+
         <!-- CHAT FLOTANTE (Desktop Only) -->
-        <div class="hidden lg:flex flex-col fixed bottom-6 right-6 z-[100] w-[320px] h-[500px] max-h-[80vh]">
-            <ChatWidget :is-disabled="isDead" />
+        <div class="hidden lg:flex flex-col fixed bottom-6 right-6 z-[100] h-[500px] max-h-[80vh] transition-all duration-300"
+             :class="isChatMinimized ? 'w-16 h-16 pointer-events-none' : 'w-[320px] pointer-events-auto'">
+            <div class="w-full h-full pointer-events-auto flex items-end justify-end">
+                <ChatWidget :is-disabled="isDead" />
+            </div>
         </div>
 
         <!-- CHAT MÓVIL (FAB) -->

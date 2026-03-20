@@ -3,6 +3,7 @@ import { computed, ref, watch, onUnmounted } from 'vue';
 import { RoomState, Player } from '../../../../shared/types';
 import { useSmartReview } from '../../../composables/useSmartReview';
 import { calcGracePeriod } from '../../../../shared/engines/tuti-engine';
+import { useChat } from '../../../composables/useChat';
 
 import RoundStatusHeader from './RoundStatusHeader.vue';
 import RivalsHeader from './RivalsHeader.vue';
@@ -11,6 +12,8 @@ import ReviewPhase from './ReviewPhase.vue';
 import ResultsRanking from './ResultsRanking.vue';
 import GameFooter from './GameFooter.vue';
 import ChatWidget from '../../chat/ChatWidget.vue';
+
+const { isChatMinimized } = useChat();
 
 // --- CLEAN PROP DRILLING ---
 // The Board only receives global context, it calculates everything internal relative to its game phase.
@@ -172,9 +175,13 @@ const rivalsActivity = computed(() => {
 
         <div class="flex-1 overflow-y-auto w-full scroll-smooth p-2 relative">
             <Transition name="fade" mode="out-in">
-                <!-- Grid dinámico: 2 columnas en PLAYING, 1 columna en las demás fases -->
+                <!-- Grid dinámico dependiente de estado (PLAYING vs OTHERS) y de si el chat está abierto (isChatMinimized) -->
                 <div :key="gameState.status" class="w-full h-full flex flex-col items-center lg:grid lg:gap-8 lg:items-start lg:max-w-[1200px] lg:mx-auto" 
-                    :class="gameState.status === 'PLAYING' ? 'lg:grid-cols-[280px_1fr]' : 'lg:grid-cols-1'"> 
+                    :class="[
+                        gameState.status === 'PLAYING' 
+                           ? (isChatMinimized ? 'lg:grid-cols-[280px_1fr]' : 'lg:grid-cols-[280px_1fr_320px]')
+                           : (isChatMinimized ? 'lg:grid-cols-1' : 'lg:grid-cols-[1fr_320px]')
+                    ]"> 
                     
                     <!-- COLUMN 1: RIVALS (SOLO EN PLAYING) -->
                     <div v-if="gameState.status === 'PLAYING'" class="w-full lg:h-full lg:overflow-y-auto order-1 lg:order-1">
@@ -223,8 +230,12 @@ const rivalsActivity = computed(() => {
                         />
                     </div>
 
+                    <!-- Espaciador Oculto para reservar el Grid cuando el Chat está Abierto -->
+                    <div v-if="!isChatMinimized" class="hidden lg:block w-full h-full"></div>
+
                     <!-- FLOATING CHAT (Desktop Only) -->
-                    <div class="hidden lg:flex flex-col fixed bottom-24 right-6 z-[100] w-[320px] h-[500px] max-h-[60vh] pointer-events-none">
+                    <div class="hidden lg:flex flex-col fixed bottom-24 right-6 z-[100] h-[500px] max-h-[60vh] transition-all duration-300 pointer-events-none"
+                         :class="isChatMinimized ? 'w-16 h-16 pointer-events-none' : 'w-[320px] pointer-events-auto'">
                         <!-- El contenedor interior reintegra events-auto -->
                         <div class="w-full h-full pointer-events-auto flex justify-end items-end">
                             <ChatWidget />
