@@ -33,11 +33,11 @@ defineEmits<{
         </div>
 
         <!-- Center: THE BADGE (Holographic Circle) -->
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none mt-2">
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
             <div class="relative group">
                 <div class="absolute inset-0 bg-white/20 rounded-full blur-xl opacity-40 group-hover:opacity-60 transition-opacity"></div>
                 <div class="relative bg-panel-card border-2 border-white/20 text-ink-main w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center shadow-[0_0_30px_-5px_rgba(255,255,255,0.2)] transform transition-transform group-hover:scale-105">
-                    <span class="text-3xl md:text-4xl font-black text-white drop-shadow-md pb-0.5">{{ currentLetter }}</span>
+                    <span class="text-3xl md:text-4xl font-black text-white drop-shadow-md">{{ currentLetter }}</span>
                 </div>
             </div>
         </div>
