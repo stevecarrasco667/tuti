@@ -167,6 +167,7 @@ const rivalsActivity = computed(() => {
             :current-letter="gameState.currentLetter"
             :time-left="timeRemaining"
             :timer-color="timerColor"
+            :status="gameState.status"
             @exit="emit('exit')"
         />
 
