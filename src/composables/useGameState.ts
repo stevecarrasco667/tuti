@@ -1,58 +1,10 @@
 import { ref, computed, watch } from 'vue';
-import { RoomState, PrivateRolePayload } from '../../shared/types';
+import { RoomState, PrivateRolePayload, createDefaultRoomState } from '../../shared/types';
 
 // Global state to persist across component mounts if needed
 export const localImpostorRole = ref<PrivateRolePayload | null>(null);
 
-export const gameState = ref<RoomState>({
-    stateVersion: 0,
-    status: 'LOBBY',
-    players: [],
-    spectators: [],
-    roomId: null,
-    currentLetter: null,
-    categories: [],
-    answers: {},
-    answerStatuses: {},
-    roundsPlayed: 0,
-    votes: {},
-    whoFinishedVoting: [],
-    roundScores: {},
-    config: {
-        mode: 'CLASSIC',
-        isPublic: false,
-        maxPlayers: 8,
-        classic: {
-            rounds: 5,
-            timeLimit: 60,
-            votingDuration: 30,
-            categories: [],
-            customCategories: [],
-            mutators: {
-                suicidalStop: false,
-                anonymousVoting: false
-            }
-        },
-        impostor: {
-            rounds: 3,
-            typingTime: 30,
-            votingTime: 40
-        }
-    },
-    timers: {
-        roundEndsAt: null,
-        votingEndsAt: null,
-        resultsEndsAt: null
-    },
-    remainingTime: 0,
-    stoppedBy: null,
-    gameOverReason: undefined,
-    uiMetadata: {
-        activeView: 'LOBBY',
-        showTimer: false,
-        targetTime: null
-    }
-});
+export const gameState = ref<RoomState>(createDefaultRoomState(null));
 
 // UI states
 export const isStopping = ref(false);

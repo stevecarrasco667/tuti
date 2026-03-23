@@ -16,9 +16,10 @@ export const CategoryRefSchema = z.object({
     name: z.string()
 });
 
-export const GameStatusSchema = z.enum(['LOBBY', 'LOADING_ROUND', 'PLAYING', 'REVIEW', 'RESULTS', 'GAME_OVER', 'ROLE_REVEAL', 'TYPING', 'VOTING', 'last_wish', 'ENDING_COUNTDOWN']);
+export const GameStatusSchema = z.enum(['LOBBY', 'LOADING_ROUND', 'PLAYING', 'REVIEW', 'RESULTS', 'GAME_OVER', 'ROLE_REVEAL', 'TYPING', 'VOTING', 'LAST_WISH', 'ENDING_COUNTDOWN']);
 
-export const AnswerStatusSchema = z.enum(['VALID', 'DUPLICATE', 'INVALID']);
+// [Patch 1.5] Sync with AnswerStatus type in types.ts: 'VALID' | 'VALID_AUTO' | 'DUPLICATE' | 'INVALID' | 'EMPTY' | 'PENDING'
+export const AnswerStatusSchema = z.enum(['VALID', 'VALID_AUTO', 'DUPLICATE', 'INVALID', 'EMPTY', 'PENDING']);
 
 export const GameConfigSchema = z.object({
     mode: z.enum(['CLASSIC', 'IMPOSTOR']),

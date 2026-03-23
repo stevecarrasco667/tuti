@@ -3,7 +3,7 @@ import { useSocket } from './useSocket';
 import { useGameState } from './useGameState';
 import { debounce } from '../utils/timing';
 import { EVENTS } from '../../shared/consts';
-import { DeepPartial, GameConfig } from '../../shared/types';
+import { DeepPartial, GameConfig, createDefaultRoomState } from '../../shared/types';
 
 export function useGameActions(
     state: ReturnType<typeof useGameState>
@@ -131,41 +131,8 @@ export function useGameActions(
 
         setRoomId(null);
 
-        // Reset state
-        state.gameState.value = {
-            stateVersion: 0,
-            status: 'LOBBY',
-            players: [],
-            spectators: [],
-            roomId: null,
-            currentLetter: null,
-            categories: [],
-            answers: {},
-            answerStatuses: {},
-            roundsPlayed: 0,
-            votes: {},
-            whoFinishedVoting: [],
-            roundScores: {},
-            config: {
-                mode: 'CLASSIC',
-                isPublic: false,
-                maxPlayers: 8,
-                classic: {
-                    rounds: 5,
-                    timeLimit: 60,
-                    votingDuration: 30,
-                    categories: [],
-                    customCategories: [],
-                    mutators: { suicidalStop: false, anonymousVoting: false }
-                },
-                impostor: { rounds: 3, typingTime: 30, votingTime: 40 }
-            },
-            timers: { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null },
-            remainingTime: 0,
-            stoppedBy: null,
-            gameOverReason: undefined,
-            uiMetadata: { activeView: 'LOBBY', showTimer: false, targetTime: null }
-        };
+        // Reset state using factory — avoids stale fields when new RoomState fields are added
+        state.gameState.value = createDefaultRoomState(null);
         state.localImpostorRole.value = null;
     };
 

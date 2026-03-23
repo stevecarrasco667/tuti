@@ -90,7 +90,7 @@ const handleSubmit = (word: string) => {
 
             <!-- PHASE: LAST_WISH [P10] -->
             <ImpostorLastWish
-                v-else-if="currentPhase === 'last_wish' && impostorData"
+                v-else-if="currentPhase === 'LAST_WISH' && impostorData"
                 :impostor-data="impostorData"
                 :players="gameState.players"
                 :my-user-id="myUserId"

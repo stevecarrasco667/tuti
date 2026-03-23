@@ -79,7 +79,9 @@ export default class Server implements Party.Server {
     chatHandler: ChatHandler;
 
     // Utilites
-    private rateLimiter = new RateLimiter();
+    private rateLimiter = new RateLimiter(5, 2000); // Chat: 5 msgs / 2s
+    // [Patch 2.1] Separate rate-limiter for spammable game actions (10 actions/s, lighter than chat)
+    private actionLimiter = new RateLimiter(10, 1000);
 
     // Write-Behind: Debounced Persistence (Game State)
     private saveTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -462,6 +464,11 @@ export default class Server implements Party.Server {
                     break;
 
                 case EVENTS.UPDATE_ANSWERS:
+                    // [Patch 2.1] Rate-limit live answer updates (most spammable event in the game)
+                    if (!this.actionLimiter.checkLimit(sender.id)) {
+                        logger.warn('ACTION_RATE_LIMITED', { sender: sender.id, type });
+                        return;
+                    }
                     await this.gameHandler.handleUpdateAnswers(payload as any, sender);
                     break;
 
@@ -471,6 +478,11 @@ export default class Server implements Party.Server {
 
                 // --- Voting Logic ---
                 case EVENTS.TOGGLE_VOTE:
+                    // [Patch 2.1] Rate-limit vote toggling to prevent vote-spam
+                    if (!this.actionLimiter.checkLimit(sender.id)) {
+                        logger.warn('ACTION_RATE_LIMITED', { sender: sender.id, type });
+                        return;
+                    }
                     await this.votingHandler.handleVote(payload as any, sender);
                     break;
 
@@ -537,14 +549,17 @@ export default class Server implements Party.Server {
 
                 // --- REACTIONS (Stateless, P9) ---
                 case EVENTS.WORD_REACT: {
+                    // [Patch 2.1] Rate-limit emoji reactions to prevent spam flooding
+                    if (!this.actionLimiter.checkLimit(sender.id)) return;
                     // Zero-mutation relay: broadcast emoji to all connections without touching RoomState.
-                    // The sender gets an echo back (client uses it for self-prediction as fallback).
                     await this.gameHandler.handleWordReact(payload as any, sender, this.room);
                     return; // skip delta sync — no state was mutated
                 }
 
                 // --- EL ÚLTIMO DESEO (P10) ---
                 case EVENTS.LAST_WISH_TYPING: {
+                    // [Patch 2.1] Rate-limit live typing relay to avoid text-flood
+                    if (!this.actionLimiter.checkLimit(sender.id)) return;
                     // Stateless relay — igual que WORD_REACT, NO toca RoomState
                     await this.gameHandler.handleLastWishTyping(payload as any, sender, this.room);
                     return; // skip delta sync
@@ -607,6 +622,14 @@ export default class Server implements Party.Server {
             nextTarget = state.timers.roundEndsAt;
         } else if (state.status === 'VOTING' && state.timers.votingEndsAt) {
             nextTarget = state.timers.votingEndsAt;
+
+        // [Patch 1.4] Cover states missing from alarm scheduler to prevent freeze on Worker hibernation
+        } else if (state.status === 'ENDING_COUNTDOWN' && state.timers.roundEndsAt) {
+            // 3-second panic countdown (Tuti Classic) — must wake the Worker if it hibernates mid-panic
+            nextTarget = state.timers.roundEndsAt;
+        } else if (state.status === 'LAST_WISH' && state.timers.resultsEndsAt) {
+            // 10-second Last Wish window (Impostor) — Impostor must guess before this fires
+            nextTarget = state.timers.resultsEndsAt;
         }
         // Note: RESULTS for Impostor also uses resultsEndsAt, already covered above
 

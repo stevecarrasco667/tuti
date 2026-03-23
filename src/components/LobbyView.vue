@@ -56,9 +56,25 @@ const handleTogglePrivacy = () => {
     handleConfigChange('isPublic', !localConfig.value.isPublic);
 };
 
-const copyRoomLink = () => {
+const copyRoomLink = async () => {
     const code = gameState.value.roomId || '';
     const link = `${window.location.origin}/?room=${code}`;
+    const shareData = {
+        title: 'Tuti Games',
+        text: '¡Únete a mi partida de Tuti Games!',
+        url: link
+    };
+
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+            return; // Si el share nativo tiene éxito, no copiamos al portapapeles
+        } catch (e) {
+            // Si el usuario cancela o falla, hacemos fallback al portapapeles
+            console.log("Share cancelado o fallido, usando portapapeles.");
+        }
+    }
+
     navigator.clipboard.writeText(link).then(() => {
         copied.value = true;
         playSuccess();
@@ -66,7 +82,7 @@ const copyRoomLink = () => {
     });
 };
 
-const canStart = computed(() => amIHost.value);
+const canStart = computed(() => amIHost.value && players.value.length >= 2);
 const handleStart = () => {
     if (!canStart.value) return;
     playAlarm();
@@ -197,12 +213,13 @@ const handleLeave = () => {
         <div class="flex-none px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] md:pb-3 lg:px-4 lg:pt-0 lg:pb-4 bg-panel-base/90 lg:bg-transparent border-t-[3px] border-white/10 lg:border-0 shadow-none backdrop-blur-2xl lg:backdrop-blur-none">
             <div class="max-w-[1400px] mx-auto">
                 <TButton v-if="amIHost"
-                    variant="primary" size="md"
-                    class="w-full text-base md:text-xl"
+                    :variant="players.length >= 2 ? 'primary' : 'secondary'" size="md"
+                    class="w-full text-base md:text-xl transition-all"
                     :disabled="!canStart"
                     @click="handleStart"
                 >
-                    <span class="text-lg md:text-2xl">⚡</span> EMPEZAR PARTIDA
+                    <span v-if="players.length >= 2" class="text-lg md:text-2xl">⚡</span> 
+                    {{ players.length >= 2 ? 'EMPEZAR PARTIDA' : 'FALTAN JUGADORES (1/2)' }}
                 </TButton>
                 <div v-else class="w-full py-3 md:py-5 text-center bg-panel-card rounded-2xl border-[3px] border-white/10 text-ink-main text-sm font-black uppercase shadow-sm flex flex-col items-center justify-center">
                     <span class="animate-pulse flex items-center gap-2">⏳ Esperando al anfitrión...</span>

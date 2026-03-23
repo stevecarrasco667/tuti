@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { EVENTS } from './consts';
 import { RoomSnapshotSchema } from './schemas';
 
-export type GameStatus = 'LOBBY' | 'LOADING_ROUND' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER' | 'ROLE_REVEAL' | 'TYPING' | 'VOTING' | 'last_wish' | 'ENDING_COUNTDOWN';
+export type GameStatus = 'LOBBY' | 'LOADING_ROUND' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER' | 'ROLE_REVEAL' | 'TYPING' | 'VOTING' | 'LAST_WISH' | 'ENDING_COUNTDOWN';
 
 /** Reference to a game category — id used for DB queries, name for UI display */
 export interface CategoryRef {
@@ -180,3 +180,57 @@ export type ServerMessage =
     | { type: typeof EVENTS.CHAT_HISTORY; payload: ChatMessage[] }
     | { type: typeof EVENTS.SERVER_ERROR; payload: { message: string } } // [Phoenix P0] Error Telemetry
     | { type: typeof EVENTS.LOBBY_STATE_UPDATE; payload: RoomSnapshot[] }; // [Phoenix Lobby]
+
+// [Patch 2.4] Single source of truth for the default RoomState.
+// Import this instead of duplicating the object literal across engines and composables.
+export function createDefaultRoomState(roomId: string | null = null): RoomState {
+    return {
+        stateVersion: 0,
+        status: 'LOBBY',
+        players: [],
+        spectators: [],
+        roomId,
+        currentLetter: null,
+        categories: [],
+        answers: {},
+        answerStatuses: {},
+        roundsPlayed: 0,
+        votes: {},
+        whoFinishedVoting: [],
+        roundScores: {},
+        config: {
+            mode: 'CLASSIC',
+            isPublic: false,
+            maxPlayers: 8,
+            classic: {
+                rounds: 5,
+                timeLimit: 60,
+                votingDuration: 30,
+                categories: [],
+                customCategories: [],
+                mutators: {
+                    suicidalStop: false,
+                    anonymousVoting: false
+                }
+            },
+            impostor: {
+                rounds: 3,
+                typingTime: 30,
+                votingTime: 40
+            }
+        },
+        timers: {
+            roundEndsAt: null,
+            votingEndsAt: null,
+            resultsEndsAt: null
+        },
+        remainingTime: 0,
+        stoppedBy: null,
+        gameOverReason: undefined,
+        uiMetadata: {
+            activeView: 'LOBBY',
+            showTimer: false,
+            targetTime: null
+        }
+    };
+}

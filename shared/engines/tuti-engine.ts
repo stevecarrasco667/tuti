@@ -99,6 +99,21 @@ export class TutiEngine extends BaseEngine {
 
     public hydrate(newState: RoomState): void {
         this.state = newState;
+
+        // [Patch 2.3] Infer _roundStartTime from persisted timers to restore the Anti-Troll grace period.
+        // Without this, _roundStartTime = 0 after hydration, allowing an instant STOP_ROUND exploit.
+        // We reconstruct: startTime = roundEndsAt - timeLimit_ms
+        if (
+            (this.state.status === 'PLAYING' || this.state.status === 'ENDING_COUNTDOWN') &&
+            this.state.timers.roundEndsAt
+        ) {
+            const timeLimitMs = (this.state.config.classic?.timeLimit ?? 60) * 1000;
+            this._roundStartTime = this.state.timers.roundEndsAt - timeLimitMs;
+            console.log(`[TutiEngine] hydrate: _roundStartTime inferred from timers (${this._roundStartTime})`);
+        } else {
+            this._roundStartTime = 0;
+        }
+
         console.log("[TutiEngine] State hydrated from storage");
     }
 
@@ -491,7 +506,29 @@ export class TutiEngine extends BaseEngine {
             return this.state;
         }
 
-        this.state.answers[userId] = answers;
+        // [Patch 1.2] Sanitize live answers to prevent letter-bypass exploit.
+        // We apply a lightweight check: trim + enforce starting letter.
+        // Full Zod + DictionaryManager validation is done in submitAnswers/stopRound;
+        // this just ensures the stored draft can never violate the current letter.
+        const allowedLetter = (this.state.currentLetter || '').toLowerCase();
+        const sanitized: Record<string, string> = {};
+        for (const [category, rawValue] of Object.entries(answers)) {
+            const trimmed = (rawValue || '').trimStart();
+            if (!trimmed) {
+                sanitized[category] = '';
+                continue;
+            }
+            // Only reject if we have an active letter AND the answer clearly doesn't start with it
+            if (allowedLetter && !trimmed.toLowerCase().startsWith(allowedLetter)) {
+                console.log(`[Patch 1.2] UPDATE_ANSWERS: illegal letter in category "${category}" for ${userId}. Cleared.`);
+                sanitized[category] = '';
+            } else {
+                // Cap at 40 chars to match RoundAnswersSchema max
+                sanitized[category] = trimmed.slice(0, 40);
+            }
+        }
+
+        this.state.answers[userId] = sanitized;
         return this.state;
     }
 
@@ -604,6 +641,16 @@ export class TutiEngine extends BaseEngine {
             if (this.rounds.nextRound(this.state, this.state.config)) {
                 this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
             }
+            changed = true;
+        // [Patch 1.4b] Anti-Freeze for ENDING_COUNTDOWN — if Worker wakes from hibernation mid-panic,
+        // force the transition to REVIEW immediately instead of leaving the game frozen.
+        } else if (this.state.status === 'ENDING_COUNTDOWN' && this.state.timers.roundEndsAt && now >= this.state.timers.roundEndsAt) {
+            console.log("[TutiEngine] Anti-Freeze: ENDING_COUNTDOWN expired during hibernation — forcing REVIEW");
+            if (this._endingTimer) {
+                clearTimeout(this._endingTimer);
+                this._endingTimer = null;
+            }
+            this._forceReview();
             changed = true;
         }
 

@@ -4,6 +4,7 @@ import { generateRoomId, generateRandomName } from '../utils/random';
 import { useGame } from '../composables/useGame';
 import { useLobby } from '../composables/useLobby';
 import { useAuth } from '../composables/useAuth';
+import { useToast } from '../composables/useToast';
 import TCard from './ui/TCard.vue';
 import TButton from './ui/TButton.vue';
 import TInput from './ui/TInput.vue';
@@ -12,6 +13,7 @@ const emit = defineEmits(['navigate']);
 const { joinGame, myUserName, myUserAvatar } = useGame();
 const { publicRooms, connect, refreshRooms } = useLobby();
 const { user, isAuthenticated, isLoading, signInWithGoogle, signOut } = useAuth();
+const { addToast } = useToast();
 
 const showJoinInput = ref(false);
 const joinCode = ref('');
@@ -67,7 +69,7 @@ const handleCreateRoom = (asPublic = false) => {
 
 const handleJoinRoom = () => {
     if (!joinCode.value.trim() || joinCode.value.length !== 4) {
-        alert('Código de sala inválido');
+        addToast('Código de sala inválido', 'error');
         return;
     }
     joinGame(playerName.value, joinCode.value.toUpperCase(), selectedAvatar.value);

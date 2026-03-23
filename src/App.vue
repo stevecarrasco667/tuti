@@ -3,15 +3,15 @@ import { ref, watch, onMounted } from 'vue';
 
 import { useGame } from './composables/useGame';
 import { useSound } from './composables/useSound';
+import { useToast } from './composables/useToast';
 import LobbyView from './components/LobbyView.vue';
 import HomeView from './components/HomeView.vue';
 import GameView from './components/GameView.vue';
 import GameOverView from './components/GameOverView.vue';
 
-
-
-const { gameState, myUserId, isConnected } = useGame();
+const { gameState, myUserId, isConnected, leaveGame } = useGame();
 const { isMuted, toggleMute } = useSound();
+const { toasts, addToast } = useToast();
 
 onMounted(() => {
     // Si la URL tiene '?room=', el composable useSocket intentará restaurar si hay token
@@ -53,9 +53,9 @@ watch(() => gameState.value.players, (newPlayers) => {
         
         // If we're not in the list anymore BUT we were before, we were kicked
         if (!stillInGame && wasInGame && newPlayers.length > 0) {
-            alert('Has sido expulsado de la sala por el anfitrión.');
-            // Reload page to reset state
-            window.location.reload();
+            addToast('Has sido expulsado de la sala por el anfitrión.', 'error');
+            // Salida suave (limpia estado reactivo sin recargar página)
+            leaveGame();
         }
         
         // Update tracking flag
@@ -97,6 +97,19 @@ watch(() => gameState.value.players, (newPlayers) => {
         </Transition>
     </main>
 
+    <!-- GLOBAL TOASTS (Overlay) -->
+    <div class="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
+        <TransitionGroup name="toast">
+            <div 
+                v-for="toast in toasts" 
+                :key="toast.id" 
+                class="px-5 py-3.5 rounded-2xl backdrop-blur-md border-[3px] text-xs font-black uppercase tracking-wider shadow-game-panel pointer-events-auto"
+                :class="toast.type === 'error' ? 'bg-red-500 text-white border-white' : (toast.type === 'success' ? 'bg-green-500 text-white border-white' : 'bg-panel-base text-ink-main border-white/50')"
+            >
+                {{ toast.text }}
+            </div>
+        </TransitionGroup>
+    </div>
   </div>
 </template>
 
@@ -106,5 +119,18 @@ watch(() => gameState.value.players, (newPlayers) => {
 }
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
+}
+
+/* Toast Transitions */
+.toast-enter-active, .toast-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.toast-enter-from {
+  opacity: 0;
+  transform: translateX(40px) scale(0.9);
+}
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(40px) scale(0.9);
 }
 </style>

@@ -231,7 +231,7 @@ export class ImpostorEngine extends BaseEngine {
         this._players.remove(this.state, connectionId);
 
         // Only trigger during active game phases. In LOBBY or GAME_OVER, disconnections are normal.
-        const activeGameStatuses: RoomState['status'][] = ['ROLE_REVEAL', 'TYPING', 'VOTING', 'RESULTS', 'last_wish'];
+        const activeGameStatuses: RoomState['status'][] = ['ROLE_REVEAL', 'TYPING', 'VOTING', 'RESULTS', 'LAST_WISH'];
         if (
             userId &&
             activeGameStatuses.includes(this.state.status) &&
@@ -504,7 +504,7 @@ export class ImpostorEngine extends BaseEngine {
         // [P10] Si la tripulación eliminó al Impostor, activar el estado last_wish en lugar de RESULTS
         if (this._pendingLastWish) {
             this._pendingLastWish = false;
-            this.state.status = 'last_wish';
+            this.state.status = 'LAST_WISH';
             const lastWishMs = 10000;
             this.state.timers.resultsEndsAt = Date.now() + lastWishMs;
             this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.resultsEndsAt };
@@ -530,7 +530,7 @@ export class ImpostorEngine extends BaseEngine {
 
     // [P10] El tiempo del Último Deseo agotó — la tripulación gana
     private handleLastWishTimeUp() {
-        if (this.state.status !== 'last_wish') return;
+        if (this.state.status !== 'LAST_WISH') return;
         this._resolveLastWish(false, null);
     }
 
@@ -657,9 +657,9 @@ export class ImpostorEngine extends BaseEngine {
         let matchOver = false;
         let winner: 'IMPOSTOR' | 'CREW' | undefined = undefined;
 
-        // [P10] Si se eliminó al Impostor con winner='CREW', en lugar de marcar matchOver aquí,
-        // activamos el flag _pendingLastWish para que handleVotingTimeUp transite a last_wish.
-        // Los puntos a la tripulación se asignan de forma preventiva pero se revierten en caso de robo.
+        // [P10] Si se eliminó al Impostor por voto, activar el estado last_wish.
+        // El Impostor tiene 10s para adivinar la PALABRA SECRETA como último intento.
+        // Los puntos a la tripulación se confirman o revierten en _resolveLastWish.
         if (aliveImpostors === 0) {
             // Todos los impostores han sido eliminados → activar last_wish
             this._pendingLastWish = true;
@@ -701,9 +701,12 @@ export class ImpostorEngine extends BaseEngine {
     }
 
     // [P10] SUBMIT_LAST_WISH — Regla One-Shot:
-    // Si el Impostor acerta la categoría → IMPOSTOR gana. Si falla → CREW gana INMEDIATAMENTE.
+    // El Impostor debe adivinar la PALABRA SECRETA que los tripulantes conocían.
+    // (NO la categoría — la categoría era públicamente visible durante toda la ronda)
+    // Si acierta → IMPOSTOR gana (+300 pts). Si falla → CREW gana INMEDIATAMENTE.
+    // [Patch 1.6] Alineado con backend: comparación contra secretWord (la palabra), no contra categoryName.
     public submitLastWish(connectionId: string, guess: string): RoomState {
-        if (this.state.status !== 'last_wish') return this.state;
+        if (this.state.status !== 'LAST_WISH') return this.state;
 
         const userId = this._players.getPlayerId(connectionId);
         if (!userId) return this.state;
@@ -722,7 +725,15 @@ export class ImpostorEngine extends BaseEngine {
     }
 
 
-    public async restartGame(_requestorId: string): Promise<RoomState> {
+    public async restartGame(requestorId: string): Promise<RoomState> {
+        // [Patch 1.1] Host Guard — mirror of TutiEngine.restartGame()
+        const userId = this._players.getPlayerId(requestorId);
+        const player = this.state.players.find(p => p.id === userId);
+        if (!player || !player.isHost) {
+            console.warn(`[SECURITY] ImpostorEngine.restartGame denied. Requestor ${requestorId} is not host.`);
+            return this.state;
+        }
+
         this.clearTimer();
         this.state.status = 'LOBBY';
         this.state.uiMetadata = { activeView: 'LOBBY', showTimer: false, targetTime: null };
@@ -854,7 +865,57 @@ export class ImpostorEngine extends BaseEngine {
     }
 
     public checkInactivePlayers(): boolean {
-        return false; // No-op for now
+        // [Patch 1.3] Remove ghost players from alivePlayers when they have been purged from state.players
+        if (!this.state.impostorData) return false;
+
+        const activePlayerIds = new Set(this.state.players.map(p => p.id));
+        const prevAliveCount = this.state.impostorData.alivePlayers.length;
+
+        this.state.impostorData.alivePlayers = this.state.impostorData.alivePlayers.filter(
+            id => activePlayerIds.has(id)
+        );
+
+        const changed = this.state.impostorData.alivePlayers.length !== prevAliveCount;
+
+        if (changed) {
+            console.log(`[ImpostorEngine] checkInactivePlayers: purged ghost players from alivePlayers.`);
+
+            // Re-check win condition after purge
+            const aliveImpostors = this.state.impostorData.alivePlayers.filter(
+                id => this.currentImpostorIds.includes(id)
+            ).length;
+            const aliveCrew = this.state.impostorData.alivePlayers.filter(
+                id => !this.currentImpostorIds.includes(id)
+            ).length;
+
+            if (this.state.impostorData.alivePlayers.length < 2) {
+                console.log(`[ImpostorEngine] Not enough alive players after purge. Forcing CREW victory.`);
+                this._forceCrewVictory('IMPOSTOR_DISCONNECTED');
+            } else if (aliveImpostors >= aliveCrew && this.state.status !== 'RESULTS' && this.state.status !== 'GAME_OVER') {
+                console.log(`[ImpostorEngine] Impostors >= Crew after purge. Forcing IMPOSTOR victory.`);
+                // Impostors outnumber crew — trigger IMPOSTOR win
+                if (this.state.impostorData) {
+                    this.state.impostorData.cycleResult = {
+                        eliminatedId: null,
+                        matchOver: true,
+                        winner: 'IMPOSTOR',
+                        revealedImpostorIds: [...this.currentImpostorIds]
+                    };
+                }
+                for (const impId of this.currentImpostorIds) {
+                    this.state.roundScores[impId] = (this.state.roundScores[impId] || 0) + 300;
+                    const p = this.state.players.find(pl => pl.id === impId);
+                    if (p) p.score += 300;
+                }
+                this.state.status = 'RESULTS';
+                this.state.timers.resultsEndsAt = Date.now() + 10000;
+                this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.resultsEndsAt };
+                this.currentTimer = setTimeout(() => this.handleResultsTimeUp(), 10000);
+                this.onGameStateChange?.(this.state);
+            }
+        }
+
+        return changed;
     }
 
     public handleTimeUp(): boolean {
@@ -873,6 +934,12 @@ export class ImpostorEngine extends BaseEngine {
             changed = true;
         } else if (this.state.status === 'RESULTS' && this.state.timers.resultsEndsAt && now >= this.state.timers.resultsEndsAt) {
             this.handleResultsTimeUp();
+            changed = true;
+        // [Patch 1.4c] Anti-Freeze for last_wish — if Worker wakes from hibernation during Last Wish,
+        // resolve it as CREW victory (Impostor failed to answer in time).
+        } else if (this.state.status === 'LAST_WISH' && this.state.timers.resultsEndsAt && now >= this.state.timers.resultsEndsAt) {
+            console.log("[ImpostorEngine] Anti-Freeze: last_wish expired during hibernation — resolving as CREW victory");
+            this.handleLastWishTimeUp();
             changed = true;
         }
 
