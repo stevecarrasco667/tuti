@@ -1,4 +1,4 @@
-import type { Player, RoomState } from '../../shared/types';
+import type { RoomState } from '../../shared/types';
 
 export interface PlayerTitle {
     playerId: string;
