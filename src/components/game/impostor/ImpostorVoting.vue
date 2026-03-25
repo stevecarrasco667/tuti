@@ -83,8 +83,8 @@ const votingProgress = computed(() =>
         <div class="flex-none px-4 pt-3 pb-2">
             <!-- Row: Timer + Title + (mobile: nothing) -->
             <div class="flex items-center justify-center relative mb-2">
-                <!-- Timer (absolute left) -->
-                <div class="absolute left-0 flex items-center justify-center min-w-[3rem] px-2 h-10 rounded-2xl border-2 border-white/10 bg-panel-card shadow-sm">
+                <!-- Timer (absolute right) -->
+                <div class="absolute right-0 flex items-center justify-center min-w-[3rem] px-2 h-10 rounded-2xl border-2 border-white/10 bg-panel-card shadow-sm">
                     <span class="text-lg font-black font-mono transition-colors duration-300" :class="timerColor">
                         {{ Math.max(0, timeRemaining) }}
                     </span>

@@ -1,6 +1,7 @@
 import { ref, computed, watch, nextTick, onUnmounted, Ref } from 'vue';
 import { RoomState } from '../../shared/types';
 import { useSound } from './useSound';
+import { useReactions } from './useReactions';
 
 interface Toast {
     id: number;
@@ -15,6 +16,7 @@ export function useGameEffects(
     amIHost: Ref<boolean>
 ) {
     const { playClick, playJoin, playTick, playAlarm, playSuccess, playUrgency } = useSound();
+    const { clearReactions } = useReactions();
 
     // --- TIMERS ---
     const timeRemaining = ref<number | null>(null);
@@ -149,6 +151,8 @@ export function useGameEffects(
             }, 3000);
         } else if (newStatus === 'RESULTS') {
             playSuccess();
+        } else if (newStatus === 'LOADING_ROUND' || newStatus === 'LOBBY') {
+            clearReactions();
         } else if (newStatus !== 'REVIEW') {
             showStopAlert.value = false;
         }
