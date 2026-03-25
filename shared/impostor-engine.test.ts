@@ -207,6 +207,7 @@ describe('[P1-F3] Secret Hydration', () => {
     });
 
     it('should clear secrets on restartGame()', async () => {
+        addPlayers(engine, 1); // Proveer un host (conn-0) para el Host Guard
         engine.hydrateSecrets({
             secretWord: 'León',
             currentImpostorIds: ['user-1'],
