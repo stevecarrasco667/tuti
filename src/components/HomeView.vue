@@ -8,6 +8,7 @@ import { useToast } from '../composables/useToast';
 import TCard from './ui/TCard.vue';
 import TButton from './ui/TButton.vue';
 import TInput from './ui/TInput.vue';
+import AdBanner from './ui/AdBanner.vue';
 
 const emit = defineEmits(['navigate']);
 const { joinGame, myUserName, myUserAvatar } = useGame();
@@ -268,6 +269,14 @@ const handleRefresh = () => {
                     </button>
                 </div>
             </TCard>
+
+            <!-- AdSense Banner inferior — fuera del flujo de juego -->
+            <AdBanner
+                slot-id="home-bottom"
+                ad-client="ca-pub-XXXXXXXXXXXXXXXXX"
+                ad-slot="0000000000"
+            />
+
         </div>
 
             <!-- ═══════════════════════════════════════════════ -->

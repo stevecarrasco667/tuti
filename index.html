@@ -1,26 +1,58 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 
 <head>
   <meta charset="UTF-8" />
-  <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
-  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Tutifruti Online</title>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-  
-  <!-- Sprint V1: Inyección de Fuente Mágica (Solid Pop) -->
+
+  <!-- SEO & Social -->
+  <title>Tuti Games — El juego de palabras multijugador</title>
+  <meta name="description" content="El juego de palabras más rápido para jugar con amigos. Sin descarga, entra con un link.">
+
+  <!-- ── PWA ─────────────────────────────────────────────────────────────── -->
+  <link rel="manifest" href="/manifest.json" />
+  <!-- Theme color (barra de navegación en Android Chrome) -->
+  <meta name="theme-color" content="#7c3aed" />
+  <!-- Splash e ícono para Safari/iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Tuti Games" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+
+  <!-- Favicon temporal (se reemplaza con ícono real en /public/icons/) -->
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
+  <!-- ── FUENTES ──────────────────────────────────────────────────────────── -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- ── ADSENSE GLOBAL ──────────────────────────────────────────────────── -->
+  <!-- Reemplaza ca-pub-XXXXXXXXXXXXXXXXX con tu Publisher ID de AdSense    -->
+  <!-- El script vive aquí (fuera de Vue) para que sobreviva navegación SPA -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXXX"
+     crossorigin="anonymous"></script>
+
+  <!-- HTMX (existente) -->
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
 
 <body class="h-screen overflow-hidden">
   <div id="app"></div>
   <script type="module" src="/src/main.ts"></script>
+
+  <!-- ── SERVICE WORKER ──────────────────────────────────────────────────── -->
+  <!-- Registro diferido (no bloquea el render inicial de Vue)              -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then((reg) => console.log('[SW] Registrado:', reg.scope))
+          .catch((err) => console.warn('[SW] Fallo al registrar:', err));
+      });
+    }
+  </script>
 </body>
 
-</html>
+</html>

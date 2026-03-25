@@ -1,0 +1,35 @@
+{
+    "name": "Tuti Games",
+    "short_name": "Tuti",
+    "description": "El juego de palabras multijugador más rápido. ¡Juega con amigos en segundos!",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#1a0533",
+    "theme_color": "#7c3aed",
+    "lang": "es",
+    "categories": ["games", "entertainment"],
+    "icons": [
+        {
+            "src": "/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [],
+    "shortcuts": [
+        {
+            "name": "Sala Pública",
+            "url": "/?quick=public",
+            "description": "Crear sala pública rápido"
+        }
+    ]
+}
