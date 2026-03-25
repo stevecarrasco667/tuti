@@ -151,7 +151,7 @@ export function useGameEffects(
             }, 3000);
         } else if (newStatus === 'RESULTS') {
             playSuccess();
-        } else if (newStatus === 'LOADING_ROUND' || newStatus === 'LOBBY') {
+        } else if (['LOADING_ROUND', 'PLAYING', 'ROLE_REVEAL', 'LOBBY'].includes(newStatus)) {
             clearReactions();
         } else if (newStatus !== 'REVIEW') {
             showStopAlert.value = false;
