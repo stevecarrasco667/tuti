@@ -5,6 +5,7 @@ import { useSound } from '../composables/useSound';
 import { useTitles } from '../composables/useTitles';
 import { usePlayerHistory } from '../composables/usePlayerHistory';
 import ConfettiCanvas from './ui/ConfettiCanvas.vue';
+import AdBanner from './ui/AdBanner.vue';
 
 const { gameState, myUserId, resetGame, leaveGame } = useGame();
 const { playWin, playStop } = useSound();
@@ -174,7 +175,31 @@ onMounted(() => {
             </div>
         </div>
 
-        <!-- FOOTER ACTIONS -->
+        <!-- MONETIZACIÓN: Slot AdSense + Apoyo Ko-fi -->
+        <!-- Zona segura fuera del flujo de juego (momento de pausa natural) -->
+        <div class="flex-none px-4 py-3 flex flex-col items-center gap-3">
+
+            <!-- AdSense Banner -->
+            <AdBanner
+                slot-id="gameover"
+                ad-client="ca-pub-XXXXXXXXXXXXXXXXX"
+                ad-slot="0000000000"
+            />
+
+            <!-- Botón Ko-fi: apela a reciprocidad post-diversión -->
+            <a
+                href="https://ko-fi.com/TU_HANDLE_AQUI"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="group flex items-center gap-2.5 px-5 py-2.5 rounded-2xl border-2 border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 transition-all text-ink-muted hover:text-ink-main text-xs font-bold"
+            >
+                <span class="text-base transition-transform group-hover:scale-110">☕</span>
+                <span>¿Te divertiste? Invítame un café</span>
+                <span class="text-white/30 group-hover:text-white/60 transition-colors">→</span>
+            </a>
+        </div>
+
+
         <div class="flex-none px-6 py-4 z-20 pb-8">
             <div class="flex flex-col sm:flex-row gap-4 justify-center max-w-xl mx-auto">
                 <button
