@@ -11,7 +11,7 @@
 //   - Rutas de autenticación → /auth/
 // ─────────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'tuti-static-v2';
+const CACHE_NAME = 'tuti-static-v3';
 
 // Assets que se pre-cachean en la instalación del SW
 // ⚠️ NUNCA pre-cachear index.html ni / en una SPA con Vite.
@@ -52,37 +52,23 @@ self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // ⛔ 1. Nunca interceptar WebSockets
-    if (request.url.startsWith('ws://') || request.url.startsWith('wss://')) {
+    // ⛔ 0. Solo interceptar peticiones HTTP/HTTPS del MISMO origen.
+    // Esto previene errores con chrome-extension://, moz-extension://,
+    // y evita interferir con cualquier petición cross-origin (PartyKit, Supabase, etc.)
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+        return;
+    }
+    if (url.origin !== self.location.origin) {
         return;
     }
 
-    // ⛔ 2. Nunca interceptar PartyKit (multijugador en tiempo real)
-    if (url.pathname.includes('/party/') || url.hostname.includes('partykit')) {
-        return;
-    }
-
-    // ⛔ 3. Nunca interceptar Supabase (base de datos y auth)
-    if (url.hostname.includes('supabase.co')) {
-        return;
-    }
-
-    // ⛔ 4. Nunca interceptar AdSense / Google Ads
-    if (
-        url.hostname.includes('googlesyndication.com') ||
-        url.hostname.includes('googletagservices.com') ||
-        url.hostname.includes('doubleclick.net')
-    ) {
-        return;
-    }
-
-    // ⛔ 5. Nunca interceptar rutas de autenticación (OAuth callbacks)
-    if (url.pathname.startsWith('/auth/')) {
-        return;
-    }
-
-    // ⛔ 6. Solo cachear peticiones GET (nunca POST/PUT/DELETE)
+    // ⛔ 1. Solo cachear peticiones GET (nunca POST/PUT/DELETE)
     if (request.method !== 'GET') {
+        return;
+    }
+
+    // ⛔ 2. Nunca interceptar rutas de autenticación (OAuth callbacks)
+    if (url.pathname.startsWith('/auth/')) {
         return;
     }
 
