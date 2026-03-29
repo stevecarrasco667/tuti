@@ -26,19 +26,39 @@ const handleNavigate = (view: 'HOME' | 'LOBBY' | 'GAME' | 'GAME_OVER') => {
 };
 
 // Auto-switch views based on game state changes
+// NOTA: Este watcher tiene protección anti-regresión.
+// PartyKit reconecta automáticamente (ej. tras refresh de token de Supabase) y el primer
+// mensaje de reconexión puede llegar con un estado transitorio (roomId vacío o activeView
+// = 'LOBBY'). Sin protección, Vue desmont aría GameView causando pantalla negra.
+const VIEW_ORDER: Record<string, number> = { HOME: 0, LOBBY: 1, GAME: 2, GAME_OVER: 3 };
+
 watch(
-    () => [gameState.value.status, gameState.value.roomId] as const,
-    ([_newStatus, newRoomId]) => {
-        // GUARDIA: Si no hay sala, cualquier status → HOME (previene bucle de salida)
+    () => [gameState.value.status, gameState.value.roomId, gameState.value.uiMetadata?.activeView] as const,
+    ([_newStatus, newRoomId, newActiveView]) => {
+        // GUARDIA 1: Sin sala → siempre HOME (salida definitiva del juego)
         if (!newRoomId) {
             currentView.value = 'HOME';
             return;
         }
 
-        // Enrutamiento dictado por el Servidor (Agnosticismo)
-        if (gameState.value?.uiMetadata?.activeView) {
-            currentView.value = gameState.value.uiMetadata.activeView;
+        const targetView = newActiveView as 'HOME' | 'LOBBY' | 'GAME' | 'GAME_OVER' | undefined;
+
+        if (!targetView) return; // Sin destino explícito del servidor, no mover
+
+        // GUARDIA 2: Anti-regresión — nunca retroceder desde una vista avanzada
+        // a menos que sea un avance legítimo en el flujo del juego.
+        // Esto previene que una reconexión transitoria con estado LOBBY revierta GameView.
+        const currentOrder = VIEW_ORDER[currentView.value] ?? 0;
+        const targetOrder = VIEW_ORDER[targetView] ?? 0;
+
+        if (targetOrder < currentOrder && targetView !== 'HOME') {
+            // Regresión no autorizada (ej. GAME → LOBBY por reconexión de PartyKit).
+            // Solo se permite retroceder a HOME (salida intencional).
+            console.warn(`[Router] Regresión bloqueada: ${currentView.value} → ${targetView}`);
+            return;
         }
+
+        currentView.value = targetView;
     }
 );
 
