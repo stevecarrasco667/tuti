@@ -124,12 +124,13 @@ describe('useGame Composable', () => {
         expect(amIHost.value).toBe(false);
     });
 
-    it('should send START_GAME action', () => {
+    it('should send START_GAME action', async () => {
         const { startGame } = useGame();
         const { socket } = useSocket();
         const sendSpy = socket.value!.send;
 
-        startGame();
+        await startGame();
         expect(sendSpy).toHaveBeenCalledWith(JSON.stringify({ type: 'START_GAME' }));
     });
+
 });

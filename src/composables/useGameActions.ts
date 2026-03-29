@@ -46,8 +46,11 @@ export function useGameActions(
             return;
         }
 
+        // WS_OPEN = 1 (WebSocket.OPEN). Usamos el literal para compatibilidad con Node/Vitest.
+        const WS_OPEN = 1;
+
         // Envío inmediato si el socket ya está OPEN
-        if (socket.value.readyState === WebSocket.OPEN) {
+        if (socket.value.readyState === WS_OPEN) {
             socket.value.send(JSON.stringify({ type: EVENTS.START_GAME }));
             return;
         }
@@ -60,7 +63,7 @@ export function useGameActions(
         await new Promise<void>((resolve) => {
             const check = () => {
                 if (!socket.value) { resolve(); return; }
-                if (socket.value.readyState === WebSocket.OPEN) {
+                if (socket.value.readyState === WS_OPEN) {
                     socket.value.send(JSON.stringify({ type: EVENTS.START_GAME }));
                     resolve();
                     return;
