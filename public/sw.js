@@ -11,12 +11,13 @@
 //   - Rutas de autenticación → /auth/
 // ─────────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'tuti-static-v1';
+const CACHE_NAME = 'tuti-static-v2';
 
 // Assets que se pre-cachean en la instalación del SW
+// ⚠️ NUNCA pre-cachear index.html ni / en una SPA con Vite.
+// Los hashes del bundle cambian en cada deploy, y servir un HTML
+// obsoleto causa 404 de assets → pantalla blanca.
 const PRE_CACHE_ASSETS = [
-    '/',
-    '/index.html',
     '/manifest.json',
 ];
 
