@@ -40,10 +40,42 @@ export function useGameActions(
         await waitForConnection();
     };
 
-    const startGame = () => {
-        if (!socket.value) return;
-        socket.value.send(JSON.stringify({ type: EVENTS.START_GAME }));
+    const startGame = async () => {
+        if (!socket.value) {
+            console.warn('[startGame] socket es null — abortando.');
+            return;
+        }
+
+        // Envío inmediato si el socket ya está OPEN
+        if (socket.value.readyState === WebSocket.OPEN) {
+            socket.value.send(JSON.stringify({ type: EVENTS.START_GAME }));
+            return;
+        }
+
+        // Cold-start de PartyKit: esperar hasta 3 s a que la conexión abra
+        console.warn(`[startGame] readyState=${socket.value.readyState}. Esperando conexión...`);
+        const MAX_WAIT_MS = 3000;
+        const startTs = Date.now();
+
+        await new Promise<void>((resolve) => {
+            const check = () => {
+                if (!socket.value) { resolve(); return; }
+                if (socket.value.readyState === WebSocket.OPEN) {
+                    socket.value.send(JSON.stringify({ type: EVENTS.START_GAME }));
+                    resolve();
+                    return;
+                }
+                if (Date.now() - startTs > MAX_WAIT_MS) {
+                    console.error('[startGame] Timeout: socket no abrió en 3 s.');
+                    resolve();
+                    return;
+                }
+                setTimeout(check, 200);
+            };
+            check();
+        });
     };
+
 
     const submitAnswers = (answers: Record<string, string>) => {
         if (!socket.value) return;
