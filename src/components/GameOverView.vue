@@ -182,8 +182,8 @@ onMounted(() => {
             <!-- AdSense Banner -->
             <AdBanner
                 slot-id="gameover"
-                ad-client="ca-pub-XXXXXXXXXXXXXXXXX"
-                ad-slot="0000000000"
+                ad-client="ca-pub-9211203013829834"
+                ad-slot="3046599883"
             />
 
             <!-- Botón Ko-fi: apela a reciprocidad post-diversión -->

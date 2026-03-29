@@ -273,8 +273,8 @@ const handleRefresh = () => {
             <!-- AdSense Banner inferior — fuera del flujo de juego -->
             <AdBanner
                 slot-id="home-bottom"
-                ad-client="ca-pub-XXXXXXXXXXXXXXXXX"
-                ad-slot="0000000000"
+                ad-client="ca-pub-9211203013829834"
+                ad-slot="3046599883"
             />
 
         </div>
