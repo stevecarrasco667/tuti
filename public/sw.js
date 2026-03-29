@@ -42,8 +42,10 @@ self.addEventListener('activate', (event) => {
             )
         )
     );
-    // Tomar control de todas las pestañas abiertas inmediatamente
-    self.clients.claim();
+    // NO llamamos self.clients.claim() aquí.
+    // clients.claim() toma control inmediato de todas las pestañas abiertas
+    // y puede interrumpir transiciones de estado de Vue en curso (pantalla negra).
+    // El SW tomará control en la siguiente visita (comportamiento estándar y seguro).
 });
 
 // ── FETCH ────────────────────────────────────────────────────────────────────
@@ -114,20 +116,13 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // ✅ ESTRATEGIA: Network-First para el index.html y rutas de la SPA
-    // Permite que la app siempre reciba el HTML más fresco del servidor.
-    // Si hay fallo de red (offline), sirve desde caché.
-    event.respondWith(
-        fetch(request)
-            .then((response) => {
-                if (response && response.status === 200) {
-                    const responseClone = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(request, responseClone);
-                    });
-                }
-                return response;
-            })
-            .catch(() => caches.match(request))
-    );
+    // ✅ ESTRATEGIA: Network-Only para index.html y rutas de navegación SPA
+    // El HTML NUNCA se cachea: el app shell debe ser siempre fresco.
+    // Si hay fallo de red, el usuario verá el error del navegador (correcto).
+    // Esto evita que Vue reciba un shell obsoleto al navegar entre vistas.
+    const isNavigation = request.mode === 'navigate';
+    if (isNavigation) {
+        event.respondWith(fetch(request));
+        return;
+    }
 });
