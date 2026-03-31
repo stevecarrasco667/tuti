@@ -79,9 +79,19 @@ export default class Server implements Party.Server {
     chatHandler: ChatHandler;
 
     // Utilites
+    // [Fase 1 — Fix #5 — Nota de riesgo aceptado]
+    // El RateLimiter vive en RAM y se resetea al hibernar el Isolate.
+    // Riesgo ACEPTADO en v1.0: las salas con jugadores activos NO hibernan.
+    // La hibernación solo ocurre con sala vacía → sin otros jugadores a proteger.
+    // Backlog v1.1: persistir lastViolationTimestamp del top offenders si es necesario.
     private rateLimiter = new RateLimiter(5, 2000); // Chat: 5 msgs / 2s
     // [Patch 2.1] Separate rate-limiter for spammable game actions (10 actions/s, lighter than chat)
     private actionLimiter = new RateLimiter(10, 1000);
+
+    // [Fase 1 — Fix #3] Idle skip para heartbeat: evitar requests innecesarios al lobby.
+    // Solo se envía heartbeat cuando playerCount o status cambian realmente.
+    private lastHeartbeatPlayerCount = -1;
+    private lastHeartbeatStatus: string = '';
 
     // Write-Behind: Debounced Persistence (Game State)
     private saveTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -102,6 +112,10 @@ export default class Server implements Party.Server {
 
     // Reusable state change callback for Engine Factory
     private onStateChange = (newState: RoomState) => {
+        // [Fase 1 — Fix #1] stateVersion se incrementa aquí, UNA SOLA VEZ por ciclo de mutación.
+        // broadcastStateDelta es ahora una función puramente de lectura/envío — no muta estado.
+        newState.stateVersion++;
+
         // 1. [Sprint 1] Tick Loop Phase Management — react to every phase transition
         this.manageTick(newState);
 
@@ -242,8 +256,9 @@ export default class Server implements Party.Server {
      * and send personalized JSON Patches via engine.getClientState(userId).
      */
     private broadcastStateDelta(_newState: RoomState) {
-        // [Refactor C] - Versionado Estricto: Avanzar vector de integridad siempre que se emite.
-        this.engine.getState().stateVersion++;
+        // [Fase 1 — Fix #1] stateVersion ya fue incrementado en onStateChange (único punto de mutación).
+        // Esta función es READ-ONLY: calcula diffs y envía. Llamadas adicionales desde onMessage
+        // son idempotentes — compare() retornará patches vacíos si nada cambió.
 
         for (const conn of this.room.getConnections()) {
             const userId = (conn.state as any)?.userId || conn.id;
@@ -287,6 +302,8 @@ export default class Server implements Party.Server {
     }
 
     // [Phoenix Lobby] True Heartbeat — Keeps room alive in Lobby
+    // [Fase 1 — Fix #3] Intervalo aumentado a 30s (era 10s) + Idle Skip.
+    // Reducción estimada: 3x menos requests base + ~80% adicional en salas activas.
     private startHeartbeat() {
         if (this.heartbeatInterval) return;
 
@@ -296,14 +313,29 @@ export default class Server implements Party.Server {
             try {
                 const state = this.engine.getState();
                 if (state.config.isPublic) {
-                    logger.info('HEARTBEAT_SENDING', { roomId: this.room.id, players: state.players.length });
+                    const playerCount = state.players.length;
+                    const currentStatus = state.status;
+
+                    // [Fase 1 — Fix #3] Idle Skip: solo enviar si playerCount o status cambiaron.
+                    // Durante una ronda activa (status estable por 60s), se emiten 0 requests.
+                    if (
+                        playerCount === this.lastHeartbeatPlayerCount &&
+                        currentStatus === this.lastHeartbeatStatus
+                    ) {
+                        return;
+                    }
+
+                    this.lastHeartbeatPlayerCount = playerCount;
+                    this.lastHeartbeatStatus = currentStatus;
+
+                    logger.info('HEARTBEAT_SENDING', { roomId: this.room.id, players: playerCount, status: currentStatus });
 
                     const snapshot: RoomSnapshot = {
                         id: this.room.id,
                         hostName: state.players.find(p => p.isHost)?.name || 'Host',
-                        currentPlayers: state.players.length,
+                        currentPlayers: playerCount,
                         maxPlayers: state.config.maxPlayers,
-                        status: state.status,
+                        status: currentStatus,
                         lastUpdate: Date.now()
                     };
                     this.room.context.parties.lobby.get("global").fetch("/heartbeat", {
@@ -315,7 +347,7 @@ export default class Server implements Party.Server {
             } catch (err) {
                 logger.error('HEARTBEAT_CRASH', { roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
             }
-        }, 10000);
+        }, 30_000); // [Fase 1 — Fix #3] 30s en lugar de 10s: 3x menos requests al lobby global.
     }
 
     // [Sprint 1] Tick Loop Director: called on every state mutation.
@@ -451,11 +483,23 @@ export default class Server implements Party.Server {
                 this.engine.players.reconnect(this.engine.getState(), sender.id, state.userId);
             }
 
+            // [Fase 1 — Fix #2] Calcular autorización de Host UNA SOLA VEZ por mensaje.
+            // Fuente de verdad: el engine (no el payload del cliente, que es controlado por el atacante).
+            // Se aplica como guard explícito en los 4 casos que mutan estado administrativo.
+            const senderUserId = (sender.state as any)?.userId || sender.id;
+            const senderIsHost = this.engine.getState().players.find(
+                p => p.id === senderUserId
+            )?.isHost === true;
+
             console.log(`[Message] ${type} from ${sender.id}`);
 
             switch (type) {
                 // --- Game Logic ---
                 case EVENTS.START_GAME:
+                    if (!senderIsHost) {
+                        logger.warn('UNAUTH_START_GAME', { senderUserId, roomId: this.room.id });
+                        return;
+                    }
                     await this.gameHandler.handleStartGame(sender);
                     break;
 
@@ -492,6 +536,10 @@ export default class Server implements Party.Server {
 
                 // --- Admin Logic ---
                 case EVENTS.UPDATE_CONFIG: {
+                    if (!senderIsHost) {
+                        logger.warn('UNAUTH_UPDATE_CONFIG', { senderUserId, roomId: this.room.id });
+                        return;
+                    }
                     const oldMode = this.engine.getState().config.mode;
                     await this.playerHandler.handleUpdateSettings(payload as any, sender);
                     const newMode = this.engine.getState().config.mode;
@@ -519,10 +567,18 @@ export default class Server implements Party.Server {
                 }
 
                 case EVENTS.KICK_PLAYER:
+                    if (!senderIsHost) {
+                        logger.warn('UNAUTH_KICK_PLAYER', { senderUserId, roomId: this.room.id });
+                        return;
+                    }
                     await this.playerHandler.handleKick(payload as any, sender);
                     break;
 
                 case EVENTS.RESTART_GAME:
+                    if (!senderIsHost) {
+                        logger.warn('UNAUTH_RESTART_GAME', { senderUserId, roomId: this.room.id });
+                        return;
+                    }
                     await this.gameHandler.handleRestartGame(sender);
                     break;
 
@@ -639,8 +695,22 @@ export default class Server implements Party.Server {
     }
 
     async onAlarm() {
+        // [Fase 1 — Fix #4] Orphan Sweep: limpiar entradas huérfanas de previousStates.
+        // Las desconexiones abruptas (timeout TCP, reset de red) no disparan onClose,
+        // dejando entradas zombie en el Map. Este sweep actúa como segunda línea de defensa.
+        // Costo: O(M) con M ≤ maxPlayers (8). Despreciable.
+        const activeConnectionIds = new Set(
+            [...this.room.getConnections()].map(c => c.id)
+        );
+        for (const connId of this.previousStates.keys()) {
+            if (!activeConnectionIds.has(connId)) {
+                this.previousStates.delete(connId);
+                logger.info('ORPHAN_STATE_PURGED', { connId, roomId: this.room.id });
+            }
+        }
+
         // [AUTO-WIPE] Check for inactivity
-        const activeConnections = [...this.room.getConnections()].length;
+        const activeConnections = activeConnectionIds.size;
         if (activeConnections === 0) {
             console.log('💥 Protocolo de autodestrucción: Sala vacía eliminada del disco.');
             if (this.saveTimeout) {
