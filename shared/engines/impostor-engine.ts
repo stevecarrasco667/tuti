@@ -217,9 +217,13 @@ export class ImpostorEngine extends BaseEngine {
 
     public joinPlayer(userId: string, name: string, avatar: string, connectionId: string, isAuthenticated?: boolean): RoomState {
         if (this._players.reconnect(this.state, connectionId, userId)) {
+            // [Fix] Notificar reconexón — host ve al jugador como activo nuevamente.
+            this.onGameStateChange?.(this.state);
             return this.state;
         }
         this._players.add(this.state, connectionId, { id: userId, name, avatar, isAuthenticated });
+        // [Fix] Notificar nuevo jugador → stateVersion++ en onStateChange → PATCH válido al host.
+        this.onGameStateChange?.(this.state);
         return this.state;
     }
 

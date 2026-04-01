@@ -122,6 +122,9 @@ export class TutiEngine extends BaseEngine {
     public joinPlayer(userId: string, name: string, avatar: string, connectionId: string, isAuthenticated?: boolean): RoomState {
         // Try Reconnect First (check both players AND spectators)
         if (this._players.reconnect(this.state, connectionId, userId)) {
+            // [Fix] Notificar reconexón — marca isConnected: true en el estado.
+            // Sin esto, stateVersion no inc. y el host jamas ve al jugador reconectado.
+            if (this.onGameStateChange) this.onGameStateChange(this.state);
             return this.state;
         }
 
@@ -131,6 +134,9 @@ export class TutiEngine extends BaseEngine {
 
         if (canJoinAsPlayer) {
             this._players.add(this.state, connectionId, { id: userId, name, avatar, isAuthenticated });
+            // [Fix] Notificar nuevo jugador → stateVersion++ en onStateChange → PATCH válido al host.
+            // Sin esto, el host recibe un PATCH con stateVersion igual al que ya tiene y lo descarta.
+            if (this.onGameStateChange) this.onGameStateChange(this.state);
         } else {
             // Room full or game active → Spectator (with idempotency guard)
             const existingSpec = this.state.spectators.find(s => s.id === userId);
@@ -156,6 +162,8 @@ export class TutiEngine extends BaseEngine {
             }
             this._players.registerConnection(connectionId, userId);
             console.log(`[Spectator] ${name} (${userId}) joined as spectator. Room ${isFull ? 'full' : 'in-game'}.`);
+            // [Fix] Notificar espectador → el host ve la lista de espectadores actualizada.
+            if (this.onGameStateChange) this.onGameStateChange(this.state);
         }
 
         return this.state;
