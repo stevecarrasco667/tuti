@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, nextTick, ref } from 'vue';
+import { toPng } from 'html-to-image';
 import { useGame } from '../composables/useGame';
 import { useSound } from '../composables/useSound';
 import { useTitles } from '../composables/useTitles';
 import { usePlayerHistory } from '../composables/usePlayerHistory';
+import { computeMatchHighlights } from '../composables/useMatchHighlights';
+import type { MatchHighlights } from '../composables/useMatchHighlights';
 import ConfettiCanvas from './ui/ConfettiCanvas.vue';
+import MatchSummaryCard from './ui/MatchSummaryCard.vue';
 
 const { gameState, myUserId, resetGame, leaveGame } = useGame();
 const { playWin, playStop } = useSound();
@@ -34,6 +38,55 @@ const titleMap = computed(() => {
 const iWon = computed(() => sortedPlayers.value[0]?.id === myUserId.value);
 
 const exitGame = () => leaveGame();
+
+// ── Viral Share: Match Summary Card ──────────────────────────────────────────
+const showSummaryCard = ref(false);
+const isCapturing = ref(false);
+const summaryCardRef = ref<HTMLElement | null>(null);
+const highlights = computed<MatchHighlights>(() => computeMatchHighlights(gameState.value));
+
+const shareMatchSummary = async () => {
+    if (isCapturing.value) return;
+    isCapturing.value = true;
+    showSummaryCard.value = true;
+
+    try {
+        await nextTick();
+        // Extra frame so fonts + layout fully resolve before capture
+        await new Promise(r => setTimeout(r, 250));
+
+        const dataUrl = await toPng(summaryCardRef.value!, {
+            width: 1080,
+            height: 1920,
+            pixelRatio: 1,
+            cacheBust: true,
+        });
+
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        const file = new File([blob], 'tuti-resumen.png', { type: 'image/png' });
+
+        if (navigator.canShare?.({ files: [file] })) {
+            // Mobile: native share sheet
+            await navigator.share({
+                title: '¡Mira el resumen de nuestra partida!',
+                text: '¿Jugamos otra? 🎯 tutigames.io',
+                files: [file],
+            });
+        } else {
+            // Desktop fallback: direct PNG download
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = `tuti-resumen-${Date.now()}.png`;
+            a.click();
+        }
+    } catch (err) {
+        console.error('[MatchSummary] Error al exportar:', err);
+    } finally {
+        showSummaryCard.value = false;
+        isCapturing.value = false;
+    }
+};
 
 onMounted(() => {
     // [Fase 4.2] Sonido de victoria o derrota
@@ -176,26 +229,54 @@ onMounted(() => {
 
         <!-- FOOTER ACTIONS -->
         <div class="flex-none px-6 py-4 z-20 pb-8">
-            <div class="flex flex-col sm:flex-row gap-4 justify-center max-w-xl mx-auto">
+            <div class="flex flex-col gap-3 justify-center max-w-xl mx-auto">
+
+                <!-- Share button: available to ALL players -->
                 <button
-                    v-if="amIHost"
-                    @click="resetGame"
-                    class="flex-1 bg-action-primary hover:bg-action-hover text-white font-black uppercase tracking-widest py-4 rounded-2xl shadow-game-btn border-4 border-green-400 transition-all transform active:scale-95"
+                    id="btn-share-summary"
+                    @click="shareMatchSummary"
+                    :disabled="isCapturing"
+                    class="w-full bg-panel-input border-4 border-action-primary/60 text-action-primary font-black uppercase tracking-widest py-4 rounded-2xl shadow-glow-primary transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-action-primary hover:text-panel-base"
                 >
-                    🔄 Nueva Partida
+                    {{ isCapturing ? '⏳ Generando imagen...' : '📸 Compartir Resumen' }}
                 </button>
-                <div v-else class="flex-1 text-center py-4 text-ink-soft bg-panel-card/60 font-black uppercase tracking-widest rounded-2xl border-4 border-white/10 shadow-sm">
-                    Esperando al anfitrión...
+
+                <!-- Host / guest row -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button
+                        v-if="amIHost"
+                        @click="resetGame"
+                        class="flex-1 bg-action-primary hover:bg-action-hover text-white font-black uppercase tracking-widest py-4 rounded-2xl shadow-game-btn border-4 border-green-400 transition-all transform active:scale-95"
+                    >
+                        🔄 Nueva Partida
+                    </button>
+                    <div v-else class="flex-1 text-center py-4 text-ink-soft bg-panel-card/60 font-black uppercase tracking-widest rounded-2xl border-4 border-white/10 shadow-sm">
+                        Esperando al anfitrión...
+                    </div>
+                    <button
+                        @click="exitGame"
+                        class="flex-1 bg-panel-card border-4 border-white/10 text-ink-main font-black uppercase tracking-widest py-4 rounded-2xl shadow-sm transition-all hover:bg-panel-input active:scale-95"
+                    >
+                        🚪 Salir
+                    </button>
                 </div>
-                <button
-                    @click="exitGame"
-                    class="flex-1 bg-panel-card border-4 border-white/10 text-ink-main font-black uppercase tracking-widest py-4 rounded-2xl shadow-sm transition-all hover:bg-panel-input active:scale-95"
-                >
-                    🚪 Salir
-                </button>
             </div>
         </div>
     </div>
+
+    <!-- ═══ OFF-SCREEN CARD (html-to-image capture target) ═══
+         Mounted only during capture. Fixed at -1921px from top:
+         fully rendered by the browser but invisible to the user.
+         pointer-events:none prevents any accidental interaction. -->
+    <div
+        v-if="showSummaryCard"
+        ref="summaryCardRef"
+        style="position: fixed; top: -1921px; left: 0; width: 1080px; height: 1920px; z-index: -9999; pointer-events: none; overflow: hidden;"
+        aria-hidden="true"
+    >
+        <MatchSummaryCard :highlights="highlights" />
+    </div>
+
 </template>
 
 <style scoped>
