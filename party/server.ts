@@ -486,7 +486,14 @@ export default class Server implements Party.Server {
             // [Fase 1 — Fix #2] Calcular autorización de Host UNA SOLA VEZ por mensaje.
             // Fuente de verdad: el engine (no el payload del cliente, que es controlado por el atacante).
             // Se aplica como guard explícito en los 4 casos que mutan estado administrativo.
-            const senderUserId = (sender.state as any)?.userId || sender.id;
+            //
+            // [Fix] Fuente primaria: engine.players.getPlayerId(sender.id).
+            // El reconnect() llamado arriba garantiza que el connectionMap está actualizado.
+            // Esto es correcta tras hibernación del Worker (sender.state puede ser null).
+            const senderUserId =
+                this.engine.players.getPlayerId(sender.id)
+                ?? (sender.state as any)?.userId
+                ?? sender.id;
             const senderIsHost = this.engine.getState().players.find(
                 p => p.id === senderUserId
             )?.isHost === true;
