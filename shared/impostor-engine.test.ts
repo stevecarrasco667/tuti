@@ -55,9 +55,12 @@ describe('[P1/P2] Anti-Zombie Protocol + Grace Period', () => {
 
     beforeEach(() => {
         vi.useFakeTimers();             // Control setTimeout without real waiting
-        stateChangeSpy.mockClear();
         engine = makeEngine(stateChangeSpy);
         addPlayers(engine, 3); // user-0 (host), user-1, user-2
+        // [Fix] Clear spy AFTER addPlayers: joinPlayer now correctly fires
+        // onGameStateChange on each join, which would contaminate assertions
+        // that expect spy not to have been called during the test itself.
+        stateChangeSpy.mockClear();
     });
 
     afterEach(() => {
