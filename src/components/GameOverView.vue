@@ -270,47 +270,73 @@ onMounted(() => {
                         </div>
                     </div>
 
+                    <!-- ACCIONES (Desktop: viven en el sidebar) -->
+                    <div class="hidden lg:flex flex-col gap-2 pt-2">
+                        <!-- Nueva Partida -->
+                        <button
+                            v-if="amIHost"
+                            @click="resetGame"
+                            class="w-full bg-gradient-to-tr from-yellow-500 to-yellow-300 hover:from-yellow-400 hover:to-yellow-200 text-panel-base font-black text-sm uppercase tracking-[0.12em] py-3 rounded-xl shadow-[0_0_18px_rgba(250,204,21,0.4)] border-2 border-yellow-200 transition-all hover:-translate-y-0.5 active:scale-95"
+                        >
+                            🔥 Nueva Partida
+                        </button>
+                        <div v-else class="w-full flex items-center justify-center py-3 text-yellow-500/70 bg-panel-card/50 font-bold uppercase tracking-widest rounded-xl border border-yellow-500/20 text-xs">
+                            ⏳ Esperando anfitrión...
+                        </div>
+                        <div class="flex gap-2">
+                            <button
+                                id="btn-share-summary"
+                                @click="shareMatchSummary"
+                                :disabled="isCapturing"
+                                class="flex-[2] bg-white/5 hover:bg-white/10 border border-white/15 hover:border-yellow-400/40 text-white font-bold uppercase tracking-wider py-2 rounded-lg transition-all active:scale-95 disabled:opacity-50 text-[10px] flex items-center justify-center gap-1.5"
+                            >
+                                <span class="text-sm leading-none">{{ isCapturing ? '⏳' : '📸' }}</span>
+                                <span>{{ isCapturing ? 'Generando...' : 'Guardar Recuerdo' }}</span>
+                            </button>
+                            <button
+                                @click="exitGame"
+                                class="flex-[1] bg-transparent hover:bg-red-500/10 border border-transparent hover:border-red-500/25 text-white/40 hover:text-red-400 font-bold uppercase tracking-wider py-2 rounded-lg transition-colors text-[10px] flex items-center justify-center gap-1"
+                            >
+                                <span>🚪</span>
+                                <span>Salir</span>
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div> <!-- Fin de Grid -->
         </div>
 
-        <!-- 2. FLEX-NONE FOOTER (El "Footer Biomecánico") -->
-        <div class="flex-none bg-panel-card/70 backdrop-blur-2xl border-t border-white/10 z-40 pb-safe shadow-[0_-20px_50px_rgba(0,0,0,0.6)] relative">
-            <div class="absolute inset-0 bg-gradient-to-t from-panel-base to-transparent opacity-80 pointer-events-none"></div>
-            
-            <div class="max-w-md mx-auto px-5 py-4 lg:py-5 flex flex-col gap-2.5 relative z-10">
-                <!-- Acción 1: NUEVA PARTIDA (Jefe de jerarquía) -->
+        <!-- FOOTER MÓVIL: solo visible en pantallas < lg -->
+        <div class="lg:hidden flex-none bg-panel-base border-t border-white/10 z-40">
+            <div class="max-w-sm mx-auto px-4 py-3 flex flex-col gap-2">
+                <!-- Nueva Partida -->
                 <button
                     v-if="amIHost"
                     @click="resetGame"
-                    class="w-full bg-gradient-to-tr from-yellow-500 to-yellow-300 hover:from-yellow-400 hover:to-yellow-200 text-panel-base font-black text-base lg:text-lg uppercase tracking-[0.15em] py-3.5 rounded-xl shadow-[0_0_25px_rgba(250,204,21,0.45)] border-2 border-yellow-200 transition-all transform hover:-translate-y-0.5 active:scale-95 active:translate-y-0"
+                    class="w-full bg-gradient-to-tr from-yellow-500 to-yellow-300 hover:from-yellow-400 hover:to-yellow-200 text-panel-base font-black text-sm uppercase tracking-[0.12em] py-3 rounded-xl shadow-[0_0_18px_rgba(250,204,21,0.35)] border-2 border-yellow-200 transition-all active:scale-95"
                 >
                     🔥 Nueva Partida
                 </button>
-                <div v-else class="w-full flex items-center justify-center py-3.5 text-yellow-500/80 bg-panel-card/60 backdrop-blur-xs font-black uppercase tracking-widest rounded-xl border border-yellow-500/20 shadow-inner text-sm">
+                <div v-else class="w-full flex items-center justify-center py-3 text-yellow-500/70 bg-panel-card/50 font-bold uppercase tracking-widest rounded-xl border border-yellow-500/20 text-xs">
                     ⏳ Esperando anfitrión...
                 </div>
-                
-                <!-- Sub-grupo Acciones Menores -->
-                <div class="flex gap-3">
-                    <!-- Acción 2: GUARDAR RECUERDO (Ghost/Glass Premium) -->
+                <div class="flex gap-2">
                     <button
                         id="btn-share-summary"
                         @click="shareMatchSummary"
                         :disabled="isCapturing"
-                        class="flex-[2] bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/20 hover:border-yellow-400/50 text-white font-bold uppercase tracking-wider py-2.5 rounded-lg transition-all active:scale-95 disabled:opacity-50 text-[10px] sm:text-xs flex items-center justify-center gap-1.5 shadow-lg"
+                        class="flex-[2] bg-white/5 hover:bg-white/10 border border-white/15 hover:border-yellow-400/40 text-white font-bold uppercase tracking-wider py-2 rounded-lg transition-all active:scale-95 disabled:opacity-50 text-[10px] flex items-center justify-center gap-1.5"
                     >
-                        <span class="text-base leading-none">{{ isCapturing ? '⏳' : '📸' }}</span>
-                        <span class="mt-0.5">{{ isCapturing ? 'Generando...' : 'Guardar Recuerdo' }}</span>
+                        <span class="text-sm leading-none">{{ isCapturing ? '⏳' : '📸' }}</span>
+                        <span>{{ isCapturing ? 'Generando...' : 'Guardar Recuerdo' }}</span>
                     </button>
-
-                    <!-- Acción 3: SALIR (Residual) -->
                     <button
                         @click="exitGame"
-                        class="flex-[1] bg-transparent hover:bg-red-500/10 border border-transparent hover:border-red-500/30 text-white/50 hover:text-red-400 font-bold uppercase tracking-wider py-2.5 rounded-lg transition-colors text-[10px] sm:text-[11px] flex items-center justify-center gap-1"
+                        class="flex-[1] bg-transparent hover:bg-red-500/10 border border-transparent hover:border-red-500/25 text-white/40 hover:text-red-400 font-bold uppercase tracking-wider py-2 rounded-lg transition-colors text-[10px] flex items-center justify-center gap-1"
                     >
-                        <span class="text-lg leading-none">🚪</span>
-                        <span class="mt-0.5">Salir</span>
+                        <span>🚪</span>
+                        <span>Salir</span>
                     </button>
                 </div>
             </div>
