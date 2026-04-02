@@ -277,18 +277,20 @@ onMounted(() => {
         </div>
     </div>
 
-    <!-- ═══ OFF-SCREEN CARD (html-to-image capture target) ═══
-         Warm Canvas Architecture: desplazado al LADO IZQUIERDO del viewport (no arriba).
-         WebKit/iOS no pinta elementos sobre el viewport (top: -Npx) pero SÍ pinta
-         elementos a los lados. z-index: 9999 garantiza stacking context positivo.
-         pointer-events: none previene cualquier interacción accidental. -->
+    <!-- ═══ OFF-SCREEN WRAPPER ═══
+         Desplazado fuera de la pantalla para el usuario.
+         AQUÍ aplicamos la posición negativa, PERO NO usamos este div para capturar. -->
     <div
         v-if="showSummaryCard"
-        ref="summaryCardRef"
-        style="position: fixed; top: 0; left: -1081px; width: 1080px; height: 1920px; z-index: 9999; pointer-events: none; overflow: hidden;"
+        style="position: fixed; top: 0; left: -3000px; z-index: 9999; pointer-events: none;"
         aria-hidden="true"
     >
-        <MatchSummaryCard :highlights="highlights" />
+        <!-- ELEMENTO A CAPTURAR (Target)
+             Este element NO tiene left negativo. Cuando html-to-image lo clone en el 
+             canvas SVG, se dibujará perfectamente en la coordenada x:0, y:0. -->
+        <div ref="summaryCardRef" style="width: 1080px; height: 1920px; overflow: hidden; background-color: #1a0533;">
+            <MatchSummaryCard :highlights="highlights" />
+        </div>
     </div>
 
 </template>
