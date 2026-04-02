@@ -7,6 +7,7 @@ import { useTitles } from '../composables/useTitles';
 import { usePlayerHistory } from '../composables/usePlayerHistory';
 import { computeMatchHighlights } from '../composables/useMatchHighlights';
 import type { MatchHighlights } from '../composables/useMatchHighlights';
+import { useToast } from '../composables/useToast';
 import ConfettiCanvas from './ui/ConfettiCanvas.vue';
 import MatchSummaryCard from './ui/MatchSummaryCard.vue';
 
@@ -14,6 +15,7 @@ const { gameState, myUserId, resetGame, leaveGame } = useGame();
 const { playWin, playStop } = useSound();
 const { assignTitles } = useTitles();
 const { saveEntry } = usePlayerHistory();
+const { addToast } = useToast();
 
 const amIHost = computed(() => {
     const me = gameState.value.players.find(p => p.id === myUserId.value);
@@ -45,43 +47,54 @@ const isCapturing = ref(false);
 const summaryCardRef = ref<HTMLElement | null>(null);
 const highlights = computed<MatchHighlights>(() => computeMatchHighlights(gameState.value));
 
+// Helper: espera dos frames de render para garantizar layout + paint completo
+// La firma (_t: number) descarta el timestamp que requestAnimationFrame provee.
+const doubleRAF = () =>
+    new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame((_t: number) => resolve())));
+
 const shareMatchSummary = async () => {
     if (isCapturing.value) return;
     isCapturing.value = true;
     showSummaryCard.value = true;
 
     try {
+        // Paso 1: Vue ha actualizado el DOM
         await nextTick();
-        // Extra frame so fonts + layout fully resolve before capture
-        await new Promise(r => setTimeout(r, 250));
 
-        const dataUrl = await toPng(summaryCardRef.value!, {
+        // Paso 2: esperar que TODAS las fuentes del documento estén listas
+        // (document.fonts.ready >> setTimeout arbitrario en iOS 3G)
+        await document.fonts.ready;
+
+        // Paso 3: doble RAF → garantiza layout + paint completo en el browser
+        await doubleRAF();
+
+        const captureOptions = {
             width: 1080,
             height: 1920,
             pixelRatio: 1,
             cacheBust: true,
-        });
+        };
 
-        const res = await fetch(dataUrl);
-        const blob = await res.blob();
-        const file = new File([blob], 'tuti-resumen.png', { type: 'image/png' });
+        // Paso 4: iOS Warmup call — primera llamada cachea fuentes en el serializador
+        // SVG foreignObject de html-to-image falla en WebKit en la primera llamada.
+        // La segunda llamada usa la caché y genera la imagen correcta.
+        await toPng(summaryCardRef.value!, captureOptions);
 
-        if (navigator.canShare?.({ files: [file] })) {
-            // Mobile: native share sheet
-            await navigator.share({
-                title: '¡Mira el resumen de nuestra partida!',
-                text: '¿Jugamos otra? 🎯 tutigames.io',
-                files: [file],
-            });
-        } else {
-            // Desktop fallback: direct PNG download
-            const a = document.createElement('a');
-            a.href = dataUrl;
-            a.download = `tuti-resumen-${Date.now()}.png`;
-            a.click();
-        }
+        // Paso 5: captura real (fuentes ya cacheadas por el warmup)
+        const dataUrl = await toPng(summaryCardRef.value!, captureOptions);
+
+        // Paso 6: descarga universal — funciona en iOS, Android y Desktop
+        // appendChild/removeChild requerido en algunos browsers móviles
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = `tuti-resumen-${Date.now()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
     } catch (err) {
-        console.error('[MatchSummary] Error al exportar:', err);
+        console.error('[MatchSummary] Error al generar imagen:', err);
+        addToast('Ups, no se pudo guardar el recuerdo 🙅', 'error');
     } finally {
         showSummaryCard.value = false;
         isCapturing.value = false;
@@ -238,7 +251,7 @@ onMounted(() => {
                     :disabled="isCapturing"
                     class="w-full bg-panel-input border-4 border-action-primary/60 text-action-primary font-black uppercase tracking-widest py-4 rounded-2xl shadow-glow-primary transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-action-primary hover:text-panel-base"
                 >
-                    {{ isCapturing ? '⏳ Generando imagen...' : '📸 Compartir Resumen' }}
+                    {{ isCapturing ? '⏳ Generando...' : '📥 Guardar Recuerdo' }}
                 </button>
 
                 <!-- Host / guest row -->
@@ -265,13 +278,14 @@ onMounted(() => {
     </div>
 
     <!-- ═══ OFF-SCREEN CARD (html-to-image capture target) ═══
-         Mounted only during capture. Fixed at -1921px from top:
-         fully rendered by the browser but invisible to the user.
-         pointer-events:none prevents any accidental interaction. -->
+         Warm Canvas Architecture: desplazado al LADO IZQUIERDO del viewport (no arriba).
+         WebKit/iOS no pinta elementos sobre el viewport (top: -Npx) pero SÍ pinta
+         elementos a los lados. z-index: 9999 garantiza stacking context positivo.
+         pointer-events: none previene cualquier interacción accidental. -->
     <div
         v-if="showSummaryCard"
         ref="summaryCardRef"
-        style="position: fixed; top: -1921px; left: 0; width: 1080px; height: 1920px; z-index: -9999; pointer-events: none; overflow: hidden;"
+        style="position: fixed; top: 0; left: -1081px; width: 1080px; height: 1920px; z-index: 9999; pointer-events: none; overflow: hidden;"
         aria-hidden="true"
     >
         <MatchSummaryCard :highlights="highlights" />
