@@ -101,12 +101,28 @@ const shareMatchSummary = async () => {
     }
 };
 
+const showImpostorReveal = ref(false);
+
 onMounted(() => {
     // [Fase 4.2] Sonido de victoria o derrota
-    if (iWon.value) {
-        playWin();
+    if (gameState.value.config.mode === 'IMPOSTOR') {
+        const factionWin = gameState.value.impostorData?.cycleResult?.winner === 'IMPOSTOR';
+        const impostorIds = gameState.value.impostorData?.cycleResult?.revealedImpostorIds || [];
+        const amIImpostor = impostorIds.includes(myUserId.value);
+        
+        if ((factionWin && amIImpostor) || (!factionWin && !amIImpostor)) {
+            playWin();
+        } else {
+            playStop();
+        }
+        
+        setTimeout(() => showImpostorReveal.value = true, 800);
     } else {
-        playStop();
+        if (iWon.value) {
+            playWin();
+        } else {
+            playStop();
+        }
     }
 
     // [Fase 4.3] Guardar en historial local
@@ -154,17 +170,58 @@ onMounted(() => {
                                 <p class="text-white/70 font-bold text-sm mt-1">Tus rivales huyeron despavoridos.</p>
                             </div>
                         </template>
+                        <template v-else-if="gameState.config.mode === 'IMPOSTOR'">
+                            <h2 class="text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-black animate-pulse"
+                                style="line-height: 1.1;"
+                                :class="gameState.impostorData?.cycleResult?.winner === 'IMPOSTOR' ? 'text-transparent bg-clip-text bg-gradient-to-b from-red-400 to-red-600 drop-shadow-[0_4px_20px_rgba(239,68,68,0.4)]' : 'text-transparent bg-clip-text bg-gradient-to-b from-tuti-teal to-blue-500 drop-shadow-[0_4px_20px_rgba(106,215,229,0.4)]'">
+                                {{ gameState.impostorData?.cycleResult?.winner === 'IMPOSTOR' ? '¡IMPOSTORES GANAN!' : '¡TRIPULACIÓN GANA!' }}
+                            </h2>
+                        </template>
                         <template v-else>
                             <h2 class="text-6xl sm:text-7xl md:text-[5rem] lg:text-[6.5rem] font-black drop-shadow-[0_4px_20px_rgba(250,204,21,0.3)] animate-pulse"
                                 style="line-height: 1.1;"
                                 :class="iWon ? 'text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 via-yellow-400 to-yellow-600' : 'text-action-error drop-shadow-[0_4px_20px_rgba(244,63,94,0.3)]'">
                                 {{ iWon ? '¡VICTORIA!' : 'GAME OVER' }}
                             </h2>
-                            <div class="inline-block mt-4 bg-panel-base/60 backdrop-blur-xl border border-white/10 px-6 py-2.5 rounded-full shadow-lg">
-                                <p class="text-yellow-400 font-bold text-sm lg:text-base tracking-[0.4em] uppercase">Podio Final</p>
-                            </div>
                         </template>
+                        <div class="inline-block mt-4 bg-panel-base/60 backdrop-blur-xl border border-white/10 px-6 py-2.5 rounded-full shadow-lg">
+                            <p class="text-yellow-400 font-bold text-sm lg:text-base tracking-[0.4em] uppercase">Podio Final</p>
+                        </div>
                     </div>
+
+                    <!-- GRAN REVEAL (Solo Impostor) -->
+                    <Transition enter-active-class="transition duration-1000 ease-out" enter-from-class="opacity-0 translate-y-8 scale-95" enter-to-class="opacity-100 translate-y-0 scale-100">
+                        <div v-if="gameState.config.mode === 'IMPOSTOR' && showImpostorReveal" class="flex flex-col items-center gap-4 mt-2">
+                            <div class="bg-panel-card/80 backdrop-blur-md border-[3px] border-white/10 rounded-3xl p-6 md:p-8 max-w-2xl w-full shadow-2xl relative overflow-hidden" 
+                                 :class="gameState.impostorData?.cycleResult?.winner === 'IMPOSTOR' ? 'border-action-error/50 bg-action-error/10' : 'border-tuti-teal/50 bg-tuti-teal/10'">
+                                
+                                <h3 class="text-xl md:text-2xl font-black text-center uppercase tracking-widest mb-6 drop-shadow-md"
+                                    :class="gameState.impostorData?.cycleResult?.winner === 'IMPOSTOR' ? 'text-action-error' : 'text-tuti-teal'">
+                                    {{ gameState.impostorData?.cycleResult?.winner === 'IMPOSTOR' ? '🦇 Los Impostores eran:' : 'La Purificación descubrió a:' }}
+                                </h3>
+                                
+                                <div class="flex flex-wrap items-center justify-center gap-4">
+                                    <div v-for="impId in gameState.impostorData?.cycleResult?.revealedImpostorIds || []" :key="impId"
+                                         class="flex items-center gap-3 bg-panel-base border border-white/20 px-4 py-3 rounded-2xl shadow-xl">
+                                        <span class="text-3xl md:text-4xl">{{ gameState.players.find(p => p.id === impId)?.avatar || '👤' }}</span>
+                                        <span class="text-ink-main font-black text-sm md:text-lg uppercase tracking-wider">{{ gameState.players.find(p => p.id === impId)?.name }}</span>
+                                        <span class="text-xl ml-2 drop-shadow-sm">☠️</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Palabra Secreta Reveal -->
+                                <div class="mt-8 pt-6 border-t border-white/10 text-center">
+                                    <p class="text-ink-muted text-xs uppercase font-black tracking-[0.2em] mb-2">La palabra secreta era:</p>
+                                    <div class="inline-block bg-panel-base/80 px-6 py-2 rounded-xl border border-white/5">
+                                        <span class="text-action-primary font-black text-2xl uppercase tracking-widest">{{ gameState.impostorData?.cycleResult?.revealedSecretWord || '???' }}</span>
+                                    </div>
+                                    <div v-if="gameState.impostorData?.cycleResult?.lastWishSuccess" class="mt-4 inline-block bg-action-error text-white font-bold text-xs uppercase tracking-wider px-4 py-1.5 rounded-full animate-pulse shadow-[0_0_20px_rgba(239,68,68,0.5)]">
+                                        🃏 ¡Adivinada en el último aliento!
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Transition>
 
                     <!-- PODIUM (Glassmorphism) -->
                     <div class="flex items-end justify-center gap-3 sm:gap-6 lg:gap-8 w-full mx-auto mt-6">

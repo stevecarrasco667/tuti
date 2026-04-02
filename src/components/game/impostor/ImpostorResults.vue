@@ -25,7 +25,7 @@ const sendReaction = (targetPlayerId: string, categoryId: string, emoji: string)
 
 const result = computed(() => props.impostorData.cycleResult);
 const matchOver = computed(() => result.value?.matchOver);
-const winner = computed(() => result.value?.winner);
+
 const eliminatedId = computed(() => result.value?.eliminatedId);
 
 const eliminatedPlayer = computed(() => {
@@ -39,17 +39,10 @@ const isEliminatedImpostor = computed(() => {
     return result.value?.revealedImpostorIds?.includes(eliminatedId.value) ?? false;
 });
 
-// [P10] Datos del Último Deseo
-const lastWishGuess = computed(() => result.value?.lastWishGuess ?? null);
-const lastWishSuccess = computed(() => result.value?.lastWishSuccess ?? false);
-const wasLastWish = computed(() => lastWishGuess.value !== null);
-const revealedSecretWord = computed(() => result.value?.revealedSecretWord ?? null);
+
 
 // Sound effects on mount
-if (matchOver.value) {
-    if (winner.value === 'IMPOSTOR') playAlarm();
-    else if (winner.value === 'CREW') playSuccess();
-} else if (eliminatedPlayer.value) {
+if (!matchOver.value && eliminatedPlayer.value) {
     if (isEliminatedImpostor.value) playSuccess();
     else playAlarm();
 }
@@ -57,13 +50,12 @@ if (matchOver.value) {
 
 <template>
     <div class="h-full w-full flex flex-col items-center justify-center p-4 text-center transition-all duration-700 bg-white/40 border-[4px] shadow-game-panel rounded-3xl m-2 md:m-4"
-         :class="matchOver && winner === 'IMPOSTOR' ? 'border-action-error/80 shadow-[0_0_40px_rgba(239,68,68,0.2)]' : 'border-tuti-teal/80 shadow-[0_0_40px_rgba(106,215,229,0.2)]'">
+         :class="(!matchOver && eliminatedPlayer && !isEliminatedImpostor) ? 'border-action-error/80 shadow-[0_0_40px_rgba(239,68,68,0.2)]' : 'border-tuti-teal/80 shadow-[0_0_40px_rgba(106,215,229,0.2)]'">
         
         <!-- HEADER DE RESULTADO -->
         <h1 class="text-4xl md:text-6xl font-black tracking-tighter uppercase animate-pulse mb-6 drop-shadow-sm"
-            :class="matchOver && winner === 'IMPOSTOR' ? 'text-action-error' : (matchOver && winner === 'CREW' || isEliminatedImpostor ? 'text-action-primary' : 'text-ink-main')">
-            <template v-if="matchOver && winner === 'IMPOSTOR'">¡IMPOSTORES GANAN!</template>
-            <template v-else-if="matchOver && winner === 'CREW'">¡TRIPULACIÓN GANA!</template>
+            :class="(isEliminatedImpostor && !matchOver) ? 'text-action-primary' : 'text-ink-main'">
+            <template v-if="matchOver">🏛️ El Veredicto Final ha llegado...</template>
             <template v-else-if="!eliminatedPlayer">EMPATE EN EL TRIBUNAL</template>
             <template v-else-if="isEliminatedImpostor">¡IMPOSTOR CAZADO!</template>
             <template v-else>¡INOCENTE EXPULSADO!</template>
@@ -71,7 +63,7 @@ if (matchOver.value) {
         
         <p class="text-lg md:text-xl text-ink-soft font-black mb-8 uppercase tracking-widest max-w-lg">
             <template v-if="matchOver">
-                El ecosistema de supervivencia ha colapsado.
+                La tensión es palpable en el aire...
             </template>
             <template v-else-if="eliminatedPlayer">
                 El tribunal ha expulsado a <span class="text-ink-main font-black underline decoration-4 underline-offset-4" :class="isEliminatedImpostor ? 'decoration-action-primary' : 'decoration-action-error'">{{ eliminatedPlayer.name }}</span>
@@ -86,34 +78,10 @@ if (matchOver.value) {
              :class="(!eliminatedPlayer || isEliminatedImpostor) ? 'border-tuti-teal bg-tuti-teal/5' : 'border-action-error bg-action-error/5'">
             
             <template v-if="matchOver">
-                <!-- [P10] Impostor robó la victoria adivinando la palabra secreta -->
-                <template v-if="lastWishSuccess">
-                    <span class="text-6xl mb-4 drop-shadow-md">🃏</span>
-                    <p class="text-lg text-ink-main font-black uppercase tracking-widest mb-2">¡Palabra robada en el último instante!</p>
-                    <p class="text-sm text-ink-soft">
-                        La tripulación lo atrapó, pero el Impostor adivinó la palabra
-                        <span class="font-black text-action-error">&ldquo;{{ revealedSecretWord || lastWishGuess }}&rdquo;</span>
-                        y robó la victoria.
-                    </p>
-                </template>
-                <!-- [P10] Impostor falló o tiempo agotó -->
-                <template v-else-if="wasLastWish">
-                    <span class="text-6xl mb-4 drop-shadow-md">🎯</span>
-                    <p class="text-lg text-ink-main font-black uppercase tracking-widest mb-2">El impostor intentó adivinar. Falló.</p>
-                    <p class="text-sm text-ink-soft">
-                        Escribió <span class="font-black text-white/70">&ldquo;{{ lastWishGuess }}&rdquo;</span>
-                        <template v-if="revealedSecretWord">
-                            pero la palabra era
-                            <span class="font-black text-action-primary">&ldquo;{{ revealedSecretWord }}&rdquo;</span>.
-                        </template>
-                        La Tripulación sobrevive.
-                    </p>
-                </template>
-                <!-- Flujo normal sin last_wish -->
-                <template v-else>
-                    <span class="text-6xl mb-4 drop-shadow-md">{{ winner === 'IMPOSTOR' ? '🦇' : '🎯' }}</span>
-                    <p class="text-lg text-ink-main font-black uppercase tracking-widest">{{ winner === 'IMPOSTOR' ? 'Los impostores controlan la nave.' : 'La tripulación purificó la nave.' }}</p>
-                </template>
+                <div class="flex flex-col items-center justify-center py-6">
+                    <span class="text-6xl mb-4 drop-shadow-md animate-bounce">⏳</span>
+                    <p class="text-lg text-ink-main font-black uppercase tracking-widest animate-pulse">Redirigiendo al Veredicto Final...</p>
+                </div>
             </template>
             <template v-else>
                 <div v-if="!eliminatedPlayer" class="text-sm font-black text-ink-muted bg-panel-input px-4 py-3 rounded-2xl shadow-inner border-2 border-white/10 w-full uppercase tracking-widest">
