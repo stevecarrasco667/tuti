@@ -274,45 +274,42 @@ onMounted(() => {
             </div> <!-- Fin de Grid -->
         </div>
 
-        <!-- 2. FLEX-NONE FOOTER (El "Footer Biomecánico") -->
-        <div class="flex-none bg-panel-card/70 backdrop-blur-2xl border-t border-white/10 z-40 pb-safe shadow-[0_-20px_50px_rgba(0,0,0,0.6)] relative">
-            <div class="absolute inset-0 bg-gradient-to-t from-panel-base to-transparent opacity-80 pointer-events-none"></div>
-            
-            <div class="max-w-xl lg:max-w-2xl mx-auto px-6 py-6 lg:py-8 flex flex-col gap-3 relative z-10">
-                <!-- Acción 1: NUEVA PARTIDA (Jefe de jerarquía) -->
+        <!-- 2. FLEX-NONE FOOTER (El "Glass Dock") -->
+        <div class="flex-none bg-panel-base/90 backdrop-blur-xl border-t border-white/5 z-40 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.5)] relative">
+            <div class="max-w-[1200px] mx-auto px-4 py-4 sm:py-5 w-full flex flex-col lg:flex-row items-center justify-center gap-3 md:gap-4 relative z-10">
+                
+                <!-- Acción 3: SALIR (Equilibrio Izquierdo en Desktop / Abajo en Móvil) -->
+                <button
+                    @click="exitGame"
+                    class="order-3 lg:order-1 lg:absolute lg:left-6 w-full lg:w-auto bg-transparent hover:bg-white/5 border border-white/5 lg:border-transparent hover:border-white/10 text-white/50 hover:text-white/80 font-bold uppercase tracking-wider py-3 lg:py-4 px-6 rounded-xl transition-colors text-[11px] sm:text-xs flex items-center justify-center gap-2"
+                >
+                    <span class="text-base lg:text-lg leading-none">🚪</span>
+                    <span class="mt-0.5">Salir</span>
+                </button>
+
+                <!-- Acción 1: NUEVA PARTIDA (Centro, Rey de la interfaz) -->
                 <button
                     v-if="amIHost"
                     @click="resetGame"
-                    class="w-full bg-gradient-to-tr from-yellow-500 to-yellow-300 hover:from-yellow-400 hover:to-yellow-200 text-panel-base font-black text-xl lg:text-2xl uppercase tracking-[0.15em] py-5 lg:py-6 rounded-2xl shadow-[0_0_30px_rgba(250,204,21,0.5)] border-2 border-yellow-200 transition-all transform hover:-translate-y-1 active:scale-95 active:translate-y-0"
+                    class="order-1 lg:order-2 w-full lg:max-w-[340px] bg-gradient-to-tr from-yellow-500 to-yellow-300 hover:from-yellow-400 hover:to-yellow-200 text-panel-base font-black text-lg lg:text-xl uppercase tracking-[0.15em] py-4 lg:py-4 rounded-2xl shadow-[0_0_20px_rgba(250,204,21,0.4)] border-2 border-yellow-200 transition-all transform hover:-translate-y-1 active:scale-95 active:translate-y-0"
                 >
                     🔥 Nueva Partida
                 </button>
-                <div v-else class="w-full flex items-center justify-center py-5 lg:py-6 text-yellow-500/80 bg-panel-card/60 backdrop-blur-xs font-black uppercase tracking-widest rounded-2xl border border-yellow-500/20 shadow-inner text-lg">
+                <div v-else class="order-1 lg:order-2 w-full lg:max-w-[340px] flex items-center justify-center py-4 lg:py-4 text-yellow-500/80 bg-panel-card/60 backdrop-blur-xs font-black uppercase tracking-widest rounded-2xl border border-yellow-500/20 shadow-inner text-sm lg:text-base">
                     ⏳ Esperando anfitrión...
                 </div>
                 
-                <!-- Sub-grupo Acciones Menores -->
-                <div class="flex gap-3">
-                    <!-- Acción 2: GUARDAR RECUERDO (Ghost/Glass Premium) -->
-                    <button
-                        id="btn-share-summary"
-                        @click="shareMatchSummary"
-                        :disabled="isCapturing"
-                        class="flex-[2] bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/20 hover:border-yellow-400/50 text-white font-bold uppercase tracking-wider py-4 lg:py-5 rounded-xl transition-all active:scale-95 disabled:opacity-50 text-[11px] sm:text-xs lg:text-sm flex items-center justify-center gap-2 shadow-lg"
-                    >
-                        <span class="text-xl lg:text-2xl leading-none">{{ isCapturing ? '⏳' : '📸' }}</span>
-                        <span class="mt-0.5">{{ isCapturing ? 'Generando...' : 'Guardar Recuerdo' }}</span>
-                    </button>
+                <!-- Acción 2: GUARDAR RECUERDO (Derecha en Desktop) -->
+                <button
+                    id="btn-share-summary"
+                    @click="shareMatchSummary"
+                    :disabled="isCapturing"
+                    class="order-2 lg:order-3 lg:absolute lg:right-6 w-full lg:w-auto bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/20 hover:border-yellow-400/50 text-white font-bold uppercase tracking-wider py-3 lg:py-4 px-6 rounded-xl transition-all active:scale-95 disabled:opacity-50 text-[11px] sm:text-xs flex items-center justify-center gap-2 shadow-sm"
+                >
+                    <span class="text-xl lg:text-2xl leading-none">{{ isCapturing ? '⏳' : '📸' }}</span>
+                    <span class="mt-0.5 whitespace-nowrap">{{ isCapturing ? 'Generando...' : 'Guardar Recuerdo' }}</span>
+                </button>
 
-                    <!-- Acción 3: SALIR (Residual) -->
-                    <button
-                        @click="exitGame"
-                        class="flex-[1] bg-transparent hover:bg-red-500/10 border border-transparent hover:border-red-500/30 text-white/50 hover:text-red-400 font-bold uppercase tracking-wider py-4 lg:py-5 rounded-xl transition-colors text-[10px] sm:text-[11px] lg:text-xs flex items-center justify-center gap-1.5"
-                    >
-                        <span class="text-lg leading-none">🚪</span>
-                        <span class="mt-0.5">Salir</span>
-                    </button>
-                </div>
             </div>
         </div>
 
