@@ -278,16 +278,16 @@ onMounted(() => {
         <div class="flex-none bg-panel-card/70 backdrop-blur-2xl border-t border-white/10 z-40 pb-safe shadow-[0_-20px_50px_rgba(0,0,0,0.6)] relative">
             <div class="absolute inset-0 bg-gradient-to-t from-panel-base to-transparent opacity-80 pointer-events-none"></div>
             
-            <div class="max-w-xl lg:max-w-2xl mx-auto px-6 py-6 lg:py-8 flex flex-col gap-3 relative z-10">
+            <div class="max-w-md mx-auto px-5 py-4 lg:py-5 flex flex-col gap-2.5 relative z-10">
                 <!-- Acción 1: NUEVA PARTIDA (Jefe de jerarquía) -->
                 <button
                     v-if="amIHost"
                     @click="resetGame"
-                    class="w-full bg-gradient-to-tr from-yellow-500 to-yellow-300 hover:from-yellow-400 hover:to-yellow-200 text-panel-base font-black text-xl lg:text-2xl uppercase tracking-[0.15em] py-5 lg:py-6 rounded-2xl shadow-[0_0_30px_rgba(250,204,21,0.5)] border-2 border-yellow-200 transition-all transform hover:-translate-y-1 active:scale-95 active:translate-y-0"
+                    class="w-full bg-gradient-to-tr from-yellow-500 to-yellow-300 hover:from-yellow-400 hover:to-yellow-200 text-panel-base font-black text-base lg:text-lg uppercase tracking-[0.15em] py-3.5 rounded-xl shadow-[0_0_25px_rgba(250,204,21,0.45)] border-2 border-yellow-200 transition-all transform hover:-translate-y-0.5 active:scale-95 active:translate-y-0"
                 >
                     🔥 Nueva Partida
                 </button>
-                <div v-else class="w-full flex items-center justify-center py-5 lg:py-6 text-yellow-500/80 bg-panel-card/60 backdrop-blur-xs font-black uppercase tracking-widest rounded-2xl border border-yellow-500/20 shadow-inner text-lg">
+                <div v-else class="w-full flex items-center justify-center py-3.5 text-yellow-500/80 bg-panel-card/60 backdrop-blur-xs font-black uppercase tracking-widest rounded-xl border border-yellow-500/20 shadow-inner text-sm">
                     ⏳ Esperando anfitrión...
                 </div>
                 
@@ -298,16 +298,16 @@ onMounted(() => {
                         id="btn-share-summary"
                         @click="shareMatchSummary"
                         :disabled="isCapturing"
-                        class="flex-[2] bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/20 hover:border-yellow-400/50 text-white font-bold uppercase tracking-wider py-4 lg:py-5 rounded-xl transition-all active:scale-95 disabled:opacity-50 text-[11px] sm:text-xs lg:text-sm flex items-center justify-center gap-2 shadow-lg"
+                        class="flex-[2] bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/20 hover:border-yellow-400/50 text-white font-bold uppercase tracking-wider py-2.5 rounded-lg transition-all active:scale-95 disabled:opacity-50 text-[10px] sm:text-xs flex items-center justify-center gap-1.5 shadow-lg"
                     >
-                        <span class="text-xl lg:text-2xl leading-none">{{ isCapturing ? '⏳' : '📸' }}</span>
+                        <span class="text-base leading-none">{{ isCapturing ? '⏳' : '📸' }}</span>
                         <span class="mt-0.5">{{ isCapturing ? 'Generando...' : 'Guardar Recuerdo' }}</span>
                     </button>
 
                     <!-- Acción 3: SALIR (Residual) -->
                     <button
                         @click="exitGame"
-                        class="flex-[1] bg-transparent hover:bg-red-500/10 border border-transparent hover:border-red-500/30 text-white/50 hover:text-red-400 font-bold uppercase tracking-wider py-4 lg:py-5 rounded-xl transition-colors text-[10px] sm:text-[11px] lg:text-xs flex items-center justify-center gap-1.5"
+                        class="flex-[1] bg-transparent hover:bg-red-500/10 border border-transparent hover:border-red-500/30 text-white/50 hover:text-red-400 font-bold uppercase tracking-wider py-2.5 rounded-lg transition-colors text-[10px] sm:text-[11px] flex items-center justify-center gap-1"
                     >
                         <span class="text-lg leading-none">🚪</span>
                         <span class="mt-0.5">Salir</span>
