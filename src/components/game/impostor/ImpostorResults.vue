@@ -50,26 +50,22 @@ if (!matchOver.value && eliminatedPlayer.value) {
 
 <template>
     <div class="h-full w-full flex flex-col items-center justify-center p-4 text-center transition-all duration-700 bg-white/40 border-[4px] shadow-game-panel rounded-3xl m-2 md:m-4"
-         :class="(!matchOver && eliminatedPlayer && !isEliminatedImpostor) ? 'border-action-error/80 shadow-[0_0_40px_rgba(239,68,68,0.2)]' : 'border-tuti-teal/80 shadow-[0_0_40px_rgba(106,215,229,0.2)]'">
+         :class="(eliminatedPlayer && !isEliminatedImpostor) ? 'border-action-error/80 shadow-[0_0_40px_rgba(239,68,68,0.2)]' : 'border-tuti-teal/80 shadow-[0_0_40px_rgba(106,215,229,0.2)]'">
         
         <!-- HEADER DE RESULTADO -->
         <h1 class="text-4xl md:text-6xl font-black tracking-tighter uppercase animate-pulse mb-6 drop-shadow-sm"
-            :class="(isEliminatedImpostor && !matchOver) ? 'text-action-primary' : 'text-ink-main'">
-            <template v-if="matchOver">🏛️ El Veredicto Final ha llegado...</template>
-            <template v-else-if="!eliminatedPlayer">EMPATE EN EL TRIBUNAL</template>
+            :class="(isEliminatedImpostor || !eliminatedPlayer) ? 'text-tuti-teal' : 'text-action-error'">
+            <template v-if="!eliminatedPlayer">EMPATE EN EL TRIBUNAL</template>
             <template v-else-if="isEliminatedImpostor">¡IMPOSTOR CAZADO!</template>
             <template v-else>¡INOCENTE EXPULSADO!</template>
         </h1>
         
         <p class="text-lg md:text-xl text-ink-soft font-black mb-8 uppercase tracking-widest max-w-lg">
-            <template v-if="matchOver">
-                La tensión es palpable en el aire...
-            </template>
-            <template v-else-if="eliminatedPlayer">
-                El tribunal ha expulsado a <span class="text-ink-main font-black underline decoration-4 underline-offset-4" :class="isEliminatedImpostor ? 'decoration-action-primary' : 'decoration-action-error'">{{ eliminatedPlayer.name }}</span>
+            <template v-if="eliminatedPlayer">
+                El tribunal ha expulsado a <span class="text-ink-main font-black underline decoration-4 underline-offset-4" :class="isEliminatedImpostor ? 'decoration-tuti-teal' : 'decoration-action-error'">{{ eliminatedPlayer.name }}</span>
             </template>
             <template v-else>
-                Nadie ha sido expulsado hoy. La tensión continúa.
+                Nadie ha sido expulsado hoy.
             </template>
         </p>
 
@@ -77,25 +73,22 @@ if (!matchOver.value && eliminatedPlayer.value) {
         <div class="bg-panel-card border-4 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col items-center max-w-xl w-[95%]"
              :class="(!eliminatedPlayer || isEliminatedImpostor) ? 'border-tuti-teal bg-tuti-teal/5' : 'border-action-error bg-action-error/5'">
             
-            <template v-if="matchOver">
-                <div class="flex flex-col items-center justify-center py-6">
-                    <span class="text-6xl mb-4 drop-shadow-md animate-bounce">⏳</span>
-                    <p class="text-lg text-ink-main font-black uppercase tracking-widest animate-pulse">Redirigiendo al Veredicto Final...</p>
-                </div>
-            </template>
-            <template v-else>
-                <div v-if="!eliminatedPlayer" class="text-sm font-black text-ink-muted bg-panel-input px-4 py-3 rounded-2xl shadow-inner border-2 border-white/10 w-full uppercase tracking-widest">
-                    Los votos se dividieron. Todos sobreviven a esta ronda.
-                </div>
-                <div v-else class="text-sm font-black w-full rounded-2xl px-4 py-3 border-2 shadow-inner uppercase tracking-wide" :class="isEliminatedImpostor ? 'bg-tuti-teal/20 border-tuti-teal/40 text-tuti-teal' : 'bg-action-error/20 border-action-error/40 text-action-error'">
-                    {{ isEliminatedImpostor ? 'Un impostor menos en la nave.' : 'Han sacrificado a un tripulante inocente.' }}
-                </div>
-            </template>
+            <div v-if="!eliminatedPlayer" class="text-sm font-black text-ink-muted bg-panel-input px-4 py-3 rounded-2xl shadow-inner border-2 border-white/10 w-full uppercase tracking-widest">
+                Los votos se dividieron. Todos sobreviven a esta ronda.
+            </div>
+            <div v-else class="text-sm font-black w-full rounded-2xl px-4 py-3 border-2 shadow-inner uppercase tracking-wide" :class="isEliminatedImpostor ? 'bg-tuti-teal/20 border-tuti-teal/40 text-tuti-teal' : 'bg-action-error/20 border-action-error/40 text-action-error'">
+                {{ isEliminatedImpostor ? 'Era un Impostor.' : 'Era Inocente.' }}
+            </div>
             
         </div>
 
+        <!-- TRANSICIÓN SUTIL SI MATCH_OVER -->
+        <div v-if="matchOver" class="mt-8 flex flex-col items-center opacity-60 animate-pulse">
+            <p class="text-xs text-ink-main uppercase tracking-[0.3em] font-black">Fin de la partida. Calculando veredicto...</p>
+        </div>
+
         <!-- PALABRAS POR JUGADOR + REACCIONES -->
-        <div v-if="!matchOver" class="w-full max-w-xl mt-4 flex flex-col gap-2">
+        <div v-else class="w-full max-w-xl mt-4 flex flex-col gap-2">
             <div
                 v-for="player in players"
                 :key="player.id"
