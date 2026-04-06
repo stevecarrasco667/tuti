@@ -18,59 +18,62 @@ const currentCategory = computed(() => props.impostorData.currentCategoryName);
 </script>
 
 <template>
-    <div class="h-full w-full flex flex-col p-4 md:p-6 lg:py-8 text-center bg-panel-base backdrop-blur-md rounded-3xl border-[4px] border-white/50 relative overflow-y-auto shadow-game-panel scrollbar-thin">
-        <!-- Fondo Animado FX -->
-        <div class="absolute inset-0 z-0 opacity-40 pointer-events-none"
-             :class="isImpostor ? 'bg-gradient-to-br from-action-error/40 via-transparent' : 'bg-gradient-to-br from-action-secondary/40 via-transparent'">
+    <div class="h-full w-full flex flex-col items-center justify-center text-center relative overflow-hidden bg-black">
+        
+        <!-- Spotlight Radial FX (Cinematic) -->
+        <div class="absolute inset-0 z-0 pointer-events-none"
+             :class="isImpostor 
+                ? 'bg-[radial-gradient(circle_at_center,_rgba(239,68,68,0.25)_0%,_rgba(0,0,0,1)_80%)]' 
+                : 'bg-[radial-gradient(circle_at_center,_rgba(106,215,229,0.25)_0%,_rgba(0,0,0,1)_80%)]'">
         </div>
 
-        <div class="z-10 flex-1 flex flex-col items-center justify-center w-full max-w-4xl m-auto gap-4 py-4 min-h-0">
-            <span class="text-5xl lg:text-5xl animate-bounce drop-shadow-md flex-none">{{ isImpostor ? '🤫' : '🕵️' }}</span>
-
-            <!-- Category for EVERYONE (public info) -->
-            <div class="flex-none flex flex-col items-center gap-1.5">
-                <p class="text-[9px] md:text-[11px] font-black tracking-[0.3em] text-ink-muted uppercase">Categoría de la ronda</p>
-                <span class="text-xl md:text-3xl font-black tracking-widest uppercase px-4 py-1.5 rounded-2xl border-2 shadow-sm leading-none"
-                      :class="isImpostor ? 'bg-action-error/20 border-action-error/40 text-action-error' : 'bg-tuti-teal/20 border-tuti-teal/40 text-tuti-teal'">
+        <div class="z-10 flex-1 flex flex-col items-center justify-center w-full max-w-5xl md:max-w-[90%] mx-auto gap-8 py-10 min-h-0 relative">
+            
+            <!-- Category (Floating, No Box) -->
+            <div class="flex-none flex flex-col items-center">
+                <p class="text-[10px] md:text-xs font-black tracking-[0.4em] text-white/40 uppercase mb-2">Categoría</p>
+                <span class="text-2xl md:text-3xl font-black tracking-[0.2em] uppercase drop-shadow-sm opacity-90"
+                      :class="isImpostor ? 'text-action-error' : 'text-tuti-teal'">
                     {{ currentCategory }}
                 </span>
             </div>
 
-            <!-- Título Principal Fijo -->
-            <h1 class="font-black uppercase tracking-tighter drop-shadow-sm leading-none flex-none text-4xl md:text-[3.5rem] lg:text-[4.5rem] w-full"
-                :class="isImpostor ? 'text-action-error' : 'text-tuti-teal'">
+            <!-- Título Principal Brutalista -->
+            <h1 class="font-black uppercase tracking-tighter leading-none flex-none text-6xl md:text-[6.5rem] lg:text-[8rem] w-full"
+                :class="isImpostor ? 'text-action-error drop-shadow-[0_0_60px_rgba(239,68,68,0.6)]' : 'text-tuti-teal drop-shadow-[0_0_60px_rgba(106,215,229,0.6)]'">
                 {{ isImpostor ? (allies > 0 ? 'Son los Impostores' : 'Eres el Impostor') : 'Eres un Tripulante' }}
             </h1>
 
-            <!-- Tarjeta de Misión -->
-            <div class="bg-panel-card border-4 border-white/10 p-4 md:p-5 lg:p-6 rounded-3xl backdrop-blur-xl shadow-sm flex-none w-full max-w-xl mx-auto">
-                <p class="text-lg md:text-2xl text-ink-soft font-black mb-2 uppercase tracking-wide leading-tight">
+            <!-- Misión y Secreto (Sin Tarjeta) -->
+            <div class="flex-none w-full max-w-3xl mx-auto flex flex-col gap-6 mt-4">
+                <p class="text-xl md:text-3xl text-white/80 font-black uppercase tracking-widest leading-tight">
                     {{ isImpostor ? 'Tu misión es sobrevivir y engañar.' : 'Encuentra al mentiroso.' }}
                 </p>
 
-                <div class="text-xl md:text-2xl font-black mt-2 md:mt-4 text-ink-main">
+                <div class="text-lg md:text-xl font-black mt-4">
                     <template v-if="isImpostor">
-                        <p class="text-sm md:text-base text-ink-muted font-bold leading-snug">No conoces la palabra secreta. ¡Blufea con la categoría!</p>
+                        <p class="text-base md:text-xl text-white/50 font-black tracking-widest uppercase mb-3">No conoces la palabra. ¡Blufea!</p>
                         <template v-if="allies > 0">
-                            <span class="text-xs md:text-sm text-action-error font-black mt-2 block">Tus aliados: {{ allies }} impostor{{ allies > 1 ? 'es' : '' }} más</span>
+                            <span class="text-sm md:text-lg text-action-error font-black uppercase tracking-widest opacity-80 absolute top-4 left-4 md:left-8"> Aliados: {{ allies }}</span>
                         </template>
                     </template>
                     <template v-else>
-                        <span class="text-sm md:text-base text-ink-muted leading-none block mb-2">La palabra secreta es:</span>
-                        <span class="text-white font-black tracking-widest bg-tuti-teal border-2 border-tuti-teal/50 px-4 py-1.5 md:py-2 rounded-2xl inline-block shadow-sm text-2xl md:text-3xl leading-none">{{ secretWord }}</span>
+                        <span class="text-xs md:text-sm text-white/40 leading-none block mb-4 uppercase tracking-[0.4em]">La palabra secreta es:</span>
+                        <!-- Glassmorphism ultraligero solo para la palabra -->
+                        <span class="text-white font-black tracking-[0.2em] px-8 md:px-12 py-3 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md text-4xl md:text-5xl drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">{{ secretWord }}</span>
                     </template>
                 </div>
             </div>
 
-            <!-- Timer con Margin Auto -->
-            <div class="mt-auto pt-2 flex-none">
-                <div class="text-center bg-panel-card/60 p-3 md:p-4 rounded-3xl border-2 border-white/10 shadow-sm inline-block min-w-[120px]">
-                    <p class="text-[9px] md:text-[10px] font-black tracking-widest text-ink-muted uppercase mb-1">El juego comienza en</p>
-                    <div class="text-5xl md:text-6xl font-black font-mono drop-shadow-sm leading-none" :class="timerColor">
-                        {{ Math.max(0, timeRemaining) }}
-                    </div>
-                </div>
+        </div>
+
+        <!-- Timer Fantasma y Minimalista anclado al fondo -->
+        <div class="absolute bottom-8 lg:bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center">
+            <div class="text-5xl md:text-[5rem] font-black font-mono animate-pulse drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
+                 :class="isImpostor ? 'text-action-error/80' : 'text-tuti-teal/80'">
+                {{ Math.max(0, timeRemaining) }}
             </div>
         </div>
+
     </div>
 </template>

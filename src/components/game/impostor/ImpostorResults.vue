@@ -49,70 +49,84 @@ if (!matchOver.value && eliminatedPlayer.value) {
 </script>
 
 <template>
-    <div class="h-full w-full flex flex-col items-center justify-center p-4 text-center transition-all duration-700 bg-white/40 border-[4px] shadow-game-panel rounded-3xl m-2 md:m-4"
-         :class="(eliminatedPlayer && !isEliminatedImpostor) ? 'border-action-error/80 shadow-[0_0_40px_rgba(239,68,68,0.2)]' : 'border-tuti-teal/80 shadow-[0_0_40px_rgba(106,215,229,0.2)]'">
+    <div class="h-full w-full flex flex-col items-center justify-center text-center relative overflow-hidden bg-black transition-colors duration-1000">
         
-        <!-- HEADER DE RESULTADO -->
-        <h1 class="text-4xl md:text-6xl font-black tracking-tighter uppercase animate-pulse mb-6 drop-shadow-sm"
-            :class="(isEliminatedImpostor || !eliminatedPlayer) ? 'text-tuti-teal' : 'text-action-error'">
-            <template v-if="!eliminatedPlayer">EMPATE EN EL TRIBUNAL</template>
-            <template v-else-if="isEliminatedImpostor">¡IMPOSTOR CAZADO!</template>
-            <template v-else>¡INOCENTE EXPULSADO!</template>
-        </h1>
-        
-        <p class="text-lg md:text-xl text-ink-soft font-black mb-8 uppercase tracking-widest max-w-lg">
-            <template v-if="eliminatedPlayer">
-                El tribunal ha expulsado a <span class="text-ink-main font-black underline decoration-4 underline-offset-4" :class="isEliminatedImpostor ? 'decoration-tuti-teal' : 'decoration-action-error'">{{ eliminatedPlayer.name }}</span>
-            </template>
-            <template v-else>
-                Nadie ha sido expulsado hoy.
-            </template>
-        </p>
-
-        <!-- DETALLES DE VOTACIÓN -->
-        <div class="bg-panel-card border-4 p-6 md:p-8 rounded-3xl shadow-sm flex flex-col items-center max-w-xl w-[95%]"
-             :class="(!eliminatedPlayer || isEliminatedImpostor) ? 'border-tuti-teal bg-tuti-teal/5' : 'border-action-error bg-action-error/5'">
-            
-            <div v-if="!eliminatedPlayer" class="text-sm font-black text-ink-muted bg-panel-input px-4 py-3 rounded-2xl shadow-inner border-2 border-white/10 w-full uppercase tracking-widest">
-                Los votos se dividieron. Todos sobreviven a esta ronda.
-            </div>
-            <div v-else class="text-sm font-black w-full rounded-2xl px-4 py-3 border-2 shadow-inner uppercase tracking-wide" :class="isEliminatedImpostor ? 'bg-tuti-teal/20 border-tuti-teal/40 text-tuti-teal' : 'bg-action-error/20 border-action-error/40 text-action-error'">
-                {{ isEliminatedImpostor ? 'Era un Impostor.' : 'Era Inocente.' }}
-            </div>
-            
+        <!-- Spotlight Radial FX (Cinematic) -->
+        <div class="absolute inset-0 z-0 pointer-events-none transition-colors duration-1000"
+             :class="(eliminatedPlayer && !isEliminatedImpostor) 
+                ? 'bg-[radial-gradient(circle_at_center,_rgba(239,68,68,0.25)_0%,_rgba(0,0,0,1)_80%)]' 
+                : 'bg-[radial-gradient(circle_at_center,_rgba(106,215,229,0.20)_0%,_rgba(0,0,0,1)_80%)]'">
         </div>
 
-        <!-- TRANSICIÓN SUTIL SI MATCH_OVER -->
-        <div v-if="matchOver" class="mt-8 flex flex-col items-center opacity-60 animate-pulse">
-            <p class="text-xs text-ink-main uppercase tracking-[0.3em] font-black">Fin de la partida. Calculando veredicto...</p>
-        </div>
-
-        <!-- PALABRAS POR JUGADOR + REACCIONES -->
-        <div v-else class="w-full max-w-xl mt-4 flex flex-col gap-2">
-            <div
-                v-for="player in players"
-                :key="player.id"
-                class="flex items-center justify-between bg-panel-card/60 rounded-2xl px-4 py-2 border border-white/5"
-            >
-                <div class="flex items-center gap-2 min-w-0">
-                    <span class="text-base flex-shrink-0">{{ player.avatar || '👤' }}</span>
-                    <span class="text-xs font-black text-ink-muted truncate">{{ player.name }}</span>
-                    <span class="text-sm font-black text-ink-main ml-1 truncate">
-                        {{ impostorData.words[player.id] || '—' }}
+        <div class="z-10 flex-1 flex flex-col items-center justify-center w-full max-w-5xl md:max-w-[90%] mx-auto gap-4 py-8 min-h-0 relative">
+            
+            <!-- HEADER DE RESULTADO Brutalista -->
+            <h1 class="text-4xl md:text-[5.5rem] lg:text-[7rem] font-black tracking-tighter uppercase leading-none drop-shadow-md flex-none w-full"
+                :class="(isEliminatedImpostor || !eliminatedPlayer) ? 'text-tuti-teal drop-shadow-[0_0_60px_rgba(106,215,229,0.6)]' : 'text-action-error drop-shadow-[0_0_60px_rgba(239,68,68,0.6)]'">
+                <template v-if="!eliminatedPlayer">EMPATE TRIBUNAL</template>
+                <template v-else-if="isEliminatedImpostor">IMPOSTOR CAZADO</template>
+                <template v-else>INOCENTE EXPULSADO</template>
+            </h1>
+            
+            <p class="text-xl md:text-3xl text-white/80 font-black uppercase tracking-widest max-w-3xl mt-4 leading-tight">
+                <template v-if="eliminatedPlayer">
+                    El tribunal ha expulsado a <br/>
+                    <span class="text-white font-black text-4xl md:text-6xl mt-4 block" :class="isEliminatedImpostor ? 'drop-shadow-[0_0_40px_rgba(106,215,229,0.8)]' : 'drop-shadow-[0_0_40px_rgba(239,68,68,0.8)]'">
+                        {{ eliminatedPlayer.name }}
                     </span>
+                </template>
+                <template v-else>
+                    Nadie ha sido expulsado hoy.
+                </template>
+            </p>
+
+            <!-- DETALLES FLOTANTES (Sin Caja Fuerte) -->
+            <div class="mt-6 md:mt-10 text-2xl md:text-4xl font-black uppercase tracking-[0.3em] opacity-90">
+                <div v-if="!eliminatedPlayer" class="text-white/60">
+                    Todos sobreviven.
                 </div>
-                <ReactionMenu
-                    :target-player-id="player.id"
-                    :category-id="impostorData.currentCategoryName"
-                    @react="(emoji, tid, cid) => sendReaction(tid, cid, emoji)"
-                />
+                <div v-else :class="isEliminatedImpostor ? 'text-tuti-teal drop-shadow-[0_0_30px_rgba(106,215,229,0.5)]' : 'text-action-error drop-shadow-[0_0_30px_rgba(239,68,68,0.5)]'">
+                    {{ isEliminatedImpostor ? 'Era un Impostor.' : 'Era Inocente.' }}
+                </div>
             </div>
+
+            <!-- PALABRAS POR JUGADOR + REACCIONES (Modificado para fondo oscuro) -->
+            <div v-if="!matchOver" class="w-full max-w-2xl mt-12 flex flex-col gap-3 relative z-10">
+                <div
+                    v-for="player in players"
+                    :key="player.id"
+                    class="flex items-center justify-between bg-white/5 backdrop-blur-md rounded-2xl px-5 py-3 border border-white/10 shadow-lg"
+                >
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                        <span class="text-xl md:text-2xl flex-shrink-0">{{ player.avatar || '👤' }}</span>
+                        <span class="text-sm md:text-base font-black text-white/60 truncate uppercase tracking-wider">{{ player.name }}</span>
+                        <span class="text-sm md:text-lg font-black text-white ml-2 truncate">
+                            {{ impostorData.words ? impostorData.words[player.id] : '—' }}
+                        </span>
+                    </div>
+                    
+                    <ReactionMenu
+                        :target-player-id="player.id"
+                        :category-id="impostorData.currentCategoryName"
+                        @react="(emoji, tid, cid) => sendReaction(tid, cid, emoji)"
+                    />
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TRANSICIÓN SUTIL SI MATCH_OVER (Anclado al fondo) -->
+        <div v-if="matchOver" class="absolute bottom-8 left-1/2 -translate-x-1/2 opacity-60 animate-pulse text-center w-full">
+            <p class="text-[10px] md:text-xs text-white/50 uppercase tracking-[0.4em] font-black">Fin de la partida. Calculando veredicto...</p>
         </div>
         
-        <!-- TIMER -->
-        <div class="mt-8 text-center bg-panel-card/60 p-4 rounded-3xl border-[3px] border-white/10 shadow-sm inline-block">
-            <p class="text-[10px] uppercase tracking-widest font-black mb-1 text-ink-muted">{{ matchOver ? 'Fin de la Partida' : 'Siguiente Deducción en' }}</p>
-            <div class="text-3xl font-mono font-black transition-colors leading-none" :class="timerColor">{{ Math.max(0, timeRemaining) }}</div>
+        <!-- TIMER CRONÓMETRO FLOTANTE -->
+        <div v-else class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center">
+            <div class="text-4xl md:text-5xl font-black font-mono animate-pulse drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]" 
+                 :class="timerColor">
+                {{ Math.max(0, timeRemaining) }}
+            </div>
         </div>
+
     </div>
 </template>
