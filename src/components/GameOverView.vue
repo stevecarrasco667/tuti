@@ -178,9 +178,9 @@ onMounted(() => {
                             </div>
                         </template>
                         <template v-else-if="gameState.config.mode === 'IMPOSTOR'">
-                            <h2 class="text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-black animate-pulse"
+                            <h2 class="text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-black animate-pulse uppercase"
                                 style="line-height: 1.1;"
-                                :class="gameState.impostorData?.cycleResult?.winner === 'IMPOSTOR' ? 'text-transparent bg-clip-text bg-gradient-to-b from-red-400 to-red-600 drop-shadow-[0_4px_20px_rgba(239,68,68,0.4)]' : 'text-transparent bg-clip-text bg-gradient-to-b from-tuti-teal to-blue-500 drop-shadow-[0_4px_20px_rgba(106,215,229,0.4)]'">
+                                :class="gameState.impostorData?.cycleResult?.winner === 'IMPOSTOR' ? 'text-action-error drop-shadow-[0_0_30px_rgba(239,68,68,0.8)]' : 'text-tuti-teal drop-shadow-[0_0_30px_rgba(106,215,229,0.8)]'">
                                 {{ gameState.impostorData?.cycleResult?.winner === 'IMPOSTOR' ? '¡IMPOSTORES GANAN!' : '¡TRIPULACIÓN GANA!' }}
                             </h2>
                         </template>
@@ -191,7 +191,7 @@ onMounted(() => {
                                 {{ iWon ? '¡VICTORIA!' : 'GAME OVER' }}
                             </h2>
                         </template>
-                        <div class="inline-block mt-4 bg-panel-base/60 backdrop-blur-xl border border-white/10 px-6 py-2.5 rounded-full shadow-lg">
+                        <div v-if="gameState.config.mode !== 'IMPOSTOR'" class="inline-block mt-4 bg-panel-base/60 backdrop-blur-xl border border-white/10 px-6 py-2.5 rounded-full shadow-lg">
                             <p class="text-yellow-400 font-bold text-sm lg:text-base tracking-[0.4em] uppercase">Podio Final</p>
                         </div>
                     </div>
