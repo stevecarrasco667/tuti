@@ -65,21 +65,21 @@ const eliminatedPlayer = computed(() =>
                 
                 <!-- Eliminado Info -->
                 <div class="flex-none flex flex-col items-center">
-                    <p class="text-[clamp(0.5rem,1.5dvh,0.75rem)] uppercase tracking-[0.4em] text-white/40 font-black mb-1">
+                    <p class="text-[clamp(0.7rem,1.5vw,1rem)] uppercase tracking-[0.4em] text-white/40 font-black mb-1">
                         {{ eliminatedPlayer?.avatar || '☠️' }} {{ eliminatedPlayer?.name || 'El Impostor' }} ha sido atrapado
                     </p>
                 </div>
 
                 <!-- Título Liquido -->
                 <div class="flex flex-col items-center flex-none w-full">
-                    <span class="text-[clamp(2rem,6dvh,3rem)] shrink-0 drop-shadow-md">⚰️</span>
-                    <h1 class="font-black uppercase tracking-tighter leading-[0.9] text-[clamp(3rem,10dvh,8rem)] w-full text-balance text-white drop-shadow-[0_0_50px_rgba(255,255,255,0.6)]">
+                    <span class="text-[clamp(2.5rem,6vw,4rem)] shrink-0 drop-shadow-md">⚰️</span>
+                    <h1 class="font-black uppercase tracking-tighter leading-[0.9] text-[clamp(4rem,9vw,8rem)] w-full text-balance text-white drop-shadow-[0_0_50px_rgba(255,255,255,0.6)]">
                         Último Deseo
                     </h1>
                 </div>
 
                 <!-- Countdown -->
-                <div class="text-[clamp(4rem,12dvh,7rem)] font-mono font-black tabular-nums leading-none drop-shadow-[0_0_40px_rgba(239,68,68,0.5)] shrink-0"
+                <div class="text-[clamp(4.5rem,10vw,8rem)] font-mono font-black tabular-nums leading-none drop-shadow-[0_0_40px_rgba(239,68,68,0.5)] shrink-0"
                      :class="timeRemaining <= 4 ? 'text-action-error animate-pulse' : 'text-action-error/90'">
                     {{ Math.max(0, timeRemaining) }}
                 </div>
@@ -89,10 +89,10 @@ const eliminatedPlayer = computed(() =>
                     <div class="flex-none w-full max-w-3xl mx-auto flex flex-col gap-[clamp(0.5rem,1dvh,1rem)] justify-center min-h-0">
                         <!-- Instrucciones reducidas en altura -->
                         <div class="shrink-0 flex flex-col gap-1">
-                            <p class="text-[clamp(1rem,3dvh,1.5rem)] text-white/80 font-black uppercase tracking-widest leading-tight">
+                            <p class="text-[clamp(1.1rem,2.5vw,2rem)] text-white/80 font-black uppercase tracking-widest leading-tight">
                                 ¿Cuál era la <span class="text-action-error drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]">PALABRA SECRETA</span>?
                             </p>
-                            <span class="text-[clamp(0.6rem,1.5dvh,0.875rem)] text-white/40 uppercase tracking-[0.2em] font-black">Tienes una oportunidad. Si fallas, pierdes.</span>
+                            <span class="text-[clamp(0.8rem,1.5vw,1rem)] text-white/40 uppercase tracking-[0.2em] font-black">Tienes una oportunidad. Si fallas, pierdes.</span>
                         </div>
 
                         <!-- Formulario Flex Shrink-0 -->
@@ -106,7 +106,7 @@ const eliminatedPlayer = computed(() =>
                                 autofocus
                                 @input="onInput"
                                 @keydown.enter="onEnter"
-                                class="w-full text-center text-[clamp(1.2rem,4dvh,2.25rem)] font-black text-white bg-white/5 backdrop-blur-md rounded-xl px-4 py-[clamp(0.5rem,2dvh,1.5rem)] outline-none placeholder-white/20 transition-all duration-300 min-h-[48px]"
+                                class="w-full text-center text-[clamp(1.5rem,3vw,3rem)] font-black text-white bg-white/5 backdrop-blur-md rounded-xl px-4 py-[clamp(0.5rem,2dvh,1.5rem)] outline-none placeholder-white/20 transition-all duration-300 min-h-[48px]"
                                 :class="submitted
                                     ? 'border-white/10 opacity-50 cursor-not-allowed'
                                     : 'border border-action-error/40 focus:border-action-error focus:bg-white/10 shadow-[0_0_30px_rgba(239,68,68,0.2)]'"
@@ -115,7 +115,7 @@ const eliminatedPlayer = computed(() =>
                             <button
                                 @click="submitGuess"
                                 :disabled="submitted || !guess.trim()"
-                                class="w-full py-[clamp(0.75rem,2.5dvh,1.5rem)] px-6 rounded-xl font-black uppercase tracking-[0.2em] text-[clamp(0.9rem,2.5dvh,1.25rem)] transition-all duration-300 active:scale-95 border min-h-[44px]"
+                                class="w-full py-[clamp(0.75rem,2.5dvh,1.5rem)] px-6 rounded-xl font-black uppercase tracking-[0.2em] text-[clamp(1rem,2vw,1.5rem)] transition-all duration-300 active:scale-95 border min-h-[44px]"
                                 :class="submitted || !guess.trim()
                                     ? 'bg-white/5 border-white/5 text-white/30 cursor-not-allowed'
                                     : 'bg-action-error hover:bg-red-500 border-red-400 text-white shadow-[0_0_40px_rgba(239,68,68,0.5)] cursor-pointer'"
@@ -130,21 +130,21 @@ const eliminatedPlayer = computed(() =>
                 <template v-else>
                     <div class="flex-none w-full max-w-3xl mx-auto flex flex-col items-center gap-[clamp(0.5rem,1.5dvh,1rem)] justify-center min-h-0">
                         <div class="shrink-0 flex flex-col gap-1">
-                            <p class="text-[clamp(1rem,3dvh,1.875rem)] text-white/80 font-black uppercase tracking-widest leading-tight text-balance">
+                            <p class="text-[clamp(1.2rem,2.5vw,2.5rem)] text-white/80 font-black uppercase tracking-widest leading-tight text-balance">
                                 El impostor intenta adivinar la palabra...
                             </p>
-                            <span class="text-[clamp(0.6rem,1.5dvh,0.75rem)] text-white/40 uppercase tracking-[0.2em] font-black">Si acierta, robará la victoria.</span>
+                            <span class="text-[clamp(0.8rem,1.5vw,1rem)] text-white/40 uppercase tracking-[0.2em] font-black">Si acierta, robará la victoria.</span>
                         </div>
 
                         <!-- Texto en vivo -->
-                        <div class="w-full max-w-2xl bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-[clamp(1rem,3dvh,2rem)] flex items-center justify-center shrink-0 min-h-[clamp(4rem,10dvh,6rem)]">
-                            <p class="text-[clamp(1.5rem,5dvh,3rem)] font-black tracking-[0.1em] text-balance break-all"
+                        <div class="w-full max-w-2xl bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-[clamp(1rem,2dvh,2rem)] flex items-center justify-center shrink-0 min-h-[clamp(4rem,10dvh,8rem)]">
+                            <p class="text-[clamp(2rem,5vw,4rem)] font-black tracking-[0.1em] text-balance break-all"
                                :class="lastWishText ? 'text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.6)]' : 'text-white/20 animate-pulse'">
                                 {{ lastWishText || '...' }}
                             </p>
                         </div>
 
-                        <p class="text-[clamp(0.5rem,1.5dvh,0.6rem)] uppercase tracking-[0.4em] text-white/30 mt-1 shrink-0">
+                        <p class="text-[clamp(0.7rem,1.2vw,0.9rem)] uppercase tracking-[0.4em] text-white/30 mt-1 shrink-0">
                             Transmisión en tiempo real
                         </p>
                     </div>
