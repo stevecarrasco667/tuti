@@ -126,6 +126,7 @@ export interface RoomState {
         roundEndsAt: number | null;
         votingEndsAt: number | null;
         resultsEndsAt: number | null;
+        graceEndsAt: number | null; // [Sync] Timestamp absoluto del servidor → fin del Grace Period (Anti-Troll lock)
     };
     remainingTime: number; // Server-canonical countdown in seconds (emitted every tick)
     stoppedBy: string | null;
@@ -222,7 +223,8 @@ export function createDefaultRoomState(roomId: string | null = null): RoomState 
         timers: {
             roundEndsAt: null,
             votingEndsAt: null,
-            resultsEndsAt: null
+            resultsEndsAt: null,
+            graceEndsAt: null
         },
         remainingTime: 0,
         stoppedBy: null,

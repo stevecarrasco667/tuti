@@ -81,7 +81,8 @@ export const RoomStateSchema = z.object({
     timers: z.object({
         roundEndsAt: z.number().nullable(),
         votingEndsAt: z.number().nullable(),
-        resultsEndsAt: z.number().nullable()
+        resultsEndsAt: z.number().nullable(),
+        graceEndsAt: z.number().nullable() // [Sync] Grace Period end timestamp from server
     }),
     uiMetadata: z.object({
         activeView: z.enum(['LOBBY', 'GAME', 'GAME_OVER']),

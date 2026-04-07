@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch, onUnmounted } from 'vue';
+import { computed, ref, watch, onUnmounted, onMounted } from 'vue';
 import { RoomState, Player } from '../../../../shared/types';
 import { useSmartReview } from '../../../composables/useSmartReview';
-import { calcGracePeriod } from '../../../../shared/engines/tuti-engine';
 
 import RoundStatusHeader from './RoundStatusHeader.vue';
 import RivalsHeader from './RivalsHeader.vue';
@@ -41,29 +40,25 @@ const answers = ref<Record<string, string>>({});
 const hasConfirmed = ref(false);
 const validationCooldown = ref(false);
 
-// [P11] Grace period: tiempo elapsed desde que empezó PLAYING
-const _roundStartedAt = ref<number | null>(null);
-const elapsedMs = ref(0);
-let _graceInterval: ReturnType<typeof setInterval> | null = null;
+// [Sync] Ticker reactivo de baja frecuencia para evaluar el Grace Period contra el timestamp del servidor.
+// _now se actualiza cada 500ms, haciendo que los computed de grace period se re-evalúen automáticamente.
+// El timestamp de referencia (graceEndsAt) lo emite el servidor — todos los clientes ven el mismo valor.
+const _now = ref(Date.now());
+let _graceTicker: ReturnType<typeof setInterval> | null = null;
+onMounted(() => { _graceTicker = setInterval(() => { _now.value = Date.now(); }, 500); });
+onUnmounted(() => { if (_graceTicker) clearInterval(_graceTicker); });
 
-const startGraceTracking = () => {
-    _roundStartedAt.value = Date.now();
-    elapsedMs.value = 0;
-    if (_graceInterval) clearInterval(_graceInterval);
-    _graceInterval = setInterval(() => {
-        if (_roundStartedAt.value !== null) {
-            elapsedMs.value = Date.now() - _roundStartedAt.value;
-        }
-    }, 100);
-};
+const isGracePeriodActive = computed(() => {
+    const graceEndsAt = props.gameState.timers.graceEndsAt;
+    if (!graceEndsAt) return false;
+    return _now.value < graceEndsAt;
+});
 
-onUnmounted(() => { if (_graceInterval) clearInterval(_graceInterval); });
-
-const gracePeriodMs = computed(() => calcGracePeriod(props.gameState.categories.length));
-const isGracePeriodActive = computed(() => elapsedMs.value < gracePeriodMs.value);
-const graceSecondsLeft = computed(() =>
-    Math.max(0, Math.ceil((gracePeriodMs.value - elapsedMs.value) / 1000))
-);
+const graceSecondsLeft = computed(() => {
+    const graceEndsAt = props.gameState.timers.graceEndsAt;
+    if (!graceEndsAt) return 0;
+    return Math.max(0, Math.ceil((graceEndsAt - _now.value) / 1000));
+});
 
 const canStopRound = computed(() => {
     return props.gameState.categories.every(cat => {
@@ -103,10 +98,9 @@ watch(() => props.gameState.status, (newStatus, oldStatus) => {
             answers.value = {};
             hasConfirmed.value = false;
         }
-        startGraceTracking();
+        // [Sync] Grace period ya no necesita startGraceTracking() — lo controla el servidor vía graceEndsAt
     } else if (newStatus !== 'ENDING_COUNTDOWN') {
-        // Limpiar el interval cuando ya no estamos jugando
-        if (_graceInterval) { clearInterval(_graceInterval); _graceInterval = null; }
+        // Nada que limpiar localmente — el servidor pone graceEndsAt = null al pasar a ENDING_COUNTDOWN
     }
 }, { immediate: true });
 

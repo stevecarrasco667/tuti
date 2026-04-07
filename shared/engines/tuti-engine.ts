@@ -70,7 +70,8 @@ export class TutiEngine extends BaseEngine {
             timers: {
                 roundEndsAt: null,
                 votingEndsAt: null,
-                resultsEndsAt: null
+                resultsEndsAt: null,
+                graceEndsAt: null
             },
             remainingTime: 0,
             stoppedBy: null,
@@ -314,6 +315,9 @@ export class TutiEngine extends BaseEngine {
                 );
 
                 this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
+                // [Sync] Emitir graceEndsAt para que todos los clientes usen el mismo timestamp
+                const gracePeriodMs_1 = calcGracePeriod(this.state.categories.length);
+                this.state.timers.graceEndsAt = Date.now() + gracePeriodMs_1;
                 this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
             } else {
                 this.state.status = 'GAME_OVER';
@@ -361,7 +365,10 @@ export class TutiEngine extends BaseEngine {
             );
 
             this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
-            this._roundStartTime = Date.now(); // [P11] Registrar inicio de ronda para grace period
+            this._roundStartTime = Date.now(); // [P11] Registrar inicio de ronda para grace period (server-side check)
+            // [Sync] Emitir graceEndsAt para sincronización de clientes
+            const gracePeriodMs_2 = calcGracePeriod(this.state.categories.length);
+            this.state.timers.graceEndsAt = this._roundStartTime + gracePeriodMs_2;
             this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
         }
 
@@ -405,6 +412,7 @@ export class TutiEngine extends BaseEngine {
         // [P11] M2 — Transicionar a ENDING_COUNTDOWN (3s de pánico)
         this.state.status = 'ENDING_COUNTDOWN';
         this.state.timers.roundEndsAt = Date.now() + 3000;
+        this.state.timers.graceEndsAt = null; // [Sync] Grace period ya expiró, limpiar
         this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
 
         if (this.onGameStateChange) this.onGameStateChange(this.state);

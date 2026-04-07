@@ -77,7 +77,8 @@ export class ImpostorEngine extends BaseEngine {
             timers: {
                 roundEndsAt: null,
                 votingEndsAt: null,
-                resultsEndsAt: null
+                resultsEndsAt: null,
+                graceEndsAt: null
             },
             remainingTime: 0,
             stoppedBy: null,
@@ -301,7 +302,7 @@ export class ImpostorEngine extends BaseEngine {
         // 4. Transition state — skip RESULTS, go directly to GAME_OVER
         this.state.status = 'GAME_OVER';
         this.state.gameOverReason = reason;
-        this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null };
+        this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null, graceEndsAt: null };
         this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
 
         // 5. Broadcast the new state via the server callback
@@ -576,7 +577,7 @@ export class ImpostorEngine extends BaseEngine {
         if (this.state.status !== 'RESULTS') return;
         this.clearTimer();
 
-        this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null };
+        this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null, graceEndsAt: null };
 
         const result = this.state.impostorData?.cycleResult;
 
@@ -738,7 +739,7 @@ export class ImpostorEngine extends BaseEngine {
         this.state.status = 'LOBBY';
         this.state.uiMetadata = { activeView: 'LOBBY', showTimer: false, targetTime: null };
         this.state.impostorData = undefined;
-        this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null };
+        this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null, graceEndsAt: null };
         this.state.stoppedBy = null;
 
         // [Sprint P1 — Fase 3] Use clearSecrets() as the single source of truth for resetting private state.
