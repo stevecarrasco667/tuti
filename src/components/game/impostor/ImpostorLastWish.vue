@@ -86,7 +86,7 @@ const eliminatedPlayer = computed(() =>
 
                 <!-- ── VISTA IMPOSTOR ── -->
                 <template v-if="isImpostor">
-                    <div class="flex-none w-full max-w-3xl mx-auto flex flex-col gap-[clamp(0.5rem,1dvh,1rem)] h-full justify-center min-h-0">
+                    <div class="flex-none w-full max-w-3xl mx-auto flex flex-col gap-[clamp(0.5rem,1dvh,1rem)] justify-center min-h-0">
                         <!-- Instrucciones reducidas en altura -->
                         <div class="shrink-0 flex flex-col gap-1">
                             <p class="text-[clamp(1rem,3dvh,1.5rem)] text-white/80 font-black uppercase tracking-widest leading-tight">
@@ -128,7 +128,7 @@ const eliminatedPlayer = computed(() =>
 
                 <!-- ── VISTA TRIPULACIÓN / ESPECTADORES ── -->
                 <template v-else>
-                    <div class="flex-none w-full max-w-3xl mx-auto flex flex-col items-center gap-[clamp(0.5rem,1.5dvh,1rem)] h-full justify-center min-h-0">
+                    <div class="flex-none w-full max-w-3xl mx-auto flex flex-col items-center gap-[clamp(0.5rem,1.5dvh,1rem)] justify-center min-h-0">
                         <div class="shrink-0 flex flex-col gap-1">
                             <p class="text-[clamp(1rem,3dvh,1.875rem)] text-white/80 font-black uppercase tracking-widest leading-tight text-balance">
                                 El impostor intenta adivinar la palabra...
