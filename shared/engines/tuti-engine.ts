@@ -648,6 +648,14 @@ export class TutiEngine extends BaseEngine {
             console.log("[TutiEngine] Anti-Freeze: Forcing next round");
             if (this.rounds.nextRound(this.state, this.state.config)) {
                 this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
+                // [Sync] Emitir timestamp exacto de gracia a los clientes al iniciar automáticamente
+                const gracePeriodMs_3 = calcGracePeriod(this.state.categories.length);
+                this.state.timers.graceEndsAt = Date.now() + gracePeriodMs_3;
+                this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
+            } else {
+                this.state.status = 'GAME_OVER';
+                this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
+                this.validation.getDictionaryManager().clearCache();
             }
             changed = true;
         // [Patch 1.4b] Anti-Freeze for ENDING_COUNTDOWN — if Worker wakes from hibernation mid-panic,
