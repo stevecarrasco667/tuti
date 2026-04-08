@@ -36,7 +36,7 @@ const close = () => {
             <button 
                 v-if="!isOpen"
                 @click="isOpen = true"
-                class="fixed bottom-[110px] right-4 lg:right-6 z-40 w-12 h-12 bg-action-primary text-panel-base rounded-full shadow-glow-primary border-[3px] border-white/20 flex items-center justify-center active:scale-95 transition-transform hover:scale-105"
+                class="fixed bottom-[90px] right-4 z-40 w-12 h-12 bg-action-primary text-panel-base rounded-full shadow-glow-primary border-[3px] border-white/20 flex items-center justify-center active:scale-95 transition-transform hover:scale-105"
                 aria-label="Abrir chat"
             >
                 <span class="text-2xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)]">💬</span>

@@ -76,8 +76,8 @@ watch(() => gameState.value.players, (newPlayers) => {
     <!-- MUTE BUTTON LAYER -->
     <button 
         @click="toggleMute"
-        class="absolute z-50 w-12 h-12 flex items-center justify-center rounded-full bg-panel-card/80 border-[3px] border-white/10 text-white shadow-xl backdrop-blur-md transition-all hover:bg-white/20 active:scale-95"
-        :class="currentView === 'GAME' ? 'bottom-[170px] right-4 lg:right-6' : 'top-4 right-4 lg:top-5 lg:right-5'"
+        class="fixed z-50 w-12 h-12 flex items-center justify-center rounded-full bg-panel-card/80 border-[3px] border-white/10 text-white shadow-xl backdrop-blur-md transition-all hover:bg-white/20 active:scale-95"
+        :class="currentView === 'GAME' ? 'bottom-[152px] right-4' : 'top-4 right-4'"
         :title="isMuted ? 'Activar Sonido' : 'Silenciar Sonido'"
     >
         <svg v-if="!isMuted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 opacity-90">
