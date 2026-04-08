@@ -134,6 +134,13 @@ export function useGameActions(
         // Reset state using factory — avoids stale fields when new RoomState fields are added
         state.gameState.value = createDefaultRoomState(null);
         state.localImpostorRole.value = null;
+
+        // Limpiar el parámetro 'room' de la URL para que el link regrese a su estado original
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('room')) {
+            url.searchParams.delete('room');
+            window.history.replaceState({}, '', url.toString() || '/');
+        }
     };
 
     const sendChatMessage = (text: string) => {
