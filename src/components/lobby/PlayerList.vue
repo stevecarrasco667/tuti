@@ -22,7 +22,7 @@ import { computed } from 'vue';
 </script>
 
 <template>
-    <div class="lg:col-span-3 bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-game-panel flex flex-col overflow-hidden min-h-0">
+    <div class="lg:col-span-3 bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-game-panel flex flex-col lg:overflow-hidden lg:min-h-0 h-max">
         <!-- Header: Title + MaxPlayers -->
         <div class="p-4 border-b-2 border-white/50 bg-panel-card/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-none">
             <div class="flex items-center justify-between sm:justify-start gap-2">
@@ -47,7 +47,7 @@ import { computed } from 'vue';
         </div>
 
         <!-- Player List + Spectators + Empty Slots -->
-        <div class="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin">
+        <div class="lg:flex-1 lg:overflow-y-auto lg:min-h-0 p-3 space-y-2 lg:scrollbar-thin">
             <!-- Active Players -->
             <div v-for="player in props.players" :key="player.id"
                  class="flex items-center gap-3 p-3 bg-panel-card rounded-xl border-2 border-white/10 hover:border-action-primary transition-colors group shadow-sm"

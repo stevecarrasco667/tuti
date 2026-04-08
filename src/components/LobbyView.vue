@@ -150,11 +150,11 @@ const handleLeave = () => {
                 />
 
                 <!-- Center + Right Panels: Settings -->
-                <div class="lg:col-span-9 lg:grid lg:grid-cols-9 lg:gap-3 flex flex-col gap-4 min-h-0 overflow-y-auto lg:overflow-hidden"
+                <div class="lg:col-span-9 lg:grid lg:grid-cols-9 lg:gap-3 flex flex-col gap-4 overflow-y-auto lg:overflow-hidden"
                      :class="{ 'hidden lg:grid': activeTab !== 'settings' }"
                 >
                     <!-- Center: Mode Selector + Categories -->
-                    <div class="lg:col-span-5 flex flex-col gap-4 min-h-0"
+                    <div class="lg:col-span-5 flex flex-col gap-4 lg:min-h-0 shrink-0 h-max"
                          :class="{ 'opacity-60 pointer-events-none': !amIHost }"
                     >
                         <!-- Game Mode Selector -->
