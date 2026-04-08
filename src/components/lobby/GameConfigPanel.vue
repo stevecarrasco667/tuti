@@ -88,7 +88,7 @@ function decrementImpostorCategoryCount() {
 </script>
 
 <template>
-    <div class="lg:col-span-4 bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-game-panel flex flex-col overflow-hidden min-h-0"
+    <div class="lg:col-span-4 bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-game-panel flex flex-col lg:overflow-hidden lg:min-h-0 h-max"
          :class="{ 'opacity-60 pointer-events-none': !props.amIHost }"
     >
         <div class="p-3 md:p-4 border-b-2 border-white/50 bg-panel-card/50 flex items-center justify-between flex-none gap-2">
@@ -96,7 +96,7 @@ function decrementImpostorCategoryCount() {
             <span v-if="!props.amIHost" class="text-action-warning text-[8px] font-black uppercase tracking-wider bg-action-warning/20 px-2 py-0.5 rounded-full border border-action-warning/50">Solo lectura</span>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin min-h-0">
+        <div class="lg:flex-1 lg:overflow-y-auto lg:min-h-0 p-4 space-y-4 lg:scrollbar-thin">
 
             <!-- ===== CLASSIC MODE SETTINGS ===== -->
             <template v-if="props.config.mode === 'CLASSIC'">

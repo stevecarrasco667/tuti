@@ -163,7 +163,7 @@ const handleLeave = () => {
                             <div class="grid grid-cols-2 gap-3">
                                 <button
                                     @click="handleConfigChange('mode', 'CLASSIC')"
-                                    class="relative p-3 lg:p-5 rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
+                                    class="relative p-2.5 lg:p-5 rounded-xl lg:rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
                                     :class="localConfig.mode === 'CLASSIC'
                                         ? 'border-action-primary bg-action-primary/10 shadow-glow-primary'
                                         : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input shadow-sm hover:shadow-glow-primary/40'"
@@ -175,7 +175,7 @@ const handleLeave = () => {
                                 </button>
                                 <button
                                     @click="handleConfigChange('mode', 'IMPOSTOR')"
-                                    class="relative p-3 lg:p-5 rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
+                                    class="relative p-2.5 lg:p-5 rounded-xl lg:rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
                                     :class="localConfig.mode === 'IMPOSTOR'
                                         ? 'border-action-blue bg-action-blue/10 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
                                         : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input shadow-sm hover:shadow-glow-primary/40'"

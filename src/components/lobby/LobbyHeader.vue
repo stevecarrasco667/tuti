@@ -19,7 +19,7 @@ const emit = defineEmits<{
 <template>
     <!-- STICKY HEADER: Room Code + Pub/Priv -->
     <div class="flex-none px-3 pt-3 pb-2 lg:px-4 lg:pt-4">
-        <TCard padding="none" class="p-3 flex items-center justify-between gap-3 rounded-2xl">
+        <TCard padding="none" class="p-3 pr-[4.5rem] lg:pr-3 flex items-center justify-between gap-3 rounded-2xl relative">
             <!-- Left: Back Button + Pub/Priv + Code -->
             <div class="flex items-center gap-3 min-w-0">
                 <!-- Botón Volver al Home -->
