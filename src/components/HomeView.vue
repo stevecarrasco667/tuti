@@ -9,7 +9,6 @@ import TCard from './ui/TCard.vue';
 import TButton from './ui/TButton.vue';
 import TInput from './ui/TInput.vue';
 
-const emit = defineEmits(['navigate']);
 const { joinGame, myUserName, myUserAvatar } = useGame();
 const { publicRooms, connect, refreshRooms } = useLobby();
 const { user, isAuthenticated, isLoading, signInWithGoogle, signOut } = useAuth();
@@ -64,7 +63,7 @@ const handleCreateRoom = (asPublic = false) => {
     isPublicRoom.value = asPublic;
     const roomId = generateRoomId();
     joinGame(playerName.value, roomId, selectedAvatar.value, asPublic || undefined);
-    emit('navigate', 'LOBBY');
+    // Navegación manejada por useGameSync cuando el servidor confirma la sala
 };
 
 const handleJoinRoom = () => {
@@ -73,12 +72,12 @@ const handleJoinRoom = () => {
         return;
     }
     joinGame(playerName.value, joinCode.value.toUpperCase(), selectedAvatar.value);
-    emit('navigate', 'LOBBY');
+    // Navegación manejada por useGameSync cuando el servidor confirma la sala
 };
 
 const handleJoinPublicRoom = (roomId: string) => {
     joinGame(playerName.value, roomId, selectedAvatar.value);
-    emit('navigate', 'LOBBY');
+    // Navegación manejada por useGameSync cuando el servidor confirma la sala
 };
 
 const getStatusLabel = (status: string) => {

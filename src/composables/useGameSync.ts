@@ -4,6 +4,7 @@ import { applyPatch } from 'fast-json-patch';
 import { ServerMessage, PrivateRolePayload } from '../../shared/types';
 import { useGameState } from './useGameState';
 import { EVENTS, APP_VERSION } from '../../shared/consts';
+import { router } from '../router/index';
 
 export function useGameSync(
     state: ReturnType<typeof useGameState>
@@ -34,6 +35,28 @@ export function useGameSync(
 
                 if (state.isStopping.value && state.gameState.value.status !== 'PLAYING') {
                     state.setStopping(false);
+                }
+
+                // [Sprint 2 - P2] El servidor es autoritativo sobre la navegación.
+                // Cuando el servidor cambia uiMetadata.activeView, forzamos router.push().
+                const roomId = newState.roomId;
+                const view = newState.uiMetadata?.activeView;
+                if (roomId && view) {
+                    const viewToRoute: Record<string, string> = {
+                        'HOME': '/',
+                        'LOBBY': `/lobby/${roomId}`,
+                        'GAME': `/game/${roomId}`,
+                        'GAME_OVER': `/results/${roomId}`,
+                    };
+                    const targetRoute = viewToRoute[view];
+                    if (targetRoute && router.currentRoute.value.fullPath !== targetRoute) {
+                        router.push(targetRoute);
+                    }
+                } else if (!roomId) {
+                    // Sin sala: siempre HOME
+                    if (router.currentRoute.value.path !== '/') {
+                        router.push('/');
+                    }
                 }
             } else if (parsed.type === EVENTS.PATCH_STATE) {
                 // Check Delta Sync Sequence
