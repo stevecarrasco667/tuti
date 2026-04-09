@@ -8,9 +8,17 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const SUPABASE_URL = process.env.SUPABASE_URL!;
-// Service role key is required to bypass RLS on inserts
-const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVicmF3d2d0YnBndXd5eWlvaWZiIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjkxMTY1MCwiZXhwIjoyMDg4NDg3NjUwfQ.11dDImiGl8oaILOGxomQMEOo2N_1qkpYSXuVoI7tEDo';
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+
+// [SEGURIDAD] Service role key is required to bypass RLS on inserts.
+// NUNCA LA PONGAS DIRECTAMENTE EN EL CÓDIGO. Léela de las variables de entorno.
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    console.error('\n❌ ERROR CRÍTICO: Faltan credenciales de Supabase en el entorno.');
+    console.error('Asegúrate de definir VITE_SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en tu archivo .env local.');
+    process.exit(1);
+}
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
