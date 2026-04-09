@@ -1,4 +1,4 @@
-type LogLevel = 'INFO' | 'WARN' | 'ERROR';
+type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
 
 interface LogContext {
     roomId?: string;
@@ -36,6 +36,10 @@ function formatEntry(level: LogLevel, event: string, context?: LogContext, error
 }
 
 export const logger = {
+    debug(event: string, context?: LogContext): void {
+        console.log(formatEntry('DEBUG', event, context));
+    },
+
     info(event: string, context?: LogContext): void {
         console.log(formatEntry('INFO', event, context));
     },

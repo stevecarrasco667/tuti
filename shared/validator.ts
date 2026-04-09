@@ -35,10 +35,15 @@ export function levenshteinDistance(a: string, b: string): number {
     return matrix[b.length][a.length];
 }
 
-// Simple blacklist for example purposes
+// Lista expandida de términos ofensivos (multipais)
 const BLACKLIST = new Set([
-    "puto", "maricon", "mierda", "verga", "pija", "concha",
-    "retrasado", "imbecil", "estupido", "idiota", "mogolico"
+    "puto", "puta", "maricon", "mierda", "verga", "pija", "concha",
+    "retrasado", "imbecil", "estupido", "idiota", "mogolico",
+    "pendejo", "cabron", "culero", "chinga", "pinche",
+    "weon", "boludo", "pelotudo", "forro", "culiao", "conchetumare", 
+    "pirobo", "malparido", "guevon", "mamabicho", "singar",
+    // Sensible leetspeak basic
+    "pvt0", "pvt@", "m1erda", "v3rga", "p1ja", "p3ndejo"
 ]);
 
 // (Removed DictionaryManager import)

@@ -350,7 +350,7 @@ export default class Server implements Party.Server {
     private startTick(durationMs: number) {
         this.stopTick(); // Re-entrant safety: clear any previous interval before starting
         let remaining = Math.ceil(durationMs / 1000);
-        console.log(`[Tick Loop] Starting — ${remaining}s`);
+        logger.info('TICK_LOOP_START', { roomId: this.room.id, duration: remaining });
 
         this.tickInterval = setInterval(() => {
             remaining--;
@@ -370,7 +370,7 @@ export default class Server implements Party.Server {
         if (this.tickInterval) {
             clearInterval(this.tickInterval);
             this.tickInterval = null;
-            console.log('[Tick Loop] Stopped.');
+            logger.info('TICK_LOOP_STOP', { roomId: this.room.id });
         }
     }
 
@@ -451,7 +451,7 @@ export default class Server implements Party.Server {
                 this.engine.players.reconnect(this.engine.getState(), sender.id, state.userId);
             }
 
-            console.log(`[Message] ${type} from ${sender.id}`);
+            logger.debug('MESSAGE_RECEIVED', { sender: sender.id, type });
 
             switch (type) {
                 // --- Game Logic ---
@@ -497,7 +497,7 @@ export default class Server implements Party.Server {
                     const newMode = this.engine.getState().config.mode;
 
                     if (oldMode !== newMode) {
-                        console.log(`[HOT-SWAP] Cambiando motor de ${oldMode} a ${newMode}`);
+                        logger.info('HOT_SWAP', { roomId: this.room.id, oldMode, newMode });
                         const currentState = this.engine.getState();
                         this.engine = createEngine(this.supabase, newMode, this.room.id, this.onStateChange);
                         this.engine.hydrate(currentState);
@@ -583,7 +583,7 @@ export default class Server implements Party.Server {
                 }
 
                 default:
-                    console.warn(`Unknown message type: ${type}`);
+                    logger.warn('UNKNOWN_MESSAGE', { sender: sender.id, type });
             }
 
             // === UNIFIED DELTA SYNC ===
@@ -642,7 +642,7 @@ export default class Server implements Party.Server {
         // [AUTO-WIPE] Check for inactivity
         const activeConnections = [...this.room.getConnections()].length;
         if (activeConnections === 0) {
-            console.log('💥 Protocolo de autodestrucción: Sala vacía eliminada del disco.');
+            logger.info('ROOM_AUTO_WIPED', { roomId: this.room.id });
             if (this.saveTimeout) {
                 clearTimeout(this.saveTimeout);
                 this.saveTimeout = null;
@@ -654,13 +654,13 @@ export default class Server implements Party.Server {
             return;
         }
 
-        console.log('⏰ Watchdog triggered (Anti-Freeze routines).');
+        logger.info('WATCHDOG_TRIGGERED', { roomId: this.room.id });
 
         const zombiesPurged = this.engine.checkInactivePlayers();
         const stateMutatedByTimer = this.engine.handleTimeUp(); // Anti-Freeze: Execute late timeouts
 
         if (zombiesPurged || stateMutatedByTimer) {
-            console.log(`[SERVER] State mutated by watchdog (Zombies: ${zombiesPurged}, AntiFreeze: ${stateMutatedByTimer})`);
+            logger.info('WATCHDOG_MUTATION', { roomId: this.room.id, zombiesPurged, stateMutatedByTimer });
 
             if (stateMutatedByTimer) {
                 // [Sprint 1] If a phase timer expired during hibernation, resume the tick loop
@@ -718,7 +718,7 @@ export default class Server implements Party.Server {
             // Clear all per-connection baselines
             this.previousStates.clear();
 
-            console.log(`[Auto-Wipe] Room ${this.room.id} is empty. Self-destruct in 120s.`);
+            logger.info('AUTO_WIPE_SCHEDULED', { roomId: this.room.id, timeout: 120 });
             this.room.storage.setAlarm(Date.now() + 120 * 1000);
         }
     }

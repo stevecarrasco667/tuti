@@ -38,8 +38,25 @@ export class ConnectionHandler extends BaseHandler {
             const isPublicRequest = url.searchParams.get('public') === 'true';
 
             // --- FASE 4: ANTI-SPOOFING & IDENTITY SECURITY ---
-            // Validación local sincrona: Si es un JWT de Supabase, lo asumimos como autenticado (Zero-Trust Nivel 1)
-            const isAuthenticated = !!token && token.startsWith('eyJ');
+            // Validación Real de JWT (Sprint 1): Verificamos contra la API de Supabase para validar la firma.
+            let isAuthenticated = false;
+            if (token && token.startsWith('eyJ')) {
+                try {
+                    const supabaseUrl = this.room.env.SUPABASE_URL as string;
+                    const apikey = this.room.env.SUPABASE_ANON_KEY as string;
+                    if (supabaseUrl && apikey) {
+                        const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                apikey: apikey
+                            }
+                        });
+                        isAuthenticated = res.ok;
+                    }
+                } catch (err) {
+                    logger.warn('JWT_VERIFY_ERROR', { error: String(err) });
+                }
+            }
             let isNewToken = false;
 
             if (this.authTokens.has(userId)) {
