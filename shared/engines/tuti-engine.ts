@@ -15,6 +15,7 @@ import { PlayerManager } from '../systems/player-manager.js';
 import { ValidationManager } from '../systems/validation-manager.js';
 import { ConfigurationManager } from '../systems/configuration-manager.js';
 import { VotingManager } from '../systems/voting-manager.js';
+import { AnalyticsSystem } from '../systems/analytics-system.js';
 import { logger } from '../utils/logger.js';
 
 import { SupabaseClient } from '@supabase/supabase-js';
@@ -42,6 +43,11 @@ export class TutiEngine extends BaseEngine {
 
     // [P11] ENDING_COUNTDOWN: timer del pánico de 3 segundos
     private _endingTimer: ReturnType<typeof setTimeout> | null = null;
+
+    // [Sprint 2 - P1] Analytics Tracking
+    private _sessionStartTime: number | null = null;
+    private _sessionId: string | null = null;
+    private _maxPlayerCountSeen: number = 0;
 
     constructor(
         supabase: SupabaseClient,
@@ -103,6 +109,12 @@ export class TutiEngine extends BaseEngine {
 
         if (canJoinAsPlayer) {
             this._players.add(this.state, connectionId, { id: userId, name, avatar, isAuthenticated });
+            this._maxPlayerCountSeen = Math.max(this._maxPlayerCountSeen, this.state.players.length);
+            AnalyticsSystem.trackEvent(this.supabase, {
+                room_id: this.state.roomId || 'unknown',
+                event_type: 'player_joined',
+                user_id: userId
+            });
         } else {
             // Room full or game active → Spectator (with idempotency guard)
             const existingSpec = this.state.spectators.find(s => s.id === userId);
@@ -161,16 +173,13 @@ export class TutiEngine extends BaseEngine {
 
         // ABANDONMENT CHECK (RELAXED)
         if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW' || this.state.status === 'ENDING_COUNTDOWN') {
+            if (this.state.status === 'PLAYING') {
+                AnalyticsSystem.trackEvent(this.supabase, { room_id: this.state.roomId || 'unknown', event_type: 'player_left_mid_game', user_id: userId });
+            }
+
             if (this.state.players.length < 2) {
                 console.log(`[GAME OVER] Not enough players (Active+Zombie) to continue.`);
-                this.state.status = 'GAME_OVER';
-                this.state.gameOverReason = 'ABANDONED';
-                this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
-
-                this.rounds.cancelTimer();
-                this.state.timers.roundEndsAt = null;
-                this.state.timers.votingEndsAt = null;
-                this.state.timers.resultsEndsAt = null;
+                this._triggerGameOver('ABANDONED');
             }
         }
 
@@ -193,16 +202,13 @@ export class TutiEngine extends BaseEngine {
         this.voting.cleanupPlayerVotes(this.state, userId);
 
         if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW' || this.state.status === 'ENDING_COUNTDOWN') {
+            if (this.state.status === 'PLAYING') {
+                AnalyticsSystem.trackEvent(this.supabase, { room_id: this.state.roomId || 'unknown', event_type: 'player_left_mid_game', user_id: userId });
+            }
+
             if (this.state.players.length < 2) {
                 console.log(`[GAME OVER] Abandonment (Exited).`);
-                this.state.status = 'GAME_OVER';
-                this.state.gameOverReason = 'ABANDONED';
-                this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
-
-                this.rounds.cancelTimer();
-                this.state.timers.roundEndsAt = null;
-                this.state.timers.votingEndsAt = null;
-                this.state.timers.resultsEndsAt = null;
+                this._triggerGameOver('ABANDONED');
             }
         }
 
@@ -216,16 +222,7 @@ export class TutiEngine extends BaseEngine {
 
         if ((this.state.status === 'PLAYING' || this.state.status === 'REVIEW' || this.state.status === 'ENDING_COUNTDOWN') && this.state.players.length < 2) {
             console.log(`[GAME OVER] Abandonment after Zombie Purge.`);
-            this.state.status = 'GAME_OVER';
-            this.state.gameOverReason = 'ABANDONED';
-            this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
-
-            this.rounds.cancelTimer();
-
-            this.state.timers.roundEndsAt = null;
-            this.state.timers.votingEndsAt = null;
-            this.state.timers.resultsEndsAt = null;
-
+            this._triggerGameOver('ABANDONED');
             stateChanged = true;
         }
 
@@ -291,10 +288,7 @@ export class TutiEngine extends BaseEngine {
                 this.state.timers.graceEndsAt = Date.now() + gracePeriodMs_1;
                 this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
             } else {
-                this.state.status = 'GAME_OVER';
-                this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
-                // Sprint 2.1: Garbage Collection
-                this.validation.getDictionaryManager().clearCache();
+                this._triggerGameOver('NORMAL');
             }
             return this.state;
         }
@@ -337,6 +331,17 @@ export class TutiEngine extends BaseEngine {
 
             this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
             this._roundStartTime = Date.now(); // [P11] Registrar inicio de ronda para grace period (server-side check)
+
+            // [Sprint 2 - P1] Analytics
+            this._sessionStartTime = Date.now();
+            this._sessionId = `${this._sessionStartTime}-${this.state.roomId}`;
+            this._maxPlayerCountSeen = this.state.players.length;
+            AnalyticsSystem.trackEvent(this.supabase, {
+                room_id: this.state.roomId || 'unknown',
+                event_type: 'game_started',
+                payload: { playerCount: this.state.players.length, categories: this.state.categories.map(c => c.id) }
+            });
+
             // [Sync] Emitir graceEndsAt para sincronización de clientes
             const gracePeriodMs_2 = calcGracePeriod(this.state.categories.length);
             this.state.timers.graceEndsAt = this._roundStartTime + gracePeriodMs_2;
@@ -624,9 +629,7 @@ export class TutiEngine extends BaseEngine {
                 this.state.timers.graceEndsAt = Date.now() + gracePeriodMs_3;
                 this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
             } else {
-                this.state.status = 'GAME_OVER';
-                this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
-                this.validation.getDictionaryManager().clearCache();
+                this._triggerGameOver('NORMAL');
             }
             changed = true;
         // [Patch 1.4b] Anti-Freeze for ENDING_COUNTDOWN — if Worker wakes from hibernation mid-panic,
@@ -652,6 +655,42 @@ export class TutiEngine extends BaseEngine {
     // [Deuda P2] Encapsulates the public room flag mutation — handlers must not write state directly.
     public markAsPublic(): void {
         this.state.config.isPublic = true;
+    }
+
+    private _triggerGameOver(reason: 'NORMAL' | 'ABANDONED'): void {
+        const wasAlreadyGameOver = this.state.status === 'GAME_OVER';
+        this.state.status = 'GAME_OVER';
+        this.state.gameOverReason = reason;
+        this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
+        this.rounds.cancelTimer();
+        this.state.timers.roundEndsAt = null;
+        this.state.timers.votingEndsAt = null;
+        this.state.timers.resultsEndsAt = null;
+
+        if (reason === 'NORMAL') {
+            this.validation.getDictionaryManager().clearCache();
+        }
+
+        if (!wasAlreadyGameOver && this._sessionStartTime) {
+            const durationSecs = Math.floor((Date.now() - this._sessionStartTime) / 1000);
+            
+            let winnerData = undefined;
+            if (reason === 'NORMAL' && this.state.players.length > 0) {
+                const sorted = [...this.state.players].sort((a, b) => b.score - a.score);
+                winnerData = { winnerScore: sorted[0].score, winnerId: sorted[0].id };
+            }
+
+            AnalyticsSystem.trackSession(this.supabase, {
+                session_id: this._sessionId || `${Date.now()}-${this.state.roomId}`,
+                room_id: this.state.roomId || 'unknown',
+                mode: 'CLASSIC',
+                player_count: this._maxPlayerCountSeen || this.state.players.length,
+                rounds_played: this.state.roundsPlayed,
+                duration_seconds: durationSecs,
+                end_reason: reason,
+                winner_data: winnerData
+            });
+        }
     }
 
     // [Sprint 4] Death Hook — release all GlobalWordCache references

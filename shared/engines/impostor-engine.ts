@@ -9,6 +9,7 @@ import { BaseEngine } from './base-engine.js';
 import { PlayerManager } from '../systems/player-manager.js';
 import { ConfigurationManager } from '../systems/configuration-manager.js';
 import { ImpostorWordProvider } from '../dictionaries/impostor/manager.js'; // Changed import
+import { AnalyticsSystem } from '../systems/analytics-system.js';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { shuffle } from '../utils/random.js';
 import { logger } from '../utils/logger.js';
@@ -30,6 +31,11 @@ export class ImpostorEngine extends BaseEngine {
     private configManager = new ConfigurationManager();
     protected onGameStateChange?: (state: RoomState) => void;
     protected supabase: SupabaseClient;
+
+    // [Sprint 2 - P1] Analytics Tracking
+    private _sessionStartTime: number | null = null;
+    private _sessionId: string | null = null;
+    private _maxPlayerCountSeen: number = 0;
 
     // Sprint 3.3: Anti-repetition memory (private — NEVER serialized to JSON/WebSocket)
     private usedWords = new Set<string>();
@@ -195,6 +201,14 @@ export class ImpostorEngine extends BaseEngine {
             return this.state;
         }
         this._players.add(this.state, connectionId, { id: userId, name, avatar, isAuthenticated });
+        
+        this._maxPlayerCountSeen = Math.max(this._maxPlayerCountSeen, this.state.players.length);
+        AnalyticsSystem.trackEvent(this.supabase, {
+            room_id: this.state.roomId || 'unknown',
+            event_type: 'player_joined',
+            user_id: userId
+        });
+
         return this.state;
     }
 
@@ -207,6 +221,10 @@ export class ImpostorEngine extends BaseEngine {
 
         // Only trigger during active game phases. In LOBBY or GAME_OVER, disconnections are normal.
         const activeGameStatuses: RoomState['status'][] = ['ROLE_REVEAL', 'TYPING', 'VOTING', 'RESULTS', 'LAST_WISH'];
+        if (userId && activeGameStatuses.includes(this.state.status)) {
+            AnalyticsSystem.trackEvent(this.supabase, { room_id: this.state.roomId || 'unknown', event_type: 'player_left_mid_game', user_id: userId });
+        }
+
         if (
             userId &&
             activeGameStatuses.includes(this.state.status) &&
@@ -244,6 +262,12 @@ export class ImpostorEngine extends BaseEngine {
     public playerExited(connectionId: string): RoomState {
         const userId = this._players.getPlayerId(connectionId);
         if (!userId) return this.state;
+
+        const activeGameStatuses: RoomState['status'][] = ['ROLE_REVEAL', 'TYPING', 'VOTING', 'RESULTS', 'LAST_WISH'];
+        if (activeGameStatuses.includes(this.state.status)) {
+            AnalyticsSystem.trackEvent(this.supabase, { room_id: this.state.roomId || 'unknown', event_type: 'player_left_mid_game', user_id: userId });
+        }
+
         this.state.players = this.state.players.filter(p => p.id !== userId);
         this._players.remove(this.state, connectionId);
         return this.state;
@@ -363,6 +387,16 @@ export class ImpostorEngine extends BaseEngine {
                     this.wordProvider.loadCategory(catId, this.supabase) // Replaced impostorWords.
                 )
             );
+
+            // [Sprint 2 - P1] Analytics
+            this._sessionStartTime = Date.now();
+            this._sessionId = `${this._sessionStartTime}-${this.state.roomId}`;
+            this._maxPlayerCountSeen = this.state.players.length;
+            AnalyticsSystem.trackEvent(this.supabase, {
+                room_id: this.state.roomId || 'unknown',
+                event_type: 'game_started',
+                payload: { playerCount: this.state.players.length, categories: this.activeCategoryIds }
+            });
 
             this.startNewRound();
         }
@@ -564,11 +598,7 @@ export class ImpostorEngine extends BaseEngine {
                 this.startNewRound();
             } else {
                 // Game Over — DO NOT delete impostorData (Vue needs it for final screen)
-                this.state.status = 'GAME_OVER';
-                this.state.gameOverReason = 'NORMAL';
-                this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
-                // Sprint 2.1: Garbage Collection
-                this.wordProvider.clearCache();
+                this._triggerGameOver('NORMAL');
             }
         } else {
             // Ciclo terminó en empate o eliminación parcial, el juego continúa
@@ -929,6 +959,39 @@ export class ImpostorEngine extends BaseEngine {
     // [Deuda P2] Encapsulates the public room flag mutation
     public markAsPublic(): void {
         this.state.config.isPublic = true;
+    }
+
+    private _triggerGameOver(reason: 'NORMAL' | 'ABANDONED'): void {
+        const wasAlreadyGameOver = this.state.status === 'GAME_OVER';
+        this.state.status = 'GAME_OVER';
+        this.state.gameOverReason = reason;
+        this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
+        this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null, graceEndsAt: null };
+        this.clearTimer();
+
+        if (reason === 'NORMAL') {
+            this.wordProvider.clearCache();
+        }
+
+        if (!wasAlreadyGameOver && this._sessionStartTime) {
+            const durationSecs = Math.floor((Date.now() - this._sessionStartTime) / 1000);
+            
+            let winnerData = undefined;
+            if (reason === 'NORMAL' && this.state.impostorData && this.state.impostorData.cycleResult) {
+                winnerData = { winningFaction: this.state.impostorData.cycleResult.winner };
+            }
+
+            AnalyticsSystem.trackSession(this.supabase, {
+                session_id: this._sessionId || `${Date.now()}-${this.state.roomId}`,
+                room_id: this.state.roomId || 'unknown',
+                mode: 'IMPOSTOR',
+                player_count: this._maxPlayerCountSeen || this.state.players.length,
+                rounds_played: this.state.roundsPlayed,
+                duration_seconds: durationSecs,
+                end_reason: reason,
+                winner_data: winnerData
+            });
+        }
     }
 
     // [Sprint 4] Death Hook — release all GlobalImpostorCache references
