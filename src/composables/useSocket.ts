@@ -52,18 +52,26 @@ export function useSocket() {
 
         // --- FASE 4: HANDSHAKE BLINDADO ZERO-TRUST ---
         let currentToken = userInfo?.token;
-        try {
-            // Timeout de 1.5s para evitar bloquear la conexión si Supabase no está disponible
-            const sessionResult = await Promise.race([
-                supabase.auth.getSession(),
-                new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500))
-            ]);
-            if (sessionResult && 'data' in sessionResult && sessionResult.data?.session?.access_token) {
-                currentToken = sessionResult.data.session.access_token;
+
+        // Solo intentar obtener sesión de Supabase si hay credenciales reales configuradas.
+        // Si VITE_SUPABASE_URL no existe (CI, dummy, etc.) saltamos el paso
+        // para no bloquear la conexión con un timeout de red innecesario.
+        const hasRealSupabase = !!import.meta.env.VITE_SUPABASE_URL;
+        if (hasRealSupabase) {
+            try {
+                // getSession() puede intentar refrescar token vía red — timeout de seguridad
+                const sessionResult = await Promise.race([
+                    supabase.auth.getSession(),
+                    new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500))
+                ]);
+                if (sessionResult && 'data' in sessionResult && sessionResult.data?.session?.access_token) {
+                    currentToken = sessionResult.data.session.access_token;
+                }
+            } catch (error) {
+                console.warn('No se pudo obtener el token de identidad:', error);
             }
-        } catch (error) {
-            console.warn('No se pudo obtener el token de identidad:', error);
         }
+
 
         const enrichedUserInfo = userInfo ? { ...userInfo, token: currentToken } : undefined;
 

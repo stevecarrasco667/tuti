@@ -65,7 +65,7 @@ const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
     <!-- MAIN CONTENT con router-view -->
     <main class="flex-1 w-full relative flex flex-col min-h-0">
         <RouterView v-slot="{ Component }">
-            <Transition name="fade" mode="out-in">
+            <Transition name="fade">
                 <component :is="Component" class="flex-1 flex flex-col min-h-0" />
             </Transition>
         </RouterView>
@@ -89,7 +89,9 @@ const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
 
 <style>
 .fade-enter-active, .fade-leave-active {
-  transition: opacity 0.25s ease-out;
+  transition: opacity 0.15s ease-out;
+  position: absolute;
+  width: 100%;
 }
 .fade-enter-from, .fade-leave-to {
   opacity: 0;

@@ -1,4 +1,4 @@
-import { watch } from 'vue';
+
 import { useSocket } from './useSocket';
 import { useGameState } from './useGameState';
 import { debounce } from '../utils/timing';
@@ -9,35 +9,21 @@ import { router } from '../router/index';
 export function useGameActions(
     state: ReturnType<typeof useGameState>
 ) {
-    const { socket, setRoomId, isConnected, disconnectIntentionally } = useSocket();
+    const { socket, setRoomId, disconnectIntentionally } = useSocket();
 
     const joinGame = async (name: string, targetRoomId: string, avatar: string, isPublic?: boolean) => {
         const userId = state.myUserId.value;
         const token = typeof localStorage !== 'undefined' ? localStorage.getItem('tuti-session-token') || undefined : undefined;
 
+        // [Perf] Navegar OPTIMISTAMENTE al lobby inmediatamente — sin esperar al servidor.
+        // La conexión WebSocket ocurre en background. El servidor luego confirmará via
+        // UPDATE_STATE y syncRoute() será un no-op (ya estamos en la ruta correcta).
+        router.push(`/lobby/${targetRoomId}`);
+
+        // Iniciar conexión en background (no await)
         setRoomId(targetRoomId, { userId, name, avatar, token, public: isPublic ? 'true' : undefined });
-
-        // La URL ser\u00e1 actualizada por useGameSync cuando el servidor confirme la sala
-        // (router.push desde uiMetadata.activeView). No manipulamos window.history directamente.
-
-        // Simple polling to wait for connection
-        const waitForConnection = () => {
-            return new Promise<void>((resolve) => {
-                if (isConnected.value) {
-                    resolve();
-                    return;
-                }
-                const unwatch = watch(isConnected, (connected) => {
-                    if (connected) {
-                        unwatch();
-                        resolve();
-                    }
-                });
-            });
-        };
-
-        await waitForConnection();
     };
+
 
     const startGame = () => {
         if (!socket.value) return;
