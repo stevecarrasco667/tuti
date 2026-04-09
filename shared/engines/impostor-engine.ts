@@ -4,13 +4,14 @@
 // Sprint 2 will implement the full logic.
 // For now, this is a placeholder that satisfies the BaseEngine contract.
 
-import { RoomState, GameConfig, DeepPartial, PrivateRolePayload } from '../types.js';
+import { RoomState, GameConfig, DeepPartial, PrivateRolePayload, createDefaultRoomState } from '../types.js';
 import { BaseEngine } from './base-engine.js';
 import { PlayerManager } from '../systems/player-manager.js';
 import { ConfigurationManager } from '../systems/configuration-manager.js';
 import { ImpostorWordProvider } from '../dictionaries/impostor/manager.js'; // Changed import
 import { SupabaseClient } from '@supabase/supabase-js';
 import { shuffle } from '../utils/random.js';
+import { logger } from '../utils/logger.js';
 
 // [Sprint P1 — Fase 3] Serializable snapshot of private engine state.
 // Persisted in Worker storage under a SEPARATE key from the public RoomState.
@@ -58,36 +59,9 @@ export class ImpostorEngine extends BaseEngine {
         super();
         this.supabase = supabase;
         this.onGameStateChange = onGameStateChange;
-        this.wordProvider = new ImpostorWordProvider(); // Instantiated
-        this.state = {
-            stateVersion: 0,
-            status: 'LOBBY',
-            roomId: roomId,
-            players: [],
-            spectators: [],
-            roundsPlayed: 0,
-            currentLetter: null,
-            categories: [],
-            answers: {},
-            answerStatuses: {},
-            votes: {},
-            whoFinishedVoting: [],
-            roundScores: {},
-            config: this.configManager.getDefaultConfig(),
-            timers: {
-                roundEndsAt: null,
-                votingEndsAt: null,
-                resultsEndsAt: null,
-                graceEndsAt: null
-            },
-            remainingTime: 0,
-            stoppedBy: null,
-            uiMetadata: {
-                activeView: 'LOBBY',
-                showTimer: false,
-                targetTime: null
-            }
-        };
+        this.wordProvider = new ImpostorWordProvider();
+        // [Deuda P2] Usar factory centralizada — elimina duplicación con TutiEngine
+        this.state = createDefaultRoomState(roomId);
     }
 
     public get players(): PlayerManager {
@@ -952,12 +926,17 @@ export class ImpostorEngine extends BaseEngine {
         this.state.remainingTime = Math.max(-1, newValue);
     }
 
+    // [Deuda P2] Encapsulates the public room flag mutation
+    public markAsPublic(): void {
+        this.state.config.isPublic = true;
+    }
+
     // [Sprint 4] Death Hook — release all GlobalImpostorCache references
     public dispose(): void {
         this.clearTimer();
         // [Sprint P1 — Fase 3] Clear private secrets to avoid stale state on next warm-start
         this.clearSecrets();
         this.wordProvider.clearCache();
-        console.log(`[ImpostorEngine] Disposed for room ${this.state.roomId}`);
+        logger.info('IMPOSTOR_ENGINE_DISPOSED', { roomId: this.state.roomId ?? 'unknown' });
     }
 }

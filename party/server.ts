@@ -196,15 +196,12 @@ export default class Server implements Party.Server {
                 // Factory Pattern: Re-create engine if stored mode differs
                 if (stored.config.mode === 'IMPOSTOR') {
                     this.engine = createEngine(this.supabase, 'IMPOSTOR', this.room.id, this.onStateChange);
-                    // Re-wire handlers to new engine
-                    this.connectionHandler = new ConnectionHandler(
-                        this.room, this.engine, this.authTokens, this.messages,
-                        (ctx) => this.scheduleAuthSave(ctx)
-                    );
-                    this.playerHandler = new PlayerHandler(this.room, this.engine);
-                    this.gameHandler = new GameHandler(this.room, this.engine);
-                    this.votingHandler = new VotingHandler(this.room, this.engine);
-                    this.chatHandler = new ChatHandler(this.engine, this.rateLimiter, this.messages, this.room);
+                    // [Deuda P2] Hot-Swap: update engine reference in existing handlers — no re-instantiation needed
+                    this.connectionHandler.setEngine(this.engine);
+                    this.playerHandler.setEngine(this.engine);
+                    this.gameHandler.setEngine(this.engine);
+                    this.votingHandler.setEngine(this.engine);
+                    this.chatHandler.setEngine(this.engine);
                 }
 
                 this.engine.hydrate(stored);
@@ -502,15 +499,12 @@ export default class Server implements Party.Server {
                         this.engine = createEngine(this.supabase, newMode, this.room.id, this.onStateChange);
                         this.engine.hydrate(currentState);
 
-                        // Re-instanciar los handlers inyectando el nuevo motor
-                        this.connectionHandler = new ConnectionHandler(
-                            this.room, this.engine, this.authTokens, this.messages,
-                            (ctx) => this.scheduleAuthSave(ctx)
-                        );
-                        this.playerHandler = new PlayerHandler(this.room, this.engine);
-                        this.gameHandler = new GameHandler(this.room, this.engine);
-                        this.votingHandler = new VotingHandler(this.room, this.engine);
-                        this.chatHandler = new ChatHandler(this.engine, this.rateLimiter, this.messages, this.room);
+                        // [Deuda P2] Hot-Swap: update engine reference in existing handlers — no re-instantiation needed
+                        this.connectionHandler.setEngine(this.engine);
+                        this.playerHandler.setEngine(this.engine);
+                        this.gameHandler.setEngine(this.engine);
+                        this.votingHandler.setEngine(this.engine);
+                        this.chatHandler.setEngine(this.engine);
 
                         // Forzar broadcast inmediato del estado (enmascarado por el nuevo motor)
                         this.broadcastStateDelta(this.engine.getState());

@@ -103,7 +103,7 @@ export class ConnectionHandler extends BaseHandler {
 
             // [Phoenix Lobby] Mark room as public if creator requested it
             if (isPublicRequest && this.engine.getState().players.length === 0) {
-                this.engine.getState().config.isPublic = true;
+                this.engine.markAsPublic();
                 logger.info('ROOM_MARKED_PUBLIC', { roomId: this.room.id, userId });
             }
 

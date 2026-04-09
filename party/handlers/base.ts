@@ -9,4 +9,10 @@ export abstract class BaseHandler {
         this.room = room;
         this.engine = engine;
     }
+
+    /** [Deuda P2] Hot-Swap support: update engine reference without re-instantiation.
+     *  Called by server.ts when game mode changes (e.g. CLASSIC → IMPOSTOR). */
+    public setEngine(newEngine: BaseEngine): void {
+        this.engine = newEngine;
+    }
 }

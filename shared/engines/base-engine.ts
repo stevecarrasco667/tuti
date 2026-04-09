@@ -46,6 +46,10 @@ export abstract class BaseEngine {
     abstract kickPlayer(hostConnectionId: string, targetUserId: string): RoomState;
     abstract checkInactivePlayers(): boolean;
 
+    /** [Deuda P2] Marks this room as publicly visible in the lobby list.
+     *  Encapsulates the state mutation — handlers must never access getState() directly for writes. */
+    abstract markAsPublic(): void;
+
     /** Rescues the engine from Worker Hibernation if a phase timer expired while sleeping.
      *  Returns `true` if the state was mutated by forcing a timeout transition. */
     abstract handleTimeUp(): boolean;
@@ -61,4 +65,11 @@ export abstract class BaseEngine {
 
     // --- SUB-SYSTEMS (exposed for server.ts reconnection logic) ---
     abstract get players(): PlayerManager;
+
+    // --- HOT-SWAP SUPPORT ---
+    /** [Deuda P2] Allows handlers to receive a new engine reference without being re-instantiated.
+     *  Called by server.ts during mode transitions (CLASSIC ↔ IMPOSTOR). */
+    public updateEngine(newEngine: BaseEngine): void {
+        (this as any).engine = newEngine;
+    }
 }

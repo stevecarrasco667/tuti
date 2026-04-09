@@ -4,7 +4,7 @@
 // Migrated from shared/game-engine.ts → GameEngine
 // Implements BaseEngine contract.
 
-import { RoomState, GameConfig, AnswerStatus, DeepPartial, CategoryRef } from '../types.js';
+import { RoomState, GameConfig, AnswerStatus, DeepPartial, CategoryRef, createDefaultRoomState } from '../types.js';
 import { RoundAnswersSchema } from '../schemas.js';
 import { BaseEngine } from './base-engine.js';
 import { MASTER_CATEGORIES } from './categories.js';
@@ -15,6 +15,7 @@ import { PlayerManager } from '../systems/player-manager.js';
 import { ValidationManager } from '../systems/validation-manager.js';
 import { ConfigurationManager } from '../systems/configuration-manager.js';
 import { VotingManager } from '../systems/voting-manager.js';
+import { logger } from '../utils/logger.js';
 
 import { SupabaseClient } from '@supabase/supabase-js';
 
@@ -49,38 +50,8 @@ export class TutiEngine extends BaseEngine {
     ) {
         super();
         this.supabase = supabase;
-        this.state = {
-            stateVersion: 0,
-            status: 'LOBBY',
-            roomId: roomId,
-            players: [],
-            spectators: [],
-            roundsPlayed: 0,
-            currentLetter: null,
-            categories: [],
-            answers: {},
-            answerStatuses: {},
-            votes: {},
-            whoFinishedVoting: [],
-            roundScores: {},
-
-            // Default Config
-            config: this.configManager.getDefaultConfig(),
-
-            timers: {
-                roundEndsAt: null,
-                votingEndsAt: null,
-                resultsEndsAt: null,
-                graceEndsAt: null
-            },
-            remainingTime: 0,
-            stoppedBy: null,
-            uiMetadata: {
-                activeView: 'LOBBY',
-                showTimer: false,
-                targetTime: null
-            }
-        };
+        // [Deuda P2] Usar factory centralizada — elimina duplicación con ImpostorEngine
+        this.state = createDefaultRoomState(roomId);
     }
 
     // --- SUB-SYSTEMS ---
@@ -678,10 +649,15 @@ export class TutiEngine extends BaseEngine {
         this.state.remainingTime = Math.max(-1, newValue);
     }
 
+    // [Deuda P2] Encapsulates the public room flag mutation — handlers must not write state directly.
+    public markAsPublic(): void {
+        this.state.config.isPublic = true;
+    }
+
     // [Sprint 4] Death Hook — release all GlobalWordCache references
     public dispose(): void {
         this.rounds.cancelTimer();
         this.validation.getDictionaryManager().clearCache();
-        console.log(`[TutiEngine] Disposed for room ${this.state.roomId}`);
+        logger.info('TUTI_ENGINE_DISPOSED', { roomId: this.state.roomId ?? 'unknown' });
     }
 }

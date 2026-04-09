@@ -6,14 +6,17 @@ import { RateLimiter } from "../utils/rate-limiter";
 import { isSpoiler } from "../../shared/utils/spoiler";
 
 
+import { BaseHandler } from "./base";
 
-export class ChatHandler {
+export class ChatHandler extends BaseHandler {
     constructor(
-        private engine: BaseEngine,
+        engine: BaseEngine,
         private rateLimiter: RateLimiter,
         private messages: ChatMessage[],
-        private room: Party.Room
-    ) { }
+        room: Party.Room
+    ) { 
+        super(room, engine);
+    }
 
     async handleChat(payload: { text: string }, sender: Party.Connection) {
         // 1. Rate Limiting (The Wall)
