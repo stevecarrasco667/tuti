@@ -7,4 +7,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
     console.warn('⚠️ Credenciales de Supabase no encontradas en el entorno.')
 }
 
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
+export const supabase = createClient(
+    supabaseUrl || 'https://dummy.supabase.co', 
+    supabaseAnonKey || 'dummy-key'
+)

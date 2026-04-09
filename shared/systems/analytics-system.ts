@@ -22,7 +22,11 @@ export interface AnalyticsEventLog {
 export class AnalyticsSystem {
     public static async trackSession(supabase: SupabaseClient, session: GameSessionLog): Promise<void> {
         try {
-            const { error } = await supabase.from('game_sessions').insert(session);
+            if (!supabase || typeof supabase.from !== 'function') return;
+            const queryBuilder = supabase.from('game_sessions');
+            if (typeof queryBuilder.insert !== 'function') return;
+
+            const { error } = await queryBuilder.insert(session);
             if (error) {
                 logger.warn('ANALYTICS_SESSION_FAILED', { error: error.message, sessionId: session.session_id });
             }
@@ -33,7 +37,11 @@ export class AnalyticsSystem {
 
     public static async trackEvent(supabase: SupabaseClient, event: AnalyticsEventLog): Promise<void> {
         try {
-            const { error } = await supabase.from('analytics_events').insert(event);
+            if (!supabase || typeof supabase.from !== 'function') return;
+            const queryBuilder = supabase.from('analytics_events');
+            if (typeof queryBuilder.insert !== 'function') return;
+
+            const { error } = await queryBuilder.insert(event);
             if (error) {
                 logger.warn('ANALYTICS_EVENT_FAILED', { error: error.message, eventType: event.event_type });
             }
