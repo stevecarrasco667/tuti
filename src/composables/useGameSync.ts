@@ -6,6 +6,28 @@ import { useGameState } from './useGameState';
 import { EVENTS, APP_VERSION } from '../../shared/consts';
 import { router } from '../router/index';
 
+// [Sprint 2 - P2] Helper centralizado para sincronizar la URL con el estado del servidor.
+// Se llama tanto desde UPDATE_STATE como desde PATCH_STATE para garantizar que
+// cualquier cambio de vista del servidor se refleje en el router.
+// activeView: 'LOBBY' | 'GAME' | 'GAME_OVER' — no existe 'HOME' en el tipo del servidor.
+function syncRoute(roomId: string | null, view?: 'LOBBY' | 'GAME' | 'GAME_OVER') {
+    if (roomId && view) {
+        const viewToRoute: Record<string, string> = {
+            'LOBBY': `/lobby/${roomId}`,
+            'GAME': `/game/${roomId}`,
+            'GAME_OVER': `/results/${roomId}`,
+        };
+        const targetRoute = viewToRoute[view];
+        // Solo navegar si la ruta realmente cambia — evita loops de navegación
+        if (targetRoute && router.currentRoute.value.fullPath !== targetRoute) {
+            router.push(targetRoute);
+        }
+    }
+    // Nota: la navegación a '/' cuando !roomId la maneja leaveGame() explícitamente
+    // en useGameActions.ts — no aquí, para no tocar casos donde roomId es null
+    // al inicio antes de que el usuario haya hecho cualquier acción.
+}
+
 export function useGameSync(
     state: ReturnType<typeof useGameState>
 ) {
@@ -37,27 +59,9 @@ export function useGameSync(
                     state.setStopping(false);
                 }
 
-                // [Sprint 2 - P2] El servidor es autoritativo sobre la navegación.
-                // Cuando el servidor cambia uiMetadata.activeView, forzamos router.push().
-                const roomId = newState.roomId;
-                const view = newState.uiMetadata?.activeView;
-                if (roomId && view) {
-                    const viewToRoute: Record<string, string> = {
-                        'HOME': '/',
-                        'LOBBY': `/lobby/${roomId}`,
-                        'GAME': `/game/${roomId}`,
-                        'GAME_OVER': `/results/${roomId}`,
-                    };
-                    const targetRoute = viewToRoute[view];
-                    if (targetRoute && router.currentRoute.value.fullPath !== targetRoute) {
-                        router.push(targetRoute);
-                    }
-                } else if (!roomId) {
-                    // Sin sala: siempre HOME
-                    if (router.currentRoute.value.path !== '/') {
-                        router.push('/');
-                    }
-                }
+                // El servidor es autoritativo — sincroniza URL según activeView
+                syncRoute(newState.roomId, newState.uiMetadata?.activeView);
+
             } else if (parsed.type === EVENTS.PATCH_STATE) {
                 // Check Delta Sync Sequence
                 const { stateVersion, patches } = parsed.payload;
@@ -65,6 +69,13 @@ export function useGameSync(
                 if (stateVersion === state.gameState.value.stateVersion + 1) {
                     applyPatch(state.gameState.value, patches);
                     state.gameState.value.stateVersion = stateVersion;
+
+                    // También sincronizar URL en patches: el servidor puede cambiar
+                    // activeView via un patch delta (ej. LOBBY→GAME al iniciar partida)
+                    syncRoute(
+                        state.gameState.value.roomId,
+                        state.gameState.value.uiMetadata?.activeView
+                    );
                 } else if (stateVersion > state.gameState.value.stateVersion + 1) {
                     console.warn(`[Red] Desfase Crítico (Local: ${state.gameState.value.stateVersion} vs Requerido: ${stateVersion}). Solicitando FULL SYNC...`);
                     if (socket.value && socket.value.readyState === WebSocket.OPEN) {

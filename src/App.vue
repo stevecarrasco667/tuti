@@ -10,21 +10,33 @@ const { isMuted, toggleMute } = useSound();
 const { toasts, addToast } = useToast();
 const router = useRouter();
 
-// Detectar jugador kickeado
+// Detectar jugador kickeado — solo en LOBBY para evitar falsos positivos durante
+// la transición de fase LOBBY → GAME donde el array de jugadores puede fluctuar.
 let wasInGame = false;
+let joinedAt = 0;
 watch(() => gameState.value.players, (newPlayers) => {
     const currentPath = router.currentRoute.value.path;
-    if (myUserId.value && currentPath !== '/') {
+    const gameStatus = gameState.value.status;
+
+    // Solo verificar kicks durante el LOBBY (no durante PLAYING ni GAME_OVER)
+    // Las transiciones de fase limpian/reconstruyen la lista de jugadores — no son kicks reales.
+    if (myUserId.value && currentPath !== '/' && gameStatus === 'LOBBY') {
         const stillInGame = newPlayers.some(p => p.id === myUserId.value);
-        if (!stillInGame && wasInGame && newPlayers.length > 0) {
+        const enoughTimeElapsed = (Date.now() - joinedAt) > 2000;
+
+        if (!stillInGame && wasInGame && newPlayers.length > 0 && enoughTimeElapsed) {
             addToast('Has sido expulsado de la sala por el anfitrión.', 'error');
             leaveGame();
         }
-        if (stillInGame) wasInGame = true;
-    } else {
+        if (stillInGame) {
+            if (!wasInGame) joinedAt = Date.now();
+            wasInGame = true;
+        }
+    } else if (currentPath === '/') {
         wasInGame = false;
     }
 }, { deep: true });
+
 
 // Detectar si la vista actual está en GAME (para posicionar el botón mute)
 const isGameView = () => router.currentRoute.value.path.startsWith('/game/');

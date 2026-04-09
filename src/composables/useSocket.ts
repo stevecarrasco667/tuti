@@ -53,9 +53,13 @@ export function useSocket() {
         // --- FASE 4: HANDSHAKE BLINDADO ZERO-TRUST ---
         let currentToken = userInfo?.token;
         try {
-            const { data } = await supabase.auth.getSession();
-            if (data?.session?.access_token) {
-                currentToken = data.session.access_token;
+            // Timeout de 1.5s para evitar bloquear la conexión si Supabase no está disponible
+            const sessionResult = await Promise.race([
+                supabase.auth.getSession(),
+                new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500))
+            ]);
+            if (sessionResult && 'data' in sessionResult && sessionResult.data?.session?.access_token) {
+                currentToken = sessionResult.data.session.access_token;
             }
         } catch (error) {
             console.warn('No se pudo obtener el token de identidad:', error);

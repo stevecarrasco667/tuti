@@ -4,6 +4,7 @@ import { useGameState } from './useGameState';
 import { debounce } from '../utils/timing';
 import { EVENTS } from '../../shared/consts';
 import { DeepPartial, GameConfig, createDefaultRoomState } from '../../shared/types';
+import { router } from '../router/index';
 
 export function useGameActions(
     state: ReturnType<typeof useGameState>
@@ -16,10 +17,8 @@ export function useGameActions(
 
         setRoomId(targetRoomId, { userId, name, avatar, token, public: isPublic ? 'true' : undefined });
 
-        // Update URL for deep linking
-        const url = new URL(window.location.href);
-        url.searchParams.set('room', targetRoomId);
-        window.history.pushState({}, '', url);
+        // La URL ser\u00e1 actualizada por useGameSync cuando el servidor confirme la sala
+        // (router.push desde uiMetadata.activeView). No manipulamos window.history directamente.
 
         // Simple polling to wait for connection
         const waitForConnection = () => {
@@ -135,12 +134,9 @@ export function useGameActions(
         state.gameState.value = createDefaultRoomState(null);
         state.localImpostorRole.value = null;
 
-        // Limpiar el parámetro 'room' de la URL para que el link regrese a su estado original
-        const url = new URL(window.location.href);
-        if (url.searchParams.has('room')) {
-            url.searchParams.delete('room');
-            window.history.replaceState({}, '', url.toString() || '/');
-        }
+        // [Sprint 2 - P2] Navegar a HOME usando el router (no window.history)
+        // Esto garantiza que la vista cambie inmediatamente sin esperar un mensaje del servidor
+        router.push('/');
     };
 
     const sendChatMessage = (text: string) => {
