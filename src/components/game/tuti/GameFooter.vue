@@ -73,6 +73,7 @@ const buttonLabel = computed(() => {
                 <!-- Botón BASTA con jerarquía P11 -->
                 <button
                     @click="$emit('stop')"
+                    :title="isGraceActive ? `Debes esperar el tiempo de gracia inicial antes de poder gritar BASTA.` : undefined"
                     class="w-full font-black py-4 rounded-3xl shadow-game-btn transition-all active:scale-[0.98] flex items-center justify-center gap-3 border-4 uppercase tracking-widest"
                     :class="isEnding
                         ? 'text-xl bg-action-error/60 border-red-400/60 text-white opacity-90 cursor-not-allowed animate-pulse'

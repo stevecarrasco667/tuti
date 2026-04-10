@@ -84,10 +84,17 @@ import { computed } from 'vue';
 
             <!-- Empty Slots -->
             <div v-for="i in emptySlots" :key="'empty-' + i"
-                 class="flex items-center gap-3 p-3 rounded-xl border-[3px] border-dashed border-white/60 bg-white/30"
+                 class="flex items-center gap-3 p-3 rounded-xl border-[3px] border-dashed bg-white/30"
+                 :class="props.players.length === 1 && i === 1 ? 'border-action-blue/50 animate-pulse' : 'border-white/60'"
             >
-                <span class="text-xl opacity-20 flex-none">👤</span>
-                <span class="text-ink-muted font-bold text-xs uppercase tracking-wider">Vacío</span>
+                <template v-if="props.players.length === 1 && i === 1">
+                    <span class="text-xl flex-none">🔗</span>
+                    <span class="text-action-blue font-black text-xs uppercase tracking-wider">Desafía a tus amigos:<br/><span class="font-bold text-[10px] text-ink-muted">Comparte el link para invitar</span></span>
+                </template>
+                <template v-else>
+                    <span class="text-xl opacity-20 flex-none">👤</span>
+                    <span class="text-ink-muted font-bold text-xs uppercase tracking-wider">Vacío</span>
+                </template>
             </div>
         </div>
     </div>
