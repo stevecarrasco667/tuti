@@ -414,6 +414,14 @@ export default class Server implements Party.Server {
             }));
 
             // 4. Unified Delta Broadcast — sends PATCHES (not full state) to existing clients
+            // [Sprint 3 - P2] Broadcast PLAYER_JOINED to all other connections (imperativo, sin array-diffing en el cliente)
+            const joinedName = this.engine.getState().players.find(p => p.id === userId)?.name;
+            if (joinedName) {
+                const joinMsg = JSON.stringify({ type: EVENTS.PLAYER_JOINED, payload: { name: joinedName } });
+                for (const c of this.room.getConnections()) {
+                    if (c.id !== conn.id) c.send(joinMsg);
+                }
+            }
             this.broadcastStateDelta(this.engine.getState());
         } catch (err) {
             logger.error('ON_CONNECT_FAILED', { connectionId: conn.id, roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
@@ -676,6 +684,16 @@ export default class Server implements Party.Server {
     onClose(connection: Party.Connection) {
         this.rateLimiter.cleanup(connection.id);
         this.connectionHandler.handleClose(connection);
+
+        // [Sprint 3 - P2] Broadcast PLAYER_LEFT a los jugadores restantes antes del delta sync
+        const leftUserId = (connection.state as any)?.userId || connection.id;
+        const leftPlayer = this.engine.getState().players.find(p => p.id === leftUserId);
+        if (leftPlayer) {
+            const leaveMsg = JSON.stringify({ type: EVENTS.PLAYER_LEFT, payload: { name: leftPlayer.name } });
+            for (const c of this.room.getConnections()) {
+                if (c.id !== connection.id) c.send(leaveMsg);
+            }
+        }
 
         // Unified Delta Broadcast (notify remaining players)
         this.broadcastStateDelta(this.engine.getState());

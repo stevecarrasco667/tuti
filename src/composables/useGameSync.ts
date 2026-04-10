@@ -5,6 +5,7 @@ import { ServerMessage, PrivateRolePayload } from '../../shared/types';
 import { useGameState } from './useGameState';
 import { EVENTS, APP_VERSION } from '../../shared/consts';
 import { router } from '../router/index';
+import { useToast } from './useToast';
 
 // [Sprint 2 - P2] Helper centralizado para sincronizar la URL con el estado del servidor.
 // Se llama tanto desde UPDATE_STATE como desde PATCH_STATE para garantizar que
@@ -32,6 +33,9 @@ export function useGameSync(
     state: ReturnType<typeof useGameState>
 ) {
     const { socket, lastMessage, setRoomId, isConnected, connectToParty } = useSocket();
+    // [Sprint 3 - P2] Toast singleton — importado en la capa de red para disparar de forma imperativa,
+    // no desde watchers de UI (anti-patrón de proxy-diffing rechazado por el CTO).
+    const { addToast } = useToast();
     // Reactions are handled by the singleton listener in useSocket.ts
 
     // Inbound: Receive and Mutate
@@ -123,6 +127,14 @@ export function useGameSync(
                 }
             } else if (parsed.type === EVENTS.SERVER_ERROR) {
                 console.error('[Server Error]:', (parsed.payload as { message: string }).message);
+            } else if (parsed.type === EVENTS.PLAYER_JOINED) {
+                // [Sprint 3 - P2] Disparador imperativo — desde evento discreto del WebSocket,
+                // NO desde array-diffing de Vue (evita race conditions con proxies mutados).
+                const name = (parsed.payload as { name: string }).name;
+                addToast(`👥 ${name} se unió a la sala`, 'success');
+            } else if (parsed.type === EVENTS.PLAYER_LEFT) {
+                const name = (parsed.payload as { name: string }).name;
+                addToast(`🚪 ${name} abandonó la sala`, 'info');
             }
             // WORD_REACT is handled by the singleton in useSocket.ts — do NOT handle it here
         } catch (e) {

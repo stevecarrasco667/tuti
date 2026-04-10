@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, defineAsyncComponent } from 'vue';
 import { useGame } from '../composables/useGame';
 import { useGameEffects } from '../composables/useGameEffects';
 import ReloadPrompt from './ReloadPrompt.vue';
@@ -7,9 +7,12 @@ import CountdownOverlay from './overlays/CountdownOverlay.vue';
 import StopSignal from './overlays/StopSignal.vue';
 import MobileChatDrawer from './chat/MobileChatDrawer.vue';
 
-// --- GAME BOARDS ---
-import TutiBoard from './game/tuti/TutiBoard.vue';
-import ImpostorBoard from './game/impostor/ImpostorBoard.vue';
+// --- GAME BOARDS (Lazy-loaded — no forman parte del bundle inicial) ---
+// El pre-fetch ocurre en LobbyView mientras el usuario espera el inicio de la partida.
+// defineAsyncComponent garantiza que el JS de los motores solo se descargue cuando
+// el modo de juego está confirmado, evitando race conditions en redes lentas.
+const TutiBoard = defineAsyncComponent(() => import('./game/tuti/TutiBoard.vue'));
+const ImpostorBoard = defineAsyncComponent(() => import('./game/impostor/ImpostorBoard.vue'));
 
 // Use the activeBoard reference to expose internals
 const boardRef = ref<any>(null);

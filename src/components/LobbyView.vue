@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useGame } from '../composables/useGame';
 import { useSound } from '../composables/useSound';
 import type { CategoryRef } from '../../shared/types';
@@ -12,6 +12,14 @@ import GameTutorialModal from './tutorials/GameTutorialModal.vue';
 
 const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer, leaveGame } = useGame();
 const { playClick, playJoin, playAlarm, playSuccess } = useSound();
+
+// [Sprint 3 - P2] Pre-fetch inteligente de los motores de juego.
+// Se inician silenciosamente mientras el usuario espera en el Lobby, para que cuando el
+// servidor envíe START_GAME, el JS ya esté descargado y no haya race condition en redes lentas.
+onMounted(() => {
+    import('./game/tuti/TutiBoard.vue');
+    import('./game/impostor/ImpostorBoard.vue');
+});
 
 // ── Smart State (Orquestador) ─────────────────────────────────────────────────
 const localConfig = computed(() => gameState.value.config);

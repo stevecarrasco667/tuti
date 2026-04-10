@@ -5,7 +5,7 @@ import { useGame } from './composables/useGame';
 import { useSound } from './composables/useSound';
 import { useToast } from './composables/useToast';
 
-const { gameState, myUserId, leaveGame } = useGame();
+const { gameState, myUserId, leaveGame, isConnected } = useGame();
 const { isMuted, toggleMute } = useSound();
 const { toasts, addToast } = useToast();
 const router = useRouter();
@@ -62,6 +62,23 @@ const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
         </svg>
     </button>
 
+    <!-- RECONNECTION BANNER -->
+    <!-- Solo visible cuando la conexión WebSocket cae fuera de la pantalla de inicio.
+         No bloquea la UI: permite ver y tipear, pero el servidor rechazará cualquier
+         acción enviada. El botones BASTA/Votar quedan deshabilitados via isConnected. -->
+    <Transition name="banner">
+        <div
+            v-if="!isConnected && router.currentRoute.value.path !== '/'"
+            class="fixed top-0 left-0 right-0 z-[200] flex items-center justify-center gap-2 py-2 px-4 bg-amber-500/90 backdrop-blur-sm text-panel-base text-xs font-black uppercase tracking-widest animate-pulse shadow-lg"
+        >
+            <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            Reconectando al servidor...
+        </div>
+    </Transition>
+
     <!-- MAIN CONTENT con router-view -->
     <main class="flex-1 w-full relative flex flex-col min-h-0">
         <RouterView v-slot="{ Component }">
@@ -108,5 +125,13 @@ const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
 .toast-leave-to {
   opacity: 0;
   transform: translateX(40px) scale(0.9);
+}
+/* Banner Transition */
+.banner-enter-active, .banner-leave-active {
+  transition: all 0.3s ease-out;
+}
+.banner-enter-from, .banner-leave-to {
+  opacity: 0;
+  transform: translateY(-100%);
 }
 </style>

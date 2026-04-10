@@ -180,7 +180,9 @@ export type ServerMessage =
     | { type: typeof EVENTS.CHAT_NEW; payload: ChatMessage }
     | { type: typeof EVENTS.CHAT_HISTORY; payload: ChatMessage[] }
     | { type: typeof EVENTS.SERVER_ERROR; payload: { message: string } } // [Phoenix P0] Error Telemetry
-    | { type: typeof EVENTS.LOBBY_STATE_UPDATE; payload: RoomSnapshot[] }; // [Phoenix Lobby]
+    | { type: typeof EVENTS.LOBBY_STATE_UPDATE; payload: RoomSnapshot[] } // [Phoenix Lobby]
+    | { type: typeof EVENTS.PLAYER_JOINED; payload: { name: string } }   // [Sprint 3 - P2] Membership Events
+    | { type: typeof EVENTS.PLAYER_LEFT; payload: { name: string } };    // [Sprint 3 - P2] Membership Events
 
 // [Patch 2.4] Single source of truth for the default RoomState.
 // Import this instead of duplicating the object literal across engines and composables.

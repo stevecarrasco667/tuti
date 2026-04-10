@@ -37,6 +37,12 @@ export const EVENTS = {
     // [Phoenix P0] Error Telemetry
     SERVER_ERROR: 'SERVER_ERROR',
 
+    // [Sprint 3 - P2] Membership Events (Server -> Client)
+    // Son eventos discretos para disparar Toasts de forma imperativa en el cliente.
+    // Evita el anti-patrón de array-diffing en Vue (propenso a race conditions con proxies mutados).
+    PLAYER_JOINED: 'PLAYER_JOINED',
+    PLAYER_LEFT: 'PLAYER_LEFT',
+
     // [Phoenix CDN] Admin Commands
     ADMIN_RELOAD_DICTS: 'ADMIN_RELOAD_DICTS',
 
