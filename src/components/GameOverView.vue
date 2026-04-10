@@ -56,25 +56,92 @@ const highlights = computed<MatchHighlights>(() => computeMatchHighlights(gameSt
 const doubleRAF = () =>
     new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame((_t: number) => resolve())));
 
+// ── Smart Share: Detección determinista de entorno ──────────────────────────
+// Usamos userAgent porque necesitamos saber si el SO puede invocar el menú
+// nativo de compartir (iOS/Android) vs. si debemos copiar al portapapeles (PC).
+const isMobileDevice = () =>
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+// Convierte un dataUrl Base64 a File para que el WebShare de iOS/Android lo acepte
+const dataUrlToFile = (dataUrl: string, filename: string): File => {
+    const [header, data] = dataUrl.split(',');
+    const mime = header.match(/:(.*?);/)![1];
+    const bytes = atob(data);
+    const buffer = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i++) buffer[i] = bytes.charCodeAt(i);
+    return new File([buffer], filename, { type: mime });
+};
+
 const shareMatchSummary = async () => {
     if (isCapturing.value) return;
     isCapturing.value = true;
     showSummaryCard.value = true;
+
     try {
+        // ── PASO 1: Captura de imagen ────────────────────────────────────────
         await nextTick();
         await document.fonts.ready;
         await doubleRAF();
         const opts = { width: 1080, height: 1920, pixelRatio: 1, cacheBust: true };
-        await toPng(summaryCardRef.value!, opts); // iOS warmup
+        await toPng(summaryCardRef.value!, opts); // Warmup render (evita artefactos en iOS)
         const dataUrl = await toPng(summaryCardRef.value!, opts);
-        const a = document.createElement('a');
-        a.href = dataUrl;
-        a.download = `tuti-resumen-${Date.now()}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        const filename = `tuti-resumen-${Date.now()}.png`;
+
+        // ── PASO 2: Descarga forzada (SIEMPRE, independiente del dispositivo) ──
+        // Este es el "Punto de Retorno Seguro": el usuario siempre se queda
+        // con la imagen en su almacenamiento local, caiga lo que caiga después.
+        const anchor = document.createElement('a');
+        anchor.href = dataUrl;
+        anchor.download = filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+
+        // ── PASO 3: Bifurcación de dispositivo ───────────────────────────────
+        const roomUrl = window.location.href;
+        const shareText = '🎮 ¡Acabo de jugar Tutifruti Online! ¿Te atreves a retar mi puntaje? Únete aquí:';
+
+        if (isMobileDevice()) {
+            // ── FLUJO MÓVIL: Web Share API nativa (WhatsApp, Instagram, etc.) ──
+            const file = dataUrlToFile(dataUrl, filename);
+            const canShareFiles = navigator.canShare && navigator.canShare({ files: [file] });
+
+            if (canShareFiles) {
+                try {
+                    await navigator.share({
+                        title: '🏆 Mi partida de Tutifruti',
+                        text: shareText,
+                        url: roomUrl,
+                        files: [file],
+                    });
+                    // Si el usuario cerró el menú sin compartir (AbortError), lo ignoramos
+                } catch (shareErr: any) {
+                    if (shareErr?.name !== 'AbortError') {
+                        // Error real (ej. API no soportada en este browser móvil) → fallback silencioso
+                        console.warn('[SmartShare] navigator.share falló:', shareErr);
+                    }
+                }
+            } else {
+                // El navegador móvil no soporta file-sharing → solo notificamos la descarga
+                addToast('📸 Imagen guardada en tu galería', 'success');
+            }
+        } else {
+            // ── FLUJO DESKTOP: Copiar URL al portapapeles ────────────────────
+            // No invocamos navigator.share en PC: su UX nativa es terrible en Windows/Mac.
+            // Copiamos solo la URL (texto limpio, listo para pegar en Discord/WhatsApp Web).
+            try {
+                await navigator.clipboard.writeText(roomUrl);
+                addToast('📥 Imagen descargada y link copiado — pégalo en tu chat 🔗', 'success');
+            } catch {
+                // Clipboard API no disponible o bloqueada por política del navegador.
+                // No usamos execCommand (rechazado por directriz arquitectónica).
+                // La descarga ya se completó arriba, así que la experiencia no se rompe.
+                addToast('📥 Imagen descargada — comparte el link de la sala con tus amigos', 'info');
+            }
+        }
+
     } catch (err) {
-        console.error('[MatchSummary] Error al generar imagen:', err);
+        console.error('[SmartShare] Error en la captura de imagen:', err);
         addToast('Ups, no se pudo guardar el recuerdo 🙅', 'error');
     } finally {
         showSummaryCard.value = false;
