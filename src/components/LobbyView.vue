@@ -8,6 +8,7 @@ import LobbyHeader from './lobby/LobbyHeader.vue';
 import PlayerList from './lobby/PlayerList.vue';
 import GameConfigPanel from './lobby/GameConfigPanel.vue';
 import CategorySelector from './lobby/CategorySelector.vue';
+import GameTutorialModal from './tutorials/GameTutorialModal.vue';
 
 const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer, leaveGame } = useGame();
 const { playClick, playJoin, playAlarm, playSuccess } = useSound();
@@ -17,6 +18,13 @@ const localConfig = computed(() => gameState.value.config);
 const players = computed(() => gameState.value.players);
 const copied = ref(false);
 const activeTab = ref<'players' | 'settings'>('players');
+
+// Tutorial State
+const tutorialMode = ref<'CLASSIC' | 'IMPOSTOR' | null>(null);
+const showTutorial = computed({
+    get: () => tutorialMode.value !== null,
+    set: (v) => { if (!v) tutorialMode.value = null; }
+});
 
 // Trigger audio when someone joins
 watch(() => gameState.value.players.length, (newCount, oldCount) => {
@@ -172,6 +180,11 @@ const handleLeave = () => {
                                     <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">TUTI CLÁSICO</h4>
                                     <p class="text-ink-soft text-[8px] font-bold mt-1">Categorías · Letras · Velocidad</p>
                                     <div v-if="localConfig.mode === 'CLASSIC'" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-action-primary text-panel-base flex items-center justify-center text-[10px] font-black shadow-lg">✓</div>
+                                    <button 
+                                        @click.stop="tutorialMode = 'CLASSIC'"
+                                        class="absolute top-2 left-2 w-5 h-5 rounded-full bg-panel-base border border-white/20 hover:bg-white/10 hover:border-white/50 text-ink-muted hover:text-white flex items-center justify-center text-[10px] font-black shadow transition-all z-10"
+                                        title="Cómo jugar"
+                                    >?</button>
                                 </button>
                                 <button
                                     @click="handleConfigChange('mode', 'IMPOSTOR')"
@@ -184,6 +197,11 @@ const handleLeave = () => {
                                     <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">IMPOSTOR</h4>
                                     <p class="text-ink-soft text-[8px] font-bold mt-1">¿Quién está mintiendo?</p>
                                     <div v-if="localConfig.mode === 'IMPOSTOR'" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-action-blue text-white flex items-center justify-center text-[10px] font-black shadow-lg">✓</div>
+                                    <button 
+                                        @click.stop="tutorialMode = 'IMPOSTOR'"
+                                        class="absolute top-2 left-2 w-5 h-5 rounded-full bg-panel-base border border-white/20 hover:bg-white/10 hover:border-white/50 text-ink-muted hover:text-white flex items-center justify-center text-[10px] font-black shadow transition-all z-10"
+                                        title="Cómo jugar"
+                                    >?</button>
                                 </button>
                             </div>
                         </div>
@@ -227,6 +245,11 @@ const handleLeave = () => {
             </div>
         </div>
 
+        <!-- Tutorial Modal -->
+        <GameTutorialModal 
+            v-model="showTutorial" 
+            :mode="tutorialMode" 
+        />
     </div>
 </template>
 
