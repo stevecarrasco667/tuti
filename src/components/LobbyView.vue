@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { useGame } from '../composables/useGame';
 import { useSound } from '../composables/useSound';
+import { useDeepLink } from '../composables/useDeepLink';
 import type { CategoryRef } from '../../shared/types';
 import TButton from './ui/TButton.vue';
 import LobbyHeader from './lobby/LobbyHeader.vue';
@@ -12,6 +14,11 @@ import GameTutorialModal from './tutorials/GameTutorialModal.vue';
 
 const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer, leaveGame } = useGame();
 const { playClick, playJoin, playAlarm, playSuccess } = useSound();
+
+// [Sprint 4 - Factor K] Deep Link: auto-conecta si el usuario llega directamente
+// con una URL compartida, sin haber pasado por HomeView.
+const route = useRoute();
+useDeepLink(route.params.roomId as string);
 
 // [Sprint 3 - P2] Pre-fetch inteligente de los motores de juego.
 // Se inician silenciosamente mientras el usuario espera en el Lobby, para que cuando el

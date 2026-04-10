@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, watch, computed, defineAsyncComponent } from 'vue';
+import { useRoute } from 'vue-router';
 import { useGame } from '../composables/useGame';
 import { useGameEffects } from '../composables/useGameEffects';
+import { useDeepLink } from '../composables/useDeepLink';
 import ReloadPrompt from './ReloadPrompt.vue';
 import CountdownOverlay from './overlays/CountdownOverlay.vue';
 import StopSignal from './overlays/StopSignal.vue';
@@ -18,6 +20,12 @@ const ImpostorBoard = defineAsyncComponent(() => import('./game/impostor/Imposto
 const boardRef = ref<any>(null);
 
 const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVotes, myUserId, amIHost, startGame, leaveGame, isStopping } = useGame();
+
+// [Sprint 4 - Factor K] Deep Link: auto-conecta si el usuario llega directamente
+// con /game/:roomId sin haber pasado por HomeView. syncRoute() redirigirá a la
+// vista correcta (LOBBY / GAME / RESULTS) una vez el servidor responda.
+const route = useRoute();
+useDeepLink(route.params.roomId as string);
 
 const showCountdown = ref(false);
 const showStopSignal = ref(false);
