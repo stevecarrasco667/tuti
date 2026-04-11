@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { generateRoomId, generateRandomName } from '../utils/random';
 import { useGame } from '../composables/useGame';
 import { useLobby } from '../composables/useLobby';
@@ -35,6 +36,8 @@ const playerName = computed({
 const selectedAvatar = myUserAvatar;
 // ──────────────────────────────────────────────────────────────────────────────
 
+const route = useRoute();
+
 // [Phoenix Lobby] Connect + Zero Friction Identity
 onMounted(() => {
     connect();
@@ -45,6 +48,19 @@ onMounted(() => {
     }
     if (!myUserAvatar.value || myUserAvatar.value === '🦁') {
         selectedAvatar.value = AVATARS[Math.floor(Math.random() * AVATARS.length)];
+    }
+
+    // ── [Bug Fix: Deep Links] Auto-Join desde link compartido ───────────────
+    // El Navigation Guard (router/index.ts) intercepta rutas como /game/ABCD
+    // cuando el socket está frío y redirige a '/?join=ABCD'.
+    // Aquí lo detectamos y unimos al usuario automáticamente, sin ningún click.
+    // El servidor lo recibirá, le asignará rol de Espectador si la partida está
+    // en curso, y syncRoute() lo llevará a la vista correcta cuando llegue el
+    // primer UPDATE_STATE.
+    const joinParam = route.query.join as string | undefined;
+    if (joinParam && joinParam.length === 4) {
+        const roomCode = joinParam.toUpperCase();
+        joinGame(myUserName.value, roomCode, selectedAvatar.value);
     }
 });
 
