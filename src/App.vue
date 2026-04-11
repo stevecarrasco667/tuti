@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { useGame } from './composables/useGame';
 import { useSound } from './composables/useSound';
 import { useToast } from './composables/useToast';
+import { isBootstrapping } from './router/index';
 
 const { gameState, myUserId, leaveGame, isConnected } = useGame();
 const { isMuted, toggleMute } = useSound();
@@ -78,6 +79,38 @@ const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
             Reconectando al servidor...
         </div>
     </Transition>
+    <!-- [Sprint 4 — Cold Start] LOADING OVERLAY GLOBAL -->
+    <!-- Renderizado FUERA del RouterView: mientras el Navigation Guard bloquea la
+         resolución de next(), el componente destino no monta, pero App.vue sí.
+         Este overlay evita que el usuario vea una pantalla en blanco durante
+         el bootstrapping de la conexión WebSocket (hasta 8s en redes lentas). -->
+    <Transition name="fade">
+        <div
+            v-if="isBootstrapping"
+            class="fixed inset-0 z-[300] flex flex-col items-center justify-center bg-gradient-to-br from-[#1a0533] via-[#0f0a1a] to-[#1a0533]"
+        >
+            <!-- Spinner principal -->
+            <div class="relative mb-8">
+                <div class="w-20 h-20 rounded-full border-4 border-white/10 border-t-purple-400 animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="text-3xl animate-pulse">🎮</span>
+                </div>
+            </div>
+
+            <!-- Texto de estado -->
+            <h2 class="text-white font-black text-xl uppercase tracking-[0.2em] mb-2 animate-pulse">
+                Conectando a la sala
+            </h2>
+            <p class="text-white/40 text-xs font-bold uppercase tracking-widest">
+                Preparando partida...
+            </p>
+
+            <!-- Barra de progreso sutil -->
+            <div class="mt-8 w-48 h-1 bg-white/10 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-loading-bar"></div>
+            </div>
+        </div>
+    </Transition>
 
     <!-- MAIN CONTENT con router-view -->
     <main class="flex-1 w-full relative flex flex-col min-h-0">
@@ -133,5 +166,14 @@ const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
 .banner-enter-from, .banner-leave-to {
   opacity: 0;
   transform: translateY(-100%);
+}
+/* Cold Start Loading Bar */
+@keyframes loading-bar {
+  0% { width: 0%; margin-left: 0; }
+  50% { width: 60%; margin-left: 20%; }
+  100% { width: 0%; margin-left: 100%; }
+}
+.animate-loading-bar {
+  animation: loading-bar 1.8s ease-in-out infinite;
 }
 </style>

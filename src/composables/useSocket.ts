@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import PartySocket from "partysocket";
 import { supabase } from '../lib/supabase';
 import { useReactions } from './useReactions';
@@ -151,6 +151,30 @@ export function useSocket() {
         }
     };
 
+    // [Sprint 4 — Cold Start] Promesa de espera para el primer UPDATE_STATE.
+    // El Navigation Guard del router la usa para bloquear la navegación hasta que
+    // el servidor confirme que la sala existe y envíe el estado real de la partida.
+    // Timeout configurable (default 8s para redes 3G/Latam).
+    const waitForFirstState = (timeoutMs = 8000): Promise<void> => {
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                unwatch();
+                reject(new Error('COLD_START_TIMEOUT'));
+            }, timeoutMs);
+
+            const unwatch = watch(lastMessage, (raw) => {
+                try {
+                    const msg = JSON.parse(raw);
+                    if (msg.type === EVENTS.UPDATE_STATE) {
+                        clearTimeout(timeout);
+                        unwatch();
+                        resolve();
+                    }
+                } catch { /* ignorar mensajes no-JSON */ }
+            });
+        });
+    };
+
     return {
         socket,
         isConnected,
@@ -158,6 +182,7 @@ export function useSocket() {
         setRoomId,
         connectToParty: setRoomId,
         disconnectIntentionally,
-        isIntentionalDisconnect
+        isIntentionalDisconnect,
+        waitForFirstState
     };
 }
