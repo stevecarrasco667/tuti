@@ -79,6 +79,14 @@ const handleToast = (msg: string, style: 'join' | 'leave' | 'stop-warning', icon
     <div class="h-full w-full flex flex-col bg-panel-base text-ink-main overflow-hidden font-sans">
         <ReloadPrompt />
 
+        <!-- [BugFix] Overlay de carga inicial mientras el WS negocia por un deep link -->
+        <div v-if="!gameState.roomId" class="absolute inset-0 z-[200] flex flex-col items-center justify-center bg-panel-base gap-4">
+            <span class="text-5xl animate-bounce">🎮</span>
+            <p class="text-ink-main font-black text-xl uppercase tracking-widest animate-pulse">
+                Conectando a la partida...
+            </p>
+        </div>
+
         <!-- [Phoenix] SPECTATOR MODE BANNER -->
         <div v-if="isSpectator" class="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-ink-main/60 backdrop-blur-md pointer-events-none">
             <div class="text-center space-y-4 animate-pulse">
