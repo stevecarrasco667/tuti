@@ -16,6 +16,7 @@ const props = defineProps<{
     myUserId: string;
     timeRemaining: number;
     timerColor: string;
+    isSpectator?: boolean;
 }>();
 
 const { toggleVote } = useGame();
@@ -103,7 +104,7 @@ const votingProgress = computed(() =>
             </div>
 
             <!-- Identity Banner — compact on mobile -->
-            <div class="w-full transition-opacity duration-500" :class="{ 'opacity-50 grayscale pointer-events-none': isDead }">
+            <div v-if="!isSpectator" class="w-full transition-opacity duration-500" :class="{ 'opacity-50 grayscale pointer-events-none': isDead }">
                 <div v-if="isImpostor"
                      class="bg-action-error/10 border-[2px] border-action-error/30 rounded-2xl px-4 py-2 backdrop-blur-md flex items-center gap-2 shadow-sm">
                     <span class="text-xl flex-none">⚠️</span>
@@ -125,6 +126,11 @@ const votingProgress = computed(() =>
                     </div>
                 </div>
             </div>
+            <!-- Spectator Passive Banner -->
+            <div v-else class="w-full bg-panel-input/60 border border-white/10 rounded-2xl px-4 py-2 flex items-center justify-center gap-2 shadow-sm">
+                <span class="text-xl animate-pulse">👀</span>
+                <span class="text-action-primary font-black text-[10px] md:text-xs uppercase tracking-widest text-center">Analizando el Tribunal...</span>
+            </div>
 
             <!-- Phase 6: Voting Progress Bar -->
             <div class="mt-2 flex items-center gap-3">
@@ -138,7 +144,7 @@ const votingProgress = computed(() =>
             </div>
 
             <!-- Ghost banner -->
-            <div v-if="isDead" class="mt-2 bg-panel-input/60 border-2 border-white/10 rounded-2xl px-4 py-2 flex items-center gap-2 shadow-inner">
+            <div v-if="isDead && !isSpectator" class="mt-2 bg-panel-input/60 border-2 border-white/10 rounded-2xl px-4 py-2 flex items-center gap-2 shadow-inner">
                 <span class="text-2xl">💀</span>
                 <span class="text-ink-muted font-black text-xs uppercase tracking-widest">Eres un fantasma — observa en silencio.</span>
             </div>
@@ -244,15 +250,15 @@ const votingProgress = computed(() =>
 
                         <!-- Phase 3: ACUSAR button — guaranteed min size -->
                         <button @click="handleVote(s.id)"
-                                :disabled="s.isMe || s.isPlayerDead || isDead"
+                                :disabled="s.isMe || s.isPlayerDead || isDead || isSpectator"
                                 class="flex items-center justify-between w-full min-h-[40px] rounded-full px-3 py-1.5 transition-all duration-300 border-2 active:scale-95"
                                 :class="[
                                     s.isSelectedByMe
                                         ? 'bg-action-primary/20 border-action-primary shadow-[0_0_8px_rgba(46,204,113,0.3)]'
                                         : 'bg-panel-input border-white/10',
-                                    (!s.isMe && !s.isPlayerDead && !isDead)
+                                    (!s.isMe && !s.isPlayerDead && !isDead && !isSpectator)
                                         ? 'cursor-pointer hover:border-white/30'
-                                        : 'cursor-not-allowed opacity-60'
+                                        : 'cursor-not-allowed opacity-60 grayscale'
                                 ]"
                         >
                             <span class="font-black tracking-widest uppercase text-left flex-shrink-0 mr-2"

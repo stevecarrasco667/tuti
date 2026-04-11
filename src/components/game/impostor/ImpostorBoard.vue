@@ -16,6 +16,7 @@ const props = defineProps<{
     isStopping: boolean;
     timeRemaining: number;
     timerColor: string;
+    isSpectator?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -66,6 +67,7 @@ const handleSubmit = (word: string) => {
                 :my-user-id="myUserId"
                 :time-remaining="timeRemaining"
                 :timer-color="timerColor"
+                :is-spectator="isSpectator"
                 @submit="handleSubmit"
             />
 
@@ -77,6 +79,7 @@ const handleSubmit = (word: string) => {
                 :my-user-id="myUserId"
                 :time-remaining="timeRemaining"
                 :timer-color="timerColor"
+                :is-spectator="isSpectator"
             />
             
             <!-- PHASE: RESULTS -->
@@ -86,6 +89,7 @@ const handleSubmit = (word: string) => {
                 :players="gameState.players"
                 :time-remaining="timeRemaining"
                 :timer-color="timerColor"
+                :is-spectator="isSpectator"
             />
 
             <!-- PHASE: LAST_WISH [P10] -->
@@ -96,6 +100,7 @@ const handleSubmit = (word: string) => {
                 :my-user-id="myUserId"
                 :time-remaining="timeRemaining"
                 :timer-color="timerColor"
+                :is-spectator="isSpectator"
             />
 
             <!-- FALLBACK LOBBY / INTERMISSION -->

@@ -11,6 +11,7 @@ const props = defineProps<{
     modelValue: Record<string, string>;
     rivalsActivity: any[];
     isBlocked?: boolean;
+    isSpectator?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -76,5 +77,6 @@ const handleInputFocus = (event: Event) => {
         @input-focus="handleInputFocus"
         @input-change="handleInput"
         :is-blocked="isBlocked"
+        :is-spectator="isSpectator"
     />
 </template>

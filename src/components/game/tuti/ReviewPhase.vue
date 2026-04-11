@@ -16,6 +16,7 @@ const props = defineProps<{
     showStopAlert: boolean;
     stopperPlayer: Player | undefined;
     hasConfirmed: boolean;
+    isSpectator?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -149,6 +150,7 @@ const selfStatusIcon = (playerId: string, category: string) => {
                     :category-id="activeCategory.name"
                     :reaction-counts="getCountsForTarget(player.id, activeCategory.name)"
                     :reaction-bursts="getBurstsForTarget(player.id, activeCategory.name)"
+                    :is-spectator="isSpectator"
                     @update:model-value="emit('vote', player.id, activeCategory.name)"
                     @react="(emoji: string, targetId: string, catId: string) => sendReaction(targetId, catId, emoji)"
                 />
@@ -177,8 +179,8 @@ const selfStatusIcon = (playerId: string, category: string) => {
             <TButton v-if="!isLastCategory" variant="primary" size="md" @click="nextCategory">
                 Siguiente →
             </TButton>
-            <TButton v-else variant="primary" size="md" :disabled="hasConfirmed" @click="emit('submit-votes')">
-                {{ hasConfirmed ? '¡Enviado! ✅' : '¡Completado!' }}
+            <TButton v-else variant="primary" size="md" :disabled="hasConfirmed || isSpectator" @click="!isSpectator && emit('submit-votes')">
+                {{ isSpectator ? 'VIENDO...' : (hasConfirmed ? '¡Enviado! ✅' : '¡Completado!') }}
             </TButton>
         </div>
     </div>

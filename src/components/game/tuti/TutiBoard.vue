@@ -190,6 +190,7 @@ const rivalsActivity = computed(() => {
                             :rivals-activity="rivalsActivity"
                             v-model="answers"
                             :is-blocked="isStopping"
+                            :is-spectator="isSpectator"
                         />
 
                         <ReviewPhase 
@@ -202,6 +203,7 @@ const rivalsActivity = computed(() => {
                             :show-stop-alert="showStopAlert"
                             :stopper-player="stopperPlayer || undefined"
                             :has-confirmed="hasConfirmed"
+                            :is-spectator="isSpectator"
                             @vote="(pid: string, cat: string) => emit('toggle-vote', pid, cat)"
                             @submit-votes="handleConfirmVotes"
                             class="my-auto"
@@ -234,10 +236,11 @@ const rivalsActivity = computed(() => {
             :grace-seconds-left="graceSecondsLeft"
             :is-grace-active="isGracePeriodActive"
             :ending-countdown-by="gameState.endingCountdownBy ?? null"
+            :is-stopping="isStopping"
+            :is-spectator="isSpectator"
             @stop="handleStop"
             @confirm-votes="handleConfirmVotes"
             @next-round="emit('next-round')"
-            :is-stopping="isStopping"
         />
 
         <!-- [P11] M3: Viñeteado de Pánico — ENDING_COUNTDOWN overlay -->

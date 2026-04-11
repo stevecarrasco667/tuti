@@ -79,15 +79,12 @@ const handleToast = (msg: string, style: 'join' | 'leave' | 'stop-warning', icon
     <div class="h-full w-full flex flex-col bg-panel-base text-ink-main overflow-hidden font-sans">
         <ReloadPrompt />
 
-        <!-- [Phoenix] SPECTATOR MODE BANNER -->
-        <div v-if="isSpectator" class="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-ink-main/60 backdrop-blur-md pointer-events-none">
-            <div class="text-center space-y-4 animate-pulse">
-                <span class="text-6xl">🍿</span>
-                <h2 class="text-3xl font-black text-ink-inverse tracking-tight uppercase">Modo Espectador</h2>
-                <p class="text-ink-inverse/80 font-bold text-lg max-w-xs mx-auto">Partida en curso. Entrarás automáticamente en la siguiente ronda...</p>
-            </div>
+        <!-- [Sprint 5 - Spectator Mode] BANNER ELEGANTE NO INTRUSIVO -->
+        <div v-if="isSpectator" class="absolute top-[80px] left-1/2 -translate-x-1/2 z-[50] flex items-center gap-2 bg-red-900 border-2 border-red-500 rounded-full px-6 py-2 shadow-[0_0_15px_rgba(239,68,68,0.5)] pointer-events-none w-max">
+            <span class="text-xl animate-pulse">🍿</span>
+            <span class="text-white font-black text-xs md:text-sm tracking-widest uppercase" style="text-shadow: 0 1px 2px rgba(0,0,0,0.5);">MODO ESPECTADOR - ESPERANDO SIGUIENTE PARTIDA</span>
         </div>
-        
+
         <CountdownOverlay v-if="showCountdown" @finished="handleCountdownFinished" />
         <StopSignal v-if="showStopSignal" @finished="showStopSignal = false" />
 

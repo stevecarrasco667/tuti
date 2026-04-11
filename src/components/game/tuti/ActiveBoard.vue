@@ -17,6 +17,7 @@ const props = defineProps<{
         isActive: boolean;
     }>;
     isBlocked?: boolean;
+    isSpectator?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -133,10 +134,15 @@ onUnmounted(() => {
                                 :ref="(el) => setInputRef(el, index)"
                                 type="text"
                                 autocomplete="off"
-                                class="w-full bg-panel-input border-[3px] border-white/10 text-ink-main rounded-xl focus:bg-panel-input focus:border-action-primary focus:ring-4 focus:ring-action-primary/50 outline-none transition-all placeholder-ink-muted/50 font-black py-2 px-4 disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
-                                :class="[inputHeightClass, inputTextClass]"
+                                class="w-full bg-panel-input border-[3px] border-white/10 text-ink-main rounded-xl focus:bg-panel-input focus:border-action-primary focus:ring-4 focus:ring-action-primary/50 outline-none transition-all placeholder-ink-muted/50 font-black py-2 px-4 shadow-inner disabled:cursor-not-allowed"
+                                :class="[
+                                    inputHeightClass, 
+                                    inputTextClass,
+                                    isSpectator ? 'opacity-60 grayscale' : 'disabled:opacity-50'
+                                ]"
                                 :placeholder="(currentLetter || '') + '...'"
-                                :disabled="isBlocked"
+                                :disabled="isBlocked || isSpectator"
+                                :tabindex="isSpectator ? -1 : 0"
                             >
                             <!-- Filled indicator dot (Éxito Semántico) -->
                             <div v-if="modelValue[category.name]?.trim().length > 0"

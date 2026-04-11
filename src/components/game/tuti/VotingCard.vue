@@ -24,6 +24,7 @@ const props = defineProps<{
     categoryId: string;
     reactionCounts: Record<string, number>;
     reactionBursts: Array<{ id: string; emoji: string; offsetX: number }>;
+    isSpectator?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -164,6 +165,7 @@ const sizeConfig = computed(() => {
                 :is-auto-validated="isAutoValidated"
                 :card-size="cardSize ?? 'md'"
                 :label="`Voto ${playerName}`"
+                :disabled="isSpectator"
                 @update:model-value="(val: boolean) => emit('update:modelValue', val)"
             />
             <span v-else

@@ -11,6 +11,7 @@ const props = defineProps<{
     myUserId: string;
     timeRemaining: number;
     timerColor: string;
+    isSpectator?: boolean;
 }>();
 
 const inputWord = ref('');
@@ -86,7 +87,7 @@ const isPlayerDead = (playerId: string) => {
         </div>
 
         <!-- BANNER DE FANTASMA -->
-        <div v-if="isDead" class="w-full max-w-4xl mb-6 bg-panel-input/60 border-4 border-white/10 rounded-3xl px-6 py-4 backdrop-blur-md flex items-center justify-center gap-3 shadow-inner">
+        <div v-if="isDead && !isSpectator" class="w-full max-w-4xl mb-6 bg-panel-input/60 border-4 border-white/10 rounded-3xl px-6 py-4 backdrop-blur-md flex items-center justify-center gap-3 shadow-inner">
             <span class="text-4xl animate-bounce drop-shadow-sm">💀</span>
             <div class="text-center">
                 <span class="text-ink-muted font-black text-sm uppercase tracking-widest block">Eres un Fantasma</span>
@@ -126,7 +127,7 @@ const isPlayerDead = (playerId: string) => {
                 Escribe una palabra que te camufle...
             </h2>
             
-            <form @submit.prevent="confirmWord" class="w-full relative group">
+            <form v-if="!isSpectator" @submit.prevent="confirmWord" class="w-full relative group">
                 <input 
                     type="text" 
                     v-model="inputWord"
@@ -159,6 +160,9 @@ const isPlayerDead = (playerId: string) => {
                     </svg>
                 </button>
             </form>
+            <div v-else class="w-full text-center py-6 text-action-primary animate-pulse text-lg font-black uppercase tracking-widest bg-panel-input/50 rounded-full border border-action-primary/30">
+                <span class="text-xl">👀</span> Los jugadores están escribiendo...
+            </div>
 
             <!-- [P12] Anti-Spoiler Feedback Msg -->
             <p v-if="spoilerDetected && !hasConfirmed" class="mt-4 text-action-error font-black uppercase tracking-widest animate-pulse text-sm text-center px-4 drop-shadow-md">

@@ -11,6 +11,7 @@ const props = defineProps<{
     players: Player[];
     timeRemaining: number;
     timerColor: string;
+    isSpectator?: boolean;
 }>();
 
 const { playAlarm, playSuccess } = useSound();

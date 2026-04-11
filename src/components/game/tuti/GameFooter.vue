@@ -14,6 +14,7 @@ const props = defineProps<{
     graceSecondsLeft?: number;
     isGraceActive?: boolean;
     endingCountdownBy?: string | null;
+    isSpectator?: boolean;
 }>();
 
 defineEmits<{
@@ -70,8 +71,16 @@ const buttonLabel = computed(() => {
                     </span>
                 </div>
 
+                <!-- [Sprint 5 - Spectator Mode] Audience Passive Status -->
+                <div v-if="isSpectator"
+                    class="w-full text-center text-action-primary bg-panel-input border-2 border-action-primary/30 shadow-[0_0_30px_-5px_rgba(74,222,128,0.2)] backdrop-blur-sm rounded-full text-sm font-black uppercase tracking-widest animate-[pulse_2s_ease-in-out_infinite] py-3.5 flex items-center justify-center gap-2"
+                >
+                    <span class="text-lg">👀</span> Los jugadores están escribiendo...
+                </div>
+
                 <!-- Botón BASTA con jerarquía P11 -->
                 <button
+                    v-else
                     @click="$emit('stop')"
                     :title="isGraceActive ? `Debes esperar el tiempo de gracia inicial antes de poder gritar BASTA.` : undefined"
                     class="w-full font-black py-4 rounded-3xl shadow-game-btn transition-all active:scale-[0.98] flex items-center justify-center gap-3 border-4 uppercase tracking-widest"

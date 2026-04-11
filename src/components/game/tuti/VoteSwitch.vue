@@ -6,6 +6,7 @@ const props = defineProps<{
     isAutoValidated?: boolean;
     label?: string;
     cardSize?: CardSize;
+    disabled?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -31,7 +32,7 @@ const toggle = () => {
         :aria-label="label || (modelValue ? 'Válido' : 'Rechazado')"
         :aria-checked="modelValue"
         role="switch"
-        :disabled="isAutoValidated"
+        :disabled="isAutoValidated || disabled"
         @click="toggle"
         class="relative inline-flex shrink-0 cursor-pointer rounded-full border-[3px] border-white/10 transition-all duration-300 ease-in-out focus-visible:outline-none disabled:cursor-not-allowed hover:-translate-y-0.5"
         :class="[
@@ -40,7 +41,8 @@ const toggle = () => {
                 ? 'bg-action-warning shadow-glow-primary'
                 : modelValue
                     ? 'bg-action-primary shadow-glow-primary'
-                    : 'bg-action-error shadow-glow-panic'
+                    : 'bg-action-error shadow-glow-panic',
+            disabled ? 'opacity-50 grayscale' : ''
         ]"
     >
         <!-- Knob -->

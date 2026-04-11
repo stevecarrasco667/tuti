@@ -12,6 +12,7 @@ const props = defineProps<{
     myUserId: string;
     timeRemaining: number;
     timerColor: string;
+    isSpectator?: boolean;
 }>();
 
 const { socket } = useSocket();
