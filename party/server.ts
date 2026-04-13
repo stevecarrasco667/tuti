@@ -380,8 +380,7 @@ export default class Server implements Party.Server {
             const currentState = this.engine.getState();
             if (
                 currentState.status === 'GAME_OVER' &&
-                currentState.gameOverAt !== undefined &&
-                Date.now() - currentState.gameOverAt > GAME_CONSTS.ROOM_TTL_MS
+                Date.now() - (currentState.gameOverAt ?? 0) > GAME_CONSTS.ROOM_TTL_MS
             ) {
                 logger.info('ROOM_EXPIRED_REJECT', { roomId: this.room.id, gameOverAt: currentState.gameOverAt });
 
@@ -391,11 +390,14 @@ export default class Server implements Party.Server {
                     payload: { config: currentState.config }
                 }));
 
-                // Wipe storage — this dead room has served its purpose
-                await this.room.storage.deleteAll();
-
-                // Close with application-level code 4410 (4000–4999 = app reserved)
+                // Close immediately — NO await between send and close to prevent other
+                // handlers (broadcastStateDelta) from sending UPDATE_STATE to this connection
+                // during a suspension point, which would cause the client to see GAME_OVER.
                 conn.close(4410, 'ROOM_EXPIRED');
+
+                // Schedule storage cleanup via alarm (non-blocking, 500ms delay).
+                // onAlarm() already handles deleteAll() when activeConnections === 0.
+                this.room.storage.setAlarm(Date.now() + 500).catch(() => {});
                 return;
             }
             // ── END EXPIRED ROOM GATE ───────────────────────────────────────────────────
