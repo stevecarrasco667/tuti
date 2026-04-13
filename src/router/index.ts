@@ -4,9 +4,11 @@ import HomeView from '../components/HomeView.vue';
 import LobbyView from '../components/LobbyView.vue';
 import GameView from '../components/GameView.vue';
 import GameOverView from '../components/GameOverView.vue';
-import { useSocket } from '../composables/useSocket';
+import { useSocket, pendingRoomExpiredConfig } from '../composables/useSocket';
 import { useGameState } from '../composables/useGameState';
 import { useToast } from '../composables/useToast';
+import { generateRoomId } from '../utils/random';
+import { EVENTS } from '../../shared/consts';
 
 // [Sprint 2 - P2] Vue Router: URLs navegables para Viralidad (Sprint 4)
 // El backend sigue siendo la autoridad. useGameSync hace router.push() cuando el
@@ -55,6 +57,9 @@ export const router = createRouter({
 // WebSocket activa, la establece automáticamente con el perfil del localStorage,
 // espera que el servidor confirme con UPDATE_STATE, y SOLO ENTONCES permite la
 // navegación, garantizando que el componente siempre monte con estado real.
+//
+// [Room TTL] EXTENSIÓN: Si el servidor rechaza con ROOM_EXPIRED, el guard
+// auto-clona la sala con la configuración heredada y redirige al nuevo lobby.
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // Estado global de bootstrapping — leído por App.vue para mostrar el loading overlay.
@@ -67,7 +72,7 @@ router.beforeEach(async (to, _from, next) => {
     // Solo interceptar rutas con :roomId (lobby, game, results)
     if (!roomId) return next();
 
-    const { socket, setRoomId, waitForFirstState } = useSocket();
+    const { socket, setRoomId, waitForFirstState, disconnectIntentionally } = useSocket();
 
     // Si ya hay una conexión activa → warm start normal, no interferir
     if (socket.value) return next();
@@ -104,10 +109,56 @@ router.beforeEach(async (to, _from, next) => {
         next();
 
     } catch (err) {
-        // ── TIMEOUT O ERROR DE CONEXIÓN ──────────────────────────────────
+        isBootstrapping.value = false;
+        const errMsg = err instanceof Error ? err.message : String(err);
+
+        // ── [Room TTL] SALA EXPIRADA — AUTO-CLONAR ───────────────────────
+        if (errMsg === 'ROOM_EXPIRED') {
+            console.info('[ColdStart] Sala expirada detectada. Iniciando auto-clonación...');
+
+            // Limpiar la conexión al socket muerto antes de abrir uno nuevo
+            disconnectIntentionally();
+
+            const inheritedConfig = pendingRoomExpiredConfig.value;
+            pendingRoomExpiredConfig.value = null; // Limpiar el singleton global
+
+            // Generar nueva sala con un ID fresco
+            const newRoomId = generateRoomId();
+
+            const userId = state.myUserId.value;
+            const name = state.myUserName.value;
+            const avatar = state.myUserAvatar.value;
+            const token = typeof localStorage !== 'undefined'
+                ? localStorage.getItem('tuti-session-token') || undefined
+                : undefined;
+
+            // Conectar a la nueva sala en background (sin await — optimistic navigation)
+            setRoomId(newRoomId, { userId, name, avatar, token });
+
+            // Si el servidor nos devolvió la config, aplicarla una vez el socket esté listo.
+            // Usamos un delay de 1.5s para dar tiempo al WebSocket de completar el handshake.
+            if (inheritedConfig) {
+                setTimeout(() => {
+                    const { socket: freshSocket } = useSocket();
+                    if (freshSocket.value) {
+                        freshSocket.value.send(JSON.stringify({
+                            type: EVENTS.UPDATE_CONFIG,
+                            payload: inheritedConfig
+                        }));
+                    }
+                }, 1500);
+            }
+
+            addToast('La sala anterior ha caducado. ¡Hemos preparado una nueva con los mismos ajustes para ti! 🎮', 'success');
+
+            // Navegar al nuevo lobby de forma optimista
+            next(`/lobby/${newRoomId}`);
+            return;
+        }
+
+        // ── TIMEOUT O ERROR DE CONEXIÓN GENÉRICO ─────────────────────────
         // La sala no existe, el servidor no responde, o la red es muy lenta.
         // Redirigimos al Home con un Toast de error para no dejar al usuario atrapado.
-        isBootstrapping.value = false;
         console.error('[ColdStart] Bootstrap falló:', err);
         addToast('No se pudo conectar a la sala. Verifica tu conexión a internet.', 'error');
         next('/');

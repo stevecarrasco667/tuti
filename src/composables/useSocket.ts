@@ -19,6 +19,10 @@ const isIntentionalDisconnect = ref(false);
 // [P10] Texto en vivo que escribe el Impostor durante last_wish (singleton)
 export const lastWishText = ref<string>('');
 
+// [Room TTL] Config heredada de una sala expirada, lista para auto-clonar.
+// El router lo lee al detectar el rechazo ROOM_EXPIRED y crea una sala nueva con estos ajustes.
+export const pendingRoomExpiredConfig = ref<import('../../shared/types').GameConfig | null>(null);
+
 // ─── Singleton ephemeral message handlers ──────────────────────────────────
 // Se llaman directamente desde el onmessage del socket (no desde watch),
 // garantizando que se ejecuten exactamente 1 vez por mensaje.
@@ -32,6 +36,9 @@ function handleEphemeralMessages(raw: string) {
         } else if (msg.type === EVENTS.LAST_WISH_TYPING) {
             // [P10] Actualizar el texto en tiempo real del Impostor
             lastWishText.value = msg.payload.text ?? '';
+        } else if (msg.type === EVENTS.ROOM_EXPIRED) {
+            // [Room TTL] Guardar la configuracion heredada para que el router pueda auto-clonar la sala.
+            pendingRoomExpiredConfig.value = msg.payload?.config ?? null;
         }
     } catch { /* ignorar mensajes no-JSON */ }
 }
@@ -169,6 +176,12 @@ export function useSocket() {
                         clearTimeout(timeout);
                         unwatch();
                         resolve();
+                    } else if (msg.type === EVENTS.ROOM_EXPIRED) {
+                        // [Room TTL] Sala expirada — rechazar de inmediato sin esperar el timeout.
+                        // pendingRoomExpiredConfig ya fue seteado por handleEphemeralMessages.
+                        clearTimeout(timeout);
+                        unwatch();
+                        reject(new Error('ROOM_EXPIRED'));
                     }
                 } catch { /* ignorar mensajes no-JSON */ }
             });

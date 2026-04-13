@@ -965,6 +965,10 @@ export class ImpostorEngine extends BaseEngine {
         const wasAlreadyGameOver = this.state.status === 'GAME_OVER';
         this.state.status = 'GAME_OVER';
         this.state.gameOverReason = reason;
+        // [Room TTL] Seal the death timestamp only the first time — prevents resets on repeated calls.
+        if (!wasAlreadyGameOver) {
+            this.state.gameOverAt = Date.now();
+        }
         this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
         this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null, graceEndsAt: null };
         this.clearTimer();

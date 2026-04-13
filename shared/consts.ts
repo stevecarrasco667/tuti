@@ -48,7 +48,10 @@ export const EVENTS = {
 
     // [Phoenix Lobby] Hub-and-Spoke
     LOBBY_STATE_UPDATE: 'LOBBY_STATE_UPDATE',
-    ROOM_HEARTBEAT: 'ROOM_HEARTBEAT'
+    ROOM_HEARTBEAT: 'ROOM_HEARTBEAT',
+
+    // [Room TTL] Server → Client: la sala ha caducado. El payload incluye `config` para auto-clonar.
+    ROOM_EXPIRED: 'ROOM_EXPIRED'
 } as const;
 
 export const APP_VERSION = 'v0.5.0';
@@ -76,5 +79,9 @@ export const GAME_CONSTS = {
     ZOMBIE_TIMEOUT_MS: 15000,
 
     // [Phoenix Lobby] Max players per room
-    MAX_PLAYERS: 8
+    MAX_PLAYERS: 8,
+
+    // [Room TTL] Time after GAME_OVER before a room is considered expired for new connections.
+    // Set to 10_000 (10s) for production testing. Change to 7_200_000 (2h) for final release.
+    ROOM_TTL_MS: 10_000
 } as const;

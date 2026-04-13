@@ -4,7 +4,7 @@ import { TutiEngine } from "../shared/engines/tuti-engine.js";
 import { ImpostorEngine, ImpostorSecretState } from "../shared/engines/impostor-engine.js";
 import { RoomState, RoomSnapshot } from "../shared/types.js";
 import { ClientMessageSchema } from "../shared/schemas.js";
-import { EVENTS, APP_VERSION } from "../shared/consts.js";
+import { EVENTS, APP_VERSION, GAME_CONSTS } from "../shared/consts.js";
 import { logger } from "../shared/utils/logger";
 import { RateLimiter } from "./utils/rate-limiter";
 import { ConnectionHandler } from "./handlers/connection";
@@ -373,6 +373,33 @@ export default class Server implements Party.Server {
 
     async onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
         try {
+            // ── [Room TTL] EXPIRED ROOM EARLY-EXIT ─────────────────────────────────────
+            // Check BEFORE touching alarms, heartbeat, or player-join logic.
+            // Only applies to NEW incoming connections — existing connections (already joined
+            // players watching results) are not affected because this fires at connect time.
+            const currentState = this.engine.getState();
+            if (
+                currentState.status === 'GAME_OVER' &&
+                currentState.gameOverAt !== undefined &&
+                Date.now() - currentState.gameOverAt > GAME_CONSTS.ROOM_TTL_MS
+            ) {
+                logger.info('ROOM_EXPIRED_REJECT', { roomId: this.room.id, gameOverAt: currentState.gameOverAt });
+
+                // Send the config so the client can auto-create a cloned room
+                conn.send(JSON.stringify({
+                    type: EVENTS.ROOM_EXPIRED,
+                    payload: { config: currentState.config }
+                }));
+
+                // Wipe storage — this dead room has served its purpose
+                await this.room.storage.deleteAll();
+
+                // Close with application-level code 4410 (4000–4999 = app reserved)
+                conn.close(4410, 'ROOM_EXPIRED');
+                return;
+            }
+            // ── END EXPIRED ROOM GATE ───────────────────────────────────────────────────
+
             // [Phoenix Lobby] Ensure heartbeat is running (wakes up hibernated room)
             this.startHeartbeat();
 

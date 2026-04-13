@@ -133,6 +133,9 @@ export interface RoomState {
     endingCountdownBy?: string | null;  // [P11] Nombre del jugador que activó ENDING_COUNTDOWN
     // [Sprint P1 — Fase 2] 'IMPOSTOR_DISCONNECTED' triggers when the Impostor abandons mid-game
     gameOverReason?: 'NORMAL' | 'ABANDONED' | 'IMPOSTOR_DISCONNECTED';
+    // [Room TTL] Timestamp (ms) set when the room first enters GAME_OVER. Used by the server
+    // to detect expired rooms on new connections and initiate the auto-clone flow.
+    gameOverAt?: number;
     uiMetadata: {
         activeView: 'LOBBY' | 'GAME' | 'GAME_OVER';
         showTimer: boolean;
