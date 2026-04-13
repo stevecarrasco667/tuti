@@ -373,29 +373,35 @@ export default class Server implements Party.Server {
 
     async onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
         try {
-            // ── [Room TTL] TWO-TIER EXPIRATION GATE ────────────────────────────────────
+            // ── [Room TTL] MODE-AWARE EXPIRATION GATE ────────────────────────────────────
             // Checked BEFORE any heartbeat, alarm cancel, or player-join logic.
-            // Only fires for NEW incoming connections — existing connections are unaffected here.
+            // Only fires for NEW incoming connections — connected players are evicted via onAlarm().
             const currentState = this.engine.getState();
             if (currentState.status === 'GAME_OVER') {
-                const age = Date.now() - (currentState.gameOverAt ?? 0);
+                if (currentState.config.isPublic) {
+                    // PUBLIC: immediate rejection — no Results Window, no config clone.
+                    // The room will be purged automatically by onAlarm() / onClose().
+                    logger.info('ROOM_PUBLIC_GAMEOVER_REJECT', { roomId: this.room.id });
+                    conn.send(JSON.stringify({ type: EVENTS.ROOM_DEAD }));
+                    conn.close(4411, 'ROOM_DEAD');
+                    return;
+                }
 
+                // PRIVATE: Two-tier TTL for link arrivals (no Results Window for new connections)
+                const age = Date.now() - (currentState.gameOverAt ?? 0);
                 if (age > GAME_CONSTS.ROOM_HARD_EXPIRY_MS) {
-                    // ── TIER 2: HARD EXPIRY — sala purgada, sin config de clonación ──────
+                    // Hard expiry: permanent death
                     logger.info('ROOM_DEAD_REJECT', { roomId: this.room.id, ageMs: age });
                     conn.send(JSON.stringify({ type: EVENTS.ROOM_DEAD }));
                     conn.close(4411, 'ROOM_DEAD');
                     return;
-
-                } else if (age > GAME_CONSTS.ROOM_SOFT_EXPIRY_MS) {
-                    // ── TIER 1: SOFT EXPIRY — rechazar + clonar sala con config heredada ─
+                } else {
+                    // Soft expiry (any age < HARD_EXPIRY): config clone → new lobby
                     logger.info('ROOM_EXPIRED_REJECT', { roomId: this.room.id, ageMs: age });
                     conn.send(JSON.stringify({
                         type: EVENTS.ROOM_EXPIRED,
                         payload: { config: currentState.config }
                     }));
-                    // Close immediately — NO await between send/close to prevent
-                    // broadcastStateDelta interleaving that sends UPDATE_STATE to this conn.
                     conn.close(4410, 'ROOM_EXPIRED');
                     // Ensure the hard-expiry alarm is set (non-blocking)
                     this.room.storage.setAlarm(
@@ -403,9 +409,8 @@ export default class Server implements Party.Server {
                     ).catch(() => {});
                     return;
                 }
-                // age <= ROOM_SOFT_EXPIRY_MS → dentro de la Ventana de Resultados, conexión normal
             }
-            // ── END TWO-TIER GATE ────────────────────────────────────────────────────────
+            // ── END EXPIRATION GATE ────────────────────────────────────────────────────────
 
             // [Phoenix Lobby] Ensure heartbeat is running (wakes up hibernated room)
             this.startHeartbeat();
@@ -668,10 +673,10 @@ export default class Server implements Party.Server {
             nextTarget = state.timers.resultsEndsAt;
 
         } else if (state.status === 'GAME_OVER' && state.gameOverAt) {
-            // [Room TTL — Tier 2] Schedule hard-expiry alarm to purge the room from disk.
-            // The alarm fires at gameOverAt + ROOM_HARD_EXPIRY_MS and calls deleteAll().
-            const hardExpiryAt = state.gameOverAt + GAME_CONSTS.ROOM_HARD_EXPIRY_MS;
-            nextTarget = hardExpiryAt;
+            // [Room TTL] Schedule the 10s kick alarm — connected players will be evicted.
+            // After kicking, onAlarm() sets phase-2 alarm for private room cleanup (ROOM_HARD_EXPIRY_MS).
+            // Public rooms are purged inline inside onAlarm() after kicking.
+            nextTarget = state.gameOverAt + GAME_CONSTS.ROOM_SOFT_EXPIRY_MS;
         }
         // Note: RESULTS for Impostor also uses resultsEndsAt, already covered above
 
@@ -681,32 +686,64 @@ export default class Server implements Party.Server {
     }
 
     async onAlarm() {
-        // ── [Room TTL — Tier 2] HARD EXPIRY: Purge room permanently ───────────────────
-        // This alarm is scheduled by scheduleAlarms() when status transitions to GAME_OVER.
-        // Runs even if there are active connections still on the Game Over screen.
         const stateAtAlarm = this.engine.getState();
-        if (
-            stateAtAlarm.status === 'GAME_OVER' &&
-            Date.now() - (stateAtAlarm.gameOverAt ?? 0) > GAME_CONSTS.ROOM_HARD_EXPIRY_MS
-        ) {
-            logger.info('ROOM_HARD_EXPIRED', { roomId: this.room.id });
 
-            // Notify all connected clients (users still on the results screen)
-            for (const conn of this.room.getConnections()) {
-                try {
-                    conn.send(JSON.stringify({ type: EVENTS.ROOM_DEAD }));
-                    conn.close(4411, 'ROOM_DEAD');
-                } catch (_) { /* connection may already be closed */ }
+        // ── [Room TTL] GAME_OVER LIFECYCLE HANDLER ──────────────────────────────────────
+        if (stateAtAlarm.status === 'GAME_OVER') {
+            const age = Date.now() - (stateAtAlarm.gameOverAt ?? 0);
+
+            // — PHASE 2: HARD EXPIRY — Purga definitiva (privadas y púlblicas que sobrevivieran) —
+            if (age > GAME_CONSTS.ROOM_HARD_EXPIRY_MS) {
+                logger.info('ROOM_HARD_EXPIRED', { roomId: this.room.id, ageMs: age });
+                for (const conn of this.room.getConnections()) {
+                    try { conn.send(JSON.stringify({ type: EVENTS.ROOM_DEAD })); conn.close(4411, 'ROOM_DEAD'); } catch (_) {}
+                }
+                if (this.saveTimeout) { clearTimeout(this.saveTimeout); this.saveTimeout = null; }
+                await this.room.storage.deleteAll();
+                this.engine = createEngine(this.supabase, 'CLASSIC', 'purged-room');
+                this.previousStates.clear();
+                return;
             }
 
-            // Purge from disk
-            if (this.saveTimeout) { clearTimeout(this.saveTimeout); this.saveTimeout = null; }
-            await this.room.storage.deleteAll();
-            this.engine = createEngine(this.supabase, 'CLASSIC', 'purged-room');
-            this.previousStates.clear();
-            return;
+            // — PHASE 1: 10s KICK — Expulsar a los jugadores conectados según modo ——————————
+            if (age >= GAME_CONSTS.ROOM_SOFT_EXPIRY_MS) {
+                const isPublic = stateAtAlarm.config.isPublic;
+                const connectedCount = [...this.room.getConnections()].length;
+                logger.info('ROOM_KICK_TRIGGER', { roomId: this.room.id, isPublic, connectedCount, ageMs: age });
+
+                for (const conn of this.room.getConnections()) {
+                    try {
+                        if (isPublic) {
+                            conn.send(JSON.stringify({ type: EVENTS.ROOM_DEAD }));
+                            conn.close(4411, 'ROOM_DEAD');
+                        } else {
+                            conn.send(JSON.stringify({
+                                type: EVENTS.ROOM_EXPIRED,
+                                payload: { config: stateAtAlarm.config }
+                            }));
+                            conn.close(4410, 'ROOM_EXPIRED');
+                        }
+                    } catch (_) { /* connection may already be closed */ }
+                }
+
+                if (isPublic) {
+                    // Pública: purgar storage inmediatamente
+                    logger.info('ROOM_PUBLIC_PURGE', { roomId: this.room.id });
+                    if (this.saveTimeout) { clearTimeout(this.saveTimeout); this.saveTimeout = null; }
+                    await this.room.storage.deleteAll();
+                    this.engine = createEngine(this.supabase, 'CLASSIC', 'purged-room');
+                    this.previousStates.clear();
+                } else {
+                    // Privada: programar fase 2 (hard expiry) para limpieza definitiva
+                    const hardExpiryAt = (stateAtAlarm.gameOverAt ?? Date.now()) + GAME_CONSTS.ROOM_HARD_EXPIRY_MS;
+                    logger.info('ROOM_PRIVATE_HARD_EXPIRY_SCHEDULED', { roomId: this.room.id, hardExpiryAt });
+                    await this.room.storage.setAlarm(hardExpiryAt);
+                }
+                return;
+            }
+            // age < ROOM_SOFT_EXPIRY_MS: alarm disparó antes de tiempo — watchdog normal a continuación
         }
-        // ── END HARD EXPIRY GATE ────────────────────────────────────────────────────────
+        // ── END GAME_OVER LIFECYCLE HANDLER ──────────────────────────────────────────────────────
 
         // [AUTO-WIPE] Check for inactivity
         const activeConnections = [...this.room.getConnections()].length;
@@ -769,7 +806,11 @@ export default class Server implements Party.Server {
         this.previousStates.delete(connection.id);
 
         // ZOMBIE ALARM: Schedule cleanup check in 60s
-        this.room.storage.setAlarm(Date.now() + 60000);
+        // Skip during GAME_OVER — the kick alarm from scheduleAlarms() already handles cleanup.
+        // Overwriting it here would delay the 10s kick unexpectedly.
+        if (this.engine.getState().status !== 'GAME_OVER') {
+            this.room.storage.setAlarm(Date.now() + 60_000);
+        }
 
         // Check if room is now empty
         const connections = [...this.room.getConnections()];
@@ -797,8 +838,25 @@ export default class Server implements Party.Server {
             // Clear all per-connection baselines
             this.previousStates.clear();
 
-            logger.info('AUTO_WIPE_SCHEDULED', { roomId: this.room.id, timeout: 120 });
-            this.room.storage.setAlarm(Date.now() + 120 * 1000);
+            const closingState = this.engine.getState();
+            if (closingState.config.isPublic) {
+                // Pública: limpieza agresiva en 10s — desaparece del índice rápidamente.
+                logger.info('AUTO_WIPE_SCHEDULED_PUBLIC', { roomId: this.room.id, timeout: 10 });
+                this.room.storage.setAlarm(Date.now() + 10_000);
+
+            } else if (closingState.status === 'GAME_OVER' && closingState.gameOverAt) {
+                // Privada + GAME_OVER: no sobreescribir el hard-expiry alarm ya programado.
+                // Si el alarm expiró (jugadores salieron tarde), asegurar que el hard-expiry quede.
+                const hardExpiryAt = closingState.gameOverAt + GAME_CONSTS.ROOM_HARD_EXPIRY_MS;
+                const target = Math.max(hardExpiryAt, Date.now() + 1_000);
+                logger.info('PRESERVING_HARD_EXPIRY_ALARM', { roomId: this.room.id, hardExpiryAt });
+                this.room.storage.setAlarm(target);
+
+            } else {
+                // Privada, estado no-GAME_OVER: watchdog de 120s (comportamiento existente).
+                logger.info('AUTO_WIPE_SCHEDULED', { roomId: this.room.id, timeout: 120 });
+                this.room.storage.setAlarm(Date.now() + 120 * 1000);
+            }
         }
     }
 }
