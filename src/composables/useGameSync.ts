@@ -32,7 +32,7 @@ function syncRoute(roomId: string | null, view?: 'LOBBY' | 'GAME' | 'GAME_OVER')
 export function useGameSync(
     state: ReturnType<typeof useGameState>
 ) {
-    const { socket, lastMessage, setRoomId, isConnected, connectToParty } = useSocket();
+    const { socket, lastMessage, setRoomId, isConnected, connectToParty, disconnectIntentionally } = useSocket();
     // [Sprint 3 - P2] Toast singleton — importado en la capa de red para disparar de forma imperativa,
     // no desde watchers de UI (anti-patrón de proxy-diffing rechazado por el CTO).
     const { addToast } = useToast();
@@ -135,6 +135,13 @@ export function useGameSync(
             } else if (parsed.type === EVENTS.PLAYER_LEFT) {
                 const name = (parsed.payload as { name: string }).name;
                 addToast(`🚪 ${name} abandonó la sala`, 'info');
+            } else if (parsed.type === EVENTS.ROOM_DEAD) {
+                // [Room TTL — Tier 2] Hard expiry: el servidor purgo la sala.
+                // Afecta a usuarios YA conectados que estaban en la pantalla de resultados.
+                console.info('[GameSync] ROOM_DEAD recibido — limpiando estado y redirigiendo al Home.');
+                disconnectIntentionally();
+                addToast('👋 Esta sala fue eliminada por inactividad. ¡Hasta la próxima!', 'info');
+                router.push('/');
             }
             // WORD_REACT is handled by the singleton in useSocket.ts — do NOT handle it here
         } catch (e) {

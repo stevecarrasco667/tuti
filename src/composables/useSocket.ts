@@ -37,8 +37,11 @@ function handleEphemeralMessages(raw: string) {
             // [P10] Actualizar el texto en tiempo real del Impostor
             lastWishText.value = msg.payload.text ?? '';
         } else if (msg.type === EVENTS.ROOM_EXPIRED) {
-            // [Room TTL] Guardar la configuracion heredada para que el router pueda auto-clonar la sala.
+            // [Room TTL — Tier 1] Guardar la configuracion heredada para que el router pueda auto-clonar la sala.
             pendingRoomExpiredConfig.value = msg.payload?.config ?? null;
+        } else if (msg.type === EVENTS.ROOM_DEAD) {
+            // [Room TTL — Tier 2] Sala purgada definitivamente. No hay config. El router redirige al Home.
+            // No hay estado que guardar — solo señalizará via el rechazo de waitForFirstState.
         }
     } catch { /* ignorar mensajes no-JSON */ }
 }
@@ -177,11 +180,16 @@ export function useSocket() {
                         unwatch();
                         resolve();
                     } else if (msg.type === EVENTS.ROOM_EXPIRED) {
-                        // [Room TTL] Sala expirada — rechazar de inmediato sin esperar el timeout.
+                        // [Room TTL — Tier 1] Sala expirada — rechazar de inmediato sin esperar el timeout.
                         // pendingRoomExpiredConfig ya fue seteado por handleEphemeralMessages.
                         clearTimeout(timeout);
                         unwatch();
                         reject(new Error('ROOM_EXPIRED'));
+                    } else if (msg.type === EVENTS.ROOM_DEAD) {
+                        // [Room TTL — Tier 2] Sala purgada definitivamente — rechazar sin config.
+                        clearTimeout(timeout);
+                        unwatch();
+                        reject(new Error('ROOM_DEAD'));
                     }
                 } catch { /* ignorar mensajes no-JSON */ }
             });

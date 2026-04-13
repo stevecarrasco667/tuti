@@ -373,34 +373,39 @@ export default class Server implements Party.Server {
 
     async onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
         try {
-            // ── [Room TTL] EXPIRED ROOM EARLY-EXIT ─────────────────────────────────────
-            // Check BEFORE touching alarms, heartbeat, or player-join logic.
-            // Only applies to NEW incoming connections — existing connections (already joined
-            // players watching results) are not affected because this fires at connect time.
+            // ── [Room TTL] TWO-TIER EXPIRATION GATE ────────────────────────────────────
+            // Checked BEFORE any heartbeat, alarm cancel, or player-join logic.
+            // Only fires for NEW incoming connections — existing connections are unaffected here.
             const currentState = this.engine.getState();
-            if (
-                currentState.status === 'GAME_OVER' &&
-                Date.now() - (currentState.gameOverAt ?? 0) > GAME_CONSTS.ROOM_TTL_MS
-            ) {
-                logger.info('ROOM_EXPIRED_REJECT', { roomId: this.room.id, gameOverAt: currentState.gameOverAt });
+            if (currentState.status === 'GAME_OVER') {
+                const age = Date.now() - (currentState.gameOverAt ?? 0);
 
-                // Send the config so the client can auto-create a cloned room
-                conn.send(JSON.stringify({
-                    type: EVENTS.ROOM_EXPIRED,
-                    payload: { config: currentState.config }
-                }));
+                if (age > GAME_CONSTS.ROOM_HARD_EXPIRY_MS) {
+                    // ── TIER 2: HARD EXPIRY — sala purgada, sin config de clonación ──────
+                    logger.info('ROOM_DEAD_REJECT', { roomId: this.room.id, ageMs: age });
+                    conn.send(JSON.stringify({ type: EVENTS.ROOM_DEAD }));
+                    conn.close(4411, 'ROOM_DEAD');
+                    return;
 
-                // Close immediately — NO await between send and close to prevent other
-                // handlers (broadcastStateDelta) from sending UPDATE_STATE to this connection
-                // during a suspension point, which would cause the client to see GAME_OVER.
-                conn.close(4410, 'ROOM_EXPIRED');
-
-                // Schedule storage cleanup via alarm (non-blocking, 500ms delay).
-                // onAlarm() already handles deleteAll() when activeConnections === 0.
-                this.room.storage.setAlarm(Date.now() + 500).catch(() => {});
-                return;
+                } else if (age > GAME_CONSTS.ROOM_SOFT_EXPIRY_MS) {
+                    // ── TIER 1: SOFT EXPIRY — rechazar + clonar sala con config heredada ─
+                    logger.info('ROOM_EXPIRED_REJECT', { roomId: this.room.id, ageMs: age });
+                    conn.send(JSON.stringify({
+                        type: EVENTS.ROOM_EXPIRED,
+                        payload: { config: currentState.config }
+                    }));
+                    // Close immediately — NO await between send/close to prevent
+                    // broadcastStateDelta interleaving that sends UPDATE_STATE to this conn.
+                    conn.close(4410, 'ROOM_EXPIRED');
+                    // Ensure the hard-expiry alarm is set (non-blocking)
+                    this.room.storage.setAlarm(
+                        (currentState.gameOverAt ?? Date.now()) + GAME_CONSTS.ROOM_HARD_EXPIRY_MS
+                    ).catch(() => {});
+                    return;
+                }
+                // age <= ROOM_SOFT_EXPIRY_MS → dentro de la Ventana de Resultados, conexión normal
             }
-            // ── END EXPIRED ROOM GATE ───────────────────────────────────────────────────
+            // ── END TWO-TIER GATE ────────────────────────────────────────────────────────
 
             // [Phoenix Lobby] Ensure heartbeat is running (wakes up hibernated room)
             this.startHeartbeat();
@@ -661,6 +666,12 @@ export default class Server implements Party.Server {
         } else if (state.status === 'LAST_WISH' && state.timers.resultsEndsAt) {
             // 10-second Last Wish window (Impostor) — Impostor must guess before this fires
             nextTarget = state.timers.resultsEndsAt;
+
+        } else if (state.status === 'GAME_OVER' && state.gameOverAt) {
+            // [Room TTL — Tier 2] Schedule hard-expiry alarm to purge the room from disk.
+            // The alarm fires at gameOverAt + ROOM_HARD_EXPIRY_MS and calls deleteAll().
+            const hardExpiryAt = state.gameOverAt + GAME_CONSTS.ROOM_HARD_EXPIRY_MS;
+            nextTarget = hardExpiryAt;
         }
         // Note: RESULTS for Impostor also uses resultsEndsAt, already covered above
 
@@ -670,6 +681,33 @@ export default class Server implements Party.Server {
     }
 
     async onAlarm() {
+        // ── [Room TTL — Tier 2] HARD EXPIRY: Purge room permanently ───────────────────
+        // This alarm is scheduled by scheduleAlarms() when status transitions to GAME_OVER.
+        // Runs even if there are active connections still on the Game Over screen.
+        const stateAtAlarm = this.engine.getState();
+        if (
+            stateAtAlarm.status === 'GAME_OVER' &&
+            Date.now() - (stateAtAlarm.gameOverAt ?? 0) > GAME_CONSTS.ROOM_HARD_EXPIRY_MS
+        ) {
+            logger.info('ROOM_HARD_EXPIRED', { roomId: this.room.id });
+
+            // Notify all connected clients (users still on the results screen)
+            for (const conn of this.room.getConnections()) {
+                try {
+                    conn.send(JSON.stringify({ type: EVENTS.ROOM_DEAD }));
+                    conn.close(4411, 'ROOM_DEAD');
+                } catch (_) { /* connection may already be closed */ }
+            }
+
+            // Purge from disk
+            if (this.saveTimeout) { clearTimeout(this.saveTimeout); this.saveTimeout = null; }
+            await this.room.storage.deleteAll();
+            this.engine = createEngine(this.supabase, 'CLASSIC', 'purged-room');
+            this.previousStates.clear();
+            return;
+        }
+        // ── END HARD EXPIRY GATE ────────────────────────────────────────────────────────
+
         // [AUTO-WIPE] Check for inactivity
         const activeConnections = [...this.room.getConnections()].length;
         if (activeConnections === 0) {

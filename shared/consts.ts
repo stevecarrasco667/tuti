@@ -51,7 +51,11 @@ export const EVENTS = {
     ROOM_HEARTBEAT: 'ROOM_HEARTBEAT',
 
     // [Room TTL] Server → Client: la sala ha caducado. El payload incluye `config` para auto-clonar.
-    ROOM_EXPIRED: 'ROOM_EXPIRED'
+    ROOM_EXPIRED: 'ROOM_EXPIRED',
+
+    // [Room TTL - Tier 2] Server → Client: la sala fue purgada definitivamente (hard expiry).
+    // NO hay payload de configuración — el cliente redirige al Home limpiamente.
+    ROOM_DEAD: 'ROOM_DEAD'
 } as const;
 
 export const APP_VERSION = 'v0.5.0';
@@ -81,7 +85,17 @@ export const GAME_CONSTS = {
     // [Phoenix Lobby] Max players per room
     MAX_PLAYERS: 8,
 
-    // [Room TTL] Time after GAME_OVER before a room is considered expired for new connections.
-    // Set to 10_000 (10s) for production testing. Change to 7_200_000 (2h) for final release.
+    // ── Room Two-Tier Expiration ──────────────────────────────────────────────
+    // SOFT EXPIRY: New connections after this threshold are rejected with ROOM_EXPIRED
+    // (includes config clone payload so client can auto-recreate the room).
+    // QA: 10s | PROD: 10s (keep — this is the post-results grace window end)
+    ROOM_SOFT_EXPIRY_MS: 10_000,
+
+    // HARD EXPIRY: Room is purged from memory and disk. All connections are kicked.
+    // New connections receive ROOM_DEAD (no payload) and are sent to HomeView.
+    // ⚠️  QA TESTING VALUE: 20s. Change to 3_600_000 (1h) for production release.
+    ROOM_HARD_EXPIRY_MS: 20_000,
+
+    // Alias kept for backward compatibility with existing references:
     ROOM_TTL_MS: 10_000
 } as const;

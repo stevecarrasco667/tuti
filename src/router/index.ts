@@ -112,7 +112,7 @@ router.beforeEach(async (to, _from, next) => {
         isBootstrapping.value = false;
         const errMsg = err instanceof Error ? err.message : String(err);
 
-        // ── [Room TTL] SALA EXPIRADA — AUTO-CLONAR ───────────────────────
+        // ── [Room TTL — Tier 1] SALA EXPIRADA — AUTO-CLONAR ─────────────────
         if (errMsg === 'ROOM_EXPIRED') {
             console.info('[ColdStart] Sala expirada detectada. Iniciando auto-clonación...');
 
@@ -156,6 +156,14 @@ router.beforeEach(async (to, _from, next) => {
             return;
         }
 
+        // ── [Room TTL — Tier 2] SALA PURGADA — REDIRIGIR AL HOME ────────────
+        if (errMsg === 'ROOM_DEAD') {
+            console.info('[ColdStart] Sala purgada definitivamente.');
+            disconnectIntentionally();
+            addToast('Esta sala fue eliminada por inactividad prolongada.', 'info');
+            next('/');
+            return;
+        }
         // ── TIMEOUT O ERROR DE CONEXIÓN GENÉRICO ─────────────────────────
         // La sala no existe, el servidor no responde, o la red es muy lenta.
         // Redirigimos al Home con un Toast de error para no dejar al usuario atrapado.
