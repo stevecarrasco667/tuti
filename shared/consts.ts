@@ -93,8 +93,8 @@ export const GAME_CONSTS = {
 
     // HARD EXPIRY: Room is purged from memory and disk. All connections are kicked.
     // New connections receive ROOM_DEAD (no payload) and are sent to HomeView.
-    // ⚠️  QA TESTING VALUE: 20s. Change to 3_600_000 (1h) for production release.
-    ROOM_HARD_EXPIRY_MS: 20_000,
+    // Production value: 3_600_000 (1 hour).
+    ROOM_HARD_EXPIRY_MS: 3_600_000,
 
     // Alias kept for backward compatibility with existing references:
     ROOM_TTL_MS: 10_000

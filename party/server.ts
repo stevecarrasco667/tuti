@@ -815,11 +815,16 @@ export default class Server implements Party.Server {
         // Check if room is now empty
         const connections = [...this.room.getConnections()];
         if (connections.length === 0) {
+            // ⚠️ Capture state FIRST — dispose() may clear engine internals,
+            // causing getState() to return defaults with gameOverAt = undefined.
+            // That would make hardExpiryAt = year 1970 → alarm fires in 1s → instant purge bug.
+            const closingState = this.engine.getState();
+
             if (this.saveTimeout) {
                 clearTimeout(this.saveTimeout);
                 this.saveTimeout = null;
             }
-            this.room.storage.put(STORAGE_KEY, this.engine.getState());
+            this.room.storage.put(STORAGE_KEY, closingState);
 
             // [Sprint 1] Stop Tick Loop — no players means no need to count down
             this.stopTick();
@@ -838,17 +843,18 @@ export default class Server implements Party.Server {
             // Clear all per-connection baselines
             this.previousStates.clear();
 
-            const closingState = this.engine.getState();
             if (closingState.config.isPublic) {
                 // Pública: limpieza agresiva en 10s — desaparece del índice rápidamente.
                 logger.info('AUTO_WIPE_SCHEDULED_PUBLIC', { roomId: this.room.id, timeout: 10 });
                 this.room.storage.setAlarm(Date.now() + 10_000);
 
             } else if (closingState.status === 'GAME_OVER' && closingState.gameOverAt) {
-                // Privada + GAME_OVER: no sobreescribir el hard-expiry alarm ya programado.
-                // Si el alarm expiró (jugadores salieron tarde), asegurar que el hard-expiry quede.
+                // Privada + GAME_OVER: mantener la sala viva hasta el hard-expiry (1h).
+                // No sobreescribir con un tiempo más corto — el link debe seguir funcionando.
                 const hardExpiryAt = closingState.gameOverAt + GAME_CONSTS.ROOM_HARD_EXPIRY_MS;
-                const target = Math.max(hardExpiryAt, Date.now() + 1_000);
+                // hardExpiryAt is always in the future here since gameOverAt is freshly set.
+                // Safety clamp: if somehow in the past, push 1s forward.
+                const target = hardExpiryAt > Date.now() ? hardExpiryAt : Date.now() + 1_000;
                 logger.info('PRESERVING_HARD_EXPIRY_ALARM', { roomId: this.room.id, hardExpiryAt });
                 this.room.storage.setAlarm(target);
 
