@@ -300,6 +300,11 @@ export class ImpostorEngine extends BaseEngine {
         // 4. Transition state — skip RESULTS, go directly to GAME_OVER
         this.state.status = 'GAME_OVER';
         this.state.gameOverReason = reason;
+        // [Room TTL] Seal the death timestamp — _forceCrewVictory bypasses _triggerGameOver,
+        // so gameOverAt must be set here to prevent the year-1970 instant-purge bug.
+        if (!this.state.gameOverAt) {
+            this.state.gameOverAt = Date.now();
+        }
         this.state.timers = { roundEndsAt: null, votingEndsAt: null, resultsEndsAt: null, graceEndsAt: null };
         this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
 
@@ -965,8 +970,9 @@ export class ImpostorEngine extends BaseEngine {
         const wasAlreadyGameOver = this.state.status === 'GAME_OVER';
         this.state.status = 'GAME_OVER';
         this.state.gameOverReason = reason;
-        // [Room TTL] Seal the death timestamp only the first time — prevents resets on repeated calls.
-        if (!wasAlreadyGameOver) {
+        // [Room TTL] Seal the death timestamp. Also covers the case where another code path
+        // (e.g., _forceCrewVictory) set status='GAME_OVER' first but forgot gameOverAt.
+        if (!this.state.gameOverAt) {
             this.state.gameOverAt = Date.now();
         }
         this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };

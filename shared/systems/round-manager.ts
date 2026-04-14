@@ -73,6 +73,12 @@ export class RoundManager {
         if (state.roundsPlayed >= config.classic.rounds) {
             state.status = 'GAME_OVER';
             state.gameOverReason = 'NORMAL';
+            // [Room TTL] Seal the death timestamp here, parallel to _triggerGameOver.
+            // Without this, _triggerGameOver sees wasAlreadyGameOver=true and skips
+            // gameOverAt → undefined → hardExpiryAt = year 1970 → alarm in 1s → instant purge.
+            if (!state.gameOverAt) {
+                state.gameOverAt = Date.now();
+            }
             return false; // Game Over
         }
         return true; // Continue

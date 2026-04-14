@@ -661,8 +661,10 @@ export class TutiEngine extends BaseEngine {
         const wasAlreadyGameOver = this.state.status === 'GAME_OVER';
         this.state.status = 'GAME_OVER';
         this.state.gameOverReason = reason;
-        // [Room TTL] Seal the death timestamp only the first time — prevents resets on repeated calls.
-        if (!wasAlreadyGameOver) {
+        // [Room TTL] Seal the death timestamp. Uses !gameOverAt (not !wasAlreadyGameOver)
+        // to cover the edge case where another code path (e.g., round-manager.nextRound)
+        // already set status='GAME_OVER' before this method runs.
+        if (!this.state.gameOverAt) {
             this.state.gameOverAt = Date.now();
         }
         this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
