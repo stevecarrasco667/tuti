@@ -18,6 +18,7 @@ import ImpostorResultsView from './results/ImpostorResultsView.vue';
 import MatchHighlightsPanel from './results/MatchHighlightsPanel.vue';
 import PostGameActions from './results/PostGameActions.vue';
 import MatchSummaryCard from './ui/MatchSummaryCard.vue';
+import InstallPrompt from './InstallPrompt.vue';
 
 const { gameState, myUserId, resetGame, leaveGame } = useGame();
 const { playWin, playStop } = useSound();
@@ -176,6 +177,8 @@ onMounted(() => {
 
 <template>
     <div class="h-full w-full flex flex-col overflow-hidden relative bg-panel-base">
+        <!-- Install PWA Prompt (Sprint 4 P3) -->
+        <InstallPrompt />
 
         <!-- Shell de resultados: header + contenido + acciones -->
         <ResultsHeader :i-won="iWon" :am-i-host="amIHost" />
