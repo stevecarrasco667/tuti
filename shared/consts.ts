@@ -91,6 +91,12 @@ export const GAME_CONSTS = {
     // QA: 10s | PROD: 10s (keep — this is the post-results grace window end)
     ROOM_SOFT_EXPIRY_MS: 10_000,
 
+    // GAMEOVER AFK TIMEOUT: How long already-connected players can stay on the results
+    // screen before being kicked. Separate from ROOM_SOFT_EXPIRY_MS — that one only
+    // applies to NEW connections arriving after game-over, not to active players.
+    // QA: 60_000 (1 min) | PROD: 60_000
+    ROOM_GAMEOVER_AFK_MS: 60_000,
+
     // HARD EXPIRY: Room is purged from memory and disk. All connections are kicked.
     // New connections receive ROOM_DEAD (no payload) and are sent to HomeView.
     // Production value: 3_600_000 (1 hour).

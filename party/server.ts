@@ -673,10 +673,11 @@ export default class Server implements Party.Server {
             nextTarget = state.timers.resultsEndsAt;
 
         } else if (state.status === 'GAME_OVER' && state.gameOverAt) {
-            // [Room TTL] Schedule the 10s kick alarm — connected players will be evicted.
-            // After kicking, onAlarm() sets phase-2 alarm for private room cleanup (ROOM_HARD_EXPIRY_MS).
-            // Public rooms are purged inline inside onAlarm() after kicking.
-            nextTarget = state.gameOverAt + GAME_CONSTS.ROOM_SOFT_EXPIRY_MS;
+            // [Room TTL] AFK watchdog for players already on the results screen.
+            // ROOM_GAMEOVER_AFK_MS (60s) gives players time to share results and
+            // start a new game before being kicked. This is intentionally separate
+            // from ROOM_SOFT_EXPIRY_MS (10s) which only applies to NEW connections.
+            nextTarget = state.gameOverAt + GAME_CONSTS.ROOM_GAMEOVER_AFK_MS;
         }
         // Note: RESULTS for Impostor also uses resultsEndsAt, already covered above
 
@@ -705,8 +706,8 @@ export default class Server implements Party.Server {
                 return;
             }
 
-            // — PHASE 1: 10s KICK — Expulsar a los jugadores conectados según modo ——————————
-            if (age >= GAME_CONSTS.ROOM_SOFT_EXPIRY_MS) {
+            // — PHASE 1: AFK KICK — Expulsar jugadores inactivos en pantalla de resultados ——
+            if (age >= GAME_CONSTS.ROOM_GAMEOVER_AFK_MS) {
                 const isPublic = stateAtAlarm.config.isPublic;
                 const connectedCount = [...this.room.getConnections()].length;
                 logger.info('ROOM_KICK_TRIGGER', { roomId: this.room.id, isPublic, connectedCount, ageMs: age });
