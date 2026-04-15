@@ -788,6 +788,8 @@ export default class Server implements Party.Server {
 
     onClose(connection: Party.Connection) {
         this.rateLimiter.cleanup(connection.id);
+        // [Sprint H1 — SEC-3] Cleanup the action rate limiter too (was missing → slow memory leak)
+        this.actionLimiter.cleanup(connection.id);
         this.connectionHandler.handleClose(connection);
 
         // [Sprint 3 - P2] Broadcast PLAYER_LEFT a los jugadores restantes antes del delta sync

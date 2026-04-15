@@ -1,6 +1,7 @@
 import type * as Party from "partykit/server";
 import { BaseHandler } from "./base";
 import { sendError } from "../utils/broadcaster";
+import { ImpostorEngine } from "../../shared/engines/impostor-engine";
 
 import { EVENTS } from "../../shared/consts";
 
@@ -8,6 +9,11 @@ export class GameHandler extends BaseHandler {
 
     async handleStartGame(sender: Party.Connection) {
         try {
+            // [Sprint H1 — SEC-2] Defense-in-depth: verify host at handler layer
+            if (!this.isHost(sender)) {
+                sendError(sender, 'Solo el anfitrión puede iniciar la partida.');
+                return;
+            }
             await this.engine.startGame(sender.id);
         } catch (err) {
             console.error(`[GameHandler] Fatal error during game bootstrap:`, err);
@@ -73,6 +79,11 @@ export class GameHandler extends BaseHandler {
 
     async handleRestartGame(sender: Party.Connection) {
         try {
+            // [Sprint H1 — SEC-2] Defense-in-depth: verify host at handler layer
+            if (!this.isHost(sender)) {
+                sendError(sender, 'Solo el anfitrión puede reiniciar la partida.');
+                return;
+            }
             await this.engine.restartGame(sender.id);
         } catch (err) {
             sendError(sender, (err as Error).message);
@@ -119,13 +130,17 @@ export class GameHandler extends BaseHandler {
         payload: { guess: string },
         sender: Party.Connection
     ) {
-        (this.engine as any).submitLastWish(sender.id, payload.guess ?? '');
+        // [Sprint H1 — BE-5] Guard: Impostor-only method — reject silently in Classic mode
+        if (!(this.engine instanceof ImpostorEngine)) return;
+        this.engine.submitLastWish(sender.id, payload.guess ?? '');
     }
 
     // [P12] EJE A: Live Draft — debounce autoguardado
     async handleUpdateImpostorDraft(payload: { word: string }, sender: Party.Connection) {
+        // [Sprint H1 — BE-5] Guard: Impostor-only method — reject silently in Classic mode
+        if (!(this.engine instanceof ImpostorEngine)) return;
         try {
-            (this.engine as any).updateDraft(sender.id, payload.word ?? '');
+            this.engine.updateDraft(sender.id, payload.word ?? '');
         } catch (err) {
             sendError(sender, (err as Error).message);
         }
@@ -133,8 +148,10 @@ export class GameHandler extends BaseHandler {
 
     // [P12] EJE A: Confirmación — el jugador declara "estoy listo"
     async handleConfirmImpostorWord(sender: Party.Connection) {
+        // [Sprint H1 — BE-5] Guard: Impostor-only method — reject silently in Classic mode
+        if (!(this.engine instanceof ImpostorEngine)) return;
         try {
-            (this.engine as any).confirmWord(sender.id);
+            this.engine.confirmWord(sender.id);
         } catch (err) {
             sendError(sender, (err as Error).message);
         }
