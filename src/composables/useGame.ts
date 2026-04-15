@@ -59,7 +59,6 @@ export function useGame() {
         updateConfig: actions.updateConfig,
         resetGame: actions.resetGame,
         kickPlayer: actions.kickPlayer,
-        forceDictionaryReload: actions.forceDictionaryReload,
         leaveGame: actions.leaveGame,
         sendChatMessage: actions.sendChatMessage,
         sendReaction: actions.sendReaction,

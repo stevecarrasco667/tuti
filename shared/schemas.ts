@@ -31,7 +31,9 @@ export const GameConfigSchema = z.object({
         votingDuration: z.number().min(10).max(120),
         categoryCount: z.number().min(1).max(10).optional().default(5),
         categories: z.array(CategoryRefSchema),
-        customCategories: z.array(CategoryRefSchema),
+        // [Sprint H2 — DT-5] Fix: must match types.ts `customCategories: string[]`.
+        // These are user-typed category names, not DB-sourced CategoryRef objects.
+        customCategories: z.array(z.string()),
         mutators: z.object({
             suicidalStop: z.boolean(),
             anonymousVoting: z.boolean()

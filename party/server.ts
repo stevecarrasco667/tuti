@@ -629,7 +629,7 @@ export default class Server implements Party.Server {
 
             // === UNIFIED DELTA SYNC ===
             // After any handler mutates the engine, broadcast the delta to all clients.
-            // Exceptions: PONG (no-op), CHAT_SEND (uses its own chat broadcast), ADMIN_RELOAD_DICTS (no state change)
+            // Exceptions: PONG (no-op), CHAT_SEND (uses its own chat broadcast), WORD_REACT/LAST_WISH_TYPING (stateless relay)
             this.broadcastStateDelta(this.engine.getState());
 
             await this.scheduleAlarms(this.engine.getState());

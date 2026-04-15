@@ -101,10 +101,6 @@ export function useGameActions(
         }));
     };
 
-    const forceDictionaryReload = () => {
-        socket.value?.send(JSON.stringify({ type: EVENTS.ADMIN_RELOAD_DICTS, userId: state.myUserId.value }));
-    };
-
     const leaveGame = () => {
         if (socket.value) {
             try {
@@ -173,7 +169,6 @@ export function useGameActions(
         updateConfig,
         resetGame,
         kickPlayer,
-        forceDictionaryReload,
         leaveGame,
         sendChatMessage,
         sendReaction,

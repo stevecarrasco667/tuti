@@ -43,9 +43,6 @@ export const EVENTS = {
     PLAYER_JOINED: 'PLAYER_JOINED',
     PLAYER_LEFT: 'PLAYER_LEFT',
 
-    // [Phoenix CDN] Admin Commands
-    ADMIN_RELOAD_DICTS: 'ADMIN_RELOAD_DICTS',
-
     // [Phoenix Lobby] Hub-and-Spoke
     LOBBY_STATE_UPDATE: 'LOBBY_STATE_UPDATE',
     ROOM_HEARTBEAT: 'ROOM_HEARTBEAT',
