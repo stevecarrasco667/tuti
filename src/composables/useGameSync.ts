@@ -36,7 +36,10 @@ export function useGameSync(
     // [Sprint 3 - P2] Toast singleton — importado en la capa de red para disparar de forma imperativa,
     // no desde watchers de UI (anti-patrón de proxy-diffing rechazado por el CTO).
     const { addToast } = useToast();
-    // Reactions are handled by the singleton listener in useSocket.ts
+    // [Bug Fix] PLAYER_JOINED and PLAYER_LEFT toasts moved to the singleton handleEphemeralMessages
+    // in useSocket.ts to guarantee exactly 1 toast per event, regardless of how many
+    // components have called useGame(). ROOM_DEAD still uses addToast below.
+    // WORD_REACT is also handled by the singleton in useSocket.ts — do NOT handle it here.
 
     // Inbound: Receive and Mutate
     watch(lastMessage, (newMsg) => {
@@ -127,14 +130,6 @@ export function useGameSync(
                 }
             } else if (parsed.type === EVENTS.SERVER_ERROR) {
                 console.error('[Server Error]:', (parsed.payload as { message: string }).message);
-            } else if (parsed.type === EVENTS.PLAYER_JOINED) {
-                // [Sprint 3 - P2] Disparador imperativo — desde evento discreto del WebSocket,
-                // NO desde array-diffing de Vue (evita race conditions con proxies mutados).
-                const name = (parsed.payload as { name: string }).name;
-                addToast(`👥 ${name} se unió a la sala`, 'success');
-            } else if (parsed.type === EVENTS.PLAYER_LEFT) {
-                const name = (parsed.payload as { name: string }).name;
-                addToast(`🚪 ${name} abandonó la sala`, 'info');
             } else if (parsed.type === EVENTS.ROOM_DEAD) {
                 // [Room TTL — Tier 2] Hard expiry: el servidor purgo la sala.
                 // Afecta a usuarios YA conectados que estaban en la pantalla de resultados.
@@ -143,7 +138,7 @@ export function useGameSync(
                 addToast('👋 Esta sala fue eliminada por inactividad. ¡Hasta la próxima!', 'info');
                 router.push('/');
             }
-            // WORD_REACT is handled by the singleton in useSocket.ts — do NOT handle it here
+            // WORD_REACT, PLAYER_JOINED, PLAYER_LEFT are handled by the singleton in useSocket.ts
         } catch (e) {
             console.error('Failed to parse message:', e);
         }

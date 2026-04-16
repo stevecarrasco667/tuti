@@ -2,6 +2,7 @@ import { ref, watch } from 'vue';
 import PartySocket from "partysocket";
 import { supabase } from '../lib/supabase';
 import { useReactions } from './useReactions';
+import { useToast } from './useToast';
 import { EVENTS } from '../../shared/consts';
 
 // Si es DEV, usa localhost. Si es PROD, usa el host actual del navegador.
@@ -42,6 +43,17 @@ function handleEphemeralMessages(raw: string) {
         } else if (msg.type === EVENTS.ROOM_DEAD) {
             // [Room TTL — Tier 2] Sala purgada definitivamente. No hay config. El router redirige al Home.
             // No hay estado que guardar — solo señalizará via el rechazo de waitForFirstState.
+        } else if (msg.type === EVENTS.PLAYER_JOINED) {
+            // [Bug Fix] Movido aquí desde watch(lastMessage) en useGameSync.
+            // El watch se registra N veces (1 por componente que llama useGame()),
+            // causando N toasts idénticos. Este handler es un singleton anclado al
+            // socket — se ejecuta exactamente 1 vez por mensaje.
+            const { addToast } = useToast();
+            addToast(`👥 ${msg.payload?.name} se unió a la sala`, 'success');
+        } else if (msg.type === EVENTS.PLAYER_LEFT) {
+            // [Bug Fix] Igual que PLAYER_JOINED — singleton para garantizar 1 toast.
+            const { addToast } = useToast();
+            addToast(`🚪 ${msg.payload?.name} abandonó la sala`, 'info');
         }
     } catch { /* ignorar mensajes no-JSON */ }
 }
