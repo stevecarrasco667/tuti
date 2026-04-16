@@ -15,13 +15,16 @@ export function useGameActions(
         const userId = state.myUserId.value;
         const token = typeof localStorage !== 'undefined' ? localStorage.getItem('tuti-session-token') || undefined : undefined;
 
-        // [Perf] Navegar OPTIMISTAMENTE al lobby inmediatamente — sin esperar al servidor.
-        // La conexión WebSocket ocurre en background. El servidor luego confirmará via
-        // UPDATE_STATE y syncRoute() será un no-op (ya estamos en la ruta correcta).
-        router.push(`/lobby/${targetRoomId}`);
-
-        // Iniciar conexión en background (no await)
+        // [Bug Fix] setRoomId MUST be called BEFORE router.push().
+        // router.push() triggers the navigation guard (beforeEach) synchronously.
+        // The guard checks `if (socket.value)` — if null, it calls setRoomId() AGAIN,
+        // creating TWO sockets with TWO message event listeners. That caused
+        // handleEphemeralMessages() to fire twice per message → 2 toasts per join.
+        // Calling setRoomId first ensures socket.value is set before the guard runs.
         setRoomId(targetRoomId, { userId, name, avatar, token, public: isPublic ? 'true' : undefined });
+
+        // Navigate optimistically — guard now finds socket.value !== null and skips its own setRoomId
+        router.push(`/lobby/${targetRoomId}`);
     };
 
 

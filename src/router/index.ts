@@ -4,7 +4,7 @@ import HomeView from '../components/HomeView.vue';
 import LobbyView from '../components/LobbyView.vue';
 import GameView from '../components/GameView.vue';
 import GameOverView from '../components/GameOverView.vue';
-import { useSocket, pendingRoomExpiredConfig } from '../composables/useSocket';
+import { useSocket, pendingRoomExpiredConfig, isConnecting } from '../composables/useSocket';
 import { useGameState } from '../composables/useGameState';
 import { useToast } from '../composables/useToast';
 import { generateRoomId } from '../utils/random';
@@ -74,8 +74,11 @@ router.beforeEach(async (to, _from, next) => {
 
     const { socket, setRoomId, waitForFirstState, disconnectIntentionally } = useSocket();
 
-    // Si ya hay una conexión activa → warm start normal, no interferir
-    if (socket.value) return next();
+    // Si ya hay una conexión activa O en progreso → warm start normal, no interferir.
+    // isConnecting es true entre el inicio de setRoomId() y la asignación de socket.value
+    // (durante el await de supabase). Sin esta guarda, router.push() desde joinGame()
+    // triggereaba el guard ANTES de que socket.value tuviera valor, creando dos sockets.
+    if (socket.value || isConnecting.value) return next();
 
     // ── COLD START DETECTADO ─────────────────────────────────────────────
     // El usuario llegó por deep link sin pasar por HomeView.

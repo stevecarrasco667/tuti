@@ -16,6 +16,10 @@ const socket = ref<PartySocket | null>(null);
 const isConnected = ref(false);
 const lastMessage = ref<string>('');
 const isIntentionalDisconnect = ref(false);
+// [Bug Fix] True while setRoomId() is in progress (async, before socket.value is assigned).
+// The router navigation guard checks this to avoid creating a second socket when
+// joinGame() already started a connection (push → guard race condition).
+export const isConnecting = ref(false);
 
 // [P10] Texto en vivo que escribe el Impostor durante last_wish (singleton)
 export const lastWishText = ref<string>('');
@@ -60,6 +64,11 @@ function handleEphemeralMessages(raw: string) {
 
 export function useSocket() {
     const setRoomId = async (roomId: string | null, userInfo?: { userId: string, name: string, avatar: string, token?: string, public?: string }) => {
+        // [Bug Fix] Signal that a connection is in progress IMMEDIATELY (before any await).
+        // This prevents the router guard from calling setRoomId() again when it sees
+        // socket.value===null during the async supabase handshake phase.
+        isConnecting.value = true;
+
         // 1. Close existing connection if any
         if (socket.value) {
             console.log('🔌 Switching rooms... Closing old connection.');
@@ -133,6 +142,7 @@ export function useSocket() {
             });
 
             socket.value = ws as any; // Cast for compatibility
+            isConnecting.value = false; // Connection object created — guard can now see socket.value
         } else {
             // Production PartyKit Connection
             socket.value = new PartySocket({
@@ -140,6 +150,7 @@ export function useSocket() {
                 room: roomId,
                 query: enrichedUserInfo // PartySocket handles object to query string conversion
             });
+            isConnecting.value = false; // Connection object created — guard can now see socket.value
 
             socket.value.addEventListener('open', () => {
                 isConnected.value = true;
