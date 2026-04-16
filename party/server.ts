@@ -12,6 +12,7 @@ import { PlayerHandler } from "./handlers/player";
 import { GameHandler } from "./handlers/game";
 import { VotingHandler } from "./handlers/voting";
 import { ChatHandler } from "./handlers/chat";
+import { TickManager } from "./managers/tick-manager";
 
 import { compare } from "fast-json-patch";
 
@@ -87,8 +88,8 @@ export default class Server implements Party.Server {
     private saveTimeout: ReturnType<typeof setTimeout> | null = null;
     // [Phoenix Lobby] True Heartbeat Interval
     private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
-    // [Sprint 1] Server-Authoritative Tick Loop
-    private tickInterval: ReturnType<typeof setInterval> | null = null;
+    // [Sprint H3 — BE-1] Tick loop delegated to TickManager
+    private tickManager!: TickManager;
 
     // [Sprint P5 — SMELL-3] Debounced Auth-Token persistence.
     // Instead of blocking the onConnect hot path with an immediate storage.put,
@@ -102,8 +103,8 @@ export default class Server implements Party.Server {
 
     // Reusable state change callback for Engine Factory
     private onStateChange = (newState: RoomState) => {
-        // 1. [Sprint 1] Tick Loop Phase Management — react to every phase transition
-        this.manageTick(newState);
+        // 1. [Sprint H3] Tick Loop Phase Management — delegated to TickManager
+        this.tickManager.manageTick(newState);
 
         // 2. Inmediato: Per-connection broadcast with State Masking
         this.broadcastStateDelta(newState);
@@ -142,6 +143,14 @@ export default class Server implements Party.Server {
         // Factory Pattern: Engine is created as TutiEngine by default.
         // If the stored state has mode='IMPOSTOR', it will be re-created in onStart().
         this.engine = createEngine(this.supabase, 'CLASSIC', room.id, this.onStateChange);
+
+        // [Sprint H3 — BE-1] TickManager: owns the 1s countdown loop.
+        // Receives engine (for tick()) and a broadcast callback (for delta-sync).
+        this.tickManager = new TickManager(
+            this.engine,
+            () => this.broadcastStateDelta(this.engine.getState()),
+            room.id
+        );
 
         // Instantiate Handlers (typed against BaseEngine)
         // [Sprint P5 — SMELL-3] Pass a fire-and-forget callback so ConnectionHandler
@@ -315,61 +324,9 @@ export default class Server implements Party.Server {
         }, 10000);
     }
 
-    // [Sprint 1] Tick Loop Director: called on every state mutation.
-    // Inspects the new game status and starts/stops the tick loop accordingly.
-    // Using the existing timers (endsAt timestamps) to calculate remaining time precisely.
-    // [Sprint P6 — SMELL-1] Refactored to use a declarative Dictionary Map, removing O(4) WET branches.
-    private manageTick(state: RoomState) {
-        const timedStatuses: Partial<Record<string, number | null>> = {
-            'PLAYING': state.timers.roundEndsAt,
-            'REVIEW':  state.timers.votingEndsAt,
-            'TYPING':  state.timers.roundEndsAt,
-            'VOTING':  state.timers.votingEndsAt,
-        };
+    // [Sprint H3 — BE-1] manageTick / startTick / stopTick extracted to TickManager.
+    // See party/managers/tick-manager.ts
 
-        const targetTime = timedStatuses[state.status];
-        if (targetTime) {
-            const msLeft = targetTime - Date.now();
-            if (msLeft > 0 && !this.tickInterval) {
-                this.startTick(msLeft);
-                return;
-            }
-        }
-
-        // Any non-timed phase (LOBBY, RESULTS, etc.) or expired timer -> stop the tick
-        this.stopTick();
-    }
-
-    // [Sprint 1] Server-Authoritative Tick Loop
-    // Starts a 1s interval that decrements remainingTime and broadcasts it to ALL
-    // clients via the existing delta-sync pipeline.
-    // Re-entrant safe: always calls stopTick() first to prevent double-tick bugs.
-    private startTick(durationMs: number) {
-        this.stopTick(); // Re-entrant safety: clear any previous interval before starting
-        let remaining = Math.ceil(durationMs / 1000);
-        logger.info('TICK_LOOP_START', { roomId: this.room.id, duration: remaining });
-
-        this.tickInterval = setInterval(() => {
-            remaining--;
-            this.engine.tick(remaining);
-            this.broadcastStateDelta(this.engine.getState());
-
-            if (remaining <= 0) {
-                // The RoundManager's setTimeout will handle the actual phase transition.
-                // We stop the tick loop here to avoid unnecessary broadcasts post-transition.
-                this.stopTick();
-            }
-        }, 1000);
-    }
-
-    // Stops and cleans up the Tick Loop. Safe to call even if no tick is running.
-    private stopTick() {
-        if (this.tickInterval) {
-            clearInterval(this.tickInterval);
-            this.tickInterval = null;
-            logger.info('TICK_LOOP_STOP', { roomId: this.room.id });
-        }
-    }
 
     async onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
         try {
@@ -770,16 +727,8 @@ export default class Server implements Party.Server {
             logger.info('WATCHDOG_MUTATION', { roomId: this.room.id, zombiesPurged, stateMutatedByTimer });
 
             if (stateMutatedByTimer) {
-                // [Sprint 1] If a phase timer expired during hibernation, resume the tick loop
-                // for any newly started timed phase (e.g. REVIEW after forced PLAYING→REVIEW)
-                const state = this.engine.getState();
-                if (state.status === 'REVIEW' && state.timers.votingEndsAt) {
-                    const msLeft = state.timers.votingEndsAt - Date.now();
-                    if (msLeft > 0) this.startTick(msLeft);
-                } else if (state.status === 'PLAYING' && state.timers.roundEndsAt) {
-                    const msLeft = state.timers.roundEndsAt - Date.now();
-                    if (msLeft > 0) this.startTick(msLeft);
-                }
+                // [Sprint H3] Resume tick loop after Worker hibernation — delegated to TickManager
+                this.tickManager.manageTick(this.engine.getState());
                 this.broadcastStateDelta(this.engine.getState());
             }
             await this.room.storage.put(STORAGE_KEY, this.engine.getState());
@@ -829,8 +778,8 @@ export default class Server implements Party.Server {
             }
             this.room.storage.put(STORAGE_KEY, closingState);
 
-            // [Sprint 1] Stop Tick Loop — no players means no need to count down
-            this.stopTick();
+            // [Sprint H3] Stop Tick Loop — no players means no need to count down
+            this.tickManager.stop();
 
             // [Sprint 4] Death Hook — Release all GlobalCache references
             // Prevents zombie RAM when rooms hibernate with no players.
