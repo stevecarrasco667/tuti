@@ -451,7 +451,11 @@ export default class Server implements Party.Server {
                     }
                 }
             }
-            this.broadcastStateDelta(this.engine.getState());
+            // NOTE: broadcastStateDelta is NOT called here a second time.
+            // engine.joinPlayer() inside handleConnect() triggers onStateChange(),
+            // which already calls broadcastStateDelta() for all existing clients.
+            // A second call here caused duplicate PATCH_STATE messages → double watcher
+            // triggers → phantom 'volvió' toast appearing alongside PLAYER_JOINED.
         } catch (err) {
             logger.error('ON_CONNECT_FAILED', { connectionId: conn.id, roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
             conn.close(1011, 'Internal Server Error');
