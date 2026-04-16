@@ -403,6 +403,13 @@ export default class Server implements Party.Server {
             });
             conn.send(versionMsg);
 
+            // [Bug Fix] Snapshot existing players BEFORE handleConnect to distinguish
+            // new joins from reconnections. PartySocket auto-reconnects aggressively,
+            // and each reconnection fires onConnect(). Without this guard, the host
+            // would receive a PLAYER_JOINED toast every time the guest's WebSocket
+            // drops and reconnects (10+ toasts for a single player).
+            const playersBefore = new Set(this.engine.getState().players.map(p => p.id));
+
             // 1. Handle Identity FIRST (adds/reconnects player in engine)
             await this.connectionHandler.handleConnect(conn, ctx);
 
@@ -431,12 +438,17 @@ export default class Server implements Party.Server {
             }));
 
             // 4. Unified Delta Broadcast — sends PATCHES (not full state) to existing clients
-            // [Sprint 3 - P2] Broadcast PLAYER_JOINED to all other connections (imperativo, sin array-diffing en el cliente)
-            const joinedName = this.engine.getState().players.find(p => p.id === userId)?.name;
-            if (joinedName) {
-                const joinMsg = JSON.stringify({ type: EVENTS.PLAYER_JOINED, payload: { name: joinedName } });
-                for (const c of this.room.getConnections()) {
-                    if (c.id !== conn.id) c.send(joinMsg);
+            // [Bug Fix] Only broadcast PLAYER_JOINED if this is a genuinely new player,
+            // NOT a PartySocket reconnection. Reconnects already have the player in the
+            // state — the delta sync (PATCH_STATE) handles their updated connection status.
+            const isNewPlayer = !playersBefore.has(userId);
+            if (isNewPlayer) {
+                const joinedName = this.engine.getState().players.find(p => p.id === userId)?.name;
+                if (joinedName) {
+                    const joinMsg = JSON.stringify({ type: EVENTS.PLAYER_JOINED, payload: { name: joinedName } });
+                    for (const c of this.room.getConnections()) {
+                        if (c.id !== conn.id) c.send(joinMsg);
+                    }
                 }
             }
             this.broadcastStateDelta(this.engine.getState());
@@ -726,13 +738,21 @@ export default class Server implements Party.Server {
         this.rateLimiter.cleanup(connection.id);
         // [Sprint H1 — SEC-3] Cleanup the action rate limiter too (was missing → slow memory leak)
         this.actionLimiter.cleanup(connection.id);
+        // [Bug Fix] Snapshot player IDs BEFORE handleClose to detect genuine removals.
+        // PartySocket auto-reconnect fires onClose → onConnect rapidly. handleClose()
+        // marks the player as disconnected but does NOT remove them from the array
+        // (they get a grace period). Only show PLAYER_LEFT if the player was truly removed.
+        const playersBefore = new Set(this.engine.getState().players.map(p => p.id));
+        const leftUserId = (connection.state as any)?.userId || connection.id;
+        const leftPlayerName = this.engine.getState().players.find(p => p.id === leftUserId)?.name;
+
         this.connectionHandler.handleClose(connection);
 
-        // [Sprint 3 - P2] Broadcast PLAYER_LEFT a los jugadores restantes antes del delta sync
-        const leftUserId = (connection.state as any)?.userId || connection.id;
-        const leftPlayer = this.engine.getState().players.find(p => p.id === leftUserId);
-        if (leftPlayer) {
-            const leaveMsg = JSON.stringify({ type: EVENTS.PLAYER_LEFT, payload: { name: leftPlayer.name } });
+        // Only broadcast PLAYER_LEFT if the player was genuinely removed from the array
+        const playersAfter = new Set(this.engine.getState().players.map(p => p.id));
+        const wasRemoved = playersBefore.has(leftUserId) && !playersAfter.has(leftUserId);
+        if (wasRemoved && leftPlayerName) {
+            const leaveMsg = JSON.stringify({ type: EVENTS.PLAYER_LEFT, payload: { name: leftPlayerName } });
             for (const c of this.room.getConnections()) {
                 if (c.id !== connection.id) c.send(leaveMsg);
             }
