@@ -13,6 +13,7 @@ import { GameHandler } from "./handlers/game";
 import { VotingHandler } from "./handlers/voting";
 import { ChatHandler } from "./handlers/chat";
 import { TickManager } from "./managers/tick-manager";
+import { AlarmManager } from "./managers/alarm-manager";
 
 import { compare } from "fast-json-patch";
 
@@ -90,6 +91,8 @@ export default class Server implements Party.Server {
     private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
     // [Sprint H3 — BE-1] Tick loop delegated to TickManager
     private tickManager!: TickManager;
+    // [Sprint H3 — BE-1] Alarm scheduling delegated to AlarmManager
+    private alarmManager!: AlarmManager;
 
     // [Sprint P5 — SMELL-3] Debounced Auth-Token persistence.
     // Instead of blocking the onConnect hot path with an immediate storage.put,
@@ -110,7 +113,7 @@ export default class Server implements Party.Server {
         this.broadcastStateDelta(newState);
 
         // 3. Schedule backup alarm for next phase (critical for hibernate recovery)
-        this.scheduleAlarms(newState);
+        this.alarmManager.schedule(newState);
 
         // 4. Diferido: Write-Behind a disco (max 1 vez cada 5s)
         if (!this.saveTimeout) {
@@ -151,6 +154,9 @@ export default class Server implements Party.Server {
             () => this.broadcastStateDelta(this.engine.getState()),
             room.id
         );
+
+        // [Sprint H3 — BE-1] AlarmManager: owns the Worker wakeup scheduling logic.
+        this.alarmManager = new AlarmManager(room, room.id);
 
         // Instantiate Handlers (typed against BaseEngine)
         // [Sprint P5 — SMELL-3] Pass a fire-and-forget callback so ConnectionHandler
@@ -235,7 +241,7 @@ export default class Server implements Party.Server {
                 this.authTokens = new Map(Object.entries(storedTokens));
             }
 
-            // 3. [Phoenix Lobby] Start True Heartbeat
+            // 3. [Sprint H3 — BE-2] Start Heartbeat only if room is public (P3 conditional)
             this.startHeartbeat();
         } catch (err) {
             logger.error('ROOM_HYDRATION_FAILED', { roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
@@ -292,8 +298,25 @@ export default class Server implements Party.Server {
         }
     }
 
-    // [Phoenix Lobby] True Heartbeat — Keeps room alive in Lobby
+    // [Phoenix Lobby] True Heartbeat — publishes room state to the lobby index.
+    // [Sprint H3 — BE-2] Conditional: only runs for public rooms to avoid wasting
+    // CPU and HTTP quota on private rooms that never appear in the lobby.
+    // Watcher on UPDATE_CONFIG: called again if a room transitions public ↔ private.
     private startHeartbeat() {
+        const isPublic = this.engine.getState().config.isPublic;
+
+        // If room is private AND heartbeat is already stopped, nothing to do.
+        if (!isPublic) {
+            // If it was running (room just turned private via UPDATE_CONFIG), stop it.
+            if (this.heartbeatInterval) {
+                clearInterval(this.heartbeatInterval);
+                this.heartbeatInterval = null;
+                logger.info('HEARTBEAT_STOPPED_PRIVATE', { roomId: this.room.id });
+            }
+            return;
+        }
+
+        // Public room: ensure exactly one heartbeat is running (idempotent).
         if (this.heartbeatInterval) return;
 
         logger.info('HEARTBEAT_STARTED', { roomId: this.room.id });
@@ -301,23 +324,21 @@ export default class Server implements Party.Server {
         this.heartbeatInterval = setInterval(() => {
             try {
                 const state = this.engine.getState();
-                if (state.config.isPublic) {
-                    logger.info('HEARTBEAT_SENDING', { roomId: this.room.id, players: state.players.length });
+                logger.info('HEARTBEAT_SENDING', { roomId: this.room.id, players: state.players.length });
 
-                    const snapshot: RoomSnapshot = {
-                        id: this.room.id,
-                        hostName: state.players.find(p => p.isHost)?.name || 'Host',
-                        currentPlayers: state.players.length,
-                        maxPlayers: state.config.maxPlayers,
-                        status: state.status,
-                        lastUpdate: Date.now()
-                    };
-                    this.room.context.parties.lobby.get("global").fetch("/heartbeat", {
-                        method: "POST",
-                        body: JSON.stringify(snapshot),
-                        headers: { "Content-Type": "application/json" }
-                    }).catch(e => logger.error('HEARTBEAT_FETCH_FAILED', { error: String(e) }, e instanceof Error ? e : new Error(String(e))));
-                }
+                const snapshot: RoomSnapshot = {
+                    id: this.room.id,
+                    hostName: state.players.find(p => p.isHost)?.name || 'Host',
+                    currentPlayers: state.players.length,
+                    maxPlayers: state.config.maxPlayers,
+                    status: state.status,
+                    lastUpdate: Date.now()
+                };
+                this.room.context.parties.lobby.get("global").fetch("/heartbeat", {
+                    method: "POST",
+                    body: JSON.stringify(snapshot),
+                    headers: { "Content-Type": "application/json" }
+                }).catch(e => logger.error('HEARTBEAT_FETCH_FAILED', { error: String(e) }, e instanceof Error ? e : new Error(String(e))));
             } catch (err) {
                 logger.error('HEARTBEAT_CRASH', { roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
             }
@@ -513,6 +534,10 @@ export default class Server implements Party.Server {
                         // Forzar broadcast inmediato del estado (enmascarado por el nuevo motor)
                         this.broadcastStateDelta(this.engine.getState());
                     }
+
+                    // [Sprint H3 — BE-2] If isPublic changed, start or stop the heartbeat accordingly.
+                    // startHeartbeat() is idempotent: safe to call on every config change.
+                    this.startHeartbeat();
                     break;
                 }
 
@@ -589,7 +614,7 @@ export default class Server implements Party.Server {
             // Exceptions: PONG (no-op), CHAT_SEND (uses its own chat broadcast), WORD_REACT/LAST_WISH_TYPING (stateless relay)
             this.broadcastStateDelta(this.engine.getState());
 
-            await this.scheduleAlarms(this.engine.getState());
+            await this.alarmManager.schedule(this.engine.getState());
 
         } catch (err) {
             const error = err instanceof Error ? err : new Error(String(err));
@@ -601,47 +626,9 @@ export default class Server implements Party.Server {
         }
     }
 
-    async scheduleAlarms(state: RoomState) {
-        const now = Date.now();
-        let nextTarget: number | null = null;
+    // [Sprint H3 — BE-1] scheduleAlarms extracted to AlarmManager.
+    // See party/managers/alarm-manager.ts
 
-        // Classic mode phases
-        if (state.status === 'PLAYING' && state.timers.roundEndsAt) {
-            nextTarget = state.timers.roundEndsAt;
-        } else if (state.status === 'REVIEW' && state.timers.votingEndsAt) {
-            nextTarget = state.timers.votingEndsAt;
-        } else if (state.status === 'RESULTS' && state.timers.resultsEndsAt) {
-            nextTarget = state.timers.resultsEndsAt;
-
-            // Impostor mode phases
-        } else if (state.status === 'ROLE_REVEAL' && state.timers.roundEndsAt) {
-            nextTarget = state.timers.roundEndsAt;
-        } else if (state.status === 'TYPING' && state.timers.roundEndsAt) {
-            nextTarget = state.timers.roundEndsAt;
-        } else if (state.status === 'VOTING' && state.timers.votingEndsAt) {
-            nextTarget = state.timers.votingEndsAt;
-
-        // [Patch 1.4] Cover states missing from alarm scheduler to prevent freeze on Worker hibernation
-        } else if (state.status === 'ENDING_COUNTDOWN' && state.timers.roundEndsAt) {
-            // 3-second panic countdown (Tuti Classic) — must wake the Worker if it hibernates mid-panic
-            nextTarget = state.timers.roundEndsAt;
-        } else if (state.status === 'LAST_WISH' && state.timers.resultsEndsAt) {
-            // 10-second Last Wish window (Impostor) — Impostor must guess before this fires
-            nextTarget = state.timers.resultsEndsAt;
-
-        } else if (state.status === 'GAME_OVER' && state.gameOverAt) {
-            // [Room TTL] AFK watchdog for players already on the results screen.
-            // ROOM_GAMEOVER_AFK_MS (60s) gives players time to share results and
-            // start a new game before being kicked. This is intentionally separate
-            // from ROOM_SOFT_EXPIRY_MS (10s) which only applies to NEW connections.
-            nextTarget = state.gameOverAt + GAME_CONSTS.ROOM_GAMEOVER_AFK_MS;
-        }
-        // Note: RESULTS for Impostor also uses resultsEndsAt, already covered above
-
-        if (nextTarget && nextTarget > now) {
-            await this.room.storage.setAlarm(nextTarget);
-        }
-    }
 
     async onAlarm() {
         const stateAtAlarm = this.engine.getState();
