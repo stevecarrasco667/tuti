@@ -93,10 +93,9 @@ export function useGameEffects(
     watch(() => gameState.value.players, (newPlayers, oldPlayers) => {
         if (!oldPlayers || oldPlayers.length === 0) return;
 
-        // Detect Joins
-        const joined = newPlayers.filter(np => !oldPlayers.some(op => op.id === np.id));
-
-        // Check for status changes in existing players
+        // Check for status changes in existing players (reconnection / disconnection)
+        // These stay here because the server doesn't send discrete PLAYER_JOINED/LEFT
+        // events for connection status changes — only for genuine first joins / removals.
         newPlayers.forEach(np => {
             const op = oldPlayers.find(p => p.id === np.id);
             if (op && np.id !== myUserId.value) {
@@ -108,12 +107,9 @@ export function useGameEffects(
             }
         });
 
-        // New players (first join)
-        joined.forEach(p => {
-            if (p.id !== myUserId.value) {
-                addToast(`${p.avatar || '👤'} ${p.name} entró.`, 'join');
-            }
-        });
+        // [Bug Fix] "New player" toasts REMOVED from here.
+        // The server sends a discrete PLAYER_JOINED event handled by the singleton
+        // in useSocket.ts → handleEphemeralMessages(). This watcher was duplicating it.
 
     }, { deep: true });
 
