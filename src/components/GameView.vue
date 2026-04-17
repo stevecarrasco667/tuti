@@ -29,7 +29,7 @@ const handleCountdownFinished = () => {
 };
 
 const { 
-    timeRemaining, timerColor, sessionToasts, addToast, showStopAlert, stopperPlayer, playClick, playAlarm
+    timeRemaining, timerColor, addToast, showStopAlert, stopperPlayer, playClick, playAlarm
 } = useGameEffects(gameState, myUserId, amIHost);
 
 // Polimorfismo del tablero
@@ -110,12 +110,6 @@ const handleToast = (msg: string, style: 'join' | 'leave' | 'stop-warning', icon
             @toggle-vote="handleBoardVote"
             @toast="handleToast"
         />
-
-        <div class="fixed top-20 right-4 z-[60] flex flex-col items-end gap-2 pointer-events-none">
-            <TransitionGroup name="toast">
-                <div v-for="toast in sessionToasts" :key="toast.id" class="px-5 py-3.5 rounded-2xl backdrop-blur-md border-[3px] text-xs font-black uppercase tracking-wider shadow-game-panel pointer-events-auto" :class="toast.type === 'stop-warning' ? 'bg-yellow-400 text-ink-main border-white' : 'bg-panel-base text-ink-main border-white/50'">{{ toast.text }}</div>
-            </TransitionGroup>
-        </div>
 
         <div v-if="showExitModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-ink-main/50 backdrop-blur-sm p-4">
              <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl p-6 shadow-game-panel max-w-xs w-full text-center">

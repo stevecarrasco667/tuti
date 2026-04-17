@@ -1,6 +1,7 @@
 import { ref, computed, watch } from 'vue';
 import { RoomState, PrivateRolePayload, createDefaultRoomState } from '../../shared/types';
 import { generateRandomName } from '../utils/random';
+import { AVATARS } from '../constants/avatars';
 
 // Global state to persist across component mounts if needed
 export const localImpostorRole = ref<PrivateRolePayload | null>(null);
@@ -53,7 +54,7 @@ export function useGameState() {
     }, { immediate: true });
 
     // 3. User Avatar Persistence
-    const AVATARS = ['🦁', '🐯', '🐼', '🐸', '🐙', '🤖', '👽', '👻', '🤡', '💀', '🤠', '🎃'];
+    // [Sprint H4 — FE-4] AVATARS imported from src/constants/avatars.ts (was duplicated here and HomeView.vue)
     const getStoredAvatar = () => typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY_USER_AVATAR) : null;
     const myUserAvatar = ref<string>(getStoredAvatar() || AVATARS[Math.floor(Math.random() * AVATARS.length)]);
 

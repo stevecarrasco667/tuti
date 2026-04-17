@@ -9,7 +9,14 @@ import type { ChatMessage } from '../../shared/types';
 const messages = ref<ChatMessage[]>([]);
 const unreadCount = ref(0);
 let isInitialized = false;
-const chatScope = effectScope(true); // Detached scope
+const chatScope = effectScope(true); // Detached scope — must be stopped via stopChatScope()
+
+// [Sprint H4 — FE-3] Expose a cleanup function for proper lifecycle management.
+// Called by App teardown or test harnesses to prevent watcher leaks.
+export function stopChatScope() {
+    chatScope.stop();
+    isInitialized = false;
+}
 
 export function useChat() {
     const { socket, lastMessage } = useSocket();

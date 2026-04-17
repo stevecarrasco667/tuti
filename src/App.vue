@@ -121,14 +121,19 @@ const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
         </RouterView>
     </main>
 
-    <!-- GLOBAL TOASTS (Overlay) -->
+    <!-- GLOBAL TOASTS (Overlay) — [Sprint H4 FE-2] unified renderer for all toast types -->
     <div class="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
         <TransitionGroup name="toast">
             <div
                 v-for="toast in toasts"
                 :key="toast.id"
                 class="px-5 py-3.5 rounded-2xl backdrop-blur-md border-[3px] text-xs font-black uppercase tracking-wider shadow-game-panel pointer-events-auto"
-                :class="toast.type === 'error' ? 'bg-red-500 text-white border-white' : (toast.type === 'success' ? 'bg-green-500 text-white border-white' : 'bg-panel-base text-ink-main border-white/50')"
+                :class="{
+                    'bg-red-500 text-white border-white':           toast.type === 'error',
+                    'bg-green-500 text-white border-white':         toast.type === 'success' || toast.type === 'join',
+                    'bg-yellow-400 text-ink-main border-white':     toast.type === 'stop-warning',
+                    'bg-panel-base text-ink-main border-white/50':  toast.type === 'info' || toast.type === 'leave',
+                }"
             >
                 {{ toast.text }}
             </div>

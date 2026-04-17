@@ -5,6 +5,7 @@ import { useGame } from '../composables/useGame';
 import { useLobby } from '../composables/useLobby';
 import { useAuth } from '../composables/useAuth';
 import { useToast } from '../composables/useToast';
+import { AVATARS } from '../constants/avatars';
 import TCard from './ui/TCard.vue';
 import TButton from './ui/TButton.vue';
 import TInput from './ui/TInput.vue';
@@ -20,8 +21,7 @@ const isPublicRoom = ref(false);
 const isRefreshing = ref(false);
 const isEditingProfile = ref(false);
 
-// Avatar Pool
-const AVATARS = ['🦁', '🐯', '🐼', '🐸', '🐙', '🤖', '👽', '👻', '🤡', '💀', '🤠', '🎃'];
+// [Sprint H4 — FE-4] AVATARS imported from src/constants/avatars.ts (was duplicated here and useGameState.ts)
 
 // ─── FASE 3: FIX DE REACTIVIDAD ───────────────────────────────────────────────
 // Computed bidireccional sobre el ref original de useGame.

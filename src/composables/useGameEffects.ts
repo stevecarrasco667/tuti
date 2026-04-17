@@ -1,19 +1,13 @@
-import { ref, computed, watch, nextTick, onUnmounted, Ref } from 'vue';
+import { ref, computed, watch, nextTick, onUnmounted } from 'vue';
 import { RoomState } from '../../shared/types';
 import { useSound } from './useSound';
 import { useReactions } from './useReactions';
-
-interface Toast {
-    id: number;
-    text: string;
-    type: 'join' | 'leave' | 'stop-warning';
-    groupId?: string;
-}
+import { useToast } from './useToast';
 
 export function useGameEffects(
-    gameState: Ref<RoomState>,
-    _myUserId: Ref<string>,
-    amIHost: Ref<boolean>
+    gameState: import('vue').Ref<RoomState>,
+    _myUserId: import('vue').Ref<string>,
+    amIHost: import('vue').Ref<boolean>
 ) {
     const { playClick, playJoin, playTick, playAlarm, playSuccess, playUrgency } = useSound();
     const { clearReactions } = useReactions();
@@ -73,22 +67,9 @@ export function useGameEffects(
     });
 
     // --- TOASTS ---
-    const sessionToasts = ref<Toast[]>([]);
-
-    const addToast = (text: string, type: 'join' | 'leave' | 'stop-warning', uniqueGroupId?: string) => {
-        if (uniqueGroupId) {
-            const existing = sessionToasts.value.find(t => t.groupId === uniqueGroupId);
-            if (existing) {
-                return;
-            }
-        }
-
-        const id = Date.now();
-        sessionToasts.value.push({ id, text, type, groupId: uniqueGroupId });
-        setTimeout(() => {
-            sessionToasts.value = sessionToasts.value.filter(t => t.id !== id);
-        }, 3000);
-    };
+    // [Sprint H4 — FE-2] Delegated to unified useToast system (was a local sessionToasts ref).
+    // App.vue renders all toasts from the global store — no separate in-game renderer needed.
+    const { addToast } = useToast();
 
 
 
@@ -136,11 +117,10 @@ export function useGameEffects(
     return {
         timeRemaining,
         timerColor,
-        sessionToasts,
         addToast,
         showStopAlert,
         stopperPlayer,
-        playClick, // Exporting simple sound trigger for specific interactions
-        playAlarm // Exporting for manual trigger if needed (e.g. invalid stop)
+        playClick,
+        playAlarm
     };
 }

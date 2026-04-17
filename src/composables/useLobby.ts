@@ -12,6 +12,22 @@ const publicRooms = ref<RoomSnapshot[]>([]);
 let lobbySocket: PartySocket | null = null;
 let refCount = 0;
 
+// [Sprint H4 — FE-1] HMR Cleanup Guard.
+// When Vite Hot-Module-Replacement re-executes this module, the module-scope
+// variables (lobbySocket, refCount) reset to null/0, but the old PartySocket
+// stays alive in memory — causing duplicate connections on every file save.
+// import.meta.hot.dispose() fires BEFORE the new module takes over, giving us
+// a chance to cleanly close the orphaned socket.
+if (import.meta.hot) {
+    import.meta.hot.dispose(() => {
+        if (lobbySocket) {
+            lobbySocket.close();
+            lobbySocket = null;
+        }
+        refCount = 0;
+    });
+}
+
 export function useLobby() {
     const connect = () => {
         refCount++;
@@ -44,7 +60,9 @@ export function useLobby() {
     };
 
     const disconnect = () => {
-        refCount--;
+        // [Sprint H4 — FE-1] Guard against refCount going negative if disconnect() is
+        // called multiple times (e.g. StrictMode double-unmount or HMR edge cases).
+        if (refCount > 0) refCount--;
         if (refCount <= 0 && lobbySocket) {
             lobbySocket.close();
             lobbySocket = null;
@@ -70,3 +88,4 @@ export function useLobby() {
         refreshRooms
     };
 }
+
