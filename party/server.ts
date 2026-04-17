@@ -403,6 +403,17 @@ export default class Server implements Party.Server {
             });
             conn.send(versionMsg);
 
+            // [FIX] Capturar si el jugador ya existe ANTES de handleConnect.
+            // PartyKit reconecta el WebSocket automáticamente, disparando onConnect
+            // múltiples veces para el mismo usuario. Sin esta guarda, PLAYER_JOINED
+            // se transmitiría N veces (una por cada reconexión automática del socket),
+            // causando que los otros jugadores vean el Toast duplicado múltiples veces.
+            const urlForCheck = new URL(ctx.request.url);
+            const potentialUserId = urlForCheck.searchParams.get("userId");
+            const isGenuinelyNew = potentialUserId
+                ? !this.engine.getState().players.some(p => p.id === potentialUserId)
+                : true;
+
             // 1. Handle Identity FIRST (adds/reconnects player in engine)
             await this.connectionHandler.handleConnect(conn, ctx);
 
@@ -431,12 +442,14 @@ export default class Server implements Party.Server {
             }));
 
             // 4. Unified Delta Broadcast — sends PATCHES (not full state) to existing clients
-            // [Sprint 3 - P2] Broadcast PLAYER_JOINED to all other connections (imperativo, sin array-diffing en el cliente)
-            const joinedName = this.engine.getState().players.find(p => p.id === userId)?.name;
-            if (joinedName) {
-                const joinMsg = JSON.stringify({ type: EVENTS.PLAYER_JOINED, payload: { name: joinedName } });
-                for (const c of this.room.getConnections()) {
-                    if (c.id !== conn.id) c.send(joinMsg);
+            // [Sprint 3 - P2] Broadcast PLAYER_JOINED solo en primer ingreso real (no en reconexiones)
+            if (isGenuinelyNew) {
+                const joinedName = this.engine.getState().players.find(p => p.id === userId)?.name;
+                if (joinedName) {
+                    const joinMsg = JSON.stringify({ type: EVENTS.PLAYER_JOINED, payload: { name: joinedName } });
+                    for (const c of this.room.getConnections()) {
+                        if (c.id !== conn.id) c.send(joinMsg);
+                    }
                 }
             }
             this.broadcastStateDelta(this.engine.getState());
