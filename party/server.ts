@@ -71,14 +71,15 @@ export default class Server implements Party.Server {
     authTokens = new Map<string, string>();
 
     // Optimization: Per-Connection Delta Sync (State Masking)
-    private previousStates = new Map<string, RoomState>();
+    // For deduplicating broadcastStateDelta patches
+    private previousStates: Map<string, RoomState> = new Map();
 
     // Handlers
-    connectionHandler: ConnectionHandler;
-    playerHandler: PlayerHandler;
-    gameHandler: GameHandler;
-    votingHandler: VotingHandler;
-    chatHandler: ChatHandler;
+    private playerHandler: PlayerHandler;
+    private gameHandler: GameHandler;
+    private connectionHandler: ConnectionHandler;
+    private votingHandler: VotingHandler;
+    private chatHandler: ChatHandler;
 
     // Utilites
     private rateLimiter = new RateLimiter(5, 2000); // Chat: 5 msgs / 2s
@@ -93,13 +94,6 @@ export default class Server implements Party.Server {
     private tickManager!: TickManager;
     // [Sprint H3 — BE-1] Alarm scheduling delegated to AlarmManager
     private alarmManager!: AlarmManager;
-
-    // [Sprint P5 — SMELL-3] Debounced Auth-Token persistence.
-    // Instead of blocking the onConnect hot path with an immediate storage.put,
-    // we batch writes within a 2s window. The authSaveTask Promise is handed to
-    // ctx.waitUntil() so the Isolate cannot die before the flush completes.
-    private authSaveTimeout: ReturnType<typeof setTimeout> | null = null;
-    private authSaveResolve: (() => void) | null = null;
 
     // Chat State
     messages: import('../shared/types').ChatMessage[] = [];
@@ -159,11 +153,9 @@ export default class Server implements Party.Server {
         this.alarmManager = new AlarmManager(room, room.id);
 
         // Instantiate Handlers (typed against BaseEngine)
-        // [Sprint P5 — SMELL-3] Pass a fire-and-forget callback so ConnectionHandler
-        // never needs a direct reference to Server, preserving the handler abstraction.
+        // Instantiate Handlers (typed against BaseEngine)
         this.connectionHandler = new ConnectionHandler(
-            room, this.engine, this.authTokens, this.messages,
-            (ctx) => this.scheduleAuthSave(ctx)
+            room, this.engine, this.authTokens, this.messages
         );
         this.playerHandler = new PlayerHandler(room, this.engine);
         this.gameHandler = new GameHandler(room, this.engine);
@@ -171,35 +163,6 @@ export default class Server implements Party.Server {
         this.chatHandler = new ChatHandler(this.engine, this.rateLimiter, this.messages, this.room);
     }
 
-    // [Sprint P5 — SMELL-3] Debounced Write-Behind for Auth Tokens.
-    // Batches up to 2s of concurrent joins into a single storage.put.
-    // Wrapped in a Promise registered with ctx.waitUntil() = Isolate Shield:
-    // the Worker cannot hibernate until the flush resolves, preventing data loss.
-    public scheduleAuthSave(ctx: Party.ConnectionContext): void {
-        if (!this.authSaveTimeout) {
-            const task = new Promise<void>(resolve => {
-                this.authSaveResolve = resolve;
-            });
-            // Isolate Shield: keep the Worker alive until the flush is done.
-            // The guard covers runtimes that don't expose waitUntil (e.g. local dev).
-            if (typeof (ctx as any).waitUntil === 'function') {
-                (ctx as any).waitUntil(task);
-            }
-            this.authSaveTimeout = setTimeout(async () => {
-                try {
-                    await this.room.storage.put(AUTH_TOKENS_KEY, Object.fromEntries(this.authTokens));
-                    logger.info('AUTH_TOKENS_SAVED', { roomId: this.room.id, count: this.authTokens.size });
-                } catch (err) {
-                    logger.error('AUTH_TOKENS_SAVE_FAILED', { roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
-                } finally {
-                    this.authSaveTimeout = null;
-                    // Resolve closes the shield — Isolate is now free to hibernate.
-                    this.authSaveResolve?.();
-                    this.authSaveResolve = null;
-                }
-            }, 2000);
-        }
-    }
 
     async onStart() {
         try {
@@ -404,14 +367,12 @@ export default class Server implements Party.Server {
             conn.send(versionMsg);
 
             // [FIX] Capturar si el jugador ya existe ANTES de handleConnect.
-            // PartyKit reconecta el WebSocket automáticamente, disparando onConnect
-            // múltiples veces para el mismo usuario. Sin esta guarda, PLAYER_JOINED
-            // se transmitiría N veces (una por cada reconexión automática del socket),
-            // causando que los otros jugadores vean el Toast duplicado múltiples veces.
+            // Verificamos tanto en players como en spectators.
             const urlForCheck = new URL(ctx.request.url);
             const potentialUserId = urlForCheck.searchParams.get("userId");
             const isGenuinelyNew = potentialUserId
-                ? !this.engine.getState().players.some(p => p.id === potentialUserId)
+                ? !this.engine.getState().players.some(p => p.id === potentialUserId) &&
+                  !this.engine.getState().spectators?.some(s => s.id === potentialUserId)
                 : true;
 
             // 1. Handle Identity FIRST (adds/reconnects player in engine)

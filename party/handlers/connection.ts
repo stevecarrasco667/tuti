@@ -12,20 +12,16 @@ import type { ChatMessage } from "../../shared/types";
 export class ConnectionHandler extends BaseHandler {
     authTokens: Map<string, string>;
     messages: ChatMessage[];
-    // [Sprint P5 — SMELL-3] Callback injected by server.ts — zero coupling, fire-and-forget.
-    private onSaveAuthTokens: (ctx: Party.ConnectionContext) => void;
 
     constructor(
         room: Party.Room,
         engine: BaseEngine,
         authTokens: Map<string, string>,
-        messages: ChatMessage[],
-        onSaveAuthTokens: (ctx: Party.ConnectionContext) => void
+        messages: ChatMessage[]
     ) {
         super(room, engine);
         this.authTokens = authTokens;
         this.messages = messages;
-        this.onSaveAuthTokens = onSaveAuthTokens;
     }
 
     async handleConnect(connection: Party.Connection, ctx: Party.ConnectionContext) {
@@ -74,10 +70,18 @@ export class ConnectionHandler extends BaseHandler {
 
             if (isNewToken || !this.authTokens.has(userId)) {
                 this.authTokens.set(userId, token!);
-                // [Sprint P5 — SMELL-3] Fire-and-Forget: zero await on the hot path.
-                // The debounce + Isolate Shield in server.ts.scheduleAuthSave() guarantees
-                // the actual storage.put will happen within 2s without blocking the WebSocket open.
-                this.onSaveAuthTokens(ctx);
+                // [BUG-2 FIX] Persistir INMEDIATAMENTE para nuevos tokens.
+                // El debounce anterior (2s) creaba una race condition: si el Worker
+                // hibernaba antes de que el timer se disparara, el token se perdía
+                // y la próxima reconexión generaba un userId nuevo → jugador fantasma.
+                // Ahora el await bloquea solo para tokens nuevos (primera conexión);
+                // las reconexiones con token existente no pasan por aquí.
+                try {
+                    await this.room.storage.put('auth_tokens_v1', Object.fromEntries(this.authTokens));
+                    logger.info('AUTH_TOKENS_SAVED_IMMEDIATE', { roomId: this.room.id, userId, count: this.authTokens.size });
+                } catch (err) {
+                    logger.error('AUTH_TOKENS_SAVE_FAILED', { roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
+                }
             }
 
             // --- PRIVATE HANDSHAKE ---

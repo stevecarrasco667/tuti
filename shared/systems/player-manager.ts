@@ -36,9 +36,10 @@ export class PlayerManager {
         }
 
         // === TRULY NEW PLAYER ===
-        // Handle name duplicates
+        // Handle name duplicates with a deterministic suffix rather than random
         const existingName = state.players.some(p => p.name.toLowerCase() === profile.name.toLowerCase());
-        const finalName = existingName ? `${profile.name} ${Math.floor(Math.random() * 100)}` : profile.name;
+        const suffix = state.players.filter(p => p.name.toLowerCase().startsWith(profile.name.toLowerCase())).length + 1;
+        const finalName = existingName ? `${profile.name} ${suffix}` : profile.name;
 
         const newPlayer: Player = {
             id: profile.id,

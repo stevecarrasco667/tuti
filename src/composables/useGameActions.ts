@@ -107,7 +107,9 @@ export function useGameActions(
                 socket.value.send(JSON.stringify({ type: EVENTS.EXIT_GAME }));
             } catch (e) { /* ignore */ }
 
-            disconnectIntentionally();
+            // [BUG-4 FIX] Dar tiempo al buffer del WebSocket para que envíe el mensaje 
+            // antes de destruirlo. Si se cierra inmediatamente, el mensaje puede perderse.
+            setTimeout(() => disconnectIntentionally(), 150);
         }
 
         setRoomId(null);
