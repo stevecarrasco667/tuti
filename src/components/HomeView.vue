@@ -199,6 +199,7 @@ const handleRefresh = () => {
                             placeholder="ABCD"
                             :maxlength="4"
                             @keyup.enter="handleJoinRoom"
+                            aria-label="Código de sala"
                         />
                     </div>
                     <div class="flex gap-3">
@@ -248,6 +249,7 @@ const handleRefresh = () => {
                             placeholder="Tu nombre..."
                             :maxlength="20"
                             input-class="rounded-lg py-2 text-lg"
+                            aria-label="Tu nombre público"
                         />
                         <!-- Si está logueado y NO edita -->
                         <div v-else class="flex flex-col">
@@ -262,6 +264,7 @@ const handleRefresh = () => {
                         @click="selectedAvatar = avatar"
                         class="aspect-square flex items-center justify-center text-2xl rounded-xl transition-all border-2"
                         :class="selectedAvatar === avatar ? 'bg-panel-card border-action-primary scale-110 shadow-sm' : 'bg-panel-input border-transparent hover:border-white/10 opacity-60 hover:opacity-100'"
+                        :aria-label="`Seleccionar avatar ${avatar}`"
                     >
                         {{ avatar }}
                     </button>

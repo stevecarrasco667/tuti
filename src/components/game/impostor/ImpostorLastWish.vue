@@ -55,7 +55,7 @@ const eliminatedPlayer = computed(() =>
 </script>
 
 <template>
-    <div class="fixed inset-0 z-[100] flex flex-col items-center justify-center text-center overflow-hidden bg-black">
+    <div class="fixed inset-0 z-overlay flex flex-col items-center justify-center text-center overflow-hidden bg-black">
         
         <!-- Spotlight Radial FX -->
         <div class="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_center,_rgba(239,68,68,0.25)_0%,_rgba(0,0,0,1)_80%)]" />

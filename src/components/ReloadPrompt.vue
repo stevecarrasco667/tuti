@@ -9,7 +9,7 @@ const reload = () => {
 </script>
 
 <template>
-    <div v-if="isUpdateAvailable" class="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-md">
+    <div v-if="isUpdateAvailable" class="fixed inset-0 z-overlay flex items-center justify-center bg-black/80 backdrop-blur-md">
         <div class="bg-panel-card backdrop-blur-3xl border border-white/20 rounded-2xl p-8 max-w-sm w-full text-center shadow-game-card animate-fade-in-up">
             <div class="text-5xl mb-4">🚀</div>
             <h2 class="text-2xl font-black text-white mb-2">¡Actualización Disponible!</h2>

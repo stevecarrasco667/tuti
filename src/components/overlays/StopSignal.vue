@@ -18,7 +18,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none">
+    <div class="fixed inset-0 z-overlay flex items-center justify-center pointer-events-none">
         <!-- Backdrop flash -->
         <div class="absolute inset-0 bg-action-error/40 animate-flash"></div>
         

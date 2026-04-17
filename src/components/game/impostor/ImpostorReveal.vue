@@ -18,7 +18,7 @@ const currentCategory = computed(() => props.impostorData.currentCategoryName);
 </script>
 
 <template>
-    <div class="fixed inset-0 z-[100] flex flex-col items-center justify-center text-center overflow-hidden bg-black">
+    <div class="fixed inset-0 z-overlay flex flex-col items-center justify-center text-center overflow-hidden bg-black">
         
         <!-- Spotlight Radial FX -->
         <div class="absolute inset-0 z-0 pointer-events-none"

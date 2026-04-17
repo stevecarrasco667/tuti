@@ -50,7 +50,7 @@ if (!matchOver.value && eliminatedPlayer.value) {
 </script>
 
 <template>
-    <div class="fixed inset-0 z-[100] flex flex-col items-center justify-center text-center overflow-hidden bg-black transition-colors duration-1000">
+    <div class="fixed inset-0 z-overlay flex flex-col items-center justify-center text-center overflow-hidden bg-black transition-colors duration-1000">
         
         <!-- Spotlight Radial FX (Cinematic) -->
         <div class="absolute inset-0 z-0 pointer-events-none transition-colors duration-1000"

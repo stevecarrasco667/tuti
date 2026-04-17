@@ -23,7 +23,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="fixed inset-0 z-[100] flex items-center justify-center bg-tuti-base/40 backdrop-blur-md">
+    <div class="fixed inset-0 z-overlay flex items-center justify-center bg-tuti-base/40 backdrop-blur-md">
         <div v-if="!showGo" class="text-[12rem] font-black text-white drop-shadow-md animate-ping-slow text-stroke z-10">
             {{ count }}
         </div>

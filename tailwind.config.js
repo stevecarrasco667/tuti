@@ -38,6 +38,14 @@ export default {
                 'glow-primary': '0 4px 15px rgba(251,191,36,0.5)',
                 'glow-panic': 'inset 0 0 150px rgba(244,63,94,0.4)',
                 'warm': '0 10px 25px -5px rgba(44, 42, 41, 0.08), 0 8px 10px -6px rgba(44, 42, 41, 0.04)',
+            },
+            zIndex: {
+                'dropdown': 10,
+                'sticky': 20,
+                'modal': 50,
+                'toast': 100,
+                'overlay': 200,
+                'loading': 300,
             }
         },
     },

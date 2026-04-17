@@ -73,7 +73,7 @@ onUnmounted(() => {
 <template>
     <canvas
         ref="canvas"
-        class="fixed inset-0 pointer-events-none z-50"
+        class="fixed inset-0 pointer-events-none z-modal"
         aria-hidden="true"
     />
 </template>

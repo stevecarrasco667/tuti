@@ -80,7 +80,7 @@ const handleToast = (msg: string, style: 'join' | 'leave' | 'stop-warning', icon
         <ReloadPrompt />
 
         <!-- [Sprint 5 - Spectator Mode] BANNER ELEGANTE NO INTRUSIVO -->
-        <div v-if="isSpectator" class="absolute top-[80px] left-1/2 -translate-x-1/2 z-[50] flex items-center gap-2 bg-red-900 border-2 border-red-500 rounded-full px-6 py-2 shadow-[0_0_15px_rgba(239,68,68,0.5)] pointer-events-none w-max">
+        <div v-if="isSpectator" class="absolute top-[80px] left-1/2 -translate-x-1/2 z-modal flex items-center gap-2 bg-red-900 border-2 border-red-500 rounded-full px-6 py-2 shadow-[0_0_15px_rgba(239,68,68,0.5)] pointer-events-none w-max">
             <span class="text-xl animate-pulse">🍿</span>
             <span class="text-white font-black text-xs md:text-sm tracking-widest uppercase" style="text-shadow: 0 1px 2px rgba(0,0,0,0.5);">MODO ESPECTADOR - ESPERANDO SIGUIENTE PARTIDA</span>
         </div>
@@ -111,7 +111,7 @@ const handleToast = (msg: string, style: 'join' | 'leave' | 'stop-warning', icon
             @toast="handleToast"
         />
 
-        <div v-if="showExitModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-ink-main/50 backdrop-blur-sm p-4">
+        <div v-if="showExitModal" class="fixed inset-0 z-overlay flex items-center justify-center bg-ink-main/50 backdrop-blur-sm p-4">
              <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl p-6 shadow-game-panel max-w-xs w-full text-center">
                  <h3 class="text-ink-main font-black uppercase tracking-widest text-lg mb-6">¿Salir de la partida?</h3>
                  <div class="flex gap-3">

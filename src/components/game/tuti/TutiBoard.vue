@@ -247,7 +247,7 @@ const rivalsActivity = computed(() => {
         <Teleport to="body">
             <div
                 v-if="gameState.status === 'ENDING_COUNTDOWN'"
-                class="fixed inset-0 pointer-events-none z-50 animate-pulse shadow-glow-panic"
+                class="fixed inset-0 pointer-events-none z-modal animate-pulse shadow-glow-panic"
             />
         </Teleport>
     </div>

@@ -52,7 +52,7 @@ const close = () => {
         <Transition name="fade">
             <div 
                 v-if="isOpen" 
-                class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+                class="fixed inset-0 bg-black/60 backdrop-blur-sm z-modal"
                 @click="close"
             ></div>
         </Transition>
@@ -61,7 +61,7 @@ const close = () => {
         <Transition name="slide-up">
             <div 
                 v-if="isOpen"
-                class="fixed bottom-0 left-0 right-0 h-[65vh] bg-panel-base/90 backdrop-blur-3xl rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.3)] z-50 overflow-hidden flex flex-col border-t-[3px] border-white/20"
+                class="fixed bottom-0 left-0 right-0 h-[65vh] bg-panel-base/90 backdrop-blur-3xl rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.3)] z-modal overflow-hidden flex flex-col border-t-[3px] border-white/20"
             >
                 <!-- Drawer Handle / Header -->
                 <div class="h-10 bg-black/20 shrink-0 flex items-center justify-center relative cursor-pointer" @click="close">

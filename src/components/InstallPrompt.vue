@@ -63,7 +63,7 @@ const dismissPrompt = () => {
 <template>
     <!-- Modal no intrusivo tipo "Slide-up Card" (Solid Pop Style) -->
     <Transition name="slide-up">
-        <div v-if="showPrompt" class="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50">
+        <div v-if="showPrompt" class="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-modal">
             <div class="bg-panel-card backdrop-blur-xl border border-purple-500/30 rounded-2xl p-5 shadow-[0_8px_32px_rgba(124,58,237,0.3)] flex flex-col gap-3 relative overflow-hidden group">
                 
                 <!-- Destello estético (Neon) -->

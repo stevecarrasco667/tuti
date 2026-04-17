@@ -50,9 +50,10 @@ const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
     <!-- MUTE BUTTON LAYER -->
     <button
         @click="toggleMute"
-        class="fixed z-50 w-12 h-12 flex items-center justify-center rounded-full bg-panel-card/80 border-[3px] border-white/10 text-white shadow-xl backdrop-blur-md transition-all hover:bg-white/20 active:scale-95"
+        class="fixed z-modal w-12 h-12 flex items-center justify-center rounded-full bg-panel-card/80 border-[3px] border-white/10 text-white shadow-xl backdrop-blur-md transition-all hover:bg-white/20 active:scale-95"
         :class="isGameView() ? 'bottom-[152px] right-4' : 'top-4 right-4'"
         :title="isMuted ? 'Activar Sonido' : 'Silenciar Sonido'"
+        :aria-label="isMuted ? 'Activar sonido' : 'Silenciar sonido'"
     >
         <svg v-if="!isMuted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 opacity-90">
             <path d="M9.348 14.651l-2.853-2.852H4V8.201h2.495l2.853-2.852v9.302zM15.536 10a5.002 5.002 0 00-2.316-4.195v8.39A5.002 5.002 0 0015.536 10z" />
@@ -70,7 +71,8 @@ const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
     <Transition name="banner">
         <div
             v-if="!isConnected && router.currentRoute.value.path !== '/'"
-            class="fixed top-0 left-0 right-0 z-[200] flex items-center justify-center gap-2 py-2 px-4 bg-amber-500/90 backdrop-blur-sm text-panel-base text-xs font-black uppercase tracking-widest animate-pulse shadow-lg"
+            class="fixed top-0 left-0 right-0 z-overlay flex items-center justify-center gap-2 py-2 px-4 bg-amber-500/90 backdrop-blur-sm text-panel-base text-xs font-black uppercase tracking-widest animate-pulse shadow-lg"
+            role="alert"
         >
             <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
@@ -87,7 +89,7 @@ const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
     <Transition name="fade">
         <div
             v-if="isBootstrapping"
-            class="fixed inset-0 z-[300] flex flex-col items-center justify-center bg-gradient-to-br from-[#1a0533] via-[#0f0a1a] to-[#1a0533]"
+            class="fixed inset-0 z-loading flex flex-col items-center justify-center bg-gradient-to-br from-[#1a0533] via-[#0f0a1a] to-[#1a0533]"
         >
             <!-- Spinner principal -->
             <div class="relative mb-8">
@@ -122,7 +124,7 @@ const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
     </main>
 
     <!-- GLOBAL TOASTS (Overlay) — [Sprint H4 FE-2] unified renderer for all toast types -->
-    <div class="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
+    <div class="fixed top-4 right-4 z-toast flex flex-col gap-2 pointer-events-none" aria-live="polite">
         <TransitionGroup name="toast">
             <div
                 v-for="toast in toasts"
