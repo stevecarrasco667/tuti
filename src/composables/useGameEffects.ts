@@ -12,7 +12,7 @@ interface Toast {
 
 export function useGameEffects(
     gameState: Ref<RoomState>,
-    myUserId: Ref<string>,
+    _myUserId: Ref<string>,
     amIHost: Ref<boolean>
 ) {
     const { playClick, playJoin, playTick, playAlarm, playSuccess, playUrgency } = useSound();
@@ -90,32 +90,7 @@ export function useGameEffects(
         }, 3000);
     };
 
-    watch(() => gameState.value.players, (newPlayers, oldPlayers) => {
-        if (!oldPlayers || oldPlayers.length === 0) return;
 
-        // Detect Joins
-        const joined = newPlayers.filter(np => !oldPlayers.some(op => op.id === np.id));
-
-        // Check for status changes in existing players
-        newPlayers.forEach(np => {
-            const op = oldPlayers.find(p => p.id === np.id);
-            if (op && np.id !== myUserId.value) {
-                if (np.isConnected && !op.isConnected) {
-                    addToast(`${np.avatar || '👤'} ${np.name} volvió.`, 'join');
-                } else if (!np.isConnected && op.isConnected) {
-                    addToast(`${np.avatar || '👤'} ${np.name} salió.`, 'leave');
-                }
-            }
-        });
-
-        // New players (first join)
-        joined.forEach(p => {
-            if (p.id !== myUserId.value) {
-                addToast(`${p.avatar || '👤'} ${p.name} entró.`, 'join');
-            }
-        });
-
-    }, { deep: true });
 
     // Host Notification
     watch(amIHost, (isHost, wasHost) => {
