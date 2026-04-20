@@ -73,9 +73,17 @@ export class AlarmManager {
         }
         // Note: RESULTS for Impostor also uses resultsEndsAt, already covered above
 
-        if (nextTarget && nextTarget > now) {
-            await this.room.storage.setAlarm(nextTarget);
-            logger.debug('ALARM_SCHEDULED', { roomId: this.roomId, status: state.status, firesAt: nextTarget });
+        if (nextTarget) {
+            if (nextTarget > now) {
+                await this.room.storage.setAlarm(nextTarget);
+                logger.debug('ALARM_SCHEDULED', { roomId: this.roomId, status: state.status, firesAt: nextTarget });
+            } else {
+                // [Sprint H6 — RACE-1a] The Worker woke up late — the timer already expired.
+                // Without this rescue, no alarm would ever be scheduled again, freezing the game indefinitely.
+                // Force onAlarm() in 100ms so handleTimeUp() can execute the overdue state transition.
+                await this.room.storage.setAlarm(now + 100);
+                logger.warn('ALARM_EMERGENCY_RESCUE', { roomId: this.roomId, status: state.status, expiredAt: nextTarget });
+            }
         }
     }
 }

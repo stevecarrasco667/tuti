@@ -29,7 +29,11 @@ export class ConnectionHandler extends BaseHandler {
             const url = new URL(ctx.request.url);
             const name = url.searchParams.get("name") || "Guest";
             let userId = url.searchParams.get("userId") || connection.id;
-            const avatar = url.searchParams.get("avatar") || "👤";
+            // [Sprint H6 — SEC-3] Sanitize avatar before it enters engine state and Durable Storage.
+            // Strip control characters (nullbyte, tab, newline) that could corrupt JSON serialization,
+            // then truncate to 10 chars (covers ZWJ emoji sequences like 👨‍👩‍👧‍👦 = 8 chars).
+            const rawAvatar = url.searchParams.get("avatar") || "👤";
+            const avatar = rawAvatar.replace(/[\u0000-\u001F\u007F]/g, '').slice(0, 10) || "👤";
             let token = url.searchParams.get("token");
             const isPublicRequest = url.searchParams.get('public') === 'true';
 

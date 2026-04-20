@@ -718,11 +718,26 @@ export default class Server implements Party.Server {
         // Clean up per-connection state for State Masking
         this.previousStates.delete(connection.id);
 
-        // ZOMBIE ALARM: Schedule cleanup check in 60s
-        // Skip during GAME_OVER — the kick alarm from scheduleAlarms() already handles cleanup.
-        // Overwriting it here would delay the 10s kick unexpectedly.
+        // [Sprint H6 — RACE-1b] ZOMBIE ALARM with Phase Priority Check.
+        // Cloudflare Durable Objects supports only ONE alarm per room. The old code
+        // unconditionally called setAlarm(now+60s), which DESTROYED any active phase
+        // alarm (e.g. roundEndsAt at T+45s). If a player disconnected mid-round,
+        // the round timer was silently overwritten — freezing the game until T+70s.
+        //
+        // Fix: query the existing alarm first. Only set the zombie alarm if there is
+        // no closer alarm already scheduled (a phase alarm is always more urgent).
+        // Note: onClose is synchronous — use .then() instead of await.
+        // Skip during GAME_OVER — the kick alarm from AlarmManager already handles cleanup.
         if (this.engine.getState().status !== 'GAME_OVER') {
-            this.room.storage.setAlarm(Date.now() + 60_000);
+            const zombieTarget = Date.now() + 60_000;
+            this.room.storage.getAlarm().then((existingAlarm) => {
+                if (!existingAlarm || existingAlarm > zombieTarget) {
+                    this.room.storage.setAlarm(zombieTarget);
+                }
+            }).catch(() => {
+                // Fallback: if getAlarm fails, set the zombie alarm unconditionally
+                this.room.storage.setAlarm(zombieTarget);
+            });
         }
 
         // Check if room is now empty

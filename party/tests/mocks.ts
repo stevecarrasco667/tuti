@@ -24,7 +24,9 @@ export function createMockRoom(id: string): Party.Room {
         delete: vi.fn(async (key: string) => storageMap.delete(key)),
         list: vi.fn(async () => storageMap),
         setAlarm: vi.fn(),
-        getAlarm: vi.fn(),
+        // [Sprint H6 — RACE-1b] getAlarm must return a Promise<number | null> per PartyKit contract.
+        // Returning null means no alarm is currently scheduled (correct default for test isolation).
+        getAlarm: vi.fn(async () => null),
         deleteAlarm: vi.fn(),
         getAlarms: vi.fn(async () => new Map()),
     } as unknown as Party.Storage;

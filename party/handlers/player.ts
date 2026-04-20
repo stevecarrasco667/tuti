@@ -7,6 +7,11 @@ export class PlayerHandler extends BaseHandler {
 
     async handleKick(payload: { targetUserId: string }, sender: Party.Connection) {
         try {
+            // [Sprint H6 — SEC-1] Defense-in-depth: verify host at handler layer before engine processes anything.
+            if (!this.isHost(sender)) {
+                sendError(sender, 'Solo el anfitrión puede expulsar jugadores.');
+                return;
+            }
             this.engine.kickPlayer(sender.id, payload.targetUserId);
         } catch (err) {
             sendError(sender, (err as Error).message);
