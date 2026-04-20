@@ -5,6 +5,7 @@ import { useGame } from './composables/useGame';
 import { useSound } from './composables/useSound';
 import { useToast } from './composables/useToast';
 import { isBootstrapping } from './router/index';
+import ErrorBoundary from './components/ui/ErrorBoundary.vue';
 
 const { gameState, myUserId, leaveGame, isConnected } = useGame();
 const { isMuted, toggleMute } = useSound();
@@ -116,11 +117,13 @@ const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
 
     <!-- MAIN CONTENT con router-view -->
     <main class="flex-1 w-full relative flex flex-col min-h-0">
-        <RouterView v-slot="{ Component }">
-            <Transition name="fade">
-                <component :is="Component" class="flex-1 flex flex-col min-h-0" />
-            </Transition>
-        </RouterView>
+        <ErrorBoundary>
+            <RouterView v-slot="{ Component }">
+                <Transition name="fade">
+                    <component :is="Component" class="flex-1 flex flex-col min-h-0" />
+                </Transition>
+            </RouterView>
+        </ErrorBoundary>
     </main>
 
     <!-- GLOBAL TOASTS (Overlay) — [Sprint H4 FE-2] unified renderer for all toast types -->
