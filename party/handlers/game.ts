@@ -29,12 +29,6 @@ export class GameHandler extends BaseHandler {
 
     async handleStopRound(payload: { answers: Record<string, string> }, sender: Party.Connection) {
         try {
-            // [Sprint H6 — SEC-2] Defense-in-depth: only the host can stop the round.
-            // Any connected player could send STOP_ROUND from DevTools and halt the game.
-            if (!this.isHost(sender)) {
-                sendError(sender, 'Solo el anfitrión puede parar la ronda.');
-                return;
-            }
             this.engine.stopRound(sender.id, payload.answers);
         } catch (err) {
             sendError(sender, (err as Error).message);
