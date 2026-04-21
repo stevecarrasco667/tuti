@@ -4,7 +4,17 @@ import { useGame } from './useGame';
 import { useSocket } from './useSocket';
 
 // --- MOCKING ---
-// --- MOCKING ---
+vi.mock('../router/index', () => ({
+    router: {
+        push: vi.fn(),
+        currentRoute: { value: { fullPath: '/lobby/test-room' } }
+    }
+}));
+
+vi.mock('./useToast', () => ({
+    useToast: () => ({ addToast: vi.fn() })
+}));
+
 vi.mock('./useSocket', async () => {
     const { ref } = await vi.importActual<typeof import('vue')>('vue');
 
@@ -24,6 +34,7 @@ vi.mock('./useSocket', async () => {
             isConnected: isConnected,
             lastMessage: lastMessage,
             setRoomId: vi.fn(),
+            disconnectIntentionally: vi.fn()
         })
     };
 });
@@ -58,6 +69,11 @@ describe('useGame Composable', () => {
             (global as any).Storage = MockStorage;
             (global as any).localStorage = new MockStorage();
             (global as any).window = { localStorage: (global as any).localStorage };
+        }
+
+        // Setup global WebSocket constant
+        if (typeof global.WebSocket === 'undefined') {
+            (global as any).WebSocket = { OPEN: 1, CONNECTING: 0, CLOSING: 2, CLOSED: 3 };
         }
     });
 
@@ -131,5 +147,51 @@ describe('useGame Composable', () => {
 
         startGame();
         expect(sendSpy).toHaveBeenCalledWith(JSON.stringify({ type: 'START_GAME' }));
+    });
+
+    it('should handle PATCH_STATE correctly and request FULL_SYNC if desynced', async () => {
+        const { gameState } = useGame();
+        const { socket } = useSocket();
+        const sendSpy = socket.value!.send;
+
+        // Base state
+        await simulateServerMessage({
+            type: 'UPDATE_STATE',
+            payload: { stateVersion: 10, players: [] }
+        });
+        expect(gameState.value.stateVersion).toBe(10);
+
+        // Good patch
+        await simulateServerMessage({
+            type: 'PATCH_STATE',
+            payload: { stateVersion: 11, patches: [{ op: 'replace', path: '/status', value: 'PLAYING' }] }
+        });
+        expect(gameState.value.status).toBe('PLAYING');
+        expect(gameState.value.stateVersion).toBe(11);
+
+        // Desynced patch (skipped a version)
+        await simulateServerMessage({
+            type: 'PATCH_STATE',
+            payload: { stateVersion: 13, patches: [] }
+        });
+        
+        // Assert full sync was requested
+        expect(sendSpy).toHaveBeenCalledWith(JSON.stringify({ type: 'REQUEST_FULL_SYNC' }));
+        // Version should remain 11 until full sync arrives
+        expect(gameState.value.stateVersion).toBe(11);
+    });
+
+    it('should handle ROOM_DEAD by redirecting to home', async () => {
+        const routerMock = await import('../router/index');
+        
+        // Make sure we initialize the composable to trigger listeners
+        useGame();
+
+        await simulateServerMessage({
+            type: 'ROOM_DEAD',
+            payload: {}
+        });
+
+        expect(routerMock.router.push).toHaveBeenCalledWith('/');
     });
 });
