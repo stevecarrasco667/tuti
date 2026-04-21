@@ -1,6 +1,7 @@
 import { useGameState } from './useGameState';
 import { useGameSync } from './useGameSync';
 import { useGameActions } from './useGameActions';
+import { useRouter } from 'vue-router';
 
 /**
  * useGame Facade
@@ -14,12 +15,21 @@ export function useGame() {
     // 1. Instanciar la Malla de Estado Puro (Refs & Computed)
     const state = useGameState();
 
+    const router = useRouter();
+
+    // Callback that avoids duplicate navigation
+    const safeNavigate = (path: string) => {
+        if (router.currentRoute.value.fullPath !== path) {
+            router.push(path);
+        }
+    };
+
     // 2. Conectar la capa de Sincronización inyectando el Estado (Inbound/Hydration)
     // Extraemos isConnected y tryRestoreSession como parte de la API pública expuesta
-    const { isConnected, connectToParty } = useGameSync(state);
+    const { isConnected, connectToParty } = useGameSync(state, safeNavigate);
 
     // 3. Conectar las emisiones (Outbound) e inyectar validaciones de Estado y Socket
-    const actions = useGameActions(state);
+    const actions = useGameActions(state, safeNavigate);
 
     // 4. Devolver el gran Objeto Fusionado
     // Nota: El uso de desestructuración plana asume que las vistas Vue usan ref().value directamente, 

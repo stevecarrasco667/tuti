@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import type { ImpostorData, Player } from '../../../../shared/types';
-import { localImpostorRole } from '../../../composables/useGameState';
+import { useGame } from '../../../composables/useGame';
 import { useSocket, lastWishText } from '../../../composables/useSocket';
 import { useSound } from '../../../composables/useSound';
 import { EVENTS } from '../../../../shared/consts';
+
+const { localImpostorRole } = useGame();
 
 const props = defineProps<{
     impostorData: ImpostorData;

@@ -2,7 +2,6 @@
 import { computed } from 'vue';
 import type { ImpostorData, Player } from '../../../../shared/types';
 import { useGame } from '../../../composables/useGame';
-import { localImpostorRole } from '../../../composables/useGameState';
 import { useSound } from '../../../composables/useSound';
 import ReactionMenu from '../ReactionMenu.vue';
 import ReactionBar from '../ReactionBar.vue';
@@ -19,7 +18,7 @@ const props = defineProps<{
     isSpectator?: boolean;
 }>();
 
-const { toggleVote } = useGame();
+const { toggleVote, localImpostorRole } = useGame();
 const { playClick } = useSound();
 const { getCountsForTarget, getBurstsForTarget } = useReactions();
 const { socket } = useSocket();

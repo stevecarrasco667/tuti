@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { ImpostorData, Player } from '../../../../shared/types';
-import { localImpostorRole } from '../../../composables/useGameState';
 import { useGame } from '../../../composables/useGame';
 import { isSpoiler } from '../../../../shared/utils/spoiler';
 
@@ -40,7 +39,7 @@ const spoilerDetected = computed(() => {
     return isSpoiler(inputWord.value, secretWord.value);
 });
 
-const { debouncedUpdateImpostorDraft, confirmImpostorWord } = useGame();
+const { debouncedUpdateImpostorDraft, confirmImpostorWord, localImpostorRole } = useGame();
 
 // [P12] Live Drafts: enviar borrador al escribir
 watch(inputWord, (newWord) => {

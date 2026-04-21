@@ -4,13 +4,13 @@ import { generateRandomName } from '../utils/random';
 import { AVATARS } from '../constants/avatars';
 
 // Global state to persist across component mounts if needed
-export const localImpostorRole = ref<PrivateRolePayload | null>(null);
+const localImpostorRole = ref<PrivateRolePayload | null>(null);
 
-export const gameState = ref<RoomState>(createDefaultRoomState(null));
+const gameState = ref<RoomState>(createDefaultRoomState(null));
 
 // UI states
-export const isStopping = ref(false);
-export const isUpdateAvailable = ref(false);
+const isStopping = ref(false);
+const isUpdateAvailable = ref(false);
 
 // Storage Constants
 export const STORAGE_KEY_USER_ID = 'tuti-user-id';

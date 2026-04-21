@@ -220,6 +220,11 @@ export default class Server implements Party.Server {
         // [Refactor C] - Versionado Estricto: Avanzar vector de integridad siempre que se emite.
         this.engine.getState().stateVersion++;
 
+        // [Sprint H11 — Perf] Merged loop: send delta + PRIVATE_ROLE_ASSIGNMENT in a single
+        // O(N) pass instead of two separate getConnections() iterations.
+        const isRoleReveal = this.engine.getState().status === 'ROLE_REVEAL' && this.engine instanceof ImpostorEngine;
+        const impostorEngine = isRoleReveal ? this.engine as ImpostorEngine : null;
+
         for (const conn of this.room.getConnections()) {
             const userId = (conn.state as any)?.userId || conn.id;
             const clientState = this.engine.getClientState(userId);
@@ -244,14 +249,10 @@ export default class Server implements Party.Server {
             // Update per-connection baseline (Deep Copy)
             // [Sprint P2 — Fase 4A] structuredClone is native V8, ~2x faster than JSON.parse(JSON.stringify)
             this.previousStates.set(conn.id, structuredClone(clientState));
-        }
 
-        // Sprint 3.4: Whisper private role assignment on ROLE_REVEAL transition
-        // This runs AFTER the public broadcast so private payloads are never mixed in
-        if (this.engine.getState().status === 'ROLE_REVEAL' && this.engine instanceof ImpostorEngine) {
-            const impostorEngine = this.engine as ImpostorEngine;
-            for (const conn of this.room.getConnections()) {
-                const userId = (conn.state as any)?.userId || conn.id;
+            // Sprint 3.4: Whisper private role assignment inline — same pass, no 2nd getConnections() call.
+            // Private payloads are sent AFTER the public delta, so they are never mixed in.
+            if (impostorEngine) {
                 const privatePayload = impostorEngine.getPrivateRolePayload(userId);
                 conn.send(JSON.stringify({
                     type: EVENTS.PRIVATE_ROLE_ASSIGNMENT,

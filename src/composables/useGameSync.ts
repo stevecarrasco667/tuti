@@ -4,24 +4,24 @@ import { applyPatch } from 'fast-json-patch';
 import { ServerMessage, PrivateRolePayload } from '../../shared/types';
 import { useGameState } from './useGameState';
 import { EVENTS, APP_VERSION } from '../../shared/consts';
-import { router } from '../router/index';
 import { useToast } from './useToast';
+
+let globalOnNavigate: ((path: string) => void) | null = null;
 
 // [Sprint 2 - P2] Helper centralizado para sincronizar la URL con el estado del servidor.
 // Se llama tanto desde UPDATE_STATE como desde PATCH_STATE para garantizar que
 // cualquier cambio de vista del servidor se refleje en el router.
 // activeView: 'LOBBY' | 'GAME' | 'GAME_OVER' — no existe 'HOME' en el tipo del servidor.
 function syncRoute(roomId: string | null, view?: 'LOBBY' | 'GAME' | 'GAME_OVER') {
-    if (roomId && view) {
+    if (roomId && view && globalOnNavigate) {
         const viewToRoute: Record<string, string> = {
             'LOBBY': `/lobby/${roomId}`,
             'GAME': `/game/${roomId}`,
             'GAME_OVER': `/results/${roomId}`,
         };
         const targetRoute = viewToRoute[view];
-        // Solo navegar si la ruta realmente cambia — evita loops de navegación
-        if (targetRoute && router.currentRoute.value.fullPath !== targetRoute) {
-            router.push(targetRoute);
+        if (targetRoute) {
+            globalOnNavigate(targetRoute);
         }
     }
     // Nota: la navegación a '/' cuando !roomId la maneja leaveGame() explícitamente
@@ -144,7 +144,7 @@ watch(lastMessage, (newMsg) => {
             console.info('[GameSync] ROOM_DEAD recibido — limpiando estado y redirigiendo al Home.');
             disconnectIntentionally();
             addToast('👋 Esta sala fue eliminada por inactividad. ¡Hasta la próxima!', 'info');
-            router.push('/');
+            if (globalOnNavigate) globalOnNavigate('/');
         }
         // WORD_REACT is handled by the singleton in useSocket.ts — do NOT handle it here
     } catch (e) {
@@ -153,9 +153,14 @@ watch(lastMessage, (newMsg) => {
 });
 
 export function useGameSync(
-    _state: ReturnType<typeof useGameState>
+    _state: ReturnType<typeof useGameState>,
+    onNavigate: (path: string) => void
 ) {
     const { setRoomId, isConnected, connectToParty } = useSocket();
+
+    if (!globalOnNavigate) {
+        globalOnNavigate = onNavigate;
+    }
 
     return {
         socket,

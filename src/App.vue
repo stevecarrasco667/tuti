@@ -14,9 +14,12 @@ const router = useRouter();
 
 // Detectar jugador kickeado — solo en LOBBY para evitar falsos positivos durante
 // la transición de fase LOBBY → GAME donde el array de jugadores puede fluctuar.
+// [Sprint H11 — Perf] Observamos una cadena derivada plana de IDs (O(n) de strings)
+// en lugar de deep:true (recorrido recursivo completo del arreglo de objetos).
 let wasInGame = false;
 let joinedAt = 0;
-watch(() => gameState.value.players, (newPlayers) => {
+watch(() => gameState.value.players.map(p => p.id).join(','), () => {
+    const newPlayers = gameState.value.players;
     const currentPath = router.currentRoute.value.path;
     const gameStatus = gameState.value.status;
 
@@ -37,7 +40,7 @@ watch(() => gameState.value.players, (newPlayers) => {
     } else if (currentPath === '/') {
         wasInGame = false;
     }
-}, { deep: true });
+});
 
 
 // Detectar si la vista actual está en GAME (para posicionar el botón mute)

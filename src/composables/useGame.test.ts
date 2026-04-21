@@ -4,11 +4,12 @@ import { useGame } from './useGame';
 import { useSocket } from './useSocket';
 
 // --- MOCKING ---
-vi.mock('../router/index', () => ({
-    router: {
-        push: vi.fn(),
-        currentRoute: { value: { fullPath: '/lobby/test-room' } }
-    }
+const mockRouterPush = vi.fn();
+vi.mock('vue-router', () => ({
+    useRouter: () => ({
+        push: mockRouterPush,
+        currentRoute: { value: { fullPath: '/lobby/test-room', path: '/lobby/test-room' } }
+    })
 }));
 
 vi.mock('./useToast', () => ({
@@ -182,7 +183,6 @@ describe('useGame Composable', () => {
     });
 
     it('should handle ROOM_DEAD by redirecting to home', async () => {
-        const routerMock = await import('../router/index');
         
         // Make sure we initialize the composable to trigger listeners
         useGame();
@@ -192,6 +192,6 @@ describe('useGame Composable', () => {
             payload: {}
         });
 
-        expect(routerMock.router.push).toHaveBeenCalledWith('/');
+        expect(mockRouterPush).toHaveBeenCalledWith('/');
     });
 });

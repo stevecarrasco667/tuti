@@ -4,10 +4,10 @@ import { useGameState } from './useGameState';
 import { debounce } from '../utils/timing';
 import { EVENTS } from '../../shared/consts';
 import { DeepPartial, GameConfig, createDefaultRoomState } from '../../shared/types';
-import { router } from '../router/index';
 
 export function useGameActions(
-    state: ReturnType<typeof useGameState>
+    state: ReturnType<typeof useGameState>,
+    onNavigate: (path: string) => void
 ) {
     const { socket, setRoomId, disconnectIntentionally } = useSocket();
 
@@ -18,7 +18,7 @@ export function useGameActions(
         // [Perf] Navegar OPTIMISTAMENTE al lobby inmediatamente — sin esperar al servidor.
         // La conexión WebSocket ocurre en background. El servidor luego confirmará via
         // UPDATE_STATE y syncRoute() será un no-op (ya estamos en la ruta correcta).
-        router.push(`/lobby/${targetRoomId}`);
+        onNavigate(`/lobby/${targetRoomId}`);
 
         // Iniciar conexión en background (no await)
         setRoomId(targetRoomId, { userId, name, avatar, token, public: isPublic ? 'true' : undefined });
@@ -120,7 +120,7 @@ export function useGameActions(
 
         // [Sprint 2 - P2] Navegar a HOME usando el router (no window.history)
         // Esto garantiza que la vista cambie inmediatamente sin esperar un mensaje del servidor
-        router.push('/');
+        onNavigate('/');
     };
 
     const sendChatMessage = (text: string) => {

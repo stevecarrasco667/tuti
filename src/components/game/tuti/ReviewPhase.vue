@@ -2,8 +2,7 @@
 import { ref, computed } from 'vue';
 import VotingCard from './VotingCard.vue';
 import TButton from '../../ui/TButton.vue';
-import { useGameActions } from '../../../composables/useGameActions';
-import { useGameState } from '../../../composables/useGameState';
+import { useGame } from '../../../composables/useGame';
 import { useReactions } from '../../../composables/useReactions';
 import type { Player, CategoryRef } from '../../../../shared/types';
 
@@ -24,7 +23,7 @@ const emit = defineEmits<{
     (e: 'submit-votes'): void;
 }>();
 
-const { sendReaction } = useGameActions(useGameState());
+const { sendReaction } = useGame();
 const { getCountsForTarget, getBurstsForTarget } = useReactions();
 
 // ─── Wizard Navigation ────────────────────────────────────────────────────────
