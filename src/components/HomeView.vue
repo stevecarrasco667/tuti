@@ -9,6 +9,7 @@ import { AVATARS } from '../constants/avatars';
 import TCard from './ui/TCard.vue';
 import TButton from './ui/TButton.vue';
 import TInput from './ui/TInput.vue';
+import PrivacyBanner from './ui/PrivacyBanner.vue';
 
 const { joinGame, myUserName, myUserAvatar } = useGame();
 const { publicRooms, connect, refreshRooms } = useLobby();
@@ -78,6 +79,18 @@ const handleJoinRoom = () => {
 const handleJoinPublicRoom = (roomId: string) => {
     joinGame(playerName.value, roomId, selectedAvatar.value);
     // Navegación manejada por useGameSync cuando el servidor confirma la sala
+};
+
+const handleClearData = () => {
+    if (typeof localStorage !== 'undefined') {
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('tuti-')) {
+                localStorage.removeItem(key);
+            }
+        }
+    }
+    window.location.reload();
 };
 
 const getStatusLabel = (status: string) => {
@@ -269,6 +282,12 @@ const handleRefresh = () => {
                         {{ avatar }}
                     </button>
                 </div>
+
+                <div v-if="!isAuthenticated" class="mt-4 pt-4 border-t border-white/10 flex justify-end">
+                    <button @click="handleClearData" class="text-[10px] font-bold text-action-error/70 hover:text-action-error uppercase transition-colors">
+                        Limpiar mis datos locales
+                    </button>
+                </div>
             </TCard>
         </div>
 
@@ -335,5 +354,7 @@ const handleRefresh = () => {
 
             </div>
         </div>
+
+        <PrivacyBanner />
     </div>
 </template>

@@ -67,6 +67,26 @@ const isPlayerDead = (playerId: string) => {
     if (!props.impostorData) return false;
     return !props.impostorData.alivePlayers.includes(playerId);
 };
+
+const handleInputFocus = (event: Event) => {
+    // SMART SCROLL: Only if keyboard covers input
+    if (window.visualViewport) {
+        const target = event.target as HTMLElement;
+        const rect = target.getBoundingClientRect();
+        const viewportHeight = window.visualViewport.height;
+
+        // If bottom of input is outside visible viewport
+        if (rect.bottom > viewportHeight) {
+             setTimeout(() => { 
+                target.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); 
+            }, 300);
+        }
+    } else {
+         // Fallback for non-compliant browsers
+        const target = event.target as HTMLElement;
+        setTimeout(() => { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
+    }
+};
 </script>
 
 <template>
@@ -138,6 +158,7 @@ const isPlayerDead = (playerId: string) => {
                             ? 'border-action-error text-action-error placeholder:text-action-error/40 focus:border-action-error focus:bg-action-error/10 focus:shadow-glow-panic' 
                             : 'border-white/20 text-ink-main placeholder:text-ink-muted/40 focus:border-action-primary focus:bg-white/10 focus:shadow-glow-primary'
                     ]"
+                    @focus="handleInputFocus"
                     autofocus
                 />
                 

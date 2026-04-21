@@ -107,6 +107,7 @@ watch(lastMessage, (newMsg) => {
 
             if (typeof localStorage !== 'undefined') {
                 localStorage.setItem('tuti-session-token', sessionToken);
+                localStorage.setItem('tuti-session-token-expiry', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString());
             }
 
             if (userId !== state.myUserId.value) {

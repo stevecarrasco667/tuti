@@ -17,8 +17,19 @@ export const STORAGE_KEY_USER_ID = 'tuti-user-id';
 export const STORAGE_KEY_USER_NAME = 'tuti-user-name';
 export const STORAGE_KEY_USER_AVATAR = 'tuti-user-avatar';
 export const STORAGE_KEY_SESSION_TOKEN = 'tuti-session-token';
+export const STORAGE_KEY_TOKEN_EXPIRY = 'tuti-session-token-expiry';
 
 export function useGameState() {
+    // 0. Session Expiry Validation (P1 - Sprint H12)
+    if (typeof localStorage !== 'undefined') {
+        const expiry = localStorage.getItem(STORAGE_KEY_TOKEN_EXPIRY);
+        if (expiry && Date.now() > parseInt(expiry, 10)) {
+            console.log('🧹 Session token expired. Cleaning up...');
+            localStorage.removeItem(STORAGE_KEY_SESSION_TOKEN);
+            localStorage.removeItem(STORAGE_KEY_TOKEN_EXPIRY);
+        }
+    }
+
     // 1. User ID Persistence
     const getStoredUserId = () => {
         if (typeof localStorage !== 'undefined') {
