@@ -52,6 +52,34 @@ export default defineConfig({
             '@shared': path.resolve(__dirname, './shared')
         }
     },
+    build: {
+        chunkSizeWarningLimit: 600,
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    // 1. Chunk de Core Framework (Cacheo de muy largo plazo)
+                    if (id.includes('node_modules/vue/') || id.includes('node_modules/vue-router')) {
+                        return 'vendor-core';
+                    }
+                    
+                    // 2. Chunk de Red y Estado (PartyKit, JSON Patch)
+                    if (id.includes('node_modules/partysocket') || id.includes('node_modules/fast-json-patch')) {
+                        return 'vendor-network';
+                    }
+
+                    // 3. Chunk de Motores de Juego Compartidos
+                    if (id.includes('/shared/engines/') || id.includes('/shared/systems/')) {
+                        return 'game-engines';
+                    }
+
+                    // 4. Chunk genérico para otras librerías misceláneas (canvas-confetti, etc.)
+                    if (id.includes('node_modules')) {
+                        return 'vendor-utils';
+                    }
+                }
+            }
+        }
+    },
 
     server: {
         proxy: {

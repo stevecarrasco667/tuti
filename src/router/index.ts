@@ -1,9 +1,6 @@
 import { createRouter, createWebHistory, createMemoryHistory } from 'vue-router';
 import { ref } from 'vue';
 import HomeView from '../components/HomeView.vue';
-import LobbyView from '../components/LobbyView.vue';
-import GameView from '../components/GameView.vue';
-import GameOverView from '../components/GameOverView.vue';
 import { useSocket, pendingRoomExpiredConfig } from '../composables/useSocket';
 import { useGameState } from '../composables/useGameState';
 import { useToast } from '../composables/useToast';
@@ -23,17 +20,17 @@ const routes = [
     {
         path: '/lobby/:roomId',
         name: 'lobby',
-        component: LobbyView,
+        component: () => import('../components/LobbyView.vue'),
     },
     {
         path: '/game/:roomId',
         name: 'game',
-        component: GameView,
+        component: () => import('../components/GameView.vue'),
     },
     {
         path: '/results/:roomId',
         name: 'results',
-        component: GameOverView,
+        component: () => import('../components/GameOverView.vue'),
     },
     // Fallback: cualquier ruta desconocida vuelve al Home
     {
