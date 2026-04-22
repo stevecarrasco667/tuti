@@ -177,18 +177,22 @@ onMounted(() => {
 
 <template>
     <div class="h-full w-full flex flex-col overflow-hidden relative bg-panel-base">
+        <!-- Fondos radiales de ambiente: absolute al contenedor raíz (fuera del scroll) -->
+        <div class="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-yellow-500/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
+        <div class="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-action-primary/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
+
         <!-- Install PWA Prompt (Sprint 4 P3) -->
         <InstallPrompt />
 
-        <!-- BODY scrollable -->
-        <div class="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 lg:p-10 scrollbar-thin scrollbar-thumb-white/20 z-10 relative">
-            
-            <!-- Shell de resultados: header movido al interior para scroll unificado -->
-            <!-- Se aumenta el margen inferior (mb-24 a mb-32) para evitar que los avatares absolutos colisionen -->
-            <div class="mb-24 lg:mb-32 relative z-0">
+        <!-- BODY scrollable: TODO el contenido fluye aquí, nada lo tapa desde arriba -->
+        <div class="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 lg:p-10 scrollbar-thin scrollbar-thumb-white/20 relative z-10">
+
+            <!-- Título (VICTORIA / GAME OVER) — en flujo normal dentro del scroll -->
+            <div class="mb-16 lg:mb-20">
                 <ResultsHeader :i-won="iWon" :am-i-host="amIHost" />
             </div>
 
+            <!-- Contenido principal: podio + sidebar -->
             <div class="w-full max-w-[1200px] mx-auto flex flex-col lg:grid lg:grid-cols-12 gap-10 lg:gap-16 items-start pb-8">
 
                 <!-- COLUMNA IZQUIERDA -->
@@ -207,7 +211,7 @@ onMounted(() => {
                 </div>
 
                 <!-- COLUMNA DERECHA (sidebar desktop) -->
-                <div class="w-full lg:col-span-5 xl:col-span-4 flex flex-col gap-6 sm:gap-8 mt-12 lg:mt-0 relative z-20">
+                <div class="w-full lg:col-span-5 xl:col-span-4 flex flex-col gap-6 sm:gap-8 mt-12 lg:mt-0">
                     <!-- Premios de la Partida -->
                     <MatchHighlightsPanel :titles="titles" :player-map="playerMap" />
                     <!-- Acciones (Desktop) -->
@@ -224,7 +228,7 @@ onMounted(() => {
             </div>
         </div>
 
-        <!-- FOOTER MÓVIL -->
+        <!-- FOOTER MÓVIL (fuera del scroll — correcto, es una barra fija en la parte inferior) -->
         <div class="lg:hidden flex-none bg-panel-base border-t border-white/10 z-40">
             <div class="max-w-sm mx-auto px-4 py-3">
                 <PostGameActions

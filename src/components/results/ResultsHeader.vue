@@ -12,15 +12,11 @@ defineProps<{
 </script>
 
 <template>
-    <!-- Fondo radial de ambiente -->
-    <div class="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-yellow-500/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
-    <div class="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-action-primary/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
-
     <!-- Confeti para el ganador -->
     <ConfettiCanvas v-if="iWon" class="z-10" />
 
-    <!-- HEADER con título dinámico -->
-    <div class="text-center relative z-0">
+    <!-- HEADER con título dinámico: componente en flujo normal, sin posicionamiento absoluto -->
+    <div class="text-center">
         <template v-if="gameState.gameOverReason === 'ABANDONED'">
             <h2 class="text-5xl sm:text-6xl md:text-7xl lg:text-[5rem] font-black text-transparent bg-clip-text bg-gradient-to-b from-action-primary to-purple-500 drop-shadow-[0_5px_15px_rgba(168,85,247,0.5)] uppercase tracking-tighter mix-blend-screen animate-pulse">¡VICTORIA!</h2>
             <div class="mt-6 bg-panel-card/80 backdrop-blur-md px-6 py-3 rounded-2xl inline-block border border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.2)]">
