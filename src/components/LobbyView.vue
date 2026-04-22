@@ -150,7 +150,7 @@ const handleLeave = () => {
         </div>
 
         <!-- Main Content Grid -->
-        <div class="flex-1 min-h-0 px-3 pt-2 pb-2 lg:pb-3 lg:px-4 overflow-hidden">
+        <div class="flex-1 min-h-0 px-3 pt-2 pb-2 lg:pb-3 lg:px-4 overflow-y-auto lg:overflow-hidden">
             <div class="h-full grid grid-cols-1 lg:grid-cols-12 gap-3">
 
                 <!-- Left Panel: Player List -->
@@ -166,7 +166,7 @@ const handleLeave = () => {
                 />
 
                 <!-- Center + Right Panels: Settings -->
-                <div class="lg:col-span-9 lg:grid lg:grid-cols-9 lg:gap-3 flex flex-col gap-4 overflow-y-auto lg:overflow-hidden"
+                <div class="lg:col-span-9 lg:grid lg:grid-cols-9 lg:gap-3 flex flex-col gap-4 overflow-y-auto"
                      :class="{ 'hidden lg:grid': activeTab !== 'settings' }"
                 >
                     <!-- Center: Mode Selector + Categories -->

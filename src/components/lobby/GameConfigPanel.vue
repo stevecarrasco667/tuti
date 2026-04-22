@@ -14,6 +14,23 @@ const emit = defineEmits<{
 // ── Classic Steppers ──────────────────────────────────────────────────────────
 const timeLimitOptions = [30, 45, 60, 90, 120, 180];
 const votingOptions = [10, 15, 20, 30, 45, 60, 90, 120];
+const impostorTypingOptions = [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
+const impostorVotingOptions = Array.from({ length: 22 }, (_, i) => 15 + i * 5); // [15,20,...,120]
+
+// Función genérica para input directo de teclado.
+// Snappea al valor más cercano si se le pasa una lista de opciones válidas,
+// luego clampea entre min/max y emite el cambio al servidor.
+function handleNumericInput(field: string, rawValue: string, min: number, max: number, options?: number[]) {
+    let val = parseInt(rawValue, 10);
+    if (isNaN(val)) return;
+    if (options && options.length > 0) {
+        val = options.reduce((prev, curr) =>
+            Math.abs(curr - val) < Math.abs(prev - val) ? curr : prev
+        );
+    }
+    val = Math.max(min, Math.min(max, val));
+    emit('update-config', field, val);
+}
 
 function incrementRounds() {
     const val = props.config.classic?.rounds || 5;
@@ -106,7 +123,15 @@ function decrementImpostorCategoryCount() {
                     <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🎲 Categorías Aleatorias</label>
                     <div class="flex items-center justify-between">
                         <button @click="decrementCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
-                        <span class="text-3xl md:text-4xl font-black text-ink-main">{{ props.config.classic?.categoryCount ?? 5 }}</span>
+                        <input
+                            type="number"
+                            :value="props.config.classic?.categoryCount ?? 5"
+                            :min="1" :max="10"
+                            @change="handleNumericInput('classic.categoryCount', ($event.target as HTMLInputElement).value, 1, 10)"
+                            @keydown.enter="($event.target as HTMLInputElement).blur()"
+                            @focus="($event.target as HTMLInputElement).select()"
+                            class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
+                        />
                         <button @click="incrementCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                     </div>
                     <p class="text-ink-muted text-[8px] font-bold mt-2 text-center">Se elegirán al azar al iniciar</p>
@@ -117,7 +142,15 @@ function decrementImpostorCategoryCount() {
                     <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🔁 Rondas</label>
                     <div class="flex items-center justify-between">
                         <button @click="decrementRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
-                        <span class="text-3xl md:text-4xl font-black text-ink-main">{{ props.config.classic?.rounds || 5 }}</span>
+                        <input
+                            type="number"
+                            :value="props.config.classic?.rounds || 5"
+                            :min="1" :max="20"
+                            @change="handleNumericInput('classic.rounds', ($event.target as HTMLInputElement).value, 1, 20)"
+                            @keydown.enter="($event.target as HTMLInputElement).blur()"
+                            @focus="($event.target as HTMLInputElement).select()"
+                            class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
+                        />
                         <button @click="incrementRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                     </div>
                 </div>
@@ -128,7 +161,15 @@ function decrementImpostorCategoryCount() {
                     <div class="flex items-center justify-between">
                         <button @click="decrementTimeLimit" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                         <div class="text-center">
-                            <span class="text-3xl md:text-4xl font-black text-ink-main">{{ props.config.classic?.timeLimit || 60 }}</span>
+                            <input
+                                type="number"
+                                :value="props.config.classic?.timeLimit || 60"
+                                :min="30" :max="180"
+                                @change="handleNumericInput('classic.timeLimit', ($event.target as HTMLInputElement).value, 30, 180, timeLimitOptions)"
+                                @keydown.enter="($event.target as HTMLInputElement).blur()"
+                                @focus="($event.target as HTMLInputElement).select()"
+                                class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
+                            />
                             <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">seg</span>
                         </div>
                         <button @click="incrementTimeLimit" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
@@ -141,7 +182,15 @@ function decrementImpostorCategoryCount() {
                     <div class="flex items-center justify-between">
                         <button @click="decrementVotingDuration" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                         <div class="text-center">
-                            <span class="text-3xl md:text-4xl font-black text-ink-main">{{ props.config.classic?.votingDuration || 30 }}</span>
+                            <input
+                                type="number"
+                                :value="props.config.classic?.votingDuration || 30"
+                                :min="10" :max="120"
+                                @change="handleNumericInput('classic.votingDuration', ($event.target as HTMLInputElement).value, 10, 120, votingOptions)"
+                                @keydown.enter="($event.target as HTMLInputElement).blur()"
+                                @focus="($event.target as HTMLInputElement).select()"
+                                class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
+                            />
                             <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">seg</span>
                         </div>
                         <button @click="incrementVotingDuration" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
@@ -202,7 +251,15 @@ function decrementImpostorCategoryCount() {
                     <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">📦 Categorías en Juego</label>
                     <div class="flex items-center justify-between">
                         <button @click="decrementImpostorCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
-                        <span class="text-3xl md:text-4xl font-black text-ink-main">{{ props.config.impostor?.categoryCount ?? 3 }}</span>
+                        <input
+                            type="number"
+                            :value="props.config.impostor?.categoryCount ?? 3"
+                            :min="1" :max="8"
+                            @change="handleNumericInput('impostor.categoryCount', ($event.target as HTMLInputElement).value, 1, 8)"
+                            @keydown.enter="($event.target as HTMLInputElement).blur()"
+                            @focus="($event.target as HTMLInputElement).select()"
+                            class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
+                        />
                         <button @click="incrementImpostorCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                     </div>
                     <p class="text-ink-muted text-[8px] font-bold mt-2 text-center">Se seleccionarán al azar de nuestro catálogo secreto</p>
@@ -213,7 +270,15 @@ function decrementImpostorCategoryCount() {
                     <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🔁 Rondas</label>
                     <div class="flex items-center justify-between">
                         <button @click="decrementImpostorRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
-                        <span class="text-3xl md:text-4xl font-black text-ink-main">{{ props.config.impostor?.rounds || 3 }}</span>
+                        <input
+                            type="number"
+                            :value="props.config.impostor?.rounds || 3"
+                            :min="1" :max="10"
+                            @change="handleNumericInput('impostor.rounds', ($event.target as HTMLInputElement).value, 1, 10)"
+                            @keydown.enter="($event.target as HTMLInputElement).blur()"
+                            @focus="($event.target as HTMLInputElement).select()"
+                            class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
+                        />
                         <button @click="incrementImpostorRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                     </div>
                 </div>
@@ -224,7 +289,15 @@ function decrementImpostorCategoryCount() {
                     <div class="flex items-center justify-between">
                         <button @click="decrementImpostorTypingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                         <div class="text-center">
-                            <span class="text-3xl md:text-4xl font-black text-ink-main">{{ props.config.impostor?.typingTime || 30 }}</span>
+                            <input
+                                type="number"
+                                :value="props.config.impostor?.typingTime || 30"
+                                :min="10" :max="60"
+                                @change="handleNumericInput('impostor.typingTime', ($event.target as HTMLInputElement).value, 10, 60, impostorTypingOptions)"
+                                @keydown.enter="($event.target as HTMLInputElement).blur()"
+                                @focus="($event.target as HTMLInputElement).select()"
+                                class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
+                            />
                             <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">seg</span>
                         </div>
                         <button @click="incrementImpostorTypingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
@@ -237,7 +310,15 @@ function decrementImpostorCategoryCount() {
                     <div class="flex items-center justify-between">
                         <button @click="decrementImpostorVotingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                         <div class="text-center">
-                            <span class="text-3xl md:text-4xl font-black text-ink-main">{{ props.config.impostor?.votingTime || 40 }}</span>
+                            <input
+                                type="number"
+                                :value="props.config.impostor?.votingTime || 40"
+                                :min="15" :max="120"
+                                @change="handleNumericInput('impostor.votingTime', ($event.target as HTMLInputElement).value, 15, 120, impostorVotingOptions)"
+                                @keydown.enter="($event.target as HTMLInputElement).blur()"
+                                @focus="($event.target as HTMLInputElement).select()"
+                                class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
+                            />
                             <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">seg</span>
                         </div>
                         <button @click="incrementImpostorVotingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
