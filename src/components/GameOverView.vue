@@ -180,11 +180,14 @@ onMounted(() => {
         <!-- Install PWA Prompt (Sprint 4 P3) -->
         <InstallPrompt />
 
-        <!-- Shell de resultados: header + contenido + acciones -->
-        <ResultsHeader :i-won="iWon" :am-i-host="amIHost" />
-
         <!-- BODY scrollable -->
         <div class="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 lg:p-10 scrollbar-thin scrollbar-thumb-white/20 z-10 relative">
+            
+            <!-- Shell de resultados: header movido al interior para scroll unificado -->
+            <div class="mb-12">
+                <ResultsHeader :i-won="iWon" :am-i-host="amIHost" />
+            </div>
+
             <div class="w-full max-w-[1200px] mx-auto flex flex-col lg:grid lg:grid-cols-12 gap-10 lg:gap-16 items-start pb-8">
 
                 <!-- COLUMNA IZQUIERDA -->
