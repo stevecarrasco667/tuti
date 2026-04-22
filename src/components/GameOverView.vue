@@ -184,7 +184,8 @@ onMounted(() => {
         <div class="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 lg:p-10 scrollbar-thin scrollbar-thumb-white/20 z-10 relative">
             
             <!-- Shell de resultados: header movido al interior para scroll unificado -->
-            <div class="mb-12">
+            <!-- Se aumenta el margen inferior (mb-24 a mb-32) para evitar que los avatares absolutos colisionen -->
+            <div class="mb-24 lg:mb-32 relative z-0">
                 <ResultsHeader :i-won="iWon" :am-i-host="amIHost" />
             </div>
 
