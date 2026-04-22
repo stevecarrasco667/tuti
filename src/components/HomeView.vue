@@ -175,22 +175,22 @@ const handleRefresh = () => {
 
                     <!-- Logo -->
                     <div class="relative z-10">
-                        <h1 class="text-5xl sm:text-6xl font-black text-center mb-1 tracking-tighter">
-                            <span class="text-white drop-shadow-lg">
+                        <h1 class="text-6xl sm:text-7xl lg:text-[5rem] font-display text-center mb-1 tracking-wider uppercase leading-none">
+                            <span class="text-transparent bg-clip-text bg-gradient-to-br from-action-primary via-action-warning to-action-error drop-shadow-md">
                                 TUTI GAMES
                             </span>
                         </h1>
 
-                        <p class="text-center text-ink-soft text-sm mb-8 font-bold">
-                            <span v-if="publicRooms.length > 0" class="text-action-primary px-3 py-1 bg-action-primary/10 rounded-full border border-action-primary/20 shadow-sm animate-pulse">🟢 {{ publicRooms.length }} sala{{ publicRooms.length !== 1 ? 's' : '' }} activa{{ publicRooms.length !== 1 ? 's' : '' }}</span>
-                            <span v-else class="text-ink-muted">El juego de palabras más rápido</span>
+                        <p class="text-center font-ui tracking-widest uppercase text-[10px] sm:text-xs text-ink-muted mb-8 font-black">
+                            <span v-if="publicRooms.length > 0" class="text-action-success px-3 py-1 bg-action-success/10 rounded-full border border-action-success/20 shadow-glow-success animate-pulse">🟢 {{ publicRooms.length }} sala{{ publicRooms.length !== 1 ? 's' : '' }} activa{{ publicRooms.length !== 1 ? 's' : '' }}</span>
+                            <span v-else class="text-ink-soft">El juego de palabras más rápido</span>
                         </p>
                     </div>
 
                 <!-- PRIMARY ACTION BUTTONS -->
                 <div class="flex flex-col sm:grid sm:grid-cols-2 gap-3">
                     <TButton variant="primary" size="lg" @click="handleCreateRoom(true)">
-                        <span class="text-xl">🌐</span> Sala Pública
+                        <span class="text-xl">🔥</span> Sala Pública
                     </TButton>
                     <TButton variant="secondary" size="lg" @click="handleCreateRoom(false)">
                         <span class="text-xl">🔒</span> Sala Privada

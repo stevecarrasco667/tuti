@@ -7,37 +7,49 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                // Inyectamos Nunito como fuente principal geométrica y playful
-                sans: ['Nunito', 'sans-serif'],
+                // Tipografía principal para la UI (limpia y legible)
+                sans: ['Outfit', 'sans-serif'],
+                ui: ['Outfit', 'sans-serif'],
+                // Tipografía para Títulos Gigantes y Timer
+                display: ['Bebas Neue', 'sans-serif'],
             },
             colors: {
+                // Fondos (Violeta nocturno profundo)
                 panel: {
-                    base: '#2E0249', // Violeta nocturno profundo
-                    card: '#49107A', // Violeta sólido rico
-                    input: '#60199E', // Violeta vibrante y maleable
+                    base: '#2E0249', 
+                    card: '#49107A', 
+                    input: '#60199E',
+                    raised: '#57138A', // Para compatibilidad con botones fantasma/ghost
                 },
+                // Acentos 
                 action: {
-                    primary: '#fbbf24', // Amber-400 ultra vibrante
-                    'primary-hover': '#f59e0b',
-                    secondary: '#57138A', // Cápsulas secundarias translúcidas
-                    'secondary-hover': '#6C1AAB',
-                    accent: '#fbbf24',
-                    error: '#f43f5e', // Rose-500 palpitante
-                    warning: '#fbbf24',
+                    primary: '#fbbf24', // Amber-400
+                    'primary-hover': '#f59e0b', 
+                    secondary: '#57138A', 
+                    'secondary-hover': '#6C1AAB', 
+                    success: '#10b981', // Emerald-500
+                    error: '#f43f5e',   // Rose-500
+                    warning: '#fbbf24', // Amber-400
+                    info: '#38bdf8',    // Light Blue
+                },
+                tuti: {
+                    teal: '#2dd4bf', // Old tuti-teal equivalent
                 },
                 ink: {
-                    main: '#ede9fe', // Violet-100 anti fatiga
+                    main: '#ede9fe', // Violet-100
+                    soft: '#c4b5fd', // Violet-300
                     muted: '#ddd6fe', // Violet-200
                 }
             },
             boxShadow: {
                 'game-btn': '0 4px 0 0 rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.1)',
-                'game-panel': 'inset 0 2px 4px rgba(255,255,255,0.1), 0 4px 12px rgba(0,0,0,0.2)',
-                'game-card': '0 4px 20px rgba(0,0,0,0.15)',
-                // SPRINT V1 GLOWS: Elimina sombras negras por auras de color
-                'glow-primary': '0 4px 15px rgba(251,191,36,0.5)',
-                'glow-panic': 'inset 0 0 150px rgba(244,63,94,0.4)',
-                'warm': '0 10px 25px -5px rgba(44, 42, 41, 0.08), 0 8px 10px -6px rgba(44, 42, 41, 0.04)',
+                'game-panel': 'inset 0 2px 4px rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.4)',
+                'game-card': '0 4px 20px rgba(0,0,0,0.3)',
+                // Hardware-accelerated Glows (Arcade Callejero)
+                'glow-primary': '0 0 30px -5px rgba(255,92,26,0.5)',
+                'glow-success': '0 0 20px -5px rgba(200,241,53,0.4)',
+                'glow-panic': '0 0 25px -5px rgba(255,61,107,0.5), inset 0 0 150px rgba(255,61,107,0.15)',
+                'warm': '0 10px 25px -5px rgba(0, 0, 0, 0.4)',
             },
             zIndex: {
                 'dropdown': 10,

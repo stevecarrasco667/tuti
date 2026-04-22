@@ -69,7 +69,7 @@ const maxWidthClass = {
                 ></div>
 
                 <!-- Ventana Modal -->
-                <div class="relative bg-panel-card border-[3px] border-white/20 rounded-3xl shadow-2xl w-full flex flex-col flex-none max-h-full overflow-hidden transform transition-all" :class="maxWidthClass">
+                <div class="relative bg-panel-card border-2 border-white/10 rounded-3xl shadow-warm w-full flex flex-col flex-none max-h-full overflow-hidden transform transition-all backdrop-blur-xl" :class="maxWidthClass">
                     
                     <!-- Header -->
                     <div class="flex items-center justify-between p-4 border-b-2 border-white/10 shrink-0">
