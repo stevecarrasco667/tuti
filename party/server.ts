@@ -704,6 +704,8 @@ export default class Server implements Party.Server {
             }
             await this.room.storage.put(STORAGE_KEY, this.engine.getState());
         }
+
+        await this.alarmManager.schedule(this.engine.getState());
     }
 
     onClose(connection: Party.Connection) {
