@@ -757,14 +757,39 @@ export default class Server implements Party.Server {
         if (connections.length === 0) {
             // ⚠️ Capture state FIRST — dispose() may clear engine internals,
             // causing getState() to return defaults with gameOverAt = undefined.
-            // That would make hardExpiryAt = year 1970 → alarm fires in 1s → instant purge bug.
             const closingState = this.engine.getState();
 
             if (this.saveTimeout) {
                 clearTimeout(this.saveTimeout);
                 this.saveTimeout = null;
             }
-            this.room.storage.put(STORAGE_KEY, closingState);
+
+            // [Room Wipe Fix — Root Cause]
+            // Active game states (PLAYING, REVIEW, RESULTS, etc.) must NOT be saved to
+            // Durable Object storage when the room empties. Cloudflare DO storage persists
+            // indefinitely — if we save a PLAYING state here, onStart() will restore it for
+            // anyone who reconnects days later (no matter how long the 60-120s alarm takes).
+            // Fix: delete STORAGE_KEY immediately for active game states so that any
+            // reconnection gets a fresh empty room instead of restoring a dead mid-game.
+            //
+            // LOBBY: save normally (host may reconnect to resume setup).
+            // GAME_OVER private: save normally (1h results window — existing behavior).
+            // Active game (PLAYING, REVIEW, RESULTS, etc.): DELETE — game cannot continue without players.
+            const IN_GAME_STATUSES = [
+                'PLAYING', 'REVIEW', 'RESULTS', 'ENDING_COUNTDOWN',
+                'LOADING_ROUND', 'VOTING', 'TYPING', 'ROLE_REVEAL', 'LAST_WISH'
+            ];
+            const isActiveGame = IN_GAME_STATUSES.includes(closingState.status);
+
+            if (isActiveGame && !closingState.config.isPublic) {
+                // Private active game: wipe storage immediately.
+                // Anyone reconnecting will find a clean room.
+                logger.info('ACTIVE_GAME_WIPE_ON_EMPTY', { roomId: this.room.id, status: closingState.status });
+                this.room.storage.delete(STORAGE_KEY);
+            } else {
+                // LOBBY, GAME_OVER, or public rooms: preserve state as before.
+                this.room.storage.put(STORAGE_KEY, closingState);
+            }
 
             // [Sprint H3] Stop Tick Loop — no players means no need to count down
             this.tickManager.stop();
@@ -783,25 +808,22 @@ export default class Server implements Party.Server {
             // Clear all per-connection baselines
             this.previousStates.clear();
 
-            if (closingState.config.isPublic) {
-                // Pública: limpieza agresiva en 10s — desaparece del índice rápidamente.
-                logger.info('AUTO_WIPE_SCHEDULED_PUBLIC', { roomId: this.room.id, timeout: 10 });
+            if (closingState.config.isPublic || isActiveGame) {
+                // Pública o partida activa privada vaciada: limpieza agresiva en 10s.
+                logger.info('AUTO_WIPE_SCHEDULED_FAST', { roomId: this.room.id, status: closingState.status });
                 this.room.storage.setAlarm(Date.now() + 10_000);
 
             } else if (closingState.status === 'GAME_OVER' && closingState.gameOverAt) {
                 // Privada + GAME_OVER: mantener la sala viva hasta el hard-expiry (1h).
-                // No sobreescribir con un tiempo más corto — el link debe seguir funcionando.
                 const hardExpiryAt = closingState.gameOverAt + GAME_CONSTS.ROOM_HARD_EXPIRY_MS;
-                // hardExpiryAt is always in the future here since gameOverAt is freshly set.
-                // Safety clamp: if somehow in the past, push 1s forward.
                 const target = hardExpiryAt > Date.now() ? hardExpiryAt : Date.now() + 1_000;
                 logger.info('PRESERVING_HARD_EXPIRY_ALARM', { roomId: this.room.id, hardExpiryAt });
                 this.room.storage.setAlarm(target);
 
             } else {
-                // Privada, estado no-GAME_OVER: watchdog de 120s (comportamiento existente).
+                // LOBBY privada: watchdog de 120s — host puede reconectarse.
                 logger.info('AUTO_WIPE_SCHEDULED', { roomId: this.room.id, timeout: 120 });
-                this.room.storage.setAlarm(Date.now() + 120 * 1000);
+                this.room.storage.setAlarm(Date.now() + 120_000);
             }
         }
     }
