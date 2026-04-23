@@ -566,8 +566,11 @@ export class TutiEngine extends BaseEngine {
         if (this.state.status === 'GAME_OVER') {
             this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
         } else {
-            // In RESULTS phase, the round-manager sets RESULTS and assigns resultsEndsAt inside checkConsensus,
-            // then calls calculateResults().
+            // [Auto-Advance Fix] Asignar el timer de resultados para que el AlarmManager
+            // pueda programar el wakeup del Worker y avanzar automáticamente a la siguiente ronda.
+            // Antes de este fix, resultsEndsAt era siempre null en Classic → nunca se programaba alarm
+            // → el juego solo avanzaba cuando el anfitrión presionaba el botón manualmente.
+            this.state.timers.resultsEndsAt = Date.now() + 30_000; // 30 segundos para leer resultados
             this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.resultsEndsAt };
         }
     }

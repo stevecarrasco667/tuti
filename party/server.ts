@@ -357,8 +357,13 @@ export default class Server implements Party.Server {
             // [Phoenix Lobby] Ensure heartbeat is running (wakes up hibernated room)
             this.startHeartbeat();
 
-            // CANCEL AUTO-DESTRUCT if a human connects
-            await this.room.storage.deleteAlarm();
+            // CANCEL AUTO-DESTRUCT if a human connects — but ONLY when no timed game phase is active.
+            // Cloudflare supports only ONE alarm per room. Deleting unconditionally here would destroy
+            // any active phase alarm (votingEndsAt, resultsEndsAt, etc.), freezing the game at 0 permanently.
+            const _timedPhases = ['PLAYING', 'REVIEW', 'RESULTS', 'ENDING_COUNTDOWN', 'VOTING', 'TYPING', 'LAST_WISH', 'ROLE_REVEAL'];
+            if (!_timedPhases.includes(this.engine.getState().status)) {
+                await this.room.storage.deleteAlarm();
+            }
 
             // 0. Send Version
             const versionMsg = JSON.stringify({
@@ -415,6 +420,10 @@ export default class Server implements Party.Server {
                 }
             }
             this.broadcastStateDelta(this.engine.getState());
+
+            // Re-schedule the phase alarm after every new connection.
+            // Guards against alarm loss from the deleteAlarm() path above or from Worker hibernation.
+            await this.alarmManager.schedule(this.engine.getState());
         } catch (err) {
             logger.error('ON_CONNECT_FAILED', { connectionId: conn.id, roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
             conn.close(1011, 'Internal Server Error');
