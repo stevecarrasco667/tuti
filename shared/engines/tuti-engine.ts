@@ -44,6 +44,12 @@ export class TutiEngine extends BaseEngine {
     // [P11] ENDING_COUNTDOWN: timer del pánico de 3 segundos
     private _endingTimer: ReturnType<typeof setTimeout> | null = null;
 
+    // [Auto-Advance] Primary setTimeout timers for phase transitions.
+    // The alarm system (onAlarm → handleTimeUp) is a BACKUP for Worker hibernation.
+    // These setTimeouts are the PRIMARY mechanism — same pattern as round-manager.timer for PLAYING.
+    private _votingTimer: ReturnType<typeof setTimeout> | null = null;
+    private _resultsTimer: ReturnType<typeof setTimeout> | null = null;
+
     // [Sprint 2 - P1] Analytics Tracking
     private _sessionStartTime: number | null = null;
     private _sessionId: string | null = null;
@@ -167,7 +173,9 @@ export class TutiEngine extends BaseEngine {
             this.voting.autoConfirmDisconnectedPlayers(this.state);
             if (this.voting.checkConsensus(this.state)) {
                 console.log('[Ghost Player] Disconnection triggered consensus — forcing results.');
+                if (this._votingTimer) { clearTimeout(this._votingTimer); this._votingTimer = null; }
                 this.calculateResults();
+                this._scheduleResultsEnd();
             }
         }
 
@@ -355,6 +363,9 @@ export class TutiEngine extends BaseEngine {
         console.log("[TutiEngine] auto-stop triggered by timer.");
         this.rounds.stopRound(this.state, this.state.config);
 
+        // [Auto-Advance] Start the voting timer — primary mechanism for REVIEW → RESULTS
+        this._scheduleVotingEnd();
+
         if (this.onGameStateChange) {
             this.onGameStateChange(this.state);
         }
@@ -407,6 +418,9 @@ export class TutiEngine extends BaseEngine {
         this.rounds.cancelTimer(); // Cancelar el timer natural original
         this.rounds.stopRound(this.state, this.state.config);
 
+        // [Auto-Advance] Start the voting timer — primary mechanism for REVIEW → RESULTS
+        this._scheduleVotingEnd();
+
         // --- 1vs1 GHOST VOTING ---
         const activePlayers = this.state.players.filter(p => p.isConnected);
         if (activePlayers.length === 2) {
@@ -415,6 +429,67 @@ export class TutiEngine extends BaseEngine {
         }
 
         if (this.onGameStateChange) this.onGameStateChange(this.state);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // [Auto-Advance] Primary setTimeout timers for REVIEW and RESULTS phases
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Schedules the automatic transition REVIEW → RESULTS when voting time expires.
+     * Called after every transition into REVIEW (timer expiry, BASTA, etc.).
+     */
+    private _scheduleVotingEnd() {
+        if (this._votingTimer) clearTimeout(this._votingTimer);
+
+        const votingEndsAt = this.state.timers.votingEndsAt;
+        if (!votingEndsAt) return;
+
+        const msLeft = Math.max(0, votingEndsAt - Date.now());
+        console.log(`[TutiEngine] Voting timer scheduled: ${Math.ceil(msLeft / 1000)}s`);
+
+        this._votingTimer = setTimeout(() => {
+            this._votingTimer = null;
+            if (this.state.status !== 'REVIEW') return; // Guard: already transitioned
+            console.log('[TutiEngine] Voting timer expired — forcing results calculation');
+            this.calculateResults();
+
+            // [Auto-Advance] Schedule the results timer for RESULTS → next round
+            this._scheduleResultsEnd();
+
+            if (this.onGameStateChange) this.onGameStateChange(this.state);
+        }, msLeft);
+    }
+
+    /**
+     * Schedules the automatic transition RESULTS → next round (or GAME_OVER).
+     * Called after every transition into RESULTS.
+     */
+    private _scheduleResultsEnd() {
+        if (this._resultsTimer) clearTimeout(this._resultsTimer);
+
+        const resultsEndsAt = this.state.timers.resultsEndsAt;
+        if (!resultsEndsAt) return;
+
+        const msLeft = Math.max(0, resultsEndsAt - Date.now());
+        console.log(`[TutiEngine] Results timer scheduled: ${Math.ceil(msLeft / 1000)}s`);
+
+        this._resultsTimer = setTimeout(async () => {
+            this._resultsTimer = null;
+            if (this.state.status !== 'RESULTS') return; // Guard: host already advanced
+            console.log('[TutiEngine] Results timer expired — auto-advancing to next round');
+
+            if (this.rounds.nextRound(this.state, this.state.config)) {
+                this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
+                const gracePeriodMs = calcGracePeriod(this.state.categories.length);
+                this.state.timers.graceEndsAt = Date.now() + gracePeriodMs;
+                this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
+            } else {
+                this._triggerGameOver('NORMAL');
+            }
+
+            if (this.onGameStateChange) this.onGameStateChange(this.state);
+        }, msLeft);
     }
 
     public async restartGame(requestorId: string): Promise<RoomState> {
@@ -445,6 +520,11 @@ export class TutiEngine extends BaseEngine {
         this.state.timers.votingEndsAt = null;
         this.state.timers.resultsEndsAt = null;
         this.state.stoppedBy = null;
+
+        // [Auto-Advance] Cancel any pending phase timers
+        if (this._endingTimer) { clearTimeout(this._endingTimer); this._endingTimer = null; }
+        if (this._votingTimer) { clearTimeout(this._votingTimer); this._votingTimer = null; }
+        if (this._resultsTimer) { clearTimeout(this._resultsTimer); this._resultsTimer = null; }
 
         // Clear temporal cache
         this.validation.getDictionaryManager().clearCache();
@@ -535,7 +615,11 @@ export class TutiEngine extends BaseEngine {
         if (!userId) return this.state;
 
         if (this.voting.confirmVotes(this.state, userId)) {
+            // Cancel the voting timer — consensus reached before time expired
+            if (this._votingTimer) { clearTimeout(this._votingTimer); this._votingTimer = null; }
             this.calculateResults();
+            // [Auto-Advance] Schedule results auto-advance
+            this._scheduleResultsEnd();
         }
 
         return this.state;
@@ -552,7 +636,9 @@ export class TutiEngine extends BaseEngine {
 
             if (this.state.status === 'REVIEW') {
                 if (this.voting.checkConsensus(this.state)) {
+                    if (this._votingTimer) { clearTimeout(this._votingTimer); this._votingTimer = null; }
                     this.calculateResults();
+                    this._scheduleResultsEnd();
                 }
             }
         }
@@ -566,11 +652,8 @@ export class TutiEngine extends BaseEngine {
         if (this.state.status === 'GAME_OVER') {
             this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };
         } else {
-            // [Auto-Advance Fix] Asignar el timer de resultados para que el AlarmManager
-            // pueda programar el wakeup del Worker y avanzar automáticamente a la siguiente ronda.
-            // Antes de este fix, resultsEndsAt era siempre null en Classic → nunca se programaba alarm
-            // → el juego solo avanzaba cuando el anfitrión presionaba el botón manualmente.
-            this.state.timers.resultsEndsAt = Date.now() + 30_000; // 30 segundos para leer resultados
+            // ScoreSystem.calculate() already sets resultsEndsAt = Date.now() + 10000
+            // and status = 'RESULTS'. We just need to set the uiMetadata.
             this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.resultsEndsAt };
         }
     }
@@ -705,6 +788,9 @@ export class TutiEngine extends BaseEngine {
     // [Sprint 4] Death Hook — release all GlobalWordCache references
     public dispose(): void {
         this.rounds.cancelTimer();
+        if (this._endingTimer) { clearTimeout(this._endingTimer); this._endingTimer = null; }
+        if (this._votingTimer) { clearTimeout(this._votingTimer); this._votingTimer = null; }
+        if (this._resultsTimer) { clearTimeout(this._resultsTimer); this._resultsTimer = null; }
         this.validation.getDictionaryManager().clearCache();
         logger.info('TUTI_ENGINE_DISPOSED', { roomId: this.state.roomId ?? 'unknown' });
     }

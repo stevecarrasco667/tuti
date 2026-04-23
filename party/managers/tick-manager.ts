@@ -24,6 +24,7 @@ import { logger } from '../../shared/utils/logger.js';
 const TIMED_STATUSES: Partial<Record<string, keyof RoomState['timers']>> = {
     'PLAYING': 'roundEndsAt',
     'REVIEW':  'votingEndsAt',
+    'RESULTS': 'resultsEndsAt', // [Auto-Advance] Show countdown during results phase
     'TYPING':  'roundEndsAt',
     'VOTING':  'votingEndsAt',
 };
