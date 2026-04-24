@@ -19,8 +19,8 @@ import { compare } from "fast-json-patch";
 
 const STORAGE_KEY = "room_state_v1";
 const AUTH_TOKENS_KEY = "auth_tokens_v1";
-// [Sprint P1 — Fase 3] Storage key for ImpostorEngine private secrets (never sent via WebSocket)
 const IMPOSTOR_SECRET_KEY = "impostor_secret_v1";
+const ROOM_WIPE_KEY = "room_wipe_v1"; // Flag: sala vaciada mid-game, rechazar reconexiones
 
 import { SupabaseClient, createClient } from "@supabase/supabase-js";
 
@@ -315,6 +315,13 @@ export default class Server implements Party.Server {
 
     async onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
         try {
+            // Rechazar conexiones a salas marcadas para borrado
+            const pendingWipe = await this.room.storage.get<boolean>(ROOM_WIPE_KEY);
+            if (pendingWipe) {
+                conn.send(JSON.stringify({ type: EVENTS.ROOM_DEAD }));
+                conn.close(4411, 'ROOM_DEAD');
+                return;
+            }
             // ── [Room TTL] MODE-AWARE EXPIRATION GATE ────────────────────────────────────
             // Checked BEFORE any heartbeat, alarm cancel, or player-join logic.
             // Only fires for NEW incoming connections — connected players are evicted via onAlarm().
@@ -782,12 +789,10 @@ export default class Server implements Party.Server {
             const isActiveGame = IN_GAME_STATUSES.includes(closingState.status);
 
             if (isActiveGame && !closingState.config.isPublic) {
-                // Private active game: wipe storage immediately.
-                // Anyone reconnecting will find a clean room.
                 logger.info('ACTIVE_GAME_WIPE_ON_EMPTY', { roomId: this.room.id, status: closingState.status });
+                this.room.storage.put(ROOM_WIPE_KEY, true);
                 this.room.storage.delete(STORAGE_KEY);
             } else {
-                // LOBBY, GAME_OVER, or public rooms: preserve state as before.
                 this.room.storage.put(STORAGE_KEY, closingState);
             }
 
