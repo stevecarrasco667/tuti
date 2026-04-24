@@ -322,6 +322,23 @@ export default class Server implements Party.Server {
                 conn.close(4411, 'ROOM_DEAD');
                 return;
             }
+
+            // Sala abandonada mid-game: todos los jugadores cerraron la pestaña.
+            // onClose() puede no haber seteado ROOM_WIPE_KEY si el Worker hibernó antes.
+            // Comprobamos con los flags isConnected del engine (más fiable que getConnections()).
+            const stateNow = this.engine.getState();
+            const IN_GAME_STATUSES = ['PLAYING','REVIEW','RESULTS','ENDING_COUNTDOWN','LOADING_ROUND','VOTING','TYPING','ROLE_REVEAL','LAST_WISH'];
+            if (IN_GAME_STATUSES.includes(stateNow.status) && stateNow.players.length > 0) {
+                const allGone = stateNow.players.every(p => !p.isConnected);
+                if (allGone) {
+                    this.room.storage.put(ROOM_WIPE_KEY, true);
+                    this.room.storage.delete(STORAGE_KEY);
+                    this.room.storage.setAlarm(Date.now() + 10_000);
+                    conn.send(JSON.stringify({ type: EVENTS.ROOM_DEAD }));
+                    conn.close(4411, 'ROOM_DEAD');
+                    return;
+                }
+            }
             // ── [Room TTL] MODE-AWARE EXPIRATION GATE ────────────────────────────────────
             // Checked BEFORE any heartbeat, alarm cancel, or player-join logic.
             // Only fires for NEW incoming connections — connected players are evicted via onAlarm().
