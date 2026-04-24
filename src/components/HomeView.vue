@@ -12,7 +12,7 @@ import TInput from './ui/TInput.vue';
 import PrivacyBanner from './ui/PrivacyBanner.vue';
 
 const { joinGame, myUserName, myUserAvatar } = useGame();
-const { filteredRooms, lobbyFilters, connect, refreshRooms, quickMatch } = useLobby();
+const { filteredRooms, lobbyFilters, connect, refreshRooms } = useLobby();
 const { user, isAuthenticated, isLoading, signInWithGoogle, signOut } = useAuth();
 const { addToast } = useToast();
 
@@ -21,7 +21,6 @@ const joinCode = ref('');
 const isPublicRoom = ref(false);
 const isRefreshing = ref(false);
 const isEditingProfile = ref(false);
-const isQuickMatching = ref(false);
 
 const playerName = computed({
     get: () => myUserName.value,
@@ -77,18 +76,6 @@ const handleRefresh = () => {
     setTimeout(() => isRefreshing.value = false, 500);
 };
 
-const handleQuickMatch = async () => {
-    isQuickMatching.value = true;
-    await new Promise(r => setTimeout(r, 400));
-    const room = quickMatch();
-    isQuickMatching.value = false;
-    if (room) {
-        handleJoinPublicRoom(room.id);
-    } else {
-        addToast('No hay salas disponibles. ¡Crea una!', 'info');
-    }
-};
-
 const REGION_LABELS: Record<string, string> = { SA:'🌎 LATAM', NA:'🇺🇸 Norteamérica', EU:'🇪🇺 Europa', AS:'🌏 APAC', AF:'🌍 África' };
 const LANG_LABELS: Record<string, string> = { es:'🇪🇸 Español', en:'🇬🇧 Inglés', pt:'🇧🇷 Portugués' };
 const MODE_LABELS: Record<string, string> = { CLASSIC:'🔤 Clásico', IMPOSTOR:'🕵️ Impostor' };
@@ -106,41 +93,7 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
 <template>
     <div class="w-full flex flex-col items-center justify-start sm:justify-center p-4 min-h-full overflow-y-auto">
 
-        <!-- AUTH BANNER -->
-        <div class="w-full max-w-5xl mx-auto mb-6">
-            <div v-if="isLoading" class="flex justify-center h-10 items-center">
-                <span class="animate-pulse text-ink-muted text-xs font-bold tracking-widest uppercase">Cargando Identidad...</span>
-            </div>
-            <div v-else-if="!isAuthenticated" class="bg-panel-card/40 border-2 border-white/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl backdrop-blur-sm">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-panel-base border-2 border-action-primary flex items-center justify-center text-xl shadow-inner bg-gradient-to-br from-action-primary/20 to-panel-input/20">⭐</div>
-                    <div class="text-left hidden sm:block">
-                        <h4 class="text-white font-black text-sm tracking-tight drop-shadow-md">Únete al Metajuego</h4>
-                        <p class="text-ink-muted text-[10px] font-bold uppercase tracking-wider">Inicia sesión para reclamar tu nombre y beneficios</p>
-                    </div>
-                </div>
-                <button @click="signInWithGoogle" class="w-full sm:w-auto bg-white hover:bg-white/90 text-panel-base px-4 py-2.5 rounded-xl font-bold uppercase tracking-wide text-xs shadow-glow-primary active:scale-95 transition-all flex items-center justify-center gap-2 border-[3px] border-white">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.2,4.73C15.29,4.73 17.1,6.7 17.1,6.7L19,4.72C19,4.72 16.56,2 12.1,2C6.42,2 2.03,6.8 2.03,12C2.03,17.05 6.16,22 12.25,22C17.6,22 21.5,18.33 21.5,12.91C21.5,11.76 21.35,11.1 21.35,11.1V11.1Z" /></svg>
-                    Iniciar con Google
-                </button>
-            </div>
-            <div v-else class="bg-panel-card border-2 border-white/10 rounded-2xl p-3 flex items-center justify-between gap-4 shadow-lg">
-                <div class="flex items-center gap-3">
-                    <img v-if="user?.user_metadata.avatar_url" :src="user.user_metadata.avatar_url" class="w-10 h-10 rounded-xl border-2 border-action-primary shadow-sm" alt="Avatar">
-                    <div v-else class="w-10 h-10 rounded-xl bg-panel-base border-2 border-action-primary flex items-center justify-center text-lg shadow-inner">👤</div>
-                    <div class="text-left">
-                        <p class="text-ink-soft text-[9px] font-black uppercase tracking-widest text-action-primary flex items-center gap-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3 text-action-primary"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
-                            Verificado
-                        </p>
-                        <h4 class="text-white font-black text-sm tracking-tight truncate max-w-[150px] sm:max-w-none">{{ user?.user_metadata.full_name || user?.email }}</h4>
-                    </div>
-                </div>
-                <button @click="signOut" class="text-ink-muted hover:text-red-400 bg-white/5 hover:bg-red-400/10 px-3 py-2 rounded-lg font-bold text-xs transition-colors">Cerrar sesión</button>
-            </div>
-        </div>
-
-        <div class="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-7 gap-6 lg:gap-8 min-h-0">
+        <div class="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-7 gap-6 lg:gap-8 min-h-0 mt-6 sm:mt-0">
 
             <!-- LEFT: Consola -->
             <div class="lg:col-span-4 flex flex-col gap-5 justify-center">
@@ -215,25 +168,6 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
             <div class="lg:col-span-3 flex flex-col min-h-0">
                 <TCard padding="none" class="flex flex-col overflow-hidden flex-1 min-h-[400px] max-h-[min(700px,80vh)] border-[3px] border-white/10 shadow-game-panel">
 
-                    <!-- Header & Quick Match -->
-                    <div class="p-4 border-b-2 border-white/10 bg-panel-card/90 flex-none relative overflow-hidden">
-                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-action-primary/5 to-transparent pointer-events-none"></div>
-                        <button
-                            id="quick-match-btn"
-                            @click="handleQuickMatch"
-                            :disabled="isQuickMatching"
-                            class="w-full relative group overflow-hidden rounded-2xl p-4 font-black uppercase tracking-widest transition-all active:scale-95 border-[3px]"
-                            :class="isQuickMatching
-                                ? 'bg-panel-input border-white/10 text-ink-muted cursor-not-allowed'
-                                : 'bg-action-primary border-action-warning text-panel-base hover:brightness-110 shadow-glow-primary hover:shadow-glow-warning'"
-                        >
-                            <div v-if="!isQuickMatching" class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')] opacity-30"></div>
-                            <div class="relative flex items-center justify-center gap-3">
-                                <span class="text-3xl" :class="{ 'animate-pulse': isQuickMatching }">{{ isQuickMatching ? '⏳' : '⚡' }}</span>
-                                <span class="text-lg">{{ isQuickMatching ? 'Buscando Partida...' : 'Partida Rápida' }}</span>
-                            </div>
-                        </button>
-                    </div>
 
                     <!-- Filter Bar (Segmented Controls) -->
                     <div class="p-4 border-b-2 border-white/10 bg-panel-base/80 flex-none space-y-4">
@@ -367,6 +301,41 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                         </div>
                     </div>
                 </TCard>
+            </div>
+        </div>
+
+
+        <!-- AUTH BANNER (BOTTOM) -->
+        <div class="w-full max-w-5xl mx-auto mt-6">
+            <div v-if="isLoading" class="flex justify-center h-10 items-center">
+                <span class="animate-pulse text-ink-muted text-xs font-bold tracking-widest uppercase">Cargando Identidad...</span>
+            </div>
+            <div v-else-if="!isAuthenticated" class="bg-panel-card/40 border-2 border-white/20 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl backdrop-blur-sm">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-panel-base border-2 border-action-primary flex items-center justify-center text-xl shadow-inner bg-gradient-to-br from-action-primary/20 to-panel-input/20">⭐</div>
+                    <div class="text-left hidden sm:block">
+                        <h4 class="text-white font-black text-sm tracking-tight drop-shadow-md">Únete al Metajuego</h4>
+                        <p class="text-ink-muted text-[10px] font-bold uppercase tracking-wider">Inicia sesión para reclamar tu nombre y beneficios</p>
+                    </div>
+                </div>
+                <button @click="signInWithGoogle" class="w-full sm:w-auto bg-white hover:bg-white/90 text-panel-base px-4 py-2.5 rounded-xl font-bold uppercase tracking-wide text-xs shadow-glow-primary active:scale-95 transition-all flex items-center justify-center gap-2 border-[3px] border-white">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.2,4.73C15.29,4.73 17.1,6.7 17.1,6.7L19,4.72C19,4.72 16.56,2 12.1,2C6.42,2 2.03,6.8 2.03,12C2.03,17.05 6.16,22 12.25,22C17.6,22 21.5,18.33 21.5,12.91C21.5,11.76 21.35,11.1 21.35,11.1V11.1Z" /></svg>
+                    Iniciar con Google
+                </button>
+            </div>
+            <div v-else class="bg-panel-card border-2 border-white/10 rounded-2xl p-3 flex items-center justify-between gap-4 shadow-lg">
+                <div class="flex items-center gap-3">
+                    <img v-if="user?.user_metadata.avatar_url" :src="user.user_metadata.avatar_url" class="w-10 h-10 rounded-xl border-2 border-action-primary shadow-sm" alt="Avatar">
+                    <div v-else class="w-10 h-10 rounded-xl bg-panel-base border-2 border-action-primary flex items-center justify-center text-lg shadow-inner">👤</div>
+                    <div class="text-left">
+                        <p class="text-ink-soft text-[9px] font-black uppercase tracking-widest text-action-primary flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3 text-action-primary"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            Verificado
+                        </p>
+                        <h4 class="text-white font-black text-sm tracking-tight truncate max-w-[150px] sm:max-w-none">{{ user?.user_metadata.full_name || user?.email }}</h4>
+                    </div>
+                </div>
+                <button @click="signOut" class="text-ink-muted hover:text-red-400 bg-white/5 hover:bg-red-400/10 px-3 py-2 rounded-lg font-bold text-xs transition-colors">Cerrar sesión</button>
             </div>
         </div>
 
