@@ -89,9 +89,9 @@ const handleQuickMatch = async () => {
     }
 };
 
-const REGION_LABELS: Record<string, string> = { SA:'🌎 LATAM', NA:'🇺🇸 NA', EU:'🇪🇺 EU', AS:'🌏 APAC', AF:'🌍 AF' };
-const LANG_LABELS: Record<string, string> = { es:'🇪🇸 ES', en:'🇬🇧 EN', pt:'🇧🇷 PT' };
-const MODE_LABELS: Record<string, string> = { CLASSIC:'🔤 Classic', IMPOSTOR:'🕵️ Impostor' };
+const REGION_LABELS: Record<string, string> = { SA:'🌎 LATAM', NA:'🇺🇸 Norteamérica', EU:'🇪🇺 Europa', AS:'🌏 APAC', AF:'🌍 África' };
+const LANG_LABELS: Record<string, string> = { es:'🇪🇸 Español', en:'🇬🇧 Inglés', pt:'🇧🇷 Portugués' };
+const MODE_LABELS: Record<string, string> = { CLASSIC:'🔤 Clásico', IMPOSTOR:'🕵️ Impostor' };
 
 const getStatusInfo = (room: any) => {
     const inGame = !['LOBBY'].includes(room.status);
@@ -213,148 +213,158 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
 
             <!-- RIGHT: Server Browser -->
             <div class="lg:col-span-3 flex flex-col min-h-0">
-                <TCard padding="none" class="flex flex-col overflow-hidden flex-1 min-h-[300px] max-h-[min(700px,80vh)]">
+                <TCard padding="none" class="flex flex-col overflow-hidden flex-1 min-h-[400px] max-h-[min(700px,80vh)] border-[3px] border-white/10 shadow-game-panel">
 
-                    <!-- Header -->
-                    <div class="p-3 border-b border-white/10 bg-panel-card/90 flex-none">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-xs font-black text-ink-main uppercase tracking-widest">Salas Públicas</h3>
-                                <span class="text-[9px] font-black bg-white/10 text-ink-muted px-1.5 py-0.5 rounded-full">{{ filteredRooms.length }}</span>
+                    <!-- Header & Quick Match -->
+                    <div class="p-4 border-b-2 border-white/10 bg-panel-card/90 flex-none relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-action-primary/5 to-transparent pointer-events-none"></div>
+                        <button
+                            id="quick-match-btn"
+                            @click="handleQuickMatch"
+                            :disabled="isQuickMatching"
+                            class="w-full relative group overflow-hidden rounded-2xl p-4 font-black uppercase tracking-widest transition-all active:scale-95 border-[3px]"
+                            :class="isQuickMatching
+                                ? 'bg-panel-input border-white/10 text-ink-muted cursor-not-allowed'
+                                : 'bg-action-primary border-action-warning text-panel-base hover:brightness-110 shadow-glow-primary hover:shadow-glow-warning'"
+                        >
+                            <div v-if="!isQuickMatching" class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')] opacity-30"></div>
+                            <div class="relative flex items-center justify-center gap-3">
+                                <span class="text-3xl" :class="{ 'animate-pulse': isQuickMatching }">{{ isQuickMatching ? '⏳' : '⚡' }}</span>
+                                <span class="text-lg">{{ isQuickMatching ? 'Buscando Partida...' : 'Partida Rápida' }}</span>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <!-- Partida Rápida -->
-                                <button
-                                    id="quick-match-btn"
-                                    @click="handleQuickMatch"
-                                    :disabled="isQuickMatching"
-                                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all active:scale-95 border-2 shadow-lg"
-                                    :class="isQuickMatching
-                                        ? 'bg-action-primary/20 border-action-primary/30 text-action-primary/60 cursor-not-allowed'
-                                        : 'bg-action-primary border-action-primary text-panel-base hover:brightness-110 shadow-glow-primary'"
-                                >
-                                    <span class="text-sm">{{ isQuickMatching ? '⏳' : '⚡' }}</span>
-                                    {{ isQuickMatching ? 'Buscando...' : 'Partida Rápida' }}
-                                </button>
-                                <button @click="handleRefresh" class="text-action-blue hover:text-blue-400 transition-colors p-1.5 rounded-lg hover:bg-white/5" :class="{ 'animate-spin': isRefreshing }">↻</button>
+                        </button>
+                    </div>
+
+                    <!-- Filter Bar (Segmented Controls) -->
+                    <div class="p-4 border-b-2 border-white/10 bg-panel-base/80 flex-none space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-[10px] font-black text-ink-main uppercase tracking-widest flex items-center gap-2">
+                                📡 Servidores Públicos
+                                <span class="bg-action-blue/20 text-action-blue border border-action-blue/30 px-2 py-0.5 rounded-md text-[9px]">{{ filteredRooms.length }}</span>
+                            </h3>
+                            <button @click="handleRefresh" class="text-ink-muted hover:text-white transition-colors flex items-center gap-1 text-[9px] font-bold uppercase bg-white/5 px-2 py-1 rounded-md" :class="{ 'opacity-50 cursor-not-allowed': isRefreshing }">
+                                <span :class="{ 'animate-spin': isRefreshing }">↻</span> Recargar
+                            </button>
+                        </div>
+
+                        <!-- Ocultar llenas -->
+                        <div class="flex items-center justify-between bg-panel-card p-2 rounded-xl border border-white/5">
+                            <span class="text-[9px] font-black uppercase text-ink-soft tracking-wider pl-2">Mostrar solo disponibles</span>
+                            <button @click="lobbyFilters.onlyJoinable = !lobbyFilters.onlyJoinable" 
+                                class="relative w-10 h-5 rounded-full transition-colors border"
+                                :class="lobbyFilters.onlyJoinable ? 'bg-emerald-500 border-emerald-400' : 'bg-panel-input border-white/10'">
+                                <div class="absolute top-0.5 left-0.5 w-3.5 h-3.5 bg-white rounded-full transition-transform"
+                                    :class="lobbyFilters.onlyJoinable ? 'translate-x-5' : 'translate-x-0'"></div>
+                            </button>
+                        </div>
+
+                        <!-- Modo -->
+                        <div>
+                            <span class="text-[8px] font-black text-ink-muted uppercase tracking-widest mb-1.5 block">Modo de Juego</span>
+                            <div class="flex gap-1 bg-panel-input p-1 rounded-xl border border-white/5">
+                                <button v-for="m in ['ALL','CLASSIC','IMPOSTOR']" :key="m"
+                                    @click="lobbyFilters.mode = m as any"
+                                    class="flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all"
+                                    :class="lobbyFilters.mode === m ? 'bg-panel-card text-white shadow-sm border border-white/10' : 'text-ink-muted hover:text-ink-soft'"
+                                >{{ m === 'ALL' ? 'Cualquiera' : MODE_LABELS[m] }}</button>
                             </div>
                         </div>
 
-                        <!-- Filter Bar -->
-                        <div class="flex flex-wrap gap-1.5">
-                            <!-- Disponibles toggle -->
-                            <button
-                                @click="lobbyFilters.onlyJoinable = !lobbyFilters.onlyJoinable"
-                                class="flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-all"
-                                :class="lobbyFilters.onlyJoinable
-                                    ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
-                                    : 'bg-white/5 border-white/10 text-ink-muted hover:border-white/20'"
-                            >
-                                <span>{{ lobbyFilters.onlyJoinable ? '✓' : '○' }}</span> Disponibles
-                            </button>
-
-                            <!-- Modo -->
-                            <div class="flex gap-1">
-                                <button v-for="m in ['ALL','CLASSIC','IMPOSTOR']" :key="m"
-                                    @click="lobbyFilters.mode = m as any"
-                                    class="px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-all"
-                                    :class="lobbyFilters.mode === m
-                                        ? 'bg-action-blue/20 border-action-blue/40 text-action-blue'
-                                        : 'bg-white/5 border-white/10 text-ink-muted hover:border-white/20'"
-                                >{{ m === 'ALL' ? 'Modo' : m === 'CLASSIC' ? '🔤' : '🕵️' }}</button>
+                        <!-- Región & Idioma (Grid) -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <span class="text-[8px] font-black text-ink-muted uppercase tracking-widest mb-1.5 block">Región</span>
+                                <select v-model="lobbyFilters.region" class="w-full bg-panel-input border border-white/10 rounded-xl px-2 py-2 text-[10px] font-bold text-ink-main uppercase tracking-wider outline-none focus:border-action-blue appearance-none">
+                                    <option value="ALL">🌐 Cualquiera</option>
+                                    <option v-for="r in ['SA','NA','EU','AS']" :key="r" :value="r">{{ REGION_LABELS[r] }}</option>
+                                </select>
                             </div>
-
-                            <!-- Región -->
-                            <div class="flex gap-1">
-                                <button v-for="r in ['ALL','SA','NA','EU','AS']" :key="r"
-                                    @click="lobbyFilters.region = r"
-                                    class="px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-all"
-                                    :class="lobbyFilters.region === r
-                                        ? 'bg-violet-500/20 border-violet-500/40 text-violet-400'
-                                        : 'bg-white/5 border-white/10 text-ink-muted hover:border-white/20'"
-                                >{{ r === 'ALL' ? '🌐' : REGION_LABELS[r]?.split(' ')[1] || r }}</button>
-                            </div>
-
-                            <!-- Idioma -->
-                            <div class="flex gap-1">
-                                <button v-for="l in ['ALL','es','en','pt']" :key="l"
-                                    @click="lobbyFilters.lang = l"
-                                    class="px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-all"
-                                    :class="lobbyFilters.lang === l
-                                        ? 'bg-action-warning/20 border-action-warning/40 text-action-warning'
-                                        : 'bg-white/5 border-white/10 text-ink-muted hover:border-white/20'"
-                                >{{ l === 'ALL' ? '💬' : LANG_LABELS[l] || l }}</button>
+                            <div>
+                                <span class="text-[8px] font-black text-ink-muted uppercase tracking-widest mb-1.5 block">Idioma</span>
+                                <select v-model="lobbyFilters.lang" class="w-full bg-panel-input border border-white/10 rounded-xl px-2 py-2 text-[10px] font-bold text-ink-main uppercase tracking-wider outline-none focus:border-action-blue appearance-none">
+                                    <option value="ALL">💬 Cualquiera</option>
+                                    <option v-for="l in ['es','en','pt']" :key="l" :value="l">{{ LANG_LABELS[l] }}</option>
+                                </select>
                             </div>
                         </div>
                     </div>
 
                     <!-- Room List -->
-                    <div class="flex-1 overflow-y-auto p-3 space-y-2 relative min-h-[150px]">
+                    <div class="flex-1 overflow-y-auto p-4 space-y-3 relative min-h-[200px] bg-panel-base/50 scrollbar-thin">
                         <div v-if="filteredRooms.length === 0" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-                            <span class="text-4xl mb-3 opacity-20">👻</span>
-                            <p class="text-ink-soft font-bold text-sm">No hay salas que coincidan.</p>
-                            <p class="text-ink-muted text-[10px] font-bold mt-1">Ajusta los filtros o ¡crea una sala!</p>
+                            <div class="w-16 h-16 mb-4 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIvPjxwYXRoIGQ9Im0xNSA5LTMgM20wIDAgMyAzbS0zLTN2OG0wLTh2LTgiLz48L3N2Zz4=')] bg-contain bg-center bg-no-repeat"></div>
+                            <p class="text-ink-soft font-black text-sm uppercase tracking-wider">Sin Resultados</p>
+                            <p class="text-ink-muted text-[10px] font-bold mt-2">Ajusta los filtros o crea tu propia sala.</p>
                         </div>
 
-                        <!-- Room Card -->
-                        <button
+                        <!-- Room Card (Arcade Ticket Style) -->
+                        <div
                             v-for="room in filteredRooms" :key="room.id"
-                            @click="handleJoinPublicRoom(room.id)"
-                            :disabled="!room.joinable"
-                            class="w-full rounded-2xl border-2 p-3 text-left transition-all group"
-                            :class="room.joinable
-                                ? 'bg-panel-card hover:bg-panel-input border-white/10 hover:border-action-primary cursor-pointer'
-                                : 'bg-panel-card/50 border-white/5 opacity-60 cursor-not-allowed'"
+                            class="relative rounded-2xl border-[3px] p-1 transition-all overflow-hidden"
+                            :class="room.joinable ? 'bg-panel-card border-white/10 hover:border-action-primary/50 group' : 'bg-panel-card/30 border-white/5 opacity-75'"
                         >
-                            <div class="flex items-start gap-3">
-                                <!-- Avatar -->
-                                <div class="w-11 h-11 rounded-xl bg-panel-base border-2 border-white/10 flex items-center justify-center text-xl shadow-inner flex-none transition-transform"
-                                    :class="{ 'group-hover:scale-110': room.joinable }">
-                                    {{ room.hostAvatar || '👑' }}
+                            <!-- Inner Content -->
+                            <div class="flex flex-col sm:flex-row bg-panel-base rounded-xl overflow-hidden h-full">
+                                
+                                <!-- Identidad y Datos -->
+                                <div class="flex-1 p-3 flex items-center gap-3">
+                                    <!-- Avatar -->
+                                    <div class="w-12 h-12 rounded-xl bg-panel-input border-2 border-white/10 flex items-center justify-center text-2xl shadow-inner flex-none">
+                                        {{ room.hostAvatar || '👑' }}
+                                    </div>
+                                    
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="text-white font-black text-sm sm:text-base tracking-tight truncate">{{ room.hostName }}</h4>
+                                        <div class="flex flex-wrap gap-1.5 mt-1">
+                                            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-md"
+                                                :class="room.mode === 'CLASSIC' ? 'text-action-blue bg-action-blue/10 border border-action-blue/20' : 'text-red-400 bg-red-400/10 border border-red-400/20'">
+                                                {{ MODE_LABELS[room.mode] || room.mode }}
+                                            </span>
+                                            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-md text-violet-400 bg-violet-400/10 border border-violet-400/20">
+                                                {{ REGION_LABELS[room.region] || room.region }}
+                                            </span>
+                                            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-md text-action-warning bg-action-warning/10 border border-action-warning/20">
+                                                {{ LANG_LABELS[room.lang] || room.lang }}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div class="flex-1 min-w-0">
-                                    <!-- Row 1: name + players -->
-                                    <div class="flex items-center justify-between gap-2">
-                                        <h4 class="text-ink-main font-black text-sm tracking-tight truncate">{{ room.hostName }}</h4>
-                                        <span class="text-[10px] font-black bg-panel-input px-2 py-0.5 rounded-lg text-ink-muted border border-white/10 flex-none">
-                                            {{ room.currentPlayers }}/{{ room.maxPlayers }}
-                                        </span>
-                                    </div>
-
-                                    <!-- Row 2: badges -->
-                                    <div class="flex items-center gap-1 mt-1 flex-wrap">
-                                        <span class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded border"
-                                            :class="room.mode === 'CLASSIC' ? 'text-action-blue border-action-blue/30 bg-action-blue/10' : 'text-red-400 border-red-400/30 bg-red-400/10'">
-                                            {{ MODE_LABELS[room.mode] || room.mode }}
-                                        </span>
-                                        <span class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded border text-violet-400 border-violet-400/30 bg-violet-400/10">
-                                            {{ REGION_LABELS[room.region] || room.region }}
-                                        </span>
-                                        <span class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded border text-action-warning border-action-warning/30 bg-action-warning/10">
-                                            {{ LANG_LABELS[room.lang] || room.lang }}
-                                        </span>
-                                    </div>
-
-                                    <!-- Row 3: status -->
-                                    <div class="flex items-center justify-between mt-1.5">
-                                        <span class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full border"
-                                            :class="getStatusInfo(room).color">
+                                <!-- Ocupación y Botón -->
+                                <div class="flex sm:flex-col items-center justify-between sm:justify-center p-3 sm:w-32 bg-panel-card/50 border-t sm:border-t-0 sm:border-l border-white/5 gap-2 relative">
+                                    
+                                    <!-- Ocupación Integrada -->
+                                    <div class="w-full text-center relative group-hover:scale-105 transition-transform origin-bottom">
+                                        <div class="text-[10px] font-black uppercase tracking-widest mb-1" :class="getStatusInfo(room).color.split(' ')[0]">
                                             {{ getStatusInfo(room).label }}
-                                        </span>
-                                        <span v-if="room.joinable" class="text-action-primary opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1 text-sm">→</span>
+                                        </div>
+                                        <div class="h-6 bg-panel-input rounded-lg overflow-hidden border border-white/10 relative">
+                                            <div class="absolute inset-y-0 left-0 transition-all duration-500 ease-out"
+                                                :class="fillPercent(room) >= 100 ? 'bg-red-500/80' : fillPercent(room) >= 75 ? 'bg-amber-500/80' : 'bg-emerald-500/80'"
+                                                :style="`width: ${fillPercent(room)}%`">
+                                            </div>
+                                            <div class="absolute inset-0 flex items-center justify-center text-[11px] font-black text-white drop-shadow-md">
+                                                {{ room.currentPlayers }} / {{ room.maxPlayers }}
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <!-- Row 4: fill bar -->
-                                    <div class="mt-2 h-1 bg-panel-input rounded-full overflow-hidden">
-                                        <div class="h-full rounded-full transition-all duration-500"
-                                            :class="fillPercent(room) >= 100 ? 'bg-red-500' : fillPercent(room) >= 75 ? 'bg-amber-500' : 'bg-emerald-500'"
-                                            :style="`width: ${fillPercent(room)}%`">
+                                    <!-- Acción: Botón superpuesto en hover (solo escritorio) / Visible en móvil -->
+                                    <div v-if="room.joinable" class="sm:absolute sm:inset-0 sm:bg-panel-base/90 sm:backdrop-blur-[2px] sm:flex sm:items-center sm:justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-all z-10 p-2 sm:p-0">
+                                        <button @click="handleJoinPublicRoom(room.id)" class="w-full sm:w-auto px-4 py-2 bg-action-primary text-panel-base rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-glow-primary active:scale-95 transition-transform flex items-center justify-center gap-2">
+                                            <span>Entrar</span>
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                                        </button>
+                                    </div>
+                                    
+                                    <div v-if="!room.joinable" class="absolute inset-0 bg-panel-base/60 backdrop-blur-[1px] z-10 flex items-center justify-center pointer-events-none overflow-hidden">
+                                        <div class="border-2 border-red-500/50 text-red-500/80 font-black text-[10px] sm:text-xs uppercase tracking-widest px-3 py-1 rounded-lg transform -rotate-12 bg-panel-base/90 shadow-lg">
+                                            {{ room.currentPlayers >= room.maxPlayers ? 'LLENA' : 'EN JUEGO' }}
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </button>
+                        </div>
                     </div>
                 </TCard>
             </div>
