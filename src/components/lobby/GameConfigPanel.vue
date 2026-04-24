@@ -115,6 +115,20 @@ function decrementImpostorCategoryCount() {
 
         <div class="lg:flex-1 lg:overflow-y-auto lg:min-h-0 p-4 space-y-4 lg:scrollbar-thin">
 
+            <!-- Idioma de la sala -->
+            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
+                <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">💬 Idioma de la Partida</label>
+                <div class="flex gap-2">
+                    <button v-for="lang in [{ code:'es', label:'🇪🇸 Español' }, { code:'en', label:'🇬🇧 English' }, { code:'pt', label:'🇧🇷 Português' }]" :key="lang.code"
+                        @click="emit('update-config', 'lang', lang.code)"
+                        class="flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wide border-2 transition-all active:scale-95"
+                        :class="props.config.lang === lang.code || (!props.config.lang && lang.code === 'es')
+                            ? 'bg-action-warning/20 border-action-warning text-action-warning'
+                            : 'bg-panel-card border-white/10 text-ink-muted hover:border-white/20'"
+                    >{{ lang.label }}</button>
+                </div>
+            </div>
+
             <!-- ===== CLASSIC MODE SETTINGS ===== -->
             <template v-if="props.config.mode === 'CLASSIC'">
 
