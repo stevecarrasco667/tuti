@@ -5,6 +5,7 @@ export class ConfigurationManager {
         mode: 'CLASSIC',
         isPublic: false,
         maxPlayers: 8,
+        lang: 'es',
         classic: {
             rounds: 5,
             timeLimit: 60,

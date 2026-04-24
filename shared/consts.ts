@@ -49,10 +49,12 @@ export const EVENTS = {
 
     // [Room TTL] Server → Client: la sala ha caducado. El payload incluye `config` para auto-clonar.
     ROOM_EXPIRED: 'ROOM_EXPIRED',
+    ROOM_DEAD: 'ROOM_DEAD',
 
-    // [Room TTL - Tier 2] Server → Client: la sala fue purgada definitivamente (hard expiry).
-    // NO hay payload de configuración — el cliente redirige al Home limpiamente.
-    ROOM_DEAD: 'ROOM_DEAD'
+    // [Server Browser] Discrete lobby events (replace full-list broadcast)
+    ROOM_ADDED: 'ROOM_ADDED',
+    ROOM_UPDATED: 'ROOM_UPDATED',
+    ROOM_REMOVED: 'ROOM_REMOVED',
 } as const;
 
 export const APP_VERSION = 'v0.5.0';

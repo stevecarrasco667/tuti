@@ -92,8 +92,8 @@ export default class Server implements Party.Server {
     private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
     // [Sprint H3 — BE-1] Tick loop delegated to TickManager
     private tickManager!: TickManager;
-    // [Sprint H3 — BE-1] Alarm scheduling delegated to AlarmManager
     private alarmManager!: AlarmManager;
+    private roomRegion: string = 'NA'; // Set from Cloudflare cf.continent on first connect
 
     // Chat State
     messages: import('../shared/types').ChatMessage[] = [];
@@ -288,14 +288,24 @@ export default class Server implements Party.Server {
         this.heartbeatInterval = setInterval(() => {
             try {
                 const state = this.engine.getState();
-                logger.info('HEARTBEAT_SENDING', { roomId: this.room.id, players: state.players.length });
+                const hostPlayer = state.players.find(p => p.isHost);
+                const roundsTotal = state.config.mode === 'CLASSIC'
+                    ? state.config.classic.rounds
+                    : state.config.impostor.rounds;
 
                 const snapshot: RoomSnapshot = {
                     id: this.room.id,
-                    hostName: state.players.find(p => p.isHost)?.name || 'Host',
+                    hostName: hostPlayer?.name || 'Host',
+                    hostAvatar: hostPlayer?.avatar || '👑',
                     currentPlayers: state.players.length,
                     maxPlayers: state.config.maxPlayers,
                     status: state.status,
+                    mode: state.config.mode,
+                    roundsTotal,
+                    currentRound: state.roundsPlayed,
+                    lang: state.config.lang || 'es',
+                    region: this.roomRegion,
+                    joinable: state.players.length < state.config.maxPlayers,
                     lastUpdate: Date.now()
                 };
                 this.room.context.parties.lobby.get("global").fetch("/heartbeat", {
@@ -377,6 +387,12 @@ export default class Server implements Party.Server {
                 }
             }
             // ── END EXPIRATION GATE ────────────────────────────────────────────────────────
+
+            // Capturar región de Cloudflare en la primera conexión (creador de la sala)
+            if (this.roomRegion === 'NA') {
+                const continent = (ctx.request as any).cf?.continent as string | undefined;
+                if (continent) this.roomRegion = continent;
+            }
 
             // [Phoenix Lobby] Ensure heartbeat is running (wakes up hibernated room)
             this.startHeartbeat();

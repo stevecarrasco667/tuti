@@ -25,6 +25,7 @@ export const GameConfigSchema = z.object({
     mode: z.enum(['CLASSIC', 'IMPOSTOR']),
     isPublic: z.boolean(),
     maxPlayers: z.number().min(2).max(10),
+    lang: z.string().optional().default('es'),
     classic: z.object({
         rounds: z.number().min(1).max(20),
         timeLimit: z.number().min(30).max(180),
@@ -97,9 +98,16 @@ export const RoomStateSchema = z.object({
 export const RoomSnapshotSchema = z.object({
     id: z.string(),
     hostName: z.string(),
+    hostAvatar: z.string().default('👑'),
     currentPlayers: z.number(),
     maxPlayers: z.number(),
     status: GameStatusSchema,
+    mode: z.enum(['CLASSIC', 'IMPOSTOR']),
+    roundsTotal: z.number(),
+    currentRound: z.number(),
+    lang: z.string().default('es'),
+    region: z.string().default('NA'),
+    joinable: z.boolean(),
     lastUpdate: z.number()
 });
 

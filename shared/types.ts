@@ -40,11 +40,12 @@ export interface GameConfig {
     mode: 'CLASSIC' | 'IMPOSTOR';
     isPublic: boolean;
     maxPlayers: number;
+    lang: string;
     classic: {
         rounds: number;
         timeLimit: number;
         votingDuration: number;
-        categoryCount?: number; // Number of random categories when none are manually selected
+        categoryCount?: number;
         categories: CategoryRef[];
         customCategories: string[];
         mutators: {
@@ -56,7 +57,7 @@ export interface GameConfig {
         rounds: number;
         typingTime: number;
         votingTime: number;
-        categoryCount?: number; // Number of categories per Impostor match (Sprint 3.2)
+        categoryCount?: number;
     };
 }
 
@@ -183,11 +184,14 @@ export type ServerMessage =
     | { type: typeof EVENTS.CHAT_NEW; payload: ChatMessage }
     | { type: typeof EVENTS.CHAT_HISTORY; payload: ChatMessage[] }
     | { type: typeof EVENTS.SERVER_ERROR; payload: { message: string } } // [Phoenix P0] Error Telemetry
-    | { type: typeof EVENTS.LOBBY_STATE_UPDATE; payload: RoomSnapshot[] } // [Phoenix Lobby]
-    | { type: typeof EVENTS.PLAYER_JOINED; payload: { name: string } }   // [Sprint 3 - P2] Membership Events
-    | { type: typeof EVENTS.PLAYER_LEFT; payload: { name: string } }    // [Sprint 3 - P2] Membership Events
-    | { type: typeof EVENTS.ROOM_EXPIRED; payload: { config: GameConfig } } // [Room TTL — Tier 1] Soft expiry
-    | { type: typeof EVENTS.ROOM_DEAD };                                     // [Room TTL — Tier 2] Hard expiry — no payload
+    | { type: typeof EVENTS.LOBBY_STATE_UPDATE; payload: RoomSnapshot[] }
+    | { type: typeof EVENTS.ROOM_ADDED; payload: RoomSnapshot }
+    | { type: typeof EVENTS.ROOM_UPDATED; payload: RoomSnapshot }
+    | { type: typeof EVENTS.ROOM_REMOVED; payload: { id: string } }
+    | { type: typeof EVENTS.PLAYER_JOINED; payload: { name: string } }
+    | { type: typeof EVENTS.PLAYER_LEFT; payload: { name: string } }
+    | { type: typeof EVENTS.ROOM_EXPIRED; payload: { config: GameConfig } }
+    | { type: typeof EVENTS.ROOM_DEAD };
 
 // [Patch 2.4] Single source of truth for the default RoomState.
 // Import this instead of duplicating the object literal across engines and composables.
@@ -210,6 +214,7 @@ export function createDefaultRoomState(roomId: string | null = null): RoomState 
             mode: 'CLASSIC',
             isPublic: false,
             maxPlayers: 8,
+            lang: 'es',
             classic: {
                 rounds: 5,
                 timeLimit: 60,
