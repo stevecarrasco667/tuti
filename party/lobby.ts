@@ -4,14 +4,18 @@ import { logger } from "../shared/utils/logger";
 import type { RoomSnapshot } from "../shared/types";
 import { RoomSnapshotSchema } from "../shared/schemas";
 
+// Score de prioridad: salas disponibles arriba, más llenas primero, más frescas primero
+function roomScore(r: RoomSnapshot): number {
+    const staleness = (Date.now() - r.lastUpdate) / 1000;
+    return (r.joinable ? 1000 : 0) + (r.currentPlayers * 10) - (staleness * 2);
+}
+
 export default class LobbyServer implements Party.Server {
     private rooms = new Map<string, RoomSnapshot>();
-    private isDirty = false;
 
     constructor(readonly room: Party.Room) { }
 
     async onStart() {
-        // [Cura de la Amnesia] Rehydrate from memory
         const stored = await this.room.storage.get<RoomSnapshot[]>('public_rooms');
         if (stored) {
             for (const room of stored) {
@@ -20,53 +24,49 @@ export default class LobbyServer implements Party.Server {
             logger.info('LOBBY_STATE_HYDRATED', { count: this.rooms.size });
         }
 
-        // [Phoenix Lobby] Zombie TTL Reaper — every 10s, purge stale rooms
+        // Zombie TTL Reaper: purga salas sin heartbeat > 30s
         setInterval(() => {
             const now = Date.now();
-            let reaped = false;
-
             for (const [id, snapshot] of this.rooms.entries()) {
                 if (now - snapshot.lastUpdate > 30000) {
                     this.rooms.delete(id);
-                    logger.info('ZOMBIE_ROOM_REAPED', { roomId: id, staleSince: snapshot.lastUpdate });
-                    reaped = true;
+                    this.broadcast(EVENTS.ROOM_REMOVED, { id });
+                    logger.info('ZOMBIE_ROOM_REAPED', { roomId: id });
                 }
-            }
-
-            if (reaped) {
-                this.isDirty = true;
             }
         }, 10000);
 
-        // [Phoenix Lobby] Tick Engine — batch broadcast every 2s
+        // Persistencia periódica (solo storage, sin broadcast)
         setInterval(async () => {
-            if (this.isDirty) {
-                this.broadcastState();
-                await this.room.storage.put('public_rooms', Array.from(this.rooms.values()));
-                this.isDirty = false;
-            }
-        }, 2000);
+            await this.room.storage.put('public_rooms', Array.from(this.rooms.values()));
+        }, 15000);
     }
 
-    onConnect(connection: Party.Connection, _ctx: Party.ConnectionContext) {
-        // Send current lobby state to newly connected client
+    onConnect(connection: Party.Connection) {
+        // Enviar snapshot inicial ordenado por prioridad (máx 50 salas)
+        const sorted = Array.from(this.rooms.values())
+            .sort((a, b) => roomScore(b) - roomScore(a))
+            .slice(0, 50);
+
         connection.send(JSON.stringify({
             type: EVENTS.LOBBY_STATE_UPDATE,
-            payload: Array.from(this.rooms.values())
+            payload: sorted
         }));
-        logger.info('LOBBY_CLIENT_CONNECTED', { connectionId: connection.id });
     }
 
-    // [Phoenix Lobby] Manual refresh — bypass tick engine
     onMessage(_message: string, sender: Party.Connection) {
+        // Refresh manual: re-envía el snapshot al cliente que lo pide
+        const sorted = Array.from(this.rooms.values())
+            .sort((a, b) => roomScore(b) - roomScore(a))
+            .slice(0, 50);
+
         sender.send(JSON.stringify({
             type: EVENTS.LOBBY_STATE_UPDATE,
-            payload: Array.from(this.rooms.values())
+            payload: sorted
         }));
     }
 
     async onRequest(req: Party.Request): Promise<Response> {
-        // Only accept POST (Heartbeats from game rooms)
         if (req.method !== "POST") {
             return new Response("Method Not Allowed", { status: 405 });
         }
@@ -80,21 +80,19 @@ export default class LobbyServer implements Party.Server {
                 return new Response("Bad Request", { status: 400 });
             }
 
-            const snapshot: RoomSnapshot = {
-                ...parsed.data,
-                lastUpdate: Date.now()
-            };
+            const snapshot: RoomSnapshot = { ...parsed.data, lastUpdate: Date.now() };
 
-            // [Phoenix Lobby] Anti-Ghost Filter: remove empty rooms
             if (snapshot.currentPlayers === 0) {
                 this.rooms.delete(snapshot.id);
-                this.isDirty = true;
+                this.broadcast(EVENTS.ROOM_REMOVED, { id: snapshot.id });
                 return new Response("OK", { status: 200 });
             }
 
+            const existed = this.rooms.has(snapshot.id);
             this.rooms.set(snapshot.id, snapshot);
-            this.isDirty = true;
-            logger.info("ROOM_HEARTBEAT_REGISTERED", { roomId: snapshot.id, players: snapshot.currentPlayers });
+
+            // Evento discreto: ROOM_ADDED o ROOM_UPDATED según si ya existía
+            this.broadcast(existed ? EVENTS.ROOM_UPDATED : EVENTS.ROOM_ADDED, snapshot);
 
             return new Response("OK", { status: 200 });
         } catch (err) {
@@ -104,14 +102,10 @@ export default class LobbyServer implements Party.Server {
         }
     }
 
-    private broadcastState() {
-        const payload = JSON.stringify({
-            type: EVENTS.LOBBY_STATE_UPDATE,
-            payload: Array.from(this.rooms.values())
-        });
-
-        for (const connection of this.room.getConnections()) {
-            connection.send(payload);
+    private broadcast(type: string, payload: unknown) {
+        const msg = JSON.stringify({ type, payload });
+        for (const conn of this.room.getConnections()) {
+            conn.send(msg);
         }
     }
 }
