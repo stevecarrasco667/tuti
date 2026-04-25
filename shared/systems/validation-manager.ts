@@ -21,7 +21,7 @@ export class ValidationManager {
      * 4. Check Constraints (Empty, Starting Letter)
      * 5. Dictionary Auto-Validation (Escudo Dorado)
      */
-    public processAnswer(input: string, currentLetter: string, categoryId: string = ''): ValidationResult {
+    public processAnswer(lang: string, input: string, currentLetter: string, categoryId: string = ''): ValidationResult {
         if (!input) {
             return { text: "", status: "EMPTY" };
         }
@@ -49,7 +49,7 @@ export class ValidationManager {
         }
 
         // 4. Dictionary Auto-Validation (Escudo Dorado 🛡️)
-        if (categoryId && this.dictionary.isFuzzyValid(categoryId, normalized)) {
+        if (categoryId && this.dictionary.isFuzzyValid(lang, categoryId, normalized)) {
             return { text: normalized, status: "VALID_AUTO" };
         }
 

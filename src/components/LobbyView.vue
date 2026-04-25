@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useGame } from '../composables/useGame';
 import { useSound } from '../composables/useSound';
 import type { CategoryRef } from '../../shared/types';
@@ -12,6 +13,7 @@ import GameTutorialModal from './tutorials/GameTutorialModal.vue';
 
 const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer, leaveGame } = useGame();
 const { playClick, playJoin, playAlarm, playSuccess } = useSound();
+const { t } = useI18n();
 
 // [Sprint 3 - P2] Pre-fetch inteligente de los motores de juego.
 // Se inician silenciosamente mientras el usuario espera en el Lobby, para que cuando el
@@ -56,7 +58,7 @@ const handleMutatorChange = (mutator: string, value: boolean) => {
 };
 
 const handleKick = (targetUserId: string, name: string) => {
-    if (confirm(`¿Eliminar a ${name} de la sala?`)) kickPlayer(targetUserId);
+    if (confirm(t('lobby.confirm.kick', { name }))) kickPlayer(targetUserId);
 };
 
 const handleUpdateCategories = (categories: CategoryRef[]) => {
@@ -76,8 +78,8 @@ const copyRoomLink = async () => {
     const code = gameState.value.roomId || '';
     const link = `${window.location.origin}/?room=${code}`;
     const shareData = {
-        title: 'Tuti Games',
-        text: '¡Únete a mi partida de Tuti Games!',
+        title: t('lobby.share.title'),
+        text: t('lobby.share.text'),
         url: link
     };
 
@@ -134,7 +136,7 @@ const handleLeave = () => {
                         ? 'bg-panel-base text-action-blue shadow-sm border border-white/10'
                         : 'text-ink-muted hover:text-ink-soft'"
                 >
-                    👥 Jugadores
+                    👥 {{ t('lobby.tabs.players') }}
                     <span class="text-[9px] font-bold text-ink-soft opacity-80">{{ players.length }}/{{ localConfig.maxPlayers }}</span>
                 </button>
                 <button
@@ -144,7 +146,7 @@ const handleLeave = () => {
                         ? 'bg-panel-base text-action-blue shadow-sm border border-white/10'
                         : 'text-ink-muted hover:text-ink-soft'"
                 >
-                    ⚙️ Reglas
+                    ⚙️ {{ t('lobby.tabs.settings') }}
                 </button>
             </div>
         </div>
@@ -177,7 +179,7 @@ const handleLeave = () => {
                     >
                         <!-- Game Mode Selector -->
                         <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-game-panel p-4 flex-none">
-                            <p class="text-ink-main text-[9px] font-black uppercase tracking-[0.2em] mb-3 text-center">Modo de Juego</p>
+                            <p class="text-ink-main text-[9px] font-black uppercase tracking-[0.2em] mb-3 text-center">{{ t('lobby.gameMode.title') }}</p>
                             <div class="grid grid-cols-2 gap-3">
                                 <button
                                     @click="handleConfigChange('mode', 'CLASSIC')"
@@ -187,13 +189,13 @@ const handleLeave = () => {
                                         : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input shadow-sm hover:shadow-glow-primary/40'"
                                 >
                                     <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform">🎯</div>
-                                    <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">TUTI CLÁSICO</h4>
-                                    <p class="text-ink-soft text-[8px] font-bold mt-1">Categorías · Letras · Velocidad</p>
+                                    <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">{{ t('lobby.gameMode.classic.title') }}</h4>
+                                    <p class="text-ink-soft text-[8px] font-bold mt-1">{{ t('lobby.gameMode.classic.subtitle') }}</p>
                                     <div v-if="localConfig.mode === 'CLASSIC'" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-action-primary text-panel-base flex items-center justify-center text-[10px] font-black shadow-lg">✓</div>
                                     <button 
                                         @click.stop="tutorialMode = 'CLASSIC'"
                                         class="absolute top-2 left-2 w-5 h-5 rounded-full bg-panel-base border border-white/20 hover:bg-white/10 hover:border-white/50 text-ink-muted hover:text-white flex items-center justify-center text-[10px] font-black shadow transition-all z-10"
-                                        title="Cómo jugar"
+                                        :title="t('lobby.gameMode.howToPlay')"
                                     >?</button>
                                 </button>
                                 <button
@@ -204,13 +206,13 @@ const handleLeave = () => {
                                         : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input shadow-sm hover:shadow-glow-primary/40'"
                                 >
                                     <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform">🕵️</div>
-                                    <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">IMPOSTOR</h4>
-                                    <p class="text-ink-soft text-[8px] font-bold mt-1">¿Quién está mintiendo?</p>
+                                    <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">{{ t('lobby.gameMode.impostor.title') }}</h4>
+                                    <p class="text-ink-soft text-[8px] font-bold mt-1">{{ t('lobby.gameMode.impostor.subtitle') }}</p>
                                     <div v-if="localConfig.mode === 'IMPOSTOR'" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-action-blue text-white flex items-center justify-center text-[10px] font-black shadow-lg">✓</div>
                                     <button 
                                         @click.stop="tutorialMode = 'IMPOSTOR'"
                                         class="absolute top-2 left-2 w-5 h-5 rounded-full bg-panel-base border border-white/20 hover:bg-white/10 hover:border-white/50 text-ink-muted hover:text-white flex items-center justify-center text-[10px] font-black shadow transition-all z-10"
-                                        title="Cómo jugar"
+                                        :title="t('lobby.gameMode.howToPlay')"
                                     >?</button>
                                 </button>
                             </div>
@@ -247,10 +249,10 @@ const handleLeave = () => {
                     @click="handleStart"
                 >
                     <span v-if="players.length >= 2" class="text-lg md:text-2xl">⚡</span> 
-                    {{ players.length >= 2 ? 'EMPEZAR PARTIDA' : 'FALTAN JUGADORES (1/2)' }}
+                    {{ players.length >= 2 ? t('lobby.actions.start') : t('lobby.actions.waitingPlayers', { current: players.length, max: 2 }) }}
                 </TButton>
                 <div v-else class="w-full py-3 md:py-5 text-center bg-panel-card rounded-2xl border-[3px] border-white/10 text-ink-main text-sm font-black uppercase shadow-sm flex flex-col items-center justify-center">
-                    <span class="animate-pulse flex items-center gap-2">⏳ Esperando al anfitrión...</span>
+                    <span class="animate-pulse flex items-center gap-2">⏳ {{ t('lobby.actions.waitingHost') }}</span>
                 </div>
             </div>
         </div>

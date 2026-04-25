@@ -5,13 +5,17 @@ import { SupabaseClient } from '@supabase/supabase-js';
 // Dummy Supabase Client for tests
 const mockSupabase = {
     from: (table: string) => ({
-        select: (_columns: string) => ({
-            eq: async (_column: string, _value: string) => {
-                if (table === 'categories') return { data: [{ id: '1', name: 'A' }, { id: '2', name: 'B' }] };
-                if (table === 'words') return { data: [{ id: '1', word: 'Manzana' }, { id: '2', word: 'Pera' }] };
-                return { data: [] };
-            }
-        })
+        select: (_columns: string) => {
+            const builder = {
+                eq: (_column: string, _value: string) => builder,
+                then: (resolve: any) => {
+                    if (table === 'categories') resolve({ data: [{ id: '1', name: 'A' }, { id: '2', name: 'B' }] });
+                    else if (table === 'words') resolve({ data: [{ id: '1', word: 'Manzana' }, { id: '2', word: 'Pera' }] });
+                    else resolve({ data: [] });
+                }
+            };
+            return builder;
+        }
     })
 } as unknown as SupabaseClient;
 
@@ -41,20 +45,20 @@ describe('TutiEngine Core', () => {
 
         it('should normalize input (trim, uppercase, remove accents)', () => {
             // " Árbol " -> "ARBOL"
-            const result = engine.validation.processAnswer(' Árbol ', 'A', 'Profesión');
+            const result = engine.validation.processAnswer('es', ' Árbol ', 'A', 'Profesión');
             expect(result.text).toBe('ARBOL');
             expect(result.status).toBe('PENDING'); // Valid matching letter
         });
 
         it('should reject words starting with wrong letter', () => {
             // "Barco" vs "A" -> INVALID
-            const result = engine.validation.processAnswer('Barco', 'A', 'Profesión');
+            const result = engine.validation.processAnswer('es', 'Barco', 'A', 'Profesión');
             expect(result.status).toBe('INVALID');
             expect(result.text).toBe('BARCO');
         });
 
         it('should handle empty strings as EMPTY', () => {
-            const result = engine.validation.processAnswer('   ', 'A', 'Profesión');
+            const result = engine.validation.processAnswer('es', '   ', 'A', 'Profesión');
             expect(result.status).toBe('EMPTY');
             expect(result.text).toBe('');
         });

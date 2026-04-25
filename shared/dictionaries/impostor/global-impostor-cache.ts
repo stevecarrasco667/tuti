@@ -24,25 +24,26 @@ export const GlobalImpostorCache = {
      * Acquires a reference to a category's impostor data.
      * Includes Promise Deduping and Reference Counting.
      */
-    async acquire(categoryId: string, supabase: SupabaseClient): Promise<ImpostorCategoryData | null> {
+    async acquire(lang: string, categoryId: string, supabase: SupabaseClient): Promise<ImpostorCategoryData | null> {
+        const cacheKey = `${lang}_${categoryId}`;
         // Fast path: already cached
-        const existing = cache.get(categoryId);
+        const existing = cache.get(cacheKey);
         if (existing) {
             existing.refCount++;
             return existing.data;
         }
 
         // Promise Deduping
-        const pending = pendingFetches.get(categoryId);
+        const pending = pendingFetches.get(cacheKey);
         if (pending) {
             const data = await pending;
             if (!data) return null;
-            const entry = cache.get(categoryId);
+            const entry = cache.get(cacheKey);
             if (entry) {
                 entry.refCount++;
                 return entry.data;
             }
-            cache.set(categoryId, { data, refCount: 1 });
+            cache.set(cacheKey, { data, refCount: 1 });
             return data;
         }
 
@@ -64,7 +65,8 @@ export const GlobalImpostorCache = {
             const { data: wordsData, error: wordsError } = await supabase
                 .from('words')
                 .select('id, word, difficulty')
-                .eq('category_id', categoryId);
+                .eq('category_id', categoryId)
+                .eq('language', lang);
 
             if (wordsError || !wordsData) {
                 console.error(`[GlobalImpostorCache] Failed to fetch words for ${categoryId}:`, wordsError);
@@ -80,40 +82,42 @@ export const GlobalImpostorCache = {
             return { categoryId, name: catRow.name, words };
         })();
 
-        pendingFetches.set(categoryId, fetchPromise);
+        pendingFetches.set(cacheKey, fetchPromise);
 
         try {
             const data = await fetchPromise;
             if (data) {
-                cache.set(categoryId, { data, refCount: 1 });
-                console.log(`[GlobalImpostorCache] Acquired "${categoryId}" (${data.words.length} words, refCount=1)`);
+                cache.set(cacheKey, { data, refCount: 1 });
+                console.log(`[GlobalImpostorCache] Acquired "${cacheKey}" (${data.words.length} words, refCount=1)`);
             }
             return data;
         } finally {
-            pendingFetches.delete(categoryId);
+            pendingFetches.delete(cacheKey);
         }
     },
 
     /**
      * Releases a reference. Evicts from RAM when refCount reaches 0.
      */
-    release(categoryId: string): void {
-        const entry = cache.get(categoryId);
+    release(lang: string, categoryId: string): void {
+        const cacheKey = `${lang}_${categoryId}`;
+        const entry = cache.get(cacheKey);
         if (!entry) return;
 
         entry.refCount--;
 
         if (entry.refCount <= 0) {
-            cache.delete(categoryId);
-            console.log(`[GlobalImpostorCache] Evicted "${categoryId}" (refCount=0)`);
+            cache.delete(cacheKey);
+            console.log(`[GlobalImpostorCache] Evicted "${cacheKey}" (refCount=0)`);
         }
     },
 
     /**
      * Synchronous read — returns cached data or undefined.
      */
-    get(categoryId: string): ImpostorCategoryData | undefined {
-        return cache.get(categoryId)?.data;
+    get(lang: string, categoryId: string): ImpostorCategoryData | undefined {
+        const cacheKey = `${lang}_${categoryId}`;
+        return cache.get(cacheKey)?.data;
     },
 
     /**

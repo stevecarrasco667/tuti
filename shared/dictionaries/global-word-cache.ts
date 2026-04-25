@@ -29,9 +29,10 @@ export const GlobalWordCache = {
      * - If fetch in progress (Promise Deduping): awaits the same promise.
      * - If uncached: fetches from Supabase, caches, and returns.
      */
-    async acquire(categoryId: string, supabase: SupabaseClient): Promise<Set<string>> {
+    async acquire(lang: string, categoryId: string, supabase: SupabaseClient): Promise<Set<string>> {
+        const cacheKey = `${lang}_${categoryId}`;
         // Fast path: already cached
-        const existing = cache.get(categoryId);
+        const existing = cache.get(cacheKey);
         if (existing) {
             existing.refCount++;
             return existing.data;
@@ -39,19 +40,19 @@ export const GlobalWordCache = {
 
         // Promise Deduping: if another room is already fetching this category,
         // piggyback on that promise instead of firing another HTTP request.
-        const pending = pendingFetches.get(categoryId);
+        const pending = pendingFetches.get(cacheKey);
         if (pending) {
             const data = await pending;
             // After await, another room may have already set up the cache entry.
             // Just increment refCount on whatever is there now.
-            const entry = cache.get(categoryId);
+            const entry = cache.get(cacheKey);
             if (entry) {
                 entry.refCount++;
                 return entry.data;
             }
             // Edge case: entry was released between await and here (unlikely in single-thread)
             // Re-cache it with refCount 1
-            cache.set(categoryId, { data, refCount: 1 });
+            cache.set(cacheKey, { data, refCount: 1 });
             return data;
         }
 
@@ -60,7 +61,8 @@ export const GlobalWordCache = {
             const { data: rows, error } = await supabase
                 .from('words')
                 .select('word')
-                .eq('category_id', categoryId);
+                .eq('category_id', categoryId)
+                .eq('language', lang);
 
             const set = new Set<string>();
             if (!error && rows) {
@@ -68,22 +70,22 @@ export const GlobalWordCache = {
                     set.add(normalize(row.word));
                 }
             } else {
-                console.error(`[GlobalWordCache] Failed to fetch words for ${categoryId}:`, error);
+                console.error(`[GlobalWordCache] Failed to fetch words for ${cacheKey}:`, error);
             }
             return set;
         })();
 
         // Register the in-flight promise so other rooms can dedupe
-        pendingFetches.set(categoryId, fetchPromise);
+        pendingFetches.set(cacheKey, fetchPromise);
 
         try {
             const data = await fetchPromise;
-            cache.set(categoryId, { data, refCount: 1 });
-            console.log(`[GlobalWordCache] Acquired "${categoryId}" (${data.size} words, refCount=1)`);
+            cache.set(cacheKey, { data, refCount: 1 });
+            console.log(`[GlobalWordCache] Acquired "${cacheKey}" (${data.size} words, refCount=1)`);
             return data;
         } finally {
             // Always clean up the pending promise, whether success or failure
-            pendingFetches.delete(categoryId);
+            pendingFetches.delete(cacheKey);
         }
     },
 
@@ -91,15 +93,16 @@ export const GlobalWordCache = {
      * Releases a reference to a category.
      * When refCount reaches 0, the data is evicted from RAM.
      */
-    release(categoryId: string): void {
-        const entry = cache.get(categoryId);
+    release(lang: string, categoryId: string): void {
+        const cacheKey = `${lang}_${categoryId}`;
+        const entry = cache.get(cacheKey);
         if (!entry) return;
 
         entry.refCount--;
 
         if (entry.refCount <= 0) {
-            cache.delete(categoryId);
-            console.log(`[GlobalWordCache] Evicted "${categoryId}" (refCount=0)`);
+            cache.delete(cacheKey);
+            console.log(`[GlobalWordCache] Evicted "${cacheKey}" (refCount=0)`);
         }
     },
 
@@ -107,8 +110,9 @@ export const GlobalWordCache = {
      * Synchronous read — returns the cached Set or undefined.
      * Does NOT modify refCount.
      */
-    get(categoryId: string): Set<string> | undefined {
-        return cache.get(categoryId)?.data;
+    get(lang: string, categoryId: string): Set<string> | undefined {
+        const cacheKey = `${lang}_${categoryId}`;
+        return cache.get(cacheKey)?.data;
     },
 
     /**

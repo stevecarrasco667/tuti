@@ -82,7 +82,7 @@ export class VotingManager {
             for (const category of state.categories) {
                 const catName = category.name;
                 const answer = state.answers[player.id]?.[catName] || '';
-                const valResult = this.validation.processAnswer(answer, currentLetter, catName);
+                const valResult = this.validation.processAnswer(state.config.lang || 'es', answer, currentLetter, catName);
 
                 if (valResult.status === 'INVALID') {
                     if (activePlayers.length === 2) {

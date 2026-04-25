@@ -5,6 +5,7 @@ import { ServerMessage, PrivateRolePayload } from '../../shared/types';
 import { useGameState } from './useGameState';
 import { EVENTS, APP_VERSION } from '../../shared/consts';
 import { useToast } from './useToast';
+import { setLanguage, type SupportedLanguage } from '../i18n';
 
 let globalOnNavigate: ((path: string) => void) | null = null;
 
@@ -41,6 +42,13 @@ const { lastMessage, socket, disconnectIntentionally } = useSocket();
 const { addToast } = useToast();
 // State singleton (same ref exported by useGameState module)
 const state = useGameState();
+
+// [Sprint H12] Sincronizar el idioma de la aplicación con el de la sala
+watch(() => state.gameState.value?.config?.lang, (newLang) => {
+    if (newLang && state.gameState.value?.roomId) {
+        setLanguage(newLang as SupportedLanguage);
+    }
+});
 
 watch(lastMessage, (newMsg) => {
     if (!newMsg) return;

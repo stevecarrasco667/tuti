@@ -10,7 +10,7 @@ const normalize = (str: string) => str.trim().toLowerCase().normalize("NFD").rep
 export class DictionaryManager {
     // Sprint 4: Proxy Pattern — no local data storage.
     // Only tracks which categories THIS room has acquired from the GlobalCache.
-    private activeCategories: string[] = [];
+    private activeCategories: { lang: string, id: string }[] = [];
     private disposed = false;
 
     /**
@@ -21,8 +21,8 @@ export class DictionaryManager {
         if (this.disposed) return;
         this.disposed = true;
 
-        for (const catId of this.activeCategories) {
-            GlobalWordCache.release(catId);
+        for (const cat of this.activeCategories) {
+            GlobalWordCache.release(cat.lang, cat.id);
         }
         this.activeCategories = [];
         console.log(`[DictionaryManager] Proxy disposed. GlobalCache stats:`, GlobalWordCache.getStats());
@@ -49,37 +49,37 @@ export class DictionaryManager {
      * Acquires a reference to a category's word set from the GlobalWordCache.
      * Sprint 4: No longer stores data locally — delegates to the shared Bóveda.
      */
-    public async loadCategory(categoryId: string, supabase: SupabaseClient): Promise<void> {
+    public async loadCategory(lang: string, categoryId: string, supabase: SupabaseClient): Promise<void> {
         // If already acquired by this proxy, skip
-        if (this.activeCategories.includes(categoryId)) return;
+        if (this.activeCategories.some(c => c.lang === lang && c.id === categoryId)) return;
 
         // Reset disposed flag if re-used (e.g., new round after GAME_OVER)
         this.disposed = false;
 
-        await GlobalWordCache.acquire(categoryId, supabase);
-        this.activeCategories.push(categoryId);
-        console.log(`[DictionaryManager] Proxy acquired "${categoryId}". Active: [${this.activeCategories.join(', ')}]`);
+        await GlobalWordCache.acquire(lang, categoryId, supabase);
+        this.activeCategories.push({ lang, id: categoryId });
+        console.log(`[DictionaryManager] Proxy acquired "${lang}_${categoryId}". Active count: ${this.activeCategories.length}`);
     }
 
     /**
      * Synchronous Validations (O(1)).
      * Reads from GlobalWordCache instead of local storage.
      */
-    public hasExact(categoryId: string, word: string): boolean {
-        const collection = GlobalWordCache.get(categoryId);
+    public hasExact(lang: string, categoryId: string, word: string): boolean {
+        const collection = GlobalWordCache.get(lang, categoryId);
         if (!collection) {
-            console.warn(`[DictionaryManager] Attempted to validate against uncached category: ${categoryId}`);
+            console.warn(`[DictionaryManager] Attempted to validate against uncached category: ${lang}_${categoryId}`);
             return false;
         }
         return collection.has(normalize(word));
     }
 
-    public isFuzzyValid(categoryId: string, word: string): boolean {
+    public isFuzzyValid(lang: string, categoryId: string, word: string): boolean {
         const normalizedWord = normalize(word);
-        const collection = GlobalWordCache.get(categoryId);
+        const collection = GlobalWordCache.get(lang, categoryId);
 
         if (!collection) {
-            console.warn(`[DictionaryManager] Attempted to validate against uncached category: ${categoryId}`);
+            console.warn(`[DictionaryManager] Attempted to validate against uncached category: ${lang}_${categoryId}`);
             return false;
         }
 
@@ -106,7 +106,7 @@ export class DictionaryManager {
         return false;
     }
 
-    public getCollection(categoryId: string): Set<string> | undefined {
-        return GlobalWordCache.get(categoryId);
+    public getCollection(lang: string, categoryId: string): Set<string> | undefined {
+        return GlobalWordCache.get(lang, categoryId);
     }
 }

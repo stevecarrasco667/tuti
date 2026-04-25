@@ -286,7 +286,7 @@ export class TutiEngine extends BaseEngine {
                 // Ensure temporal cache is loaded for categories (Parallel)
                 await Promise.all(
                     this.state.categories.map(cat =>
-                        this.validation.getDictionaryManager().loadCategory(cat.id, this.supabase)
+                        this.validation.getDictionaryManager().loadCategory(this.state.config.lang || 'es', cat.id, this.supabase)
                     )
                 );
 
@@ -333,7 +333,7 @@ export class TutiEngine extends BaseEngine {
             // Hydrate temporal cache BEFORE starting the timer (Parallel)
             await Promise.all(
                 this.state.categories.map(cat =>
-                    this.validation.getDictionaryManager().loadCategory(cat.id, this.supabase)
+                    this.validation.getDictionaryManager().loadCategory(this.state.config.lang || 'es', cat.id, this.supabase)
                 )
             );
 
@@ -677,7 +677,7 @@ export class TutiEngine extends BaseEngine {
         const allowedLetter = this.state.currentLetter || "";
 
         for (const [key, value] of Object.entries(answers)) {
-            const valResult = this.validation.processAnswer(value, allowedLetter, key);
+            const valResult = this.validation.processAnswer(this.state.config.lang || 'es', value, allowedLetter, key);
 
             if (valResult.status === 'INVALID' || valResult.status === 'EMPTY') {
                 if (valResult.status === 'INVALID') {

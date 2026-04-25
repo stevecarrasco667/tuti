@@ -389,7 +389,7 @@ export class ImpostorEngine extends BaseEngine {
             // Phase 2: Parallel Load from Supabase to Temporal Cache
             await Promise.all(
                 this.activeCategoryIds.map(catId =>
-                    this.wordProvider.loadCategory(catId, this.supabase) // Replaced impostorWords.
+                    this.wordProvider.loadCategory(this.state.config.lang || 'es', catId, this.supabase) // Replaced impostorWords.
                 )
             );
 
@@ -426,17 +426,17 @@ export class ImpostorEngine extends BaseEngine {
             ? this.state.roundsPlayed % this.activeCategoryIds.length
             : 0;
         const currentCategoryId = this.activeCategoryIds[catIndex] || this.activeCategoryIds[0];
-        const catData = currentCategoryId ? this.wordProvider.getCategory(currentCategoryId) : undefined; // Replaced impostorWords.
+        const catData = currentCategoryId ? this.wordProvider.getCategory(this.state.config.lang || 'es', currentCategoryId) : undefined; // Replaced impostorWords.
         const secretCategory = catData?.name || 'Desconocida';
 
         // Get random word, excluding already used ones
         let wordData = currentCategoryId
-            ? this.wordProvider.getRandomWord(currentCategoryId, this.usedWords) // Replaced impostorWords.
+            ? this.wordProvider.getRandomWord(this.state.config.lang || 'es', currentCategoryId, this.usedWords) // Replaced impostorWords.
             : null;
         if (!wordData && currentCategoryId) {
             console.warn('[ImpostorEngine] All words exhausted for category, clearing memory');
             this.usedWords.clear();
-            wordData = this.wordProvider.getRandomWord(currentCategoryId, this.usedWords); // Replaced impostorWords.
+            wordData = this.wordProvider.getRandomWord(this.state.config.lang || 'es', currentCategoryId, this.usedWords); // Replaced impostorWords.
         }
         const secretWord = wordData?.word || 'Misterio';
         if (wordData) this.usedWords.add(wordData.id);

@@ -1,0 +1,109 @@
+{
+  "home": {
+    "slogan": "The fastest word game",
+    "activeRooms": "{count} active room | {count} active rooms",
+    "publicRoom": "Public Room",
+    "privateRoom": "Private Room",
+    "haveCode": "I have a Room Code",
+    "roomCode": "Room Code",
+    "cancel": "Cancel",
+    "join": "Join",
+    "yourIdentity": "Your Identity",
+    "edit": "Edit",
+    "save": "Save",
+    "customize": "Customize",
+    "publicName": "Public Name",
+    "requiresLogin": "Login Required",
+    "clearLocalData": "Clear my local data",
+    "publicRooms": "Public Rooms",
+    "refresh": "Refresh",
+    "gameMode": "Game Mode",
+    "any": "Any",
+    "region": "Region",
+    "language": "Language",
+    "noResults": "No Results",
+    "adjustFilters": "Adjust filters or create your own room.",
+    "enter": "Enter",
+    "full": "FULL",
+    "inGame": "IN GAME",
+    "loadingIdentity": "Loading Identity...",
+    "joinMetaGame": "Join the Metagame",
+    "claimName": "Claim your name",
+    "signInGoogle": "Sign in with Google",
+    "verified": "Verified",
+    "signOut": "Sign Out"
+  },
+  "common": {
+    "modes": {
+      "classic": "Classic",
+      "impostor": "Imposter"
+    },
+    "regions": {
+      "sa": "LATAM",
+      "na": "North America",
+      "eu": "Europe",
+      "as": "APAC",
+      "af": "Africa"
+    },
+    "languages": {
+      "es": "Spanish",
+      "en": "English",
+      "pt": "Portuguese"
+    }
+  },
+  "lobby": {
+    "tabs": {
+      "players": "Players",
+      "settings": "Rules"
+    },
+    "gameMode": {
+      "title": "Game Mode",
+      "classic": {
+        "title": "CLASSIC TUTI",
+        "subtitle": "Categories · Letters · Speed"
+      },
+      "impostor": {
+        "title": "IMPOSTOR",
+        "subtitle": "Who is lying?"
+      },
+      "howToPlay": "How to play"
+    },
+    "actions": {
+      "start": "START GAME",
+      "waitingPlayers": "WAITING PLAYERS ({current}/{max})",
+      "waitingHost": "Waiting for host..."
+    },
+    "confirm": {
+      "kick": "Remove {name} from the room?"
+    },
+    "share": {
+      "title": "Tuti Games",
+      "text": "Join my Tuti Games room!"
+    },
+    "settings": {
+      "title": "Settings",
+      "readOnly": "Read only",
+      "language": "Room Language",
+      "classic": {
+        "randomCategories": "Random Categories",
+        "randomCategoriesDesc": "Chosen randomly when starting",
+        "rounds": "Rounds",
+        "timeLimit": "Typing Time",
+        "votingTime": "Voting Time",
+        "sec": "sec",
+        "mutators": "Mutators",
+        "suicidalStop": "Suicidal Stop",
+        "suicidalStopDesc": "If you press STOP and a word is rejected, you lose all points.",
+        "anonymousVoting": "Anonymous Voting",
+        "anonymousVotingDesc": "Words are evaluated without knowing who wrote them."
+      },
+      "impostor": {
+        "categories": "Categories in Play",
+        "categoriesDesc": "Selected randomly from our secret catalog",
+        "rounds": "Rounds",
+        "typingTime": "Typing Time",
+        "votingTime": "Tribunal Time"
+      }
+    }
+  }
+}

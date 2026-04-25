@@ -1,0 +1,109 @@
+{
+  "home": {
+    "slogan": "O jogo de palavras mais rápido",
+    "activeRooms": "{count} sala ativa | {count} salas ativas",
+    "publicRoom": "Sala Pública",
+    "privateRoom": "Sala Privada",
+    "haveCode": "Tenho um Código de Sala",
+    "roomCode": "Código de Sala",
+    "cancel": "Cancelar",
+    "join": "Entrar",
+    "yourIdentity": "Sua Identidade",
+    "edit": "Editar",
+    "save": "Salvar",
+    "customize": "Personalizar",
+    "publicName": "Nome Público",
+    "requiresLogin": "Requer Login",
+    "clearLocalData": "Limpar meus dados locais",
+    "publicRooms": "Salas Públicas",
+    "refresh": "Recarregar",
+    "gameMode": "Modo de Jogo",
+    "any": "Qualquer",
+    "region": "Região",
+    "language": "Idioma",
+    "noResults": "Sem Resultados",
+    "adjustFilters": "Ajuste os filtros ou crie sua própria sala.",
+    "enter": "Entrar",
+    "full": "CHEIA",
+    "inGame": "EM JOGO",
+    "loadingIdentity": "Carregando Identidade...",
+    "joinMetaGame": "Junte-se ao Metajogo",
+    "claimName": "Reivindique seu nome",
+    "signInGoogle": "Entrar com o Google",
+    "verified": "Verificado",
+    "signOut": "Sair"
+  },
+  "common": {
+    "modes": {
+      "classic": "Clássico",
+      "impostor": "Impostor"
+    },
+    "regions": {
+      "sa": "LATAM",
+      "na": "América do Norte",
+      "eu": "Europa",
+      "as": "APAC",
+      "af": "África"
+    },
+    "languages": {
+      "es": "Espanhol",
+      "en": "Inglês",
+      "pt": "Português"
+    }
+  },
+  "lobby": {
+    "tabs": {
+      "players": "Jogadores",
+      "settings": "Regras"
+    },
+    "gameMode": {
+      "title": "Modo de Jogo",
+      "classic": {
+        "title": "TUTI CLÁSSICO",
+        "subtitle": "Categorias · Letras · Velocidade"
+      },
+      "impostor": {
+        "title": "IMPOSTOR",
+        "subtitle": "Quem está mentindo?"
+      },
+      "howToPlay": "Como jogar"
+    },
+    "actions": {
+      "start": "COMEÇAR JOGO",
+      "waitingPlayers": "FALTAM JOGADORES ({current}/{max})",
+      "waitingHost": "Aguardando o anfitrião..."
+    },
+    "confirm": {
+      "kick": "Remover {name} da sala?"
+    },
+    "share": {
+      "title": "Tuti Games",
+      "text": "Junte-se à minha sala do Tuti Games!"
+    },
+    "settings": {
+      "title": "Configurações",
+      "readOnly": "Apenas leitura",
+      "language": "Idioma da Partida",
+      "classic": {
+        "randomCategories": "Categorias Aleatórias",
+        "randomCategoriesDesc": "Escolhidas aleatoriamente ao iniciar",
+        "rounds": "Rodadas",
+        "timeLimit": "Tempo de Escrita",
+        "votingTime": "Tempo de Votação",
+        "sec": "seg",
+        "mutators": "Mutadores",
+        "suicidalStop": "Stop Suicida",
+        "suicidalStopDesc": "Se você pressionar STOP e uma palavra for rejeitada, você perde todos os pontos.",
+        "anonymousVoting": "Voto Anônimo",
+        "anonymousVotingDesc": "As palavras são avaliadas sem saber quem as escreveu."
+      },
+      "impostor": {
+        "categories": "Categorias em Jogo",
+        "categoriesDesc": "Selecionadas aleatoriamente do nosso catálogo secreto",
+        "rounds": "Rodadas",
+        "typingTime": "Tempo de Escrita",
+        "votingTime": "Tempo do Tribunal"
+      }
+    }
+  }
+}

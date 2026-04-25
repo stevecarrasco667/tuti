@@ -10,7 +10,7 @@ import { GlobalImpostorCache } from './global-impostor-cache';
 
 export class ImpostorWordProvider {
     // Sprint 4: Proxy Pattern — tracks acquired categories only
-    private activeCategories: string[] = [];
+    private activeCategories: { lang: string, id: string }[] = [];
     private disposed = false;
 
     /**
@@ -20,8 +20,8 @@ export class ImpostorWordProvider {
         if (this.disposed) return;
         this.disposed = true;
 
-        for (const catId of this.activeCategories) {
-            GlobalImpostorCache.release(catId);
+        for (const cat of this.activeCategories) {
+            GlobalImpostorCache.release(cat.lang, cat.id);
         }
         this.activeCategories = [];
         console.log(`[ImpostorWordProvider] Proxy disposed. GlobalCache stats:`, GlobalImpostorCache.getStats());
@@ -47,16 +47,16 @@ export class ImpostorWordProvider {
     /**
      * Acquires a reference to a category from the GlobalImpostorCache.
      */
-    public async loadCategory(categoryId: string, supabase: SupabaseClient): Promise<void> {
-        if (this.activeCategories.includes(categoryId)) return;
+    public async loadCategory(lang: string, categoryId: string, supabase: SupabaseClient): Promise<void> {
+        if (this.activeCategories.some(c => c.lang === lang && c.id === categoryId)) return;
 
         // Reset disposed flag if re-used
         this.disposed = false;
 
-        const data = await GlobalImpostorCache.acquire(categoryId, supabase);
+        const data = await GlobalImpostorCache.acquire(lang, categoryId, supabase);
         if (data) {
-            this.activeCategories.push(categoryId);
-            console.log(`[ImpostorWordProvider] Proxy acquired "${categoryId}". Active: [${this.activeCategories.join(', ')}]`);
+            this.activeCategories.push({ lang, id: categoryId });
+            console.log(`[ImpostorWordProvider] Proxy acquired "${lang}_${categoryId}". Active count: ${this.activeCategories.length}`);
         }
     }
 
@@ -64,10 +64,10 @@ export class ImpostorWordProvider {
      * Returns a random word from the specified category,
      * excluding any word whose ID is in `usedWordIds`.
      */
-    public getRandomWord(categoryId: string, usedWordIds: Set<string>): ImpostorWord | null {
-        const category = GlobalImpostorCache.get(categoryId);
+    public getRandomWord(lang: string, categoryId: string, usedWordIds: Set<string>): ImpostorWord | null {
+        const category = GlobalImpostorCache.get(lang, categoryId);
         if (!category) {
-            console.warn(`[ImpostorWordProvider] Attempted to pick word from uncached category: ${categoryId}`);
+            console.warn(`[ImpostorWordProvider] Attempted to pick word from uncached category: ${lang}_${categoryId}`);
             return null;
         }
 
@@ -86,19 +86,19 @@ export class ImpostorWordProvider {
      */
     public getRandomCategory(usedCategoryIds?: Set<string>): string | null {
         const available = usedCategoryIds
-            ? this.activeCategories.filter(id => !usedCategoryIds.has(id))
+            ? this.activeCategories.filter(c => !usedCategoryIds.has(c.id))
             : [...this.activeCategories];
 
         if (available.length === 0) return null;
 
         const randomIndex = Math.floor(Math.random() * available.length);
-        return available[randomIndex];
+        return available[randomIndex].id;
     }
 
     /**
      * Returns the full category data from the GlobalImpostorCache.
      */
-    public getCategory(categoryId: string): ImpostorCategoryData | undefined {
-        return GlobalImpostorCache.get(categoryId);
+    public getCategory(lang: string, categoryId: string): ImpostorCategoryData | undefined {
+        return GlobalImpostorCache.get(lang, categoryId);
     }
 }

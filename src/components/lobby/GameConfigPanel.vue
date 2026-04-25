@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import type { GameConfig } from '../../../shared/types';
+
+const { t } = useI18n();
 
 const props = defineProps<{
     config: GameConfig;
@@ -109,15 +112,15 @@ function decrementImpostorCategoryCount() {
          :class="{ 'opacity-60 pointer-events-none': !props.amIHost }"
     >
         <div class="p-3 md:p-4 border-b-2 border-white/50 bg-panel-card/50 flex items-center justify-between flex-none gap-2">
-            <h3 class="text-ink-main text-xs font-black uppercase tracking-widest">Ajustes</h3>
-            <span v-if="!props.amIHost" class="text-action-warning text-[8px] font-black uppercase tracking-wider bg-action-warning/20 px-2 py-0.5 rounded-full border border-action-warning/50">Solo lectura</span>
+            <h3 class="text-ink-main text-xs font-black uppercase tracking-widest">{{ t('lobby.settings.title') }}</h3>
+            <span v-if="!props.amIHost" class="text-action-warning text-[8px] font-black uppercase tracking-wider bg-action-warning/20 px-2 py-0.5 rounded-full border border-action-warning/50">{{ t('lobby.settings.readOnly') }}</span>
         </div>
 
         <div class="lg:flex-1 lg:overflow-y-auto lg:min-h-0 p-4 space-y-4 lg:scrollbar-thin">
 
             <!-- Idioma de la sala -->
             <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">💬 Idioma de la Partida</label>
+                <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">💬 {{ t('lobby.settings.language') }}</label>
                 <div class="flex gap-2">
                     <button v-for="lang in [{ code:'es', label:'🇪🇸 Español' }, { code:'en', label:'🇬🇧 English' }, { code:'pt', label:'🇧🇷 Português' }]" :key="lang.code"
                         @click="emit('update-config', 'lang', lang.code)"
@@ -134,7 +137,7 @@ function decrementImpostorCategoryCount() {
 
                 <!-- Category Count (only when no manual categories selected) -->
                 <div v-if="!(props.config.classic?.categories?.length > 0)" class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🎲 Categorías Aleatorias</label>
+                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🎲 {{ t('lobby.settings.classic.randomCategories') }}</label>
                     <div class="flex items-center justify-between">
                         <button @click="decrementCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                         <input
@@ -148,12 +151,12 @@ function decrementImpostorCategoryCount() {
                         />
                         <button @click="incrementCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                     </div>
-                    <p class="text-ink-muted text-[8px] font-bold mt-2 text-center">Se elegirán al azar al iniciar</p>
+                    <p class="text-ink-muted text-[8px] font-bold mt-2 text-center">{{ t('lobby.settings.classic.randomCategoriesDesc') }}</p>
                 </div>
 
                 <!-- Rounds -->
                 <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🔁 Rondas</label>
+                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🔁 {{ t('lobby.settings.classic.rounds') }}</label>
                     <div class="flex items-center justify-between">
                         <button @click="decrementRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                         <input
@@ -171,7 +174,7 @@ function decrementImpostorCategoryCount() {
 
                 <!-- Time Limit -->
                 <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">⏱️ Tiempo de Escritura</label>
+                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">⏱️ {{ t('lobby.settings.classic.timeLimit') }}</label>
                     <div class="flex items-center justify-between">
                         <button @click="decrementTimeLimit" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                         <div class="text-center">
@@ -184,7 +187,7 @@ function decrementImpostorCategoryCount() {
                                 @focus="($event.target as HTMLInputElement).select()"
                                 class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
                             />
-                            <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">seg</span>
+                            <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">{{ t('lobby.settings.classic.sec') }}</span>
                         </div>
                         <button @click="incrementTimeLimit" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                     </div>
@@ -192,7 +195,7 @@ function decrementImpostorCategoryCount() {
 
                 <!-- Voting Duration -->
                 <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🗳️ Tiempo de Votación</label>
+                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🗳️ {{ t('lobby.settings.classic.votingTime') }}</label>
                     <div class="flex items-center justify-between">
                         <button @click="decrementVotingDuration" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                         <div class="text-center">
@@ -205,7 +208,7 @@ function decrementImpostorCategoryCount() {
                                 @focus="($event.target as HTMLInputElement).select()"
                                 class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
                             />
-                            <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">seg</span>
+                            <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">{{ t('lobby.settings.classic.sec') }}</span>
                         </div>
                         <button @click="incrementVotingDuration" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                     </div>
@@ -215,14 +218,14 @@ function decrementImpostorCategoryCount() {
 
                 <!-- MUTATORS -->
                 <div>
-                    <p class="text-ink-main text-[9px] font-black uppercase tracking-widest mb-3">⚡ Mutadores</p>
+                    <p class="text-ink-main text-[9px] font-black uppercase tracking-widest mb-3">⚡ {{ t('lobby.settings.classic.mutators') }}</p>
 
                     <!-- Suicidal Stop -->
                     <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3 mb-3">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2.5">
                                 <span class="text-xl">💀</span>
-                                <span class="text-ink-main font-black text-sm">Stop Suicida</span>
+                                <span class="text-ink-main font-black text-sm">{{ t('lobby.settings.classic.suicidalStop') }}</span>
                             </div>
                             <button
                                 @click="emit('update-mutator', 'suicidalStop', !props.config.classic?.mutators?.suicidalStop)"
@@ -233,7 +236,7 @@ function decrementImpostorCategoryCount() {
                                       :class="props.config.classic?.mutators?.suicidalStop ? 'bg-white left-[calc(100%-1.4rem)]' : 'bg-panel-card left-1'"></span>
                             </button>
                         </div>
-                        <p class="text-ink-muted text-[10px] font-bold mt-2 ml-9">Si presionas STOP y te rechazan una palabra, pierdes todos tus puntos.</p>
+                        <p class="text-ink-muted text-[10px] font-bold mt-2 ml-9">{{ t('lobby.settings.classic.suicidalStopDesc') }}</p>
                     </div>
 
                     <!-- Anonymous Voting -->
@@ -241,7 +244,7 @@ function decrementImpostorCategoryCount() {
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2.5">
                                 <span class="text-xl">🎭</span>
-                                <span class="text-ink-main font-black text-sm">Voto Anónimo</span>
+                                <span class="text-ink-main font-black text-sm">{{ t('lobby.settings.classic.anonymousVoting') }}</span>
                             </div>
                             <button
                                 @click="emit('update-mutator', 'anonymousVoting', !props.config.classic?.mutators?.anonymousVoting)"
@@ -252,7 +255,7 @@ function decrementImpostorCategoryCount() {
                                       :class="props.config.classic?.mutators?.anonymousVoting ? 'bg-white left-[calc(100%-1.4rem)]' : 'bg-panel-card left-1'"></span>
                             </button>
                         </div>
-                        <p class="text-ink-muted text-[10px] font-bold mt-2 ml-9">Las palabras se evalúan sin saber quién las escribió.</p>
+                        <p class="text-ink-muted text-[10px] font-bold mt-2 ml-9">{{ t('lobby.settings.classic.anonymousVotingDesc') }}</p>
                     </div>
                 </div>
             </template>
@@ -262,7 +265,7 @@ function decrementImpostorCategoryCount() {
 
                 <!-- Category Count -->
                 <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">📦 Categorías en Juego</label>
+                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">📦 {{ t('lobby.settings.impostor.categories') }}</label>
                     <div class="flex items-center justify-between">
                         <button @click="decrementImpostorCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                         <input
@@ -281,7 +284,7 @@ function decrementImpostorCategoryCount() {
 
                 <!-- Rounds -->
                 <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🔁 Rondas</label>
+                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🔁 {{ t('lobby.settings.impostor.rounds') }}</label>
                     <div class="flex items-center justify-between">
                         <button @click="decrementImpostorRounds" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                         <input
@@ -299,7 +302,7 @@ function decrementImpostorCategoryCount() {
 
                 <!-- Typing Time -->
                 <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">⏱️ Tiempo de Escritura</label>
+                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">⏱️ {{ t('lobby.settings.impostor.typingTime') }}</label>
                     <div class="flex items-center justify-between">
                         <button @click="decrementImpostorTypingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                         <div class="text-center">
@@ -312,7 +315,7 @@ function decrementImpostorCategoryCount() {
                                 @focus="($event.target as HTMLInputElement).select()"
                                 class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
                             />
-                            <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">seg</span>
+                            <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">{{ t('lobby.settings.classic.sec') }}</span>
                         </div>
                         <button @click="incrementImpostorTypingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                     </div>
@@ -320,7 +323,7 @@ function decrementImpostorCategoryCount() {
 
                 <!-- Voting Time -->
                 <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🗳️ Tiempo del Tribunal</label>
+                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🗳️ {{ t('lobby.settings.impostor.votingTime') }}</label>
                     <div class="flex items-center justify-between">
                         <button @click="decrementImpostorVotingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">-</button>
                         <div class="text-center">
@@ -333,7 +336,7 @@ function decrementImpostorCategoryCount() {
                                 @focus="($event.target as HTMLInputElement).select()"
                                 class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
                             />
-                            <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">seg</span>
+                            <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">{{ t('lobby.settings.classic.sec') }}</span>
                         </div>
                         <button @click="incrementImpostorVotingTime" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                     </div>
