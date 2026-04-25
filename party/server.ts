@@ -98,6 +98,25 @@ export default class Server implements Party.Server {
     // Chat State
     messages: import('../shared/types').ChatMessage[] = [];
 
+    private broadcastSystemMessage(code: string, args: Record<string, any> = {}) {
+        const sysMsg: import('../shared/types').ChatMessage = {
+            id: `sys-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+            senderId: 'SYSTEM',
+            senderName: 'System',
+            text: '', // Translated on frontend
+            type: 'SYSTEM',
+            timestamp: Date.now(),
+            code,
+            args
+        };
+        this.messages.push(sysMsg);
+        if (this.messages.length > 50) this.messages.shift();
+        this.room.broadcast(JSON.stringify({
+            type: EVENTS.CHAT_NEW,
+            payload: sysMsg
+        }));
+    }
+
     // Reusable state change callback for Engine Factory
     private onStateChange = (newState: RoomState) => {
         // 1. [Sprint H3] Tick Loop Phase Management — delegated to TickManager
@@ -453,10 +472,7 @@ export default class Server implements Party.Server {
             if (isGenuinelyNew) {
                 const joinedName = this.engine.getState().players.find(p => p.id === userId)?.name;
                 if (joinedName) {
-                    const joinMsg = JSON.stringify({ type: EVENTS.PLAYER_JOINED, payload: { name: joinedName } });
-                    for (const c of this.room.getConnections()) {
-                        if (c.id !== conn.id) c.send(joinMsg);
-                    }
+                    this.broadcastSystemMessage('PLAYER_JOINED', { name: joinedName });
                 }
             }
             this.broadcastStateDelta(this.engine.getState());
@@ -758,10 +774,7 @@ export default class Server implements Party.Server {
         const leftUserId = (connection.state as any)?.userId || connection.id;
         const leftPlayer = this.engine.getState().players.find(p => p.id === leftUserId);
         if (leftPlayer) {
-            const leaveMsg = JSON.stringify({ type: EVENTS.PLAYER_LEFT, payload: { name: leftPlayer.name } });
-            for (const c of this.room.getConnections()) {
-                if (c.id !== connection.id) c.send(leaveMsg);
-            }
+            this.broadcastSystemMessage('PLAYER_LEFT', { name: leftPlayer.name });
         }
 
         // Unified Delta Broadcast (notify remaining players)

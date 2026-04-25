@@ -11,6 +11,7 @@ import { usePlayerHistory } from '../composables/usePlayerHistory';
 import { computeMatchHighlights } from '../composables/useMatchHighlights';
 import type { MatchHighlights } from '../composables/useMatchHighlights';
 import { useToast } from '../composables/useToast';
+import { useI18n } from 'vue-i18n';
 
 import ResultsHeader from './results/ResultsHeader.vue';
 import RankingBoard from './results/RankingBoard.vue';
@@ -25,6 +26,7 @@ const { playWin, playStop } = useSound();
 const { assignTitles } = useTitles();
 const { saveEntry } = usePlayerHistory();
 const { addToast } = useToast();
+const { t } = useI18n();
 
 const amIHost = computed(() => gameState.value.players.find(p => p.id === myUserId.value)?.isHost || false);
 const sortedPlayers = computed(() => [...gameState.value.players].sort((a, b) => b.score - a.score));
@@ -100,7 +102,7 @@ const shareMatchSummary = async () => {
 
         // ── PASO 3: Bifurcación de dispositivo ───────────────────────────────
         const roomUrl = window.location.href;
-        const shareText = '🎮 ¡Acabo de jugar Tutifruti Online! ¿Te atreves a retar mi puntaje? Únete aquí:';
+        const shareText = t('results.shareText');
 
         if (isMobileDevice()) {
             // ── FLUJO MÓVIL: Web Share API nativa (WhatsApp, Instagram, etc.) ──
@@ -110,7 +112,7 @@ const shareMatchSummary = async () => {
             if (canShareFiles) {
                 try {
                     await navigator.share({
-                        title: '🏆 Mi partida de Tutifruti',
+                        title: t('results.shareTitle'),
                         text: shareText,
                         url: roomUrl,
                         files: [file],
@@ -124,7 +126,7 @@ const shareMatchSummary = async () => {
                 }
             } else {
                 // El navegador móvil no soporta file-sharing → solo notificamos la descarga
-                addToast('📸 Imagen guardada en tu galería', 'success');
+                addToast(t('results.shareSuccess'), 'success');
             }
         } else {
             // ── FLUJO DESKTOP: Copiar URL al portapapeles ────────────────────
@@ -132,18 +134,18 @@ const shareMatchSummary = async () => {
             // Copiamos solo la URL (texto limpio, listo para pegar en Discord/WhatsApp Web).
             try {
                 await navigator.clipboard.writeText(roomUrl);
-                addToast('📥 Imagen descargada y link copiado — pégalo en tu chat 🔗', 'success');
+                addToast(t('results.shareCopied'), 'success');
             } catch {
                 // Clipboard API no disponible o bloqueada por política del navegador.
                 // No usamos execCommand (rechazado por directriz arquitectónica).
                 // La descarga ya se completó arriba, así que la experiencia no se rompe.
-                addToast('📥 Imagen descargada — comparte el link de la sala con tus amigos', 'info');
+                addToast(t('results.shareDownloaded'), 'info');
             }
         }
 
     } catch (err) {
         console.error('[SmartShare] Error en la captura de imagen:', err);
-        addToast('Ups, no se pudo guardar el recuerdo 🙅', 'error');
+        addToast(t('results.shareError'), 'error');
     } finally {
         showSummaryCard.value = false;
         isCapturing.value = false;

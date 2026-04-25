@@ -5,6 +5,7 @@ import { useSound } from '../../../composables/useSound';
 import ReactionMenu from '../ReactionMenu.vue';
 import { useSocket } from '../../../composables/useSocket';
 import { EVENTS } from '../../../../shared/consts';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
     impostorData: ImpostorData;
@@ -16,6 +17,7 @@ const props = defineProps<{
 
 const { playAlarm, playSuccess } = useSound();
 const { socket } = useSocket();
+const { t } = useI18n();
 
 const sendReaction = (targetPlayerId: string, categoryId: string, emoji: string) => {
     socket.value?.send(JSON.stringify({
@@ -67,30 +69,30 @@ if (!matchOver.value && eliminatedPlayer.value) {
                 <!-- HEADER DE RESULTADO Brutalista -->
                 <h1 class="font-black uppercase tracking-tighter leading-[0.9] flex-none text-[clamp(3.5rem,8vw,8rem)] w-full text-balance shrink-0"
                     :class="(isEliminatedImpostor || !eliminatedPlayer) ? 'text-tuti-teal drop-shadow-[0_0_50px_rgba(106,215,229,0.6)]' : 'text-action-error drop-shadow-[0_0_50px_rgba(239,68,68,0.6)]'">
-                    <template v-if="!eliminatedPlayer">EMPATE TRIBUNAL</template>
-                    <template v-else-if="isEliminatedImpostor">IMPOSTOR CAZADO</template>
-                    <template v-else>INOCENTE EXPULSADO</template>
+                    <template v-if="!eliminatedPlayer">{{ t('impostorResults.tie') }}</template>
+                    <template v-else-if="isEliminatedImpostor">{{ t('impostorResults.hunted') }}</template>
+                    <template v-else>{{ t('impostorResults.innocent') }}</template>
                 </h1>
                 
                 <p class="text-[clamp(1.1rem,2vw,1.5rem)] text-white/80 font-black uppercase tracking-widest max-w-3xl mt-1 leading-tight shrink-0">
                     <template v-if="eliminatedPlayer">
-                        El tribunal ha expulsado a <br/>
+                        {{ t('impostorResults.expelled') }} <br/>
                         <span class="text-white font-black text-[clamp(2.5rem,6vw,5rem)] mt-2 text-balance leading-none block shrink-0" :class="isEliminatedImpostor ? 'drop-shadow-[0_0_40px_rgba(106,215,229,0.8)]' : 'drop-shadow-[0_0_40px_rgba(239,68,68,0.8)]'">
                             {{ eliminatedPlayer.name }}
                         </span>
                     </template>
                     <template v-else>
-                        Nadie ha sido expulsado hoy.
+                        {{ t('impostorResults.nobodyExpelled') }}
                     </template>
                 </p>
 
                 <!-- DETALLES FLOTANTES -->
                 <div class="text-[clamp(1.5rem,3vw,3rem)] font-black uppercase tracking-[0.3em] opacity-90 shrink-0">
                     <div v-if="!eliminatedPlayer" class="text-white/60">
-                        Todos sobreviven.
+                        {{ t('impostorResults.allSurvive') }}
                     </div>
                     <div v-else :class="isEliminatedImpostor ? 'text-tuti-teal drop-shadow-[0_0_30px_rgba(106,215,229,0.5)]' : 'text-action-error drop-shadow-[0_0_30px_rgba(239,68,68,0.5)]'">
-                        {{ isEliminatedImpostor ? 'Era un Impostor.' : 'Era Inocente.' }}
+                        {{ isEliminatedImpostor ? t('impostorResults.wasImpostor') : t('impostorResults.wasInnocent') }}
                     </div>
                 </div>
 
@@ -122,7 +124,7 @@ if (!matchOver.value && eliminatedPlayer.value) {
             <!-- ANCLA FANTASMA AL FONDO -->
             <div class="mt-auto flex-none flex flex-col items-center justify-end w-full shrink-0 pt-2">
                 <div v-if="matchOver" class="opacity-60 animate-pulse text-center w-full">
-                    <p class="text-[clamp(0.7rem,1.2vw,1rem)] text-white/50 uppercase tracking-[0.4em] font-black">Fin de la partida. Calculando veredicto...</p>
+                    <p class="text-[clamp(0.7rem,1.2vw,1rem)] text-white/50 uppercase tracking-[0.4em] font-black">{{ t('impostorResults.calculatingVerdict') }}</p>
                 </div>
                 
                 <div v-else class="text-[clamp(3.5rem,6vw,5rem)] font-black font-mono animate-pulse drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] leading-none" 

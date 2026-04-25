@@ -5,6 +5,9 @@ import TButton from '../../ui/TButton.vue';
 import { useGame } from '../../../composables/useGame';
 import { useReactions } from '../../../composables/useReactions';
 import type { Player, CategoryRef } from '../../../../shared/types';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps<{
     categories: CategoryRef[];
@@ -111,15 +114,15 @@ const selfStatusIcon = (playerId: string, category: string) => {
              class="flex-none bg-action-error/20 backdrop-blur-xl border border-action-error shadow-glow-panic rounded-3xl p-4 flex items-center justify-center gap-4 mb-4 mx-2">
             <div class="text-5xl animate-bounce drop-shadow-md">{{ stopperPlayer.avatar || '🛑' }}</div>
             <div class="flex flex-col items-center md:items-start text-center md:text-left gap-1">
-                <h3 class="font-black text-action-error text-3xl md:text-4xl uppercase tracking-tighter drop-shadow-glow leading-none">¡BASTA PARA MÍ!</h3>
-                <p class="text-white text-xs font-black uppercase tracking-widest bg-action-error/40 border border-action-error/50 px-3 py-1 rounded-full shadow-inner">Detenido por {{ stopperPlayer.name }}</p>
+                <h3 class="font-black text-action-error text-3xl md:text-4xl uppercase tracking-tighter drop-shadow-glow leading-none">{{ t('review.stopAlert') }}</h3>
+                <p class="text-white text-xs font-black uppercase tracking-widest bg-action-error/40 border border-action-error/50 px-3 py-1 rounded-full shadow-inner">{{ t('review.stoppedBy', { name: stopperPlayer.name }) }}</p>
             </div>
         </div>
 
         <!-- Phase 6: CONTROL BAR — grid 3 cols para centrado limpio -->
         <div class="flex-none grid grid-cols-3 items-center bg-panel-card/40 border border-white/5 rounded-2xl px-4 md:px-6 py-2 my-2 backdrop-blur-sm">
             <div class="text-[10px] md:text-sm font-bold text-ink-muted uppercase tracking-widest">
-                Fase {{ currentCategoryIndex + 1 }} / {{ categories.length }}
+                {{ t('review.phase') }} {{ currentCategoryIndex + 1 }} / {{ categories.length }}
             </div>
             <h2 class="text-base md:text-2xl font-black text-action-primary uppercase tracking-[0.15em] drop-shadow-md text-center">
                 {{ activeCategory?.name }}
@@ -161,7 +164,7 @@ const selfStatusIcon = (playerId: string, category: string) => {
 
             <!-- Atrás -->
             <TButton variant="secondary" size="md" :disabled="isFirstCategory" @click="prevCategory">
-                ← Anterior
+                {{ t('review.prev') }}
             </TButton>
 
             <!-- Phase 5: Dots — tamaño aumentado para mejor target -->
@@ -176,10 +179,10 @@ const selfStatusIcon = (playerId: string, category: string) => {
 
             <!-- Siguiente ó Enviar Votos -->
             <TButton v-if="!isLastCategory" variant="primary" size="md" @click="nextCategory">
-                Siguiente →
+                {{ t('review.next') }}
             </TButton>
             <TButton v-else variant="primary" size="md" :disabled="hasConfirmed || isSpectator" @click="!isSpectator && emit('submit-votes')">
-                {{ isSpectator ? 'VIENDO...' : (hasConfirmed ? '¡Enviado! ✅' : '¡Completado!') }}
+                {{ isSpectator ? t('review.viewing') : (hasConfirmed ? t('review.sent') : t('review.completed')) }}
             </TButton>
         </div>
     </div>

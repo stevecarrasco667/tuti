@@ -105,5 +105,143 @@
         "votingTime": "Tribunal Time"
       }
     }
+  },
+  "system": {
+    "PLAYER_JOINED": "👥 {name} joined the room",
+    "PLAYER_LEFT": "🚪 {name} left the room"
+  },
+  "gameHUD": {
+    "exit": "Exit",
+    "round": "Round",
+    "completeToStop": "⚠️ Complete all categories to stop"
+  },
+  "review": {
+    "stopAlert": "STOP FOR ME!",
+    "stoppedBy": "Stopped by {name}",
+    "phase": "Phase",
+    "prev": "← Previous",
+    "next": "Next →",
+    "viewing": "VIEWING...",
+    "sent": "Sent! ✅",
+    "completed": "Completed!"
+  },
+  "impostorBoard": {
+    "loading": "Loading Impostor mode..."
+  },
+  "impostorResults": {
+    "tie": "TRIBUNAL TIE",
+    "hunted": "IMPOSTOR HUNTED",
+    "innocent": "INNOCENT EXPELLED",
+    "expelled": "The tribunal has expelled",
+    "nobodyExpelled": "No one was expelled today.",
+    "allSurvive": "Everyone survives.",
+    "wasImpostor": "Was an Impostor.",
+    "wasInnocent": "Was Innocent.",
+    "calculatingVerdict": "Game over. Calculating verdict...",
+    "survivingCrew": "Surviving Crew:",
+    "discoveredImpostors": "The discovered Impostors were:",
+    "impostorsWere": "🦇 The Impostors were:",
+    "secretWordWas": "The ship's secret word was:",
+    "guessedWord": "They survived by guessing the word!"
+  },
+  "impostorTyping": {
+    "category": "Category",
+    "time": "Time",
+    "ghostTitle": "You are a Ghost",
+    "ghostDesc": "Watch the chaos. Your actions no longer affect this world.",
+    "impostorTitle": "You are Impostor",
+    "categoryLabel": "Category:",
+    "allies": "Your allies",
+    "crewTitle": "You are Crewmate",
+    "wordIs": "The word is:",
+    "typeWord": "Type a word to blend in...",
+    "placeholder": "Your word here...",
+    "playersTyping": "Players are typing...",
+    "spoilerWarning": "🚨 Danger: Your word reveals the secret category. Change it!",
+    "readyWaiting": "You're Ready! Waiting for the rest...",
+    "timeUp": "Time's up!",
+    "crewStatus": "Crew Status",
+    "you": "You",
+    "unknown": "Unknown"
+  },
+  "impostorVoting": {
+    "title": "🔎 The Tribunal",
+    "subtitle": "Analyze the evidence and accuse the impostor.",
+    "impostor": "Impostor",
+    "crew": "Crewmate",
+    "spectating": "Analyzing the Tribunal...",
+    "voted": "{votesCast}/{totalVoters} voted",
+    "ghostSilent": "You are a ghost — watch in silence.",
+    "me": "ME",
+    "thinking": "⏳ Thinking...",
+    "accuse": "Accuse",
+    "vote": "vote",
+    "votes": "votes"
+  },
+  "gameFooter": {
+    "someoneStopped": "⏳ {name} stopped!",
+    "sending": "⏳ SENDING...",
+    "waitGrace": "🔒 Wait {seconds}s...",
+    "completeAll": "✍️ Complete all",
+    "stop": "✋ STOP FOR ME!",
+    "playersTyping": "Players are typing...",
+    "nextRound": "Next Round",
+    "waitingHost": "Waiting for host..."
+  },
+  "matchSummaryCard": {
+    "summaryTitle": "MATCH<br>SUMMARY",
+    "finalPodium": "🏆 Final Podium",
+    "rounds": "Rounds",
+    "flashPlayer": "⚡ Flash Player",
+    "mostRejected": "Most rejected word",
+    "impostorWas": "🎭 The Impostor was...",
+    "unknown": "Unknown",
+    "mostSus": "Most suspicious citizen",
+    "mostSusDesc": "Got the most votes while innocent 😅",
+    "playAgain": "Play again? 🎯"
+  },
+  "errorBoundary": {
+    "title": "Oops! Something went wrong",
+    "description": "Our servers detected an unexpected error. We are already working to fix it.",
+    "unknownError": "Unknown error",
+    "returnHome": "Return Home"
+  },
+  "privacyBanner": {
+    "title": "Your Privacy",
+    "text": "We use local storage (LocalStorage) exclusively to keep your session active and temporarily save your avatar/name. <strong>We do not use tracking cookies or third-party advertising.</strong>",
+    "close": "Close"
+  },
+  "chat": {
+    "title": "Chat Room",
+    "empty": "Be the first to speak...",
+    "placeholderGhost": "👻 Ghosts don't speak...",
+    "placeholder": "Type a message...",
+    "spoilerWarning": "🚨 You cannot reveal the word",
+    "pressEnter": "Press",
+    "toSend": "to send"
+  },
+  "results": {
+    "generalTable": "General Leaderboard",
+    "pts": "pts",
+    "matchAwards": "🏅 Match Awards",
+    "victory": "VICTORY!",
+    "gameOver": "GAME OVER",
+    "byAbandon": "🏆 Win by Abandonment",
+    "byAbandonDesc": "Your rivals fled in terror.",
+    "impostorsWin": "IMPOSTORS WIN!",
+    "crewWin": "CREW WINS!",
+    "finalPodium": "Final Podium",
+    "restart": "Play Again",
+    "waitingRestart": "Waiting for host...",
+    "share": "Share",
+    "shareText": "🎮 I just played Tutifruti Online! Dare to beat my score? Join here:",
+    "shareTitle": "🏆 My Tutifruti Match",
+    "shareSuccess": "📸 Image saved to your gallery",
+    "shareCopied": "📥 Image downloaded and link copied — paste it in your chat 🔗",
+    "shareDownloaded": "📥 Image downloaded — share the room link with your friends",
+    "shareError": "Oops, couldn't save the memory 🙅",
+    "finalPositions": "🏆 Final Standings",
+    "yourPerformance": "🎯 Your Performance",
+    "thisRound": "This round"
   }
 }

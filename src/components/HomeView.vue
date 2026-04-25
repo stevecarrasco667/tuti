@@ -10,6 +10,7 @@ import TCard from './ui/TCard.vue';
 import TButton from './ui/TButton.vue';
 import TInput from './ui/TInput.vue';
 import PrivacyBanner from './ui/PrivacyBanner.vue';
+import GlobalLanguageSelector from './ui/GlobalLanguageSelector.vue';
 import { useI18n } from 'vue-i18n';
 
 const { joinGame, myUserName, myUserAvatar } = useGame();
@@ -94,6 +95,7 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
 
 <template>
     <div class="w-full flex flex-col items-center justify-start sm:justify-center p-4 min-h-full overflow-y-auto">
+        <GlobalLanguageSelector />
 
         <div class="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-7 gap-6 lg:gap-8 min-h-0 mt-6 sm:mt-0">
 

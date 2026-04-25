@@ -7,8 +7,10 @@ export default { name: 'MatchSummaryCard' };
 
 <script setup lang="ts">
 import type { MatchHighlights, ClassicHighlights, ImpostorHighlights } from '../../composables/useMatchHighlights';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{ highlights: MatchHighlights }>();
+const { t } = useI18n();
 
 const isClassic = (h: MatchHighlights): h is ClassicHighlights => h.mode === 'CLASSIC';
 const isImpostor = (h: MatchHighlights): h is ImpostorHighlights => h.mode === 'IMPOSTOR';
@@ -18,9 +20,9 @@ const today = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'l
 const rankEmoji = (i: number) => ['🥇', '🥈', '🥉'][i] ?? `#${i + 1}`;
 
 const winnerLabel = (h: ImpostorHighlights) => {
-    if (h.winner === 'IMPOSTOR') return { text: '¡EL IMPOSTOR GANÓ!', color: '#f43f5e' };
-    if (h.winner === 'CREW') return { text: '¡LOS CIUDADANOS GANARON!', color: '#22c55e' };
-    return { text: 'EMPATE', color: '#fbbf24' };
+    if (h.winner === 'IMPOSTOR') return { text: t('impostorResults.impostorWin').toUpperCase(), color: '#f43f5e' };
+    if (h.winner === 'CREW') return { text: t('impostorResults.crewWin').toUpperCase(), color: '#22c55e' };
+    return { text: t('impostorResults.tie').toUpperCase(), color: '#fbbf24' };
 };
 </script>
 
@@ -93,7 +95,7 @@ const winnerLabel = (h: ImpostorHighlights) => {
                 margin-top: 48px;
                 font-size: 88px; font-weight: 900; line-height: 1.05;
                 color: #ffffff; letter-spacing: -3px; text-transform: uppercase;
-            ">RESUMEN<br>DE LA PARTIDA</div>
+            " v-html="t('matchSummaryCard.summaryTitle')"></div>
 
             <!-- Divider -->
             <div style="
@@ -122,7 +124,7 @@ const winnerLabel = (h: ImpostorHighlights) => {
                     <div style="
                         font-size: 26px; font-weight: 800; letter-spacing: 5px;
                         text-transform: uppercase; color: #fbbf24; margin-bottom: 32px;
-                    ">🏆 Podio Final</div>
+                    ">{{ t('matchSummaryCard.finalPodium') }}</div>
 
                     <div v-for="(p, i) in highlights.podium" :key="p.id" style="
                         display: flex; align-items: center; gap: 24px;
@@ -161,7 +163,7 @@ const winnerLabel = (h: ImpostorHighlights) => {
 
                     <!-- Empty podio -->
                     <div v-if="highlights.podium.length === 0" style="color: #ffffff60; font-size: 32px; text-align: center;">
-                        Sin jugadores registrados
+                        {{ t('matchSummaryCard.unknown') }}
                     </div>
                 </div>
 
@@ -175,7 +177,7 @@ const winnerLabel = (h: ImpostorHighlights) => {
                     ">
                         <div style="font-size: 64px; margin-bottom: 8px;">🎲</div>
                         <div style="font-size: 72px; font-weight: 900; color: #fbbf24; line-height: 1;">{{ highlights.roundsPlayed }}</div>
-                        <div style="font-size: 26px; font-weight: 700; color: #ffffff90; letter-spacing: 3px; text-transform: uppercase; margin-top: 8px;">Rondas</div>
+                        <div style="font-size: 26px; font-weight: 700; color: #ffffff90; letter-spacing: 3px; text-transform: uppercase; margin-top: 8px;">{{ t('matchSummaryCard.rounds') }}</div>
                     </div>
 
                     <!-- Flash player -->
@@ -184,14 +186,13 @@ const winnerLabel = (h: ImpostorHighlights) => {
                         border: 3px solid #fbbf24; padding: 36px;
                         display: flex; flex-direction: column; align-items: center; text-align: center;
                     ">
-                        <div style="font-size: 26px; font-weight: 800; letter-spacing: 4px; text-transform: uppercase; color: #fbbf24; margin-bottom: 16px;">⚡ Jugador Flash</div>
+                        <div style="font-size: 26px; font-weight: 800; letter-spacing: 4px; text-transform: uppercase; color: #fbbf24; margin-bottom: 16px;">{{ t('matchSummaryCard.flashPlayer') }}</div>
                         <div style="font-size: 64px; margin-bottom: 8px;">{{ highlights.flashPlayer.avatar }}</div>
                         <div style="font-size: 44px; font-weight: 900; color: #fff;">{{ highlights.flashPlayer.name }}</div>
                         <div style="font-size: 28px; font-weight: 700; color: #fbbf24; margin-top: 8px;">{{ highlights.flashPlayer.score }} pts</div>
                     </div>
                 </div>
 
-                <!-- Most rejected word -->
                 <div v-if="highlights.mostRejectedWord" style="
                     background: #49107A; border-radius: 28px;
                     border: 3px solid #f43f5e60;
@@ -200,7 +201,7 @@ const winnerLabel = (h: ImpostorHighlights) => {
                 ">
                     <div style="font-size: 64px;">💀</div>
                     <div style="flex: 1;">
-                        <div style="font-size: 24px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: #f43f5e; margin-bottom: 8px;">Palabra más rechazada</div>
+                        <div style="font-size: 24px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: #f43f5e; margin-bottom: 8px;">{{ t('matchSummaryCard.mostRejected') }}</div>
                         <div style="font-size: 52px; font-weight: 900; color: #fff; line-height: 1.1;">
                             "{{ highlights.mostRejectedWord.word }}"
                         </div>
@@ -232,17 +233,16 @@ const winnerLabel = (h: ImpostorHighlights) => {
                     </div>
                 </div>
 
-                <!-- Impostors revealed -->
                 <div style="
                     background: #2e1060; border-radius: 32px;
                     border: 3px solid #f43f5e60; padding: 40px 48px;
                 ">
-                    <div style="font-size: 26px; font-weight: 800; letter-spacing: 5px; text-transform: uppercase; color: #f43f5e; margin-bottom: 28px;">🎭 El Impostor era...</div>
+                    <div style="font-size: 26px; font-weight: 800; letter-spacing: 5px; text-transform: uppercase; color: #f43f5e; margin-bottom: 28px;">{{ t('matchSummaryCard.impostorWas') }}</div>
                     <div v-for="imp in highlights.impostors" :key="imp.id" style="display: flex; align-items: center; gap: 24px; margin-bottom: 20px;">
                         <div style="font-size: 56px;">{{ imp.avatar }}</div>
                         <div style="font-size: 48px; font-weight: 900; color: #fff;">{{ imp.name }}</div>
                     </div>
-                    <div v-if="highlights.impostors.length === 0" style="font-size: 36px; color: #ffffff50;">Desconocido</div>
+                    <div v-if="highlights.impostors.length === 0" style="font-size: 36px; color: #ffffff50;">{{ t('matchSummaryCard.unknown') }}</div>
                 </div>
 
                 <!-- Secret word + category -->
@@ -267,11 +267,11 @@ const winnerLabel = (h: ImpostorHighlights) => {
                 ">
                     <div style="font-size: 64px;">🧐</div>
                     <div>
-                        <div style="font-size: 24px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: #fbbf24; margin-bottom: 8px;">Ciudadano más sospechoso</div>
+                        <div style="font-size: 24px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; color: #fbbf24; margin-bottom: 8px;">{{ t('matchSummaryCard.mostSus') }}</div>
                         <div style="font-size: 52px; font-weight: 900; color: #fff;">
                             {{ highlights.mostSuspectPlayer.avatar }} {{ highlights.mostSuspectPlayer.name }}
                         </div>
-                        <div style="font-size: 26px; color: #ffffff70; margin-top: 4px;">Se llevó más votos siendo inocente 😅</div>
+                        <div style="font-size: 26px; color: #ffffff70; margin-top: 4px;">{{ t('matchSummaryCard.mostSusDesc') }}</div>
                     </div>
                 </div>
 
@@ -288,7 +288,7 @@ const winnerLabel = (h: ImpostorHighlights) => {
         ">
             <div style="font-size: 30px; font-weight: 800; color: #fbbf24; letter-spacing: 2px;">tutigames.io</div>
             <div style="font-size: 26px; font-weight: 600; color: #ffffff50;">{{ today }}</div>
-            <div style="font-size: 30px; font-weight: 800; color: #fbbf24; letter-spacing: 1px;">¿Jugamos otra? 🎯</div>
+            <div style="font-size: 30px; font-weight: 800; color: #fbbf24; letter-spacing: 1px;">{{ t('matchSummaryCard.playAgain') }}</div>
         </div>
     </div>
 </template>

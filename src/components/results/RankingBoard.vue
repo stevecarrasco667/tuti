@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Player } from '../../../shared/types';
+import { useI18n } from 'vue-i18n';
 
 // [Sprint 2 - P2] Podio Classic Mode + Tabla General
 defineProps<{
@@ -7,6 +8,8 @@ defineProps<{
     rest: Player[];
     titleMap: Record<string, { emoji: string; title: string; description: string }>;
 }>();
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -62,7 +65,7 @@ defineProps<{
     <!-- TABLA GENERAL (4to lugar en adelante) -->
     <div v-if="rest.length > 0" class="w-full mt-6">
         <div class="bg-panel-base/60 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-6 shadow-2xl">
-            <h3 class="text-white/50 font-black text-center mb-5 sm:mb-6 uppercase tracking-[0.2em] text-xs">Tabla General</h3>
+            <h3 class="text-white/50 font-black text-center mb-5 sm:mb-6 uppercase tracking-[0.2em] text-xs">{{ t('results.generalTable') }}</h3>
             <div class="space-y-2 sm:space-y-3">
                 <div v-for="(player, idx) in rest" :key="player.id" class="flex items-center justify-between p-2 sm:p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">
                     <div class="flex items-center gap-2 sm:gap-3">

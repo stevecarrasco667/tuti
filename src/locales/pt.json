@@ -105,5 +105,143 @@
         "votingTime": "Tempo do Tribunal"
       }
     }
+  },
+  "system": {
+    "PLAYER_JOINED": "👥 {name} entrou na sala",
+    "PLAYER_LEFT": "🚪 {name} saiu da sala"
+  },
+  "gameHUD": {
+    "exit": "Sair",
+    "round": "Rodada",
+    "completeToStop": "⚠️ Complete todas as categorias para parar"
+  },
+  "review": {
+    "stopAlert": "PARE PARA MIM!",
+    "stoppedBy": "Parado por {name}",
+    "phase": "Fase",
+    "prev": "← Anterior",
+    "next": "Próximo →",
+    "viewing": "VENDO...",
+    "sent": "Enviado! ✅",
+    "completed": "Concluído!"
+  },
+  "impostorBoard": {
+    "loading": "Carregando modo Impostor..."
+  },
+  "impostorResults": {
+    "tie": "EMPATE DO TRIBUNAL",
+    "hunted": "IMPOSTOR CAÇADO",
+    "innocent": "INOCENTE EXPULSO",
+    "expelled": "O tribunal expulsou",
+    "nobodyExpelled": "Ninguém foi expulso hoje.",
+    "allSurvive": "Todos sobrevivem.",
+    "wasImpostor": "Era um Impostor.",
+    "wasInnocent": "Era Inocente.",
+    "calculatingVerdict": "Fim de jogo. Calculando veredicto...",
+    "survivingCrew": "Tripulação Sobrevivente:",
+    "discoveredImpostors": "Os Impostores descobertos eram:",
+    "impostorsWere": "🦇 Os Impostores eram:",
+    "secretWordWas": "A palavra secreta da nave era:",
+    "guessedWord": "Eles sobreviveram adivinhando a palavra!"
+  },
+  "impostorTyping": {
+    "category": "Categoria",
+    "time": "Tempo",
+    "ghostTitle": "Você é um Fantasma",
+    "ghostDesc": "Observe o caos. Suas ações não afetam mais este mundo.",
+    "impostorTitle": "Você é Impostor",
+    "categoryLabel": "Categoria:",
+    "allies": "Seus aliados",
+    "crewTitle": "Você é Tripulante",
+    "wordIs": "A palavra é:",
+    "typeWord": "Digite uma palavra para se camuflar...",
+    "placeholder": "Sua palavra aqui...",
+    "playersTyping": "Os jogadores estão digitando...",
+    "spoilerWarning": "🚨 Perigo: Sua palavra revela a categoria secreta. Mude!",
+    "readyWaiting": "Você está Pronto! Esperando o resto...",
+    "timeUp": "O tempo acabou!",
+    "crewStatus": "Status da Tripulação",
+    "you": "Você",
+    "unknown": "Desconhecido"
+  },
+  "impostorVoting": {
+    "title": "🔎 O Tribunal",
+    "subtitle": "Analise as evidências e acuse o impostor.",
+    "impostor": "Impostor",
+    "crew": "Tripulante",
+    "spectating": "Analisando o Tribunal...",
+    "voted": "{votesCast}/{totalVoters} votaram",
+    "ghostSilent": "Você é um fantasma — observe em silêncio.",
+    "me": "EU",
+    "thinking": "⏳ Pensando...",
+    "accuse": "Acusar",
+    "vote": "voto",
+    "votes": "votos"
+  },
+  "gameFooter": {
+    "someoneStopped": "⏳ {name} parou!",
+    "sending": "⏳ ENVIANDO...",
+    "waitGrace": "🔒 Aguarde {seconds}s...",
+    "completeAll": "✍️ Complete tudo",
+    "stop": "✋ BASTA PARA MIM!",
+    "playersTyping": "Os jogadores estão digitando...",
+    "nextRound": "Próxima Rodada",
+    "waitingHost": "Aguardando o anfitrião..."
+  },
+  "matchSummaryCard": {
+    "summaryTitle": "RESUMO<br>DA PARTIDA",
+    "finalPodium": "🏆 Pódio Final",
+    "rounds": "Rodadas",
+    "flashPlayer": "⚡ Jogador Flash",
+    "mostRejected": "Palavra mais rejeitada",
+    "impostorWas": "🎭 O Impostor era...",
+    "unknown": "Desconhecido",
+    "mostSus": "Cidadão mais suspeito",
+    "mostSusDesc": "Recebeu mais votos sendo inocente 😅",
+    "playAgain": "Jogar novamente? 🎯"
+  },
+  "errorBoundary": {
+    "title": "Ops! Algo deu errado",
+    "description": "Nossos servidores detectaram um erro inesperado. Já estamos trabalhando para consertá-lo.",
+    "unknownError": "Erro desconhecido",
+    "returnHome": "Voltar ao Início"
+  },
+  "privacyBanner": {
+    "title": "Sua Privacidade",
+    "text": "Usamos o armazenamento local (LocalStorage) exclusivamente para manter sua sessão ativa e salvar temporariamente seu avatar/nome. <strong>Não usamos cookies de rastreamento ou publicidade de terceiros.</strong>",
+    "close": "Fechar"
+  },
+  "chat": {
+    "title": "Bate-papo",
+    "empty": "Seja o primeiro a falar...",
+    "placeholderGhost": "👻 Fantasmas não falam...",
+    "placeholder": "Digite uma mensagem...",
+    "spoilerWarning": "🚨 Você não pode revelar a palavra",
+    "pressEnter": "Pressione",
+    "toSend": "para enviar"
+  },
+  "results": {
+    "generalTable": "Classificação Geral",
+    "pts": "pts",
+    "matchAwards": "🏅 Prêmios da Partida",
+    "victory": "VITÓRIA!",
+    "gameOver": "FIM DE JOGO",
+    "byAbandon": "🏆 Vitória por Abandono",
+    "byAbandonDesc": "Seus rivais fugiram aterrorizados.",
+    "impostorsWin": "IMPOSTORES VENCEM!",
+    "crewWin": "TRIPULAÇÃO VENCE!",
+    "finalPodium": "Pódio Final",
+    "restart": "Jogar Novamente",
+    "waitingRestart": "Aguardando o anfitrião...",
+    "share": "Compartilhar",
+    "shareText": "🎮 Acabei de jogar Tutifruti Online! Tem coragem de bater meu recorde? Entre aqui:",
+    "shareTitle": "🏆 Minha partida de Tutifruti",
+    "shareSuccess": "📸 Imagem salva na sua galeria",
+    "shareCopied": "📥 Imagem baixada e link copiado — cole no seu chat 🔗",
+    "shareDownloaded": "📥 Imagem baixada — compartilhe o link da sala com seus amigos",
+    "shareError": "Ops, não foi possível salvar a lembrança 🙅",
+    "finalPositions": "🏆 Posições Finais",
+    "yourPerformance": "🎯 Seu Desempenho",
+    "thisRound": "Esta rodada"
   }
 }

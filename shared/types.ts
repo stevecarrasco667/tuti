@@ -21,6 +21,8 @@ export interface ChatMessage {
     text: string;
     type: 'USER' | 'SYSTEM';
     timestamp: number;
+    code?: string;
+    args?: Record<string, any>;
 }
 
 export interface Player {

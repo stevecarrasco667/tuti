@@ -12,6 +12,9 @@ defineEmits<{
     (e: 'share'): void;
     (e: 'exit'): void;
 }>();
+
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 </script>
 
 <template>
@@ -30,7 +33,7 @@ defineEmits<{
             <span class="absolute inset-0 w-1/3 bg-white/10 skew-x-[-20deg] -translate-x-full group-hover:translate-x-[400%] transition-transform duration-700 ease-in-out pointer-events-none" />
 
             <span class="text-lg leading-none">{{ isCapturing ? '⏳' : '🚀' }}</span>
-            <span>{{ isCapturing ? 'Preparando...' : 'Compartir partida' }}</span>
+            <span>{{ isCapturing ? '...' : t('results.share') }}</span>
         </button>
 
         <!-- ── ACCIONES PRIMARIAS: Solo para el host ─────────────────────── -->
@@ -39,13 +42,13 @@ defineEmits<{
             @click="$emit('restart')"
             class="w-full bg-white/5 hover:bg-yellow-400/10 border border-white/10 hover:border-yellow-400/30 text-yellow-400/90 font-bold text-xs uppercase tracking-widest py-2.5 rounded-xl transition-all active:scale-95"
         >
-            🔥 Nueva Partida
+            🔥 {{ t('results.restart') }}
         </button>
         <div
             v-else
             class="w-full flex items-center justify-center py-2.5 text-white/30 text-xs font-semibold uppercase tracking-widest"
         >
-            ⏳ Esperando al anfitrión...
+            ⏳ {{ t('results.waitingRestart') }}
         </div>
 
         <!-- ── ACCIÓN SECUNDARIA: Salir (visualmente en segundo plano) ──── -->
@@ -53,7 +56,7 @@ defineEmits<{
             @click="$emit('exit')"
             class="w-full text-white/25 hover:text-red-400/70 font-semibold text-[10px] uppercase tracking-widest py-1.5 transition-colors"
         >
-            🚪 Salir
+            🚪 {{ t('gameHUD.exit') }}
         </button>
     </div>
 </template>

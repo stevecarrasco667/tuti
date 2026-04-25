@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { RoomState } from '../../../../shared/types';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
     status: RoomState['status'];
@@ -29,6 +30,8 @@ const progressPercent = computed(() => {
     return Math.round((props.myProgress.current / props.myProgress.total) * 100);
 });
 
+const { t } = useI18n();
+
 // [P11] Jerarquía de estados del botón Basta
 const isEnding = computed(() => props.status === 'ENDING_COUNTDOWN');
 const isButtonDisabled = computed(() =>
@@ -39,11 +42,11 @@ const isButtonDisabled = computed(() =>
 );
 
 const buttonLabel = computed(() => {
-    if (isEnding.value) return `⏳ ¡${props.endingCountdownBy ?? 'Alguien'} paró!`;
-    if (props.isStopping) return '⏳ ENVIANDO...';
-    if (props.isGraceActive) return `🔒 Espera ${props.graceSecondsLeft}s...`;
-    if (!props.canStop) return '✍️ Completa todo';
-    return '✋ ¡BASTA PARA MÍ!';
+    if (isEnding.value) return t('gameFooter.someoneStopped', { name: props.endingCountdownBy ?? 'Alguien' });
+    if (props.isStopping) return t('gameFooter.sending');
+    if (props.isGraceActive) return t('gameFooter.waitGrace', { seconds: props.graceSecondsLeft });
+    if (!props.canStop) return t('gameFooter.completeAll');
+    return t('gameFooter.stop');
 });
 </script>
 
@@ -75,7 +78,7 @@ const buttonLabel = computed(() => {
                 <div v-if="isSpectator"
                     class="w-full text-center text-action-primary bg-panel-input border-2 border-action-primary/30 shadow-[0_0_30px_-5px_rgba(74,222,128,0.2)] backdrop-blur-sm rounded-full text-sm font-black uppercase tracking-widest animate-[pulse_2s_ease-in-out_infinite] py-3.5 flex items-center justify-center gap-2"
                 >
-                    <span class="text-lg">👀</span> Los jugadores están escribiendo...
+                    <span class="text-lg">👀</span> {{ t('gameFooter.playersTyping') }}
                 </div>
 
                 <!-- Botón BASTA con jerarquía P11 -->
@@ -104,13 +107,13 @@ const buttonLabel = computed(() => {
                 @click="$emit('next-round')"
                 class="w-full bg-action-primary hover:bg-action-hover text-white font-black text-xl py-4 rounded-3xl shadow-[0_0_30px_-5px_rgba(74,222,128,0.4)] border-4 border-green-300 transition-all active:scale-[0.98] uppercase tracking-wide flex items-center justify-center gap-2"
             >
-                Siguiente Ronda <span class="text-2xl">⚡</span>
+                {{ t('gameFooter.nextRound') }} <span class="text-2xl">⚡</span>
             </button>
             <div
                 v-else-if="status === 'RESULTS'"
                 class="w-full text-center text-amber-500 bg-panel-input border-2 border-amber-500/30 shadow-[0_0_30px_-5px_rgba(245,158,11,0.2)] backdrop-blur-sm rounded-full text-sm font-black uppercase tracking-widest animate-[pulse_2s_ease-in-out_infinite] py-3.5 flex items-center justify-center gap-2"
             >
-                <span class="text-lg">⏳</span> Esperando al anfitrión...
+                <span class="text-lg">⏳</span> {{ t('gameFooter.waitingHost') }}
             </div>
 
         </div>

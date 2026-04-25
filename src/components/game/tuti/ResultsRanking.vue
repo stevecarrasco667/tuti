@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { Player, CategoryRef } from '../../../../shared/types';
 import { useSound } from '../../../composables/useSound';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
     players: Player[];
@@ -12,6 +13,7 @@ const props = defineProps<{
 }>();
 
 const { playWin, playTally } = useSound();
+const { t } = useI18n();
 
 // Animation States
 const displayScores = ref<Record<string, number>>({});
@@ -71,7 +73,7 @@ onMounted(() => {
             <!-- COLUMNA IZQUIERDA: RANKING (Scroll Nativo) -->
             <!-- ══════════════════════════════════════════ -->
             <div class="space-y-3">
-                <h3 class="text-xs font-black text-ink-soft uppercase tracking-widest px-1">🏆 Posiciones Finales</h3>
+                <h3 class="text-xs font-black text-ink-soft uppercase tracking-widest px-1">{{ t('results.finalPositions') }}</h3>
 
                 <div class="space-y-2">
                     <div
@@ -146,8 +148,8 @@ onMounted(() => {
             <!-- ══════════════════════════════════════════ -->
             <div class="lg:sticky lg:top-4 space-y-3">
                 <h3 class="text-xs font-black text-ink-soft uppercase tracking-widest px-1 flex items-center gap-2">
-                    🎯 Tu Desempeño
-                    <span class="text-[10px] bg-white/5 px-2 py-0.5 rounded-full text-ink-muted hidden lg:inline-block">Esta ronda</span>
+                    {{ t('results.yourPerformance') }}
+                    <span class="text-[10px] bg-white/5 px-2 py-0.5 rounded-full text-ink-muted hidden lg:inline-block">{{ t('results.thisRound') }}</span>
                 </h3>
 
                 <div class="bg-panel-card/50 border border-white/8 rounded-2xl p-3 shadow-sm">

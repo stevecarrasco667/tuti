@@ -5,12 +5,14 @@ import { useGame } from '../../composables/useGame';
 import { useGameState } from '../../composables/useGameState';
 import { isSpoiler } from '../../../shared/utils/spoiler';
 import ChatBubble from './ChatBubble.vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
     isDisabled?: boolean;
 }>();
 
 const { messages, sendMessage, unreadCount, resetUnread } = useChat();
+const { t } = useI18n();
 const { myUserId } = useGame();
 const { localImpostorRole, gameState } = useGameState();
 
@@ -70,7 +72,7 @@ const handleFocus = () => {
         
         <!-- Header -->
         <div class="h-12 flex items-center px-4 bg-white/5 backdrop-blur-md border-b-[3px] border-white/10 shrink-0 justify-between">
-            <h3 class="text-[11px] font-black text-ink-muted uppercase tracking-[0.2em] drop-shadow-sm">Sala de Chat</h3>
+            <h3 class="text-[11px] font-black text-ink-muted uppercase tracking-[0.2em] drop-shadow-sm">{{ t('chat.title') }}</h3>
             <div v-if="unreadCount > 0" class="bg-action-error text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-glow-panic animate-bounce">
                 {{ unreadCount }}
             </div>
@@ -90,7 +92,7 @@ const handleFocus = () => {
             <!-- Empty State -->
             <div v-if="messages.length === 0" class="text-center mt-10 opacity-30 text-sm">
                 <div class="text-2xl mb-2">💬</div>
-                <div>Sé el primero en hablar...</div>
+                <div>{{ t('chat.empty') }}</div>
             </div>
         </div>
 
@@ -100,7 +102,7 @@ const handleFocus = () => {
                 <input 
                     v-model="inputValue"
                     type="text" 
-                    :placeholder="isDisabled ? '👻 Los fantasmas no hablan...' : 'Escribe un mensaje...'" 
+                    :placeholder="isDisabled ? t('chat.placeholderGhost') : t('chat.placeholder')" 
                     :disabled="isDisabled"
                     class="flex-1 min-w-0 bg-white/10 backdrop-blur-md rounded-full px-5 py-3 text-sm text-ink-main font-black outline-none transition-all border-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
                     :class="[
@@ -129,10 +131,10 @@ const handleFocus = () => {
 
             <!-- Anti-Spoiler Feedback Msg for Chat -->
             <div v-if="spoilerDetected" class="text-[10px] font-black text-action-error mt-2 text-center uppercase tracking-widest animate-pulse">
-                🚨 No puedes revelar la palabra
+                {{ t('chat.spoilerWarning') }}
             </div>
             <div v-else-if="!isDisabled" class="text-[10px] font-bold text-ink-soft mt-2 text-center uppercase tracking-widest hidden sm:block">
-                Presiona <span class="text-ink-main">Enter</span> para enviar
+                {{ t('chat.pressEnter') }} <span class="text-ink-main">Enter</span> {{ t('chat.toSend') }}
             </div>
         </div>
     </div>

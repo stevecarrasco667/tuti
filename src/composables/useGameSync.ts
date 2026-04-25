@@ -5,7 +5,8 @@ import { ServerMessage, PrivateRolePayload } from '../../shared/types';
 import { useGameState } from './useGameState';
 import { EVENTS, APP_VERSION } from '../../shared/consts';
 import { useToast } from './useToast';
-import { setLanguage, type SupportedLanguage } from '../i18n';
+import { i18n } from '../i18n';
+import type { ChatMessage } from '../../shared/types';
 
 let globalOnNavigate: ((path: string) => void) | null = null;
 
@@ -43,12 +44,9 @@ const { addToast } = useToast();
 // State singleton (same ref exported by useGameState module)
 const state = useGameState();
 
-// [Sprint H12] Sincronizar el idioma de la aplicación con el de la sala
-watch(() => state.gameState.value?.config?.lang, (newLang) => {
-    if (newLang && state.gameState.value?.roomId) {
-        setLanguage(newLang as SupportedLanguage);
-    }
-});
+// UI and Room language are fully decoupled.
+// The UI language obeys the user's LocalStorage/Global Selector,
+// while the game engine obeys state.config.lang.
 
 watch(lastMessage, (newMsg) => {
     if (!newMsg) return;
@@ -139,21 +137,19 @@ watch(lastMessage, (newMsg) => {
             }
         } else if (parsed.type === EVENTS.SERVER_ERROR) {
             console.error('[Server Error]:', (parsed.payload as { message: string }).message);
-        } else if (parsed.type === EVENTS.PLAYER_JOINED) {
-            // [Sprint 3 - P2] Disparador imperativo — desde evento discreto del WebSocket,
-            // NO desde array-diffing de Vue (evita race conditions con proxies mutados).
-            const name = (parsed.payload as { name: string }).name;
-            addToast(`👥 ${name} se unió a la sala`, 'success');
-        } else if (parsed.type === EVENTS.PLAYER_LEFT) {
-            const name = (parsed.payload as { name: string }).name;
-            addToast(`🚪 ${name} abandonó la sala`, 'info');
         } else if (parsed.type === EVENTS.ROOM_DEAD) {
             // [Room TTL — Tier 2] Hard expiry: el servidor purgo la sala.
             // Afecta a usuarios YA conectados que estaban en la pantalla de resultados.
             console.info('[GameSync] ROOM_DEAD recibido — limpiando estado y redirigiendo al Home.');
             disconnectIntentionally();
-            addToast('👋 Esta sala fue eliminada por inactividad. ¡Hasta la próxima!', 'info');
+            addToast('👋 La sala ha sido cerrada. ¡Hasta la próxima!', 'info');
             if (globalOnNavigate) globalOnNavigate('/');
+        } else if (parsed.type === EVENTS.CHAT_NEW) {
+            const msg = parsed.payload as ChatMessage;
+            if (msg.type === 'SYSTEM' && msg.code) {
+                const style = msg.code === 'PLAYER_JOINED' ? 'success' : 'info';
+                addToast(i18n.global.t(`system.${msg.code}`, msg.args || {}, { locale: state.gameState.value?.config?.lang || 'es' }), style);
+            }
         }
         // WORD_REACT is handled by the singleton in useSocket.ts — do NOT handle it here
     } catch (e) {

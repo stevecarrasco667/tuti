@@ -3,11 +3,13 @@ import { onErrorCaptured, ref } from 'vue';
 import { logErrorToSupabase } from '../../utils/telemetry';
 import { useRouter } from 'vue-router';
 import { useGame } from '../../composables/useGame';
+import { useI18n } from 'vue-i18n';
 
 const hasError = ref(false);
 const errorDetails = ref<string>('');
 const router = useRouter();
 const { leaveGame } = useGame();
+const { t } = useI18n();
 
 // Capture any error from descendant components
 onErrorCaptured((err: unknown, _instance: any, info: string) => {
@@ -43,20 +45,20 @@ const reloadApp = () => {
         <span class="text-3xl">⚠️</span>
       </div>
       
-      <h2 class="text-2xl font-black uppercase tracking-wider mb-2">¡Ups! Algo salió mal</h2>
+      <h2 class="text-2xl font-black uppercase tracking-wider mb-2">{{ t('errorBoundary.title') }}</h2>
       <p class="text-ink-muted text-sm font-medium mb-6">
-        Nuestros servidores detectaron un fallo inesperado. Ya estamos trabajando para solucionarlo.
+        {{ t('errorBoundary.description') }}
       </p>
 
       <div class="w-full bg-panel-input rounded-xl p-4 mb-6 text-left overflow-hidden">
-        <p class="text-xs font-mono text-red-300 break-all opacity-80">{{ errorDetails || 'Error desconocido' }}</p>
+        <p class="text-xs font-mono text-red-300 break-all opacity-80">{{ errorDetails || t('errorBoundary.unknownError') }}</p>
       </div>
 
       <button 
         @click="reloadApp"
         class="w-full py-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black uppercase tracking-[0.2em] transition-all active:scale-95 shadow-lg"
       >
-        Volver al Inicio
+        {{ t('errorBoundary.returnHome') }}
       </button>
     </div>
   </div>

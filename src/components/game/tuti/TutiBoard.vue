@@ -10,6 +10,7 @@ import ReviewPhase from './ReviewPhase.vue';
 import ResultsRanking from './ResultsRanking.vue';
 import GameFooter from './GameFooter.vue';
 import ChatWidget from '../../chat/ChatWidget.vue';
+import { useI18n } from 'vue-i18n';
 
 // --- CLEAN PROP DRILLING ---
 // The Board only receives global context, it calculates everything internal relative to its game phase.
@@ -39,6 +40,8 @@ const emit = defineEmits<{
 const answers = ref<Record<string, string>>({});
 const hasConfirmed = ref(false);
 const validationCooldown = ref(false);
+
+const { t } = useI18n();
 
 // [Sync] Ticker reactivo de baja frecuencia para evaluar el Grace Period contra el timestamp del servidor.
 // _now se actualiza cada 500ms, haciendo que los computed de grace period se re-evalúen automáticamente.
@@ -76,7 +79,7 @@ const handleStop = () => {
     // [P11] Candado Anti-Troll: bloquear si aún está en grace period
     if (isGracePeriodActive.value) return;
     if (!canStopRound.value) {
-        emit('toast', "⚠️ Completa todas las categorías para parar", 'stop-warning', 'stop-validation'); 
+        emit('toast', t('gameHUD.completeToStop'), 'stop-warning', 'stop-validation'); 
         validationCooldown.value = true;
         setTimeout(() => { validationCooldown.value = false; }, 800);
         return;

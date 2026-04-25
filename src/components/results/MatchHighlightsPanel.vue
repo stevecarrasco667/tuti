@@ -4,13 +4,16 @@ defineProps<{
     titles: Array<{ playerId: string; emoji: string; title: string; description: string }>;
     playerMap: Record<string, { name: string; avatar: string }>;
 }>();
+
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
 </script>
 
 <template>
     <div v-if="titles.length > 0" class="w-full">
         <div class="flex items-center justify-center gap-4 mb-6">
             <div class="h-px bg-white/10 flex-1"></div>
-            <h3 class="text-white/50 font-black text-center uppercase tracking-[0.2em] text-xs">🏅 Premios de la Partida</h3>
+            <h3 class="text-white/50 font-black text-center uppercase tracking-[0.2em] text-xs">{{ t('results.matchAwards') }}</h3>
             <div class="h-px bg-white/10 flex-1"></div>
         </div>
         <div class="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4">

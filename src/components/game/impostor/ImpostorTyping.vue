@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue';
 import { ImpostorData, Player } from '../../../../shared/types';
 import { useGame } from '../../../composables/useGame';
 import { isSpoiler } from '../../../../shared/utils/spoiler';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
     impostorData: ImpostorData;
@@ -25,7 +26,7 @@ const secretWord = computed(() => localImpostorRole.value?.word ?? null);
 const impostorAllies = computed(() => {
     if (!isImpostor.value || !localImpostorRole.value) return [];
     return (localImpostorRole.value.allies)
-        .map(id => props.players.find(p => p.id === id)?.name || 'Desconocido');
+        .map(id => props.players.find(p => p.id === id)?.name || t('impostorTyping.unknown'));
 });
 
 const isLocked = computed(() => {
@@ -40,6 +41,7 @@ const spoilerDetected = computed(() => {
 });
 
 const { debouncedUpdateImpostorDraft, confirmImpostorWord, localImpostorRole } = useGame();
+const { t } = useI18n();
 
 // [P12] Live Drafts: enviar borrador al escribir
 watch(inputWord, (newWord) => {
@@ -95,12 +97,12 @@ const handleInputFocus = (event: Event) => {
         <!-- HEADER: Timer & Info -->
         <div class="w-full flex justify-between items-start mb-4 max-w-4xl">
             <div class="bg-panel-card border-2 border-white/10 px-6 py-3 rounded-3xl backdrop-blur-md shadow-sm">
-                <span class="text-[10px] text-ink-muted uppercase tracking-widest block font-black mb-1">Categoría</span>
+                <span class="text-[10px] text-ink-muted uppercase tracking-widest block font-black mb-1">{{ t('impostorTyping.category') }}</span>
                 <span class="text-xl text-ink-main font-black">{{ impostorData.currentCategoryName }}</span>
             </div>
             
             <div class="bg-panel-card border-2 border-white/10 px-6 py-2 rounded-3xl backdrop-blur-md flex flex-col items-center min-w-[120px] shadow-sm">
-                 <span class="text-[10px] text-ink-muted uppercase tracking-widest font-black mb-1">Tiempo</span>
+                 <span class="text-[10px] text-ink-muted uppercase tracking-widest font-black mb-1">{{ t('impostorTyping.time') }}</span>
                  <span class="text-3xl font-mono font-black border bg-panel-input px-2 rounded-lg leading-none" :class="timerColor">{{ Math.max(0, timeRemaining) }}</span>
             </div>
         </div>
@@ -109,8 +111,8 @@ const handleInputFocus = (event: Event) => {
         <div v-if="isDead && !isSpectator" class="w-full max-w-4xl mb-6 bg-panel-input/60 border-4 border-white/10 rounded-3xl px-6 py-4 backdrop-blur-md flex items-center justify-center gap-3 shadow-inner">
             <span class="text-4xl animate-bounce drop-shadow-sm">💀</span>
             <div class="text-center">
-                <span class="text-ink-muted font-black text-sm uppercase tracking-widest block">Eres un Fantasma</span>
-                <span class="text-ink-muted/70 text-xs text-left font-bold">Observa el caos. Tus acciones ya no afectan este mundo.</span>
+                <span class="text-ink-muted font-black text-sm uppercase tracking-widest block">{{ t('impostorTyping.ghostTitle') }}</span>
+                <span class="text-ink-muted/70 text-xs text-left font-bold">{{ t('impostorTyping.ghostDesc') }}</span>
             </div>
         </div>
 
@@ -121,12 +123,12 @@ const handleInputFocus = (event: Event) => {
                 <div class="flex items-center gap-3">
                     <span class="text-3xl drop-shadow-sm">🤫</span>
                     <div>
-                        <span class="text-action-error font-black text-sm md:text-base uppercase tracking-widest block text-left">Eres Impostor</span>
-                        <span class="text-ink-muted text-sm font-bold ml-2" v-if="!isDead">Categoría: <strong class="text-action-error font-black">{{ impostorData.currentCategoryName }}</strong></span>
+                        <span class="text-action-error font-black text-sm md:text-base uppercase tracking-widest block text-left">{{ t('impostorTyping.impostorTitle') }}</span>
+                        <span class="text-ink-muted text-sm font-bold ml-2" v-if="!isDead">{{ t('impostorTyping.categoryLabel') }} <strong class="text-action-error font-black">{{ impostorData.currentCategoryName }}</strong></span>
                     </div>
                 </div>
                 <div v-if="impostorAllies.length > 0" class="flex flex-col items-end">
-                    <span class="text-[10px] font-black text-ink-muted uppercase tracking-widest">Tus aliados</span>
+                    <span class="text-[10px] font-black text-ink-muted uppercase tracking-widest">{{ t('impostorTyping.allies') }}</span>
                     <span class="text-action-error font-black text-sm">{{ impostorAllies.join(', ') }}</span>
                 </div>
             </div>
@@ -134,8 +136,8 @@ const handleInputFocus = (event: Event) => {
                  class="bg-tuti-teal/10 border-[3px] border-tuti-teal/30 rounded-3xl px-6 py-3 backdrop-blur-md flex items-center gap-3 shadow-sm">
                 <span class="text-3xl drop-shadow-sm">💡</span>
                 <div>
-                    <span class="text-tuti-teal font-black text-sm md:text-base uppercase tracking-widest text-left block">Eres Tripulante</span>
-                    <span class="text-ink-muted text-sm font-bold ml-2" v-if="!isDead">La palabra es: <strong class="text-tuti-teal font-black">{{ secretWord }}</strong></span>
+                    <span class="text-tuti-teal font-black text-sm md:text-base uppercase tracking-widest text-left block">{{ t('impostorTyping.crewTitle') }}</span>
+                    <span class="text-ink-muted text-sm font-bold ml-2" v-if="!isDead">{{ t('impostorTyping.wordIs') }} <strong class="text-tuti-teal font-black">{{ secretWord }}</strong></span>
                 </div>
             </div>
         </div>
@@ -143,7 +145,7 @@ const handleInputFocus = (event: Event) => {
         <!-- CENTER: Main Input Area -->
         <div class="flex-1 w-full flex flex-col justify-center items-center max-w-2xl px-4">
             <h2 class="text-2xl md:text-3xl text-ink-main font-black uppercase tracking-widest text-center mb-8 drop-shadow-sm">
-                Escribe una palabra que te camufle...
+                {{ t('impostorTyping.typeWord') }}
             </h2>
             
             <form v-if="!isSpectator" @submit.prevent="confirmWord" class="w-full relative group">
@@ -151,7 +153,7 @@ const handleInputFocus = (event: Event) => {
                     type="text" 
                     v-model="inputWord"
                     :disabled="isLocked"
-                    placeholder="Tu palabra aquí..."
+                    :placeholder="t('impostorTyping.placeholder')"
                     class="w-full bg-panel-input border-[4px] text-center text-4xl py-6 px-12 rounded-[2.5rem] backdrop-blur-xl focus:outline-none transition-all font-black shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
                     :class="[
                         spoilerDetected 
@@ -181,26 +183,26 @@ const handleInputFocus = (event: Event) => {
                 </button>
             </form>
             <div v-else class="w-full text-center py-6 text-action-primary animate-pulse text-lg font-black uppercase tracking-widest bg-panel-input/50 rounded-full border border-action-primary/30">
-                <span class="text-xl">👀</span> Los jugadores están escribiendo...
+                <span class="text-xl">👀</span> {{ t('impostorTyping.playersTyping') }}
             </div>
 
             <!-- [P12] Anti-Spoiler Feedback Msg -->
             <p v-if="spoilerDetected && !hasConfirmed" class="mt-4 text-action-error font-black uppercase tracking-widest animate-pulse text-sm text-center px-4 drop-shadow-md">
-                🚨 Peligro: Tu palabra revela la categoría secreta. ¡Cámbiala!
+                {{ t('impostorTyping.spoilerWarning') }}
             </p>
             
             <p v-else-if="hasConfirmed" class="mt-6 text-tuti-teal font-black uppercase tracking-widest text-sm">
-                ¡Estás Listo! Esperando al resto...
+                {{ t('impostorTyping.readyWaiting') }}
             </p>
             <p v-else-if="timeRemaining <= 0" class="mt-6 text-action-error font-black uppercase tracking-widest text-sm">
-                ¡Tiempo agotado!
+                {{ t('impostorTyping.timeUp') }}
             </p>
         </div>
 
         <!-- BOTTOM: Social Grid (Feedback visual) -->
 
         <div class="w-full max-w-4xl mt-auto pb-4 pt-12">
-            <h3 class="text-[10px] uppercase tracking-[0.2em] text-ink-muted font-black text-center mb-6">Estado de la Tripulación</h3>
+            <h3 class="text-[10px] uppercase tracking-[0.2em] text-ink-muted font-black text-center mb-6">{{ t('impostorTyping.crewStatus') }}</h3>
             
             <div class="flex flex-wrap justify-center gap-6">
                 <div v-for="player in activePlayers" :key="player.id" 
@@ -214,7 +216,7 @@ const handleInputFocus = (event: Event) => {
                             <span class="text-2xl drop-shadow-md">💀</span>
                         </div>
                     </div>
-                    <span class="text-xs text-ink-soft mt-2 font-black uppercase tracking-wider max-w-[80px] truncate bg-panel-input/60 px-2 py-0.5 rounded-full border border-white/10">{{ player.id === myUserId ? 'Tú' : player.name }}</span>
+                    <span class="text-xs text-ink-soft mt-2 font-black uppercase tracking-wider max-w-[80px] truncate bg-panel-input/60 px-2 py-0.5 rounded-full border border-white/10">{{ player.id === myUserId ? t('impostorTyping.you') : player.name }}</span>
                     
                     <!-- Checkmark Badge for submitted word -->
                     <div v-if="!isPlayerDead(player.id) && hasPlayerTypingCompleted(player.id)" 

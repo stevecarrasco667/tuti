@@ -8,6 +8,7 @@ import ReactionBar from '../ReactionBar.vue';
 import { useReactions } from '../../../composables/useReactions';
 import { useSocket } from '../../../composables/useSocket';
 import { EVENTS } from '../../../../shared/consts';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
     impostorData: ImpostorData;
@@ -22,6 +23,7 @@ const { toggleVote, localImpostorRole } = useGame();
 const { playClick } = useSound();
 const { getCountsForTarget, getBurstsForTarget } = useReactions();
 const { socket } = useSocket();
+const { t } = useI18n();
 
 const sendReaction = (targetPlayerId: string, categoryId: string, emoji: string) => {
     // NO predicción optimista: el servidor brodcastea de vuelta al emisor,
@@ -93,11 +95,11 @@ const votingProgress = computed(() =>
                 <!-- Title -->
                 <div class="text-center">
                     <h2 class="text-xl md:text-2xl font-black text-ink-main tracking-widest uppercase drop-shadow-sm">
-                        🔎 El Tribunal
+                        {{ t('impostorVoting.title') }}
                     </h2>
                     <!-- Only visible on desktop -->
                     <p class="hidden md:block text-ink-muted text-[11px] font-black uppercase tracking-widest bg-white/40 border border-white/50 px-3 py-0.5 rounded-full w-fit mx-auto mt-1">
-                        Analiza las evidencias y acusa al impostor.
+                        {{ t('impostorVoting.subtitle') }}
                     </p>
                 </div>
             </div>
@@ -108,9 +110,9 @@ const votingProgress = computed(() =>
                      class="bg-action-error/10 border-[2px] border-action-error/30 rounded-2xl px-4 py-2 backdrop-blur-md flex items-center gap-2 shadow-sm">
                     <span class="text-xl flex-none">⚠️</span>
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-action-error font-black text-xs uppercase tracking-widest">Impostor</span>
+                        <span class="text-action-error font-black text-xs uppercase tracking-widest">{{ t('impostorVoting.impostor') }}</span>
                         <span v-if="!isDead" class="text-ink-muted text-xs font-bold">·
-                            Categoría: <strong class="text-action-error font-black">{{ impostorData.currentCategoryName }}</strong>
+                            {{ t('impostorTyping.categoryLabel') }} <strong class="text-action-error font-black">{{ impostorData.currentCategoryName }}</strong>
                         </span>
                     </div>
                 </div>
@@ -118,9 +120,9 @@ const votingProgress = computed(() =>
                      class="bg-tuti-teal/10 border-[2px] border-tuti-teal/30 rounded-2xl px-4 py-2 backdrop-blur-md flex items-center gap-2 shadow-sm">
                     <span class="text-xl flex-none">💡</span>
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-tuti-teal font-black text-xs uppercase tracking-widest">Tripulante</span>
+                        <span class="text-tuti-teal font-black text-xs uppercase tracking-widest">{{ t('impostorVoting.crew') }}</span>
                         <span v-if="!isDead" class="text-ink-muted text-xs font-bold">·
-                            La palabra es: <strong class="text-tuti-teal font-black">{{ secretWord }}</strong>
+                            {{ t('impostorTyping.wordIs') }} <strong class="text-tuti-teal font-black">{{ secretWord }}</strong>
                         </span>
                     </div>
                 </div>
@@ -128,7 +130,7 @@ const votingProgress = computed(() =>
             <!-- Spectator Passive Banner -->
             <div v-else class="w-full bg-panel-input/60 border border-white/10 rounded-2xl px-4 py-2 flex items-center justify-center gap-2 shadow-sm">
                 <span class="text-xl animate-pulse">👀</span>
-                <span class="text-action-primary font-black text-[10px] md:text-xs uppercase tracking-widest text-center">Analizando el Tribunal...</span>
+                <span class="text-action-primary font-black text-[10px] md:text-xs uppercase tracking-widest text-center">{{ t('impostorVoting.spectating') }}</span>
             </div>
 
             <!-- Phase 6: Voting Progress Bar -->
@@ -138,14 +140,14 @@ const votingProgress = computed(() =>
                          :style="{ width: votingProgress + '%' }"></div>
                 </div>
                 <span class="text-[10px] font-black text-ink-muted uppercase tracking-widest whitespace-nowrap flex-none">
-                    {{ votesCast }}/{{ totalVoters }} votaron
+                    {{ t('impostorVoting.voted', { votesCast, totalVoters }) }}
                 </span>
             </div>
 
             <!-- Ghost banner -->
             <div v-if="isDead && !isSpectator" class="mt-2 bg-panel-input/60 border-2 border-white/10 rounded-2xl px-4 py-2 flex items-center gap-2 shadow-inner">
                 <span class="text-2xl">💀</span>
-                <span class="text-ink-muted font-black text-xs uppercase tracking-widest">Eres un fantasma — observa en silencio.</span>
+                <span class="text-ink-muted font-black text-xs uppercase tracking-widest">{{ t('impostorVoting.ghostSilent') }}</span>
             </div>
         </div>
 
@@ -184,7 +186,7 @@ const votingProgress = computed(() =>
                                 </span>
                                 <!-- "YO" badge for self -->
                                 <span v-if="s.isMe" class="text-[9px] font-black bg-white/20 text-ink-muted px-1.5 py-0.5 rounded-full uppercase tracking-widest">
-                                    YO
+                                    {{ t('impostorVoting.me') }}
                                 </span>
                             </div>
 
@@ -213,7 +215,7 @@ const votingProgress = computed(() =>
                             </span>
                             <span v-else class="text-ink-muted/60 font-bold italic"
                                   :class="isCompact ? 'text-[10px]' : 'text-xs'">
-                                ⏳ Pensando...
+                                {{ t('impostorVoting.thinking') }}
                             </span>
 
                             <!-- Burst de animación de reacciones (posición fija en datos) -->
@@ -265,7 +267,7 @@ const votingProgress = computed(() =>
                                       s.isSelectedByMe ? 'text-action-primary' : 'text-ink-soft',
                                       isCompact ? 'text-[9px]' : 'text-[11px] md:text-xs'
                                   ]">
-                                Acusar
+                                {{ t('impostorVoting.accuse') }}
                             </span>
 
                             <!-- Toggle visual — flex-shrink-0 so it never compresses -->
@@ -294,7 +296,7 @@ const votingProgress = computed(() =>
                         <span class="text-action-warning mr-1 drop-shadow-sm" :class="isCompact ? 'text-xs' : 'text-sm'">🔥</span>
                         <span class="font-black text-ink-soft uppercase tracking-widest"
                               :class="isCompact ? 'text-[9px]' : 'text-[10px] md:text-xs'">
-                            {{ s.currentVotes }} {{ s.currentVotes === 1 ? 'voto' : 'votos' }}
+                            {{ s.currentVotes }} {{ s.currentVotes === 1 ? t('impostorVoting.vote') : t('impostorVoting.votes') }}
                         </span>
                     </div>
 

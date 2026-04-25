@@ -6,6 +6,9 @@ defineProps<{
     timeLeft: number | null;
     timerColor: string;
 }>();
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 defineEmits<{
     (e: 'exit'): void;
@@ -18,14 +21,14 @@ defineEmits<{
         <!-- Left: Exit & Round -->
         <div class="flex items-center gap-4">
             <!-- Exit Button -->
-            <button @click="$emit('exit')" class="text-white/60 hover:text-white transition-colors p-1" title="Salir">
+            <button @click="$emit('exit')" class="text-white/60 hover:text-white transition-colors p-1" :title="t('gameHUD.exit')">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
                 </svg>
             </button>
 
             <div class="flex flex-col">
-                <span class="text-[10px] uppercase font-bold text-ink-muted tracking-widest">Ronda</span>
+                <span class="text-[10px] uppercase font-bold text-ink-muted tracking-widest">{{ t('gameHUD.round') }}</span>
                 <span class="text-xl font-black text-ink-main leading-none">
                     {{ round }}<span class="text-xs text-ink-soft ml-0.5">/{{ totalRounds }}</span>
                 </span>

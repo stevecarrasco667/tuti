@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import TButton from './TButton.vue';
+import { useI18n } from 'vue-i18n';
 
 const STORAGE_KEY = 'tuti-privacy-accepted';
 const isVisible = ref(false);
+const { t } = useI18n();
 
 onMounted(() => {
     if (typeof localStorage !== 'undefined') {
@@ -29,15 +31,13 @@ const acceptPrivacy = () => {
                 <div class="flex-1 flex items-start gap-4">
                     <span class="text-3xl hidden sm:block">🍪</span>
                     <div>
-                        <h4 class="text-white font-black uppercase tracking-widest text-sm mb-1">Tu Privacidad</h4>
-                        <p class="text-ink-muted text-xs md:text-sm font-bold leading-relaxed">
-                            Utilizamos almacenamiento local (LocalStorage) exclusivamente para mantener tu sesión activa y guardar tu avatar/nombre de forma temporal. <strong>No usamos cookies de rastreo ni publicidad de terceros.</strong>
-                        </p>
+                        <h4 class="text-white font-black uppercase tracking-widest text-sm mb-1">{{ t('privacyBanner.title') }}</h4>
+                        <p class="text-ink-muted text-xs md:text-sm font-bold leading-relaxed" v-html="t('privacyBanner.text')"></p>
                     </div>
                 </div>
                 <div class="flex-none w-full md:w-auto">
                     <TButton variant="primary" class="w-full md:w-auto text-sm" @click="acceptPrivacy">
-                        Entendido
+                        {{ t('privacyBanner.close') }}
                     </TButton>
                 </div>
             </div>
