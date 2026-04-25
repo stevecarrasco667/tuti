@@ -4,14 +4,18 @@ export type SupportedLanguage = 'es' | 'en' | 'pt';
 
 // Load default language from localStorage or navigator
 export function detectLanguage(): SupportedLanguage {
-    const cached = localStorage.getItem('tuti-lang');
-    if (cached === 'es' || cached === 'en' || cached === 'pt') {
-        return cached;
+    if (typeof localStorage !== 'undefined') {
+        const cached = localStorage.getItem('tuti-lang');
+        if (cached === 'es' || cached === 'en' || cached === 'pt') {
+            return cached;
+        }
     }
 
-    const navLang = navigator.language.toLowerCase();
-    if (navLang.startsWith('es')) return 'es';
-    if (navLang.startsWith('pt')) return 'pt';
+    if (typeof navigator !== 'undefined') {
+        const navLang = navigator.language.toLowerCase();
+        if (navLang.startsWith('es')) return 'es';
+        if (navLang.startsWith('pt')) return 'pt';
+    }
 
     // Fallback to English for any other language
     return 'en';
@@ -43,8 +47,10 @@ export async function setLanguage(lang: SupportedLanguage) {
     }
 
     i18n.global.locale.value = lang;
-    localStorage.setItem('tuti-lang', lang);
-    document.querySelector('html')?.setAttribute('lang', lang);
+    if (typeof window !== 'undefined') {
+        localStorage.setItem('tuti-lang', lang);
+        document.querySelector('html')?.setAttribute('lang', lang);
+    }
 }
 
 // Eagerly load the detected language at module initialisation.

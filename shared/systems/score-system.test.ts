@@ -22,12 +22,16 @@ describe('ScoreSystem', () => {
         // Basic RoomState setup
         mockState = {
             status: 'REVIEW',
+            config: { lang: 'es' },
             players: [
                 { id: 'p1', name: 'Alice', score: 0, isConnected: true } as Player,
                 { id: 'p2', name: 'Bob', score: 0, isConnected: true } as Player,
                 { id: 'p3', name: 'Charlie', score: 0, isConnected: true } as Player,
             ],
-            categories: [{ name: 'Nombres', icon: '' }, { name: 'Colores', icon: '' }],
+            categories: [
+                { id: 'cat-nombres', name: 'Nombres', icon: '' },
+                { id: 'cat-colores', name: 'Colores', icon: '' }
+            ],
             answers: {},
             votes: {},
             answerStatuses: {},
@@ -114,8 +118,9 @@ describe('ScoreSystem', () => {
     it('should skip voting invalidation if answer is auto-validated (VALID_AUTO)', () => {
         // Mock that 'América' is auto-validated in 'Nombres'
         const dictManager = mockValidation.getDictionaryManager();
-        (dictManager.hasExact as any).mockImplementation((cat: string, word: string) => {
-            return cat === 'Nombres' && word === 'América';
+        // New 3-arg signature: hasExact(lang, categoryId, word)
+        (dictManager.hasExact as any).mockImplementation((lang: string, catId: string, word: string) => {
+            return catId === 'cat-nombres' && word === 'América';
         });
 
         mockState.answers = {
