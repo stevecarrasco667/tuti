@@ -16,6 +16,7 @@ export class ScoreSystem {
     public calculate(state: RoomState): void {
         state.status = 'RESULTS';
         const totalPlayers = state.players.length;
+        const lang = state.config?.lang || 'es';
 
         // Initialize structures
         state.answerStatuses = {};
@@ -43,7 +44,7 @@ export class ScoreSystem {
                 }
 
                 // Check auto-validation (Escudo Dorado 🛡️ — immune to voting)
-                const isAutoValidated = this.validation.getDictionaryManager().hasExact(catName, rawAnswer);
+                const isAutoValidated = this.validation.getDictionaryManager().hasExact(lang, category.id, rawAnswer);
 
                 // Check voting (Invalidation) — skip for auto-validated answers
                 if (!isAutoValidated) {
