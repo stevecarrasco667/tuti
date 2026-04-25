@@ -119,7 +119,7 @@ describe('ScoreSystem', () => {
         // Mock that 'América' is auto-validated in 'Nombres'
         const dictManager = mockValidation.getDictionaryManager();
         // New 3-arg signature: hasExact(lang, categoryId, word)
-        (dictManager.hasExact as any).mockImplementation((lang: string, catId: string, word: string) => {
+        (dictManager.hasExact as any).mockImplementation((_lang: string, catId: string, word: string) => {
             return catId === 'cat-nombres' && word === 'América';
         });
 
