@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useRegisterSW } from 'virtual:pwa-register/vue';
 import { useGame } from './composables/useGame';
 import { useSound } from './composables/useSound';
 import { useToast } from './composables/useToast';
@@ -11,6 +12,32 @@ const { gameState, myUserId, leaveGame, isConnected } = useGame();
 const { isMuted, toggleMute } = useSound();
 const { toasts, addToast } = useToast();
 const router = useRouter();
+
+// ─── Auto-Update Service Worker (Opción A: Silenciosa) ────────────────────────
+// Cuando el SW detecta una nueva versión, recarga automáticamente SOLO si el
+// usuario está en la pantalla de inicio (no en medio de una partida).
+// Si está jugando, el nuevo SW queda instalado y activa en la próxima visita a /.
+useRegisterSW({
+    onRegisteredSW(_scriptUrl: string, registration: ServiceWorkerRegistration | undefined) {
+        // Revisar actualizaciones cada 60 segundos (útil cuando la pestaña queda abierta)
+        if (registration) {
+            setInterval(() => {
+                registration.update();
+            }, 60 * 1000);
+        }
+    },
+    onNeedRefresh() {
+        const isHome = router.currentRoute.value.path === '/';
+        const isInGame = gameState.value.status !== 'LOBBY';
+
+        if (isHome && !isInGame) {
+            // Usuario en home y sin partida activa → recargar silenciosamente
+            window.location.reload();
+        }
+        // Si está en juego, el nuevo SW ya está instalado.
+        // Tomará control automáticamente la próxima vez que naveguen a /.
+    },
+});
 
 // Detectar jugador kickeado — solo en LOBBY para evitar falsos positivos durante
 // la transición de fase LOBBY → GAME donde el array de jugadores puede fluctuar.
