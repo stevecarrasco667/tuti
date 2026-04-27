@@ -1,5 +1,6 @@
 {
     "home": {
+        "available": "Disponible",
         "slogan": "El juego de palabras más rápido",
         "activeRooms": "{count} sala activa | {count} salas activas",
         "publicRoom": "Sala Pública",
@@ -134,10 +135,16 @@
         "closeModal": "Cerrar modal"
     },
     "system": {
+        "kicked": "Has sido expulsado de la sala por el anfitrión.",
+        "nowHost": "👑 ¡Ahora eres el Anfitrión!",
+        "invalidCode": "Código de sala inválido",
         "PLAYER_JOINED": "👥 {name} se unió a la sala",
         "PLAYER_LEFT": "🚪 {name} abandonó la sala",
         "roomDead": "👋 La sala ha sido cerrada. ¡Hasta la próxima!",
-        "spoilerBlocked": "[Mensaje bloqueado por seguridad 🛡️]"
+        "spoilerBlocked": "[Mensaje bloqueado por seguridad 🛡️]",
+        "roomExpired": "La sala anterior ha caducado. ¡Hemos preparado una nueva con los mismos ajustes para ti! 🎮",
+        "roomPurged": "Esta sala fue eliminada por inactividad prolongada.",
+        "connectionFailed": "No se pudo conectar a la sala. Verifica tu conexión a internet."
     },
     "gameHUD": {
         "exit": "Salir",
@@ -320,5 +327,93 @@
         "cls-7": "Fruta/Verdura",
         "cls-8": "Cosa",
         "cls-9": "Profesión"
+    },
+    "tutorial": {
+        "classicTitle": "TUTI CLÁSICO",
+        "impostorTitle": "MODO IMPOSTOR",
+        "title": "Tutorial",
+        "back": "< Atrás",
+        "ready": "¡Listo!",
+        "next": "Siguiente >",
+        "classicSteps": [
+            "Se elige una letra al azar. Deberás escribir una palabra que empiece con esa letra para cada categoría.",
+            "El primero en completar su lista toca 'Tuti' y el contador baja a 10 segundos para el resto.",
+            "¡Votación! El grupo decide si las respuestas raras o cuestionables de los demás son válidas."
+        ],
+        "impostorSteps": [
+            "Todos reciben la misma categoría secreta para escribir algo relacionado... menos el Impostor.",
+            "Si eres Impostor: Lee o observa lo que escriben los demás y disimula. Si eres Tripulante: Escribe una pista sin dejarla tan fácil.",
+            "Tribunal Final. Debaten y votan por quién creen que es el impostor. ¡Ojo con las mentiras!"
+        ]
+    },
+    "titles": {
+        "king": {
+            "name": "El Rey",
+            "desc": "Máxima puntuación de la partida."
+        },
+        "loser": {
+            "name": "Última Salida",
+            "desc": "La puntuación más baja de la sala."
+        },
+        "impostor": {
+            "name": "Impostor",
+            "desc": "El maestro del engaño."
+        },
+        "detective": {
+            "name": "Detective",
+            "desc": "Acertó su voto al Impostor."
+        },
+        "accomplice": {
+            "name": "Cómplice",
+            "desc": "Votó junto al impostor."
+        },
+        "suspect": {
+            "name": "Sospechoso",
+            "desc": "Inocente pero acumuló votos."
+        },
+        "poet": {
+            "name": "El Poeta",
+            "desc": "Respuestas más largas de la sala."
+        },
+        "original": {
+            "name": "Único",
+            "desc": "Nadie duplicó sus respuestas."
+        },
+        "fast": {
+            "name": "El Rápido",
+            "desc": "El primero en presionar Tuti."
+        }
+    },
+    "impostorReveal": {
+        "category": "Categoría",
+        "areImpostors": "Son los Impostores",
+        "areImpostor": "Eres el Impostor",
+        "areCrewmate": "Eres un Tripulante",
+        "missionSurvive": "Tu misión es sobrevivir y engañar.",
+        "missionFind": "Encuentra al mentiroso.",
+        "bluff": "No conoces la palabra. ¡Blufea!",
+        "allies": "Aliados: {count}",
+        "secretWordIs": "La palabra secreta es:"
+    },
+    "impostorLastWish": {
+        "title": "Último Deseo",
+        "theImpostor": "El Impostor",
+        "wasCaught": "ha sido atrapado",
+        "whatWasSecret": "¿Cuál era la",
+        "secretWord": "PALABRA SECRETA",
+        "oneChance": "Tienes una oportunidad. Si fallas, pierdes.",
+        "inputPlaceholder": "Escribe la palabra...",
+        "waiting": "⏳ Esperando...",
+        "guess": "🎯 Adivinar",
+        "guessing": "El impostor intenta adivinar la palabra...",
+        "stealVictory": "Si acierta, robará la victoria.",
+        "liveTransmission": "Transmisión en tiempo real"
+    },
+    "app": {
+        "reconnecting": "Reconectando al servidor...",
+        "connecting": "Conectando a la sala",
+        "preparingGame": "Preparando partida...",
+        "muteSound": "Silenciar Sonido",
+        "unmuteSound": "Activar Sonido"
     }
 }

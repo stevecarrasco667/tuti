@@ -4,6 +4,7 @@ import HomeView from '../components/HomeView.vue';
 import { useSocket, pendingRoomExpiredConfig } from '../composables/useSocket';
 import { useGameState } from '../composables/useGameState';
 import { useToast } from '../composables/useToast';
+import { i18n } from '../i18n';
 import { generateRoomId } from '../utils/random';
 import { EVENTS } from '../../shared/consts';
 
@@ -146,7 +147,7 @@ router.beforeEach(async (to, _from, next) => {
                 }, 1500);
             }
 
-            addToast('La sala anterior ha caducado. ¡Hemos preparado una nueva con los mismos ajustes para ti! 🎮', 'success');
+            addToast(i18n.global.t('system.roomExpired'), 'success');
 
             // Navegar al nuevo lobby de forma optimista
             next(`/lobby/${newRoomId}`);
@@ -157,7 +158,7 @@ router.beforeEach(async (to, _from, next) => {
         if (errMsg === 'ROOM_DEAD') {
             console.info('[ColdStart] Sala purgada definitivamente.');
             disconnectIntentionally();
-            addToast('Esta sala fue eliminada por inactividad prolongada.', 'info');
+            addToast(i18n.global.t('system.roomPurged'), 'info');
             next('/');
             return;
         }
@@ -165,7 +166,7 @@ router.beforeEach(async (to, _from, next) => {
         // La sala no existe, el servidor no responde, o la red es muy lenta.
         // Redirigimos al Home con un Toast de error para no dejar al usuario atrapado.
         console.error('[ColdStart] Bootstrap falló:', err);
-        addToast('No se pudo conectar a la sala. Verifica tu conexión a internet.', 'error');
+        addToast(i18n.global.t('system.connectionFailed'), 'error');
         next('/');
     }
 });

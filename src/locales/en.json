@@ -1,5 +1,6 @@
 {
     "home": {
+        "available": "Available",
         "slogan": "The fastest word game",
         "activeRooms": "{count} active room | {count} active rooms",
         "publicRoom": "Public Room",
@@ -134,10 +135,16 @@
         "closeModal": "Close modal"
     },
     "system": {
+        "kicked": "You have been kicked by the host.",
+        "nowHost": "👑 You are now the Host!",
+        "invalidCode": "Invalid room code",
         "PLAYER_JOINED": "👥 {name} joined the room",
         "PLAYER_LEFT": "🚪 {name} left the room",
         "roomDead": "👋 The room has been closed. See you next time!",
-        "spoilerBlocked": "[Message blocked for safety 🛡️]"
+        "spoilerBlocked": "[Message blocked for safety 🛡️]",
+        "roomExpired": "The previous room expired. We prepared a new one with the same settings for you! 🎮",
+        "roomPurged": "This room was removed due to prolonged inactivity.",
+        "connectionFailed": "Failed to connect. Check your internet connection."
     },
     "gameHUD": {
         "exit": "Exit",
@@ -320,5 +327,93 @@
         "cls-7": "Fruit/Vegetable",
         "cls-8": "Thing",
         "cls-9": "Profession"
+    },
+    "tutorial": {
+        "classicTitle": "CLASSIC TUTI",
+        "impostorTitle": "IMPOSTOR MODE",
+        "title": "Tutorial",
+        "back": "< Back",
+        "ready": "Ready!",
+        "next": "Next >",
+        "classicSteps": [
+            "A random letter is chosen. Write a word starting with that letter for each category.",
+            "The first to finish taps 'Tuti' and the countdown drops to 10 seconds.",
+            "Voting! The group decides if questionable answers are valid."
+        ],
+        "impostorSteps": [
+            "Everyone gets a secret category to write about... except the Impostor.",
+            "If Impostor: Read others and bluff. If Crewmate: Give a clue but not too obvious.",
+            "Final Tribunal. Debate and vote for the impostor. Watch out for lies!"
+        ]
+    },
+    "titles": {
+        "king": {
+            "name": "The King",
+            "desc": "Highest score in the match."
+        },
+        "loser": {
+            "name": "Last Place",
+            "desc": "Lowest score in the room."
+        },
+        "impostor": {
+            "name": "Impostor",
+            "desc": "Master of deception."
+        },
+        "detective": {
+            "name": "Detective",
+            "desc": "Successfully voted out the Impostor."
+        },
+        "accomplice": {
+            "name": "Accomplice",
+            "desc": "Voted alongside the Impostor."
+        },
+        "suspect": {
+            "name": "Suspect",
+            "desc": "Innocent but got votes."
+        },
+        "poet": {
+            "name": "The Poet",
+            "desc": "Longest answers in the room."
+        },
+        "original": {
+            "name": "Unique",
+            "desc": "No duplicated answers."
+        },
+        "fast": {
+            "name": "The Flash",
+            "desc": "First to tap Tuti."
+        }
+    },
+    "impostorReveal": {
+        "category": "Category",
+        "areImpostors": "You are Impostors",
+        "areImpostor": "You are the Impostor",
+        "areCrewmate": "You are a Crewmate",
+        "missionSurvive": "Your mission is to survive and deceive.",
+        "missionFind": "Find the liar.",
+        "bluff": "You don't know the word. Bluff!",
+        "allies": "Allies: {count}",
+        "secretWordIs": "The secret word is:"
+    },
+    "impostorLastWish": {
+        "title": "Last Wish",
+        "theImpostor": "The Impostor",
+        "wasCaught": "has been caught",
+        "whatWasSecret": "What was the",
+        "secretWord": "SECRET WORD",
+        "oneChance": "One chance. Fail and you lose.",
+        "inputPlaceholder": "Type the word...",
+        "waiting": "⏳ Waiting...",
+        "guess": "🎯 Guess",
+        "guessing": "The impostor is guessing the word...",
+        "stealVictory": "If correct, they steal the victory.",
+        "liveTransmission": "Live transmission"
+    },
+    "app": {
+        "reconnecting": "Reconnecting to server...",
+        "connecting": "Connecting to room",
+        "preparingGame": "Preparing match...",
+        "muteSound": "Mute Sound",
+        "unmuteSound": "Unmute Sound"
     }
 }

@@ -1,5 +1,6 @@
 {
     "home": {
+        "available": "Disponível",
         "slogan": "O jogo de palavras mais rápido",
         "activeRooms": "{count} sala ativa | {count} salas ativas",
         "publicRoom": "Sala Pública",
@@ -134,10 +135,16 @@
         "closeModal": "Fechar modal"
     },
     "system": {
+        "kicked": "Você foi expulso pelo anfitrião.",
+        "nowHost": "👑 Agora você é o Anfitrião!",
+        "invalidCode": "Código de sala inválido",
         "PLAYER_JOINED": "👥 {name} entrou na sala",
         "PLAYER_LEFT": "🚪 {name} saiu da sala",
         "roomDead": "👋 A sala foi fechada. Até a próxima!",
-        "spoilerBlocked": "[Mensagem bloqueada por segurança 🛡️]"
+        "spoilerBlocked": "[Mensagem bloqueada por segurança 🛡️]",
+        "roomExpired": "A sala expirou. Criamos uma nova com as mesmas configurações para você! 🎮",
+        "roomPurged": "Esta sala foi removida por inatividade.",
+        "connectionFailed": "Falha na conexão. Verifique sua internet."
     },
     "gameHUD": {
         "exit": "Sair",
@@ -320,5 +327,93 @@
         "cls-7": "Fruta/Vegetal",
         "cls-8": "Coisa",
         "cls-9": "Profissão"
+    },
+    "tutorial": {
+        "classicTitle": "TUTI CLÁSSICO",
+        "impostorTitle": "MODO IMPOSTOR",
+        "title": "Tutorial",
+        "back": "< Voltar",
+        "ready": "Pronto!",
+        "next": "Próximo >",
+        "classicSteps": [
+            "Uma letra é escolhida. Escreva uma palavra que comece com ela para cada categoria.",
+            "O primeiro a terminar clica em 'Tuti' e o tempo cai para 10 segundos.",
+            "Votação! O grupo decide se respostas duvidosas são válidas."
+        ],
+        "impostorSteps": [
+            "Todos recebem uma categoria secreta para escrever... menos o Impostor.",
+            "Se Impostor: Leia os outros e disfarce. Se Tripulante: Dê uma pista não tão óbvia.",
+            "Tribunal Final. Debatam e votem no impostor. Cuidado com as mentiras!"
+        ]
+    },
+    "titles": {
+        "king": {
+            "name": "O Rei",
+            "desc": "Maior pontuação da partida."
+        },
+        "loser": {
+            "name": "Último Lugar",
+            "desc": "Menor pontuação da sala."
+        },
+        "impostor": {
+            "name": "Impostor",
+            "desc": "Mestre do engano."
+        },
+        "detective": {
+            "name": "Detetive",
+            "desc": "Acertou o voto no Impostor."
+        },
+        "accomplice": {
+            "name": "Cúmplice",
+            "desc": "Votou junto com o Impostor."
+        },
+        "suspect": {
+            "name": "Suspeito",
+            "desc": "Inocente mas levou votos."
+        },
+        "poet": {
+            "name": "O Poeta",
+            "desc": "Respostas mais longas."
+        },
+        "original": {
+            "name": "Único",
+            "desc": "Sem respostas repetidas."
+        },
+        "fast": {
+            "name": "O Rápido",
+            "desc": "Primeiro a clicar no Tuti."
+        }
+    },
+    "impostorReveal": {
+        "category": "Categoria",
+        "areImpostors": "Vocês são Impostores",
+        "areImpostor": "Você é o Impostor",
+        "areCrewmate": "Você é um Tripulante",
+        "missionSurvive": "Sua missão é sobreviver e enganar.",
+        "missionFind": "Encontre o mentiroso.",
+        "bluff": "Você não sabe a palavra. Disfarce!",
+        "allies": "Aliados: {count}",
+        "secretWordIs": "A palavra secreta é:"
+    },
+    "impostorLastWish": {
+        "title": "Último Desejo",
+        "theImpostor": "O Impostor",
+        "wasCaught": "foi capturado",
+        "whatWasSecret": "Qual era a",
+        "secretWord": "PALAVRA SECRETA",
+        "oneChance": "Uma chance. Erre e perde.",
+        "inputPlaceholder": "Digite a palavra...",
+        "waiting": "⏳ Aguardando...",
+        "guess": "🎯 Adivinhar",
+        "guessing": "O impostor está tentando adivinhar...",
+        "stealVictory": "Se acertar, rouba a vitória.",
+        "liveTransmission": "Transmissão em tempo real"
+    },
+    "app": {
+        "reconnecting": "Reconectando ao servidor...",
+        "connecting": "Conectando à sala",
+        "preparingGame": "Preparando partida...",
+        "muteSound": "Silenciar",
+        "unmuteSound": "Ativar Som"
     }
 }

@@ -5,12 +5,14 @@ import { useRegisterSW } from 'virtual:pwa-register/vue';
 import { useGame } from './composables/useGame';
 import { useSound } from './composables/useSound';
 import { useToast } from './composables/useToast';
+import { useI18n } from 'vue-i18n';
 import { isBootstrapping } from './router/index';
 import ErrorBoundary from './components/ui/ErrorBoundary.vue';
 
 const { gameState, myUserId, leaveGame, isConnected } = useGame();
 const { isMuted, toggleMute } = useSound();
 const { toasts, addToast } = useToast();
+const { t } = useI18n();
 const router = useRouter();
 
 // ─── Auto-Update Service Worker (Opción A: Silenciosa) ────────────────────────
@@ -57,7 +59,7 @@ watch(() => gameState.value.players.map(p => p.id).join(','), () => {
         const enoughTimeElapsed = (Date.now() - joinedAt) > 2000;
 
         if (!stillInGame && wasInGame && newPlayers.length > 0 && enoughTimeElapsed) {
-            addToast('Has sido expulsado de la sala por el anfitrión.', 'error');
+            addToast(t('system.kicked'), 'error');
             leaveGame();
         }
         if (stillInGame) {
@@ -83,8 +85,8 @@ const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
         @click="toggleMute"
         class="fixed z-modal w-12 h-12 flex items-center justify-center rounded-full bg-panel-card/80 border-[3px] border-white/10 text-white shadow-xl backdrop-blur-md transition-all hover:bg-white/20 active:scale-95"
         :class="isGameView() ? 'bottom-[152px] right-4' : 'top-4 right-4'"
-        :title="isMuted ? 'Activar Sonido' : 'Silenciar Sonido'"
-        :aria-label="isMuted ? 'Activar sonido' : 'Silenciar sonido'"
+        :title="isMuted ? t('app.unmuteSound') : t('app.muteSound')"
+        :aria-label="isMuted ? t('app.unmuteSound') : t('app.muteSound')"
     >
         <svg v-if="!isMuted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 opacity-90">
             <path d="M9.348 14.651l-2.853-2.852H4V8.201h2.495l2.853-2.852v9.302zM15.536 10a5.002 5.002 0 00-2.316-4.195v8.39A5.002 5.002 0 0015.536 10z" />
@@ -109,7 +111,7 @@ const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
             </svg>
-            Reconectando al servidor...
+            {{ t('app.reconnecting') }}
         </div>
     </Transition>
     <!-- [Sprint 4 — Cold Start] LOADING OVERLAY GLOBAL -->
@@ -132,10 +134,10 @@ const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
 
             <!-- Texto de estado -->
             <h2 class="text-white font-black text-xl uppercase tracking-[0.2em] mb-2 animate-pulse">
-                Conectando a la sala
+                {{ t('app.connecting') }}
             </h2>
             <p class="text-white/40 text-xs font-bold uppercase tracking-widest">
-                Preparando partida...
+                {{ t('app.preparingGame') }}
             </p>
 
             <!-- Barra de progreso sutil -->

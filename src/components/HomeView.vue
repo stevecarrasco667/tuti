@@ -53,7 +53,7 @@ const handleCreateRoom = (asPublic = false) => {
 
 const handleJoinRoom = () => {
     if (!joinCode.value.trim() || joinCode.value.length !== 4) {
-        addToast('Código de sala inválido', 'error');
+        addToast(t('system.invalidCode'), 'error');
         return;
     }
     joinGame(playerName.value, joinCode.value.toUpperCase(), selectedAvatar.value);
@@ -87,7 +87,7 @@ const getStatusInfo = (room: any) => {
     const inGame = !['LOBBY'].includes(room.status);
     if (!room.joinable) return { label: t('home.full'), color: 'text-red-400 bg-red-400/10 border-red-400/30' };
     if (inGame) return { label: `${t('home.inGame')} · R${room.currentRound}/${room.roundsTotal}`, color: 'text-amber-400 bg-amber-400/10 border-amber-400/30' };
-    return { label: 'Disponible', color: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30' };
+    return { label: t('home.available'), color: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30' };
 };
 
 const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPlayers) * 100);

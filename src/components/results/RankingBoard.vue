@@ -6,7 +6,7 @@ import { useI18n } from 'vue-i18n';
 defineProps<{
     top3: Player[];
     rest: Player[];
-    titleMap: Record<string, { emoji: string; title: string; description: string }>;
+    titleMap: Record<string, { emoji: string; titleId: string }>;
 }>();
 
 const { t } = useI18n();
@@ -27,7 +27,7 @@ const { t } = useI18n();
             </div>
             <span class="text-ink-main font-black text-sm sm:text-base lg:text-lg uppercase tracking-wider truncate w-full text-center px-2 drop-shadow-sm z-10">{{ top3[1].name }}</span>
             <div class="mt-2 text-ink-main font-black text-sm sm:text-base lg:text-lg z-10 bg-white/5 px-3 py-1 lg:py-1.5 rounded-full border border-white/10 shadow-inner">{{ top3[1].score }} pts</div>
-            <span v-if="titleMap[top3[1].id]" class="mt-auto mb-3 lg:mb-4 text-[9px] sm:text-[10px] lg:text-xs font-bold px-2 lg:px-3 py-1 bg-panel-card/80 backdrop-blur-md rounded-full text-white/70 border border-white/10 text-center mx-2 z-10">{{ titleMap[top3[1].id].emoji }} {{ titleMap[top3[1].id].title }}</span>
+            <span v-if="titleMap[top3[1].id]" class="mt-auto mb-3 lg:mb-4 text-[9px] sm:text-[10px] lg:text-xs font-bold px-2 lg:px-3 py-1 bg-panel-card/80 backdrop-blur-md rounded-full text-white/70 border border-white/10 text-center mx-2 z-10">{{ titleMap[top3[1].id].emoji }} {{ t(`titles.${titleMap[top3[1].id].titleId}.name`) }}</span>
         </div>
 
         <!-- 1st -->
@@ -43,7 +43,7 @@ const { t } = useI18n();
             </div>
             <span class="text-white font-black text-base sm:text-lg lg:text-2xl uppercase tracking-widest truncate w-full text-center px-2 drop-shadow-md z-10">{{ top3[0].name }}</span>
             <div class="mt-2 text-panel-base font-black text-lg sm:text-2xl lg:text-3xl z-10 bg-gradient-to-r from-yellow-300 to-yellow-500 px-4 py-1.5 lg:py-2 rounded-full border border-yellow-200 shadow-[0_4px_10px_rgba(250,204,21,0.3)]">{{ top3[0].score }} pts</div>
-            <span v-if="titleMap[top3[0].id]" class="mt-auto mb-4 lg:mb-5 text-[10px] sm:text-xs lg:text-sm font-bold px-3 py-1.5 bg-panel-card/80 backdrop-blur-md rounded-full text-white/90 border border-white/10 text-center mx-2 z-10">{{ titleMap[top3[0].id].emoji }} {{ titleMap[top3[0].id].title }}</span>
+            <span v-if="titleMap[top3[0].id]" class="mt-auto mb-4 lg:mb-5 text-[10px] sm:text-xs lg:text-sm font-bold px-3 py-1.5 bg-panel-card/80 backdrop-blur-md rounded-full text-white/90 border border-white/10 text-center mx-2 z-10">{{ titleMap[top3[0].id].emoji }} {{ t(`titles.${titleMap[top3[0].id].titleId}.name`) }}</span>
         </div>
 
         <!-- 3rd -->
@@ -58,7 +58,7 @@ const { t } = useI18n();
             </div>
             <span class="text-ink-main font-black text-xs sm:text-sm lg:text-base uppercase tracking-wider truncate w-full text-center px-1 drop-shadow-sm z-10">{{ top3[2].name }}</span>
             <div class="mt-1 text-ink-muted font-bold text-xs sm:text-sm lg:text-base z-10 bg-white/5 px-2 lg:px-3 py-0.5 lg:py-1 rounded-full border border-white/5">{{ top3[2].score }} pts</div>
-            <span v-if="titleMap[top3[2].id]" class="mt-auto mb-3 lg:mb-4 text-[8px] sm:text-[9px] lg:text-xs font-bold px-2 py-0.5 lg:py-1 bg-panel-card/80 backdrop-blur-md rounded-full text-white/60 border border-white/5 text-center mx-1 z-10">{{ titleMap[top3[2].id].emoji }} {{ titleMap[top3[2].id].title }}</span>
+            <span v-if="titleMap[top3[2].id]" class="mt-auto mb-3 lg:mb-4 text-[8px] sm:text-[9px] lg:text-xs font-bold px-2 py-0.5 lg:py-1 bg-panel-card/80 backdrop-blur-md rounded-full text-white/60 border border-white/5 text-center mx-1 z-10">{{ titleMap[top3[2].id].emoji }} {{ t(`titles.${titleMap[top3[2].id].titleId}.name`) }}</span>
         </div>
     </div>
 

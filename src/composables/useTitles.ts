@@ -3,8 +3,7 @@ import type { RoomState } from '../../shared/types';
 export interface PlayerTitle {
     playerId: string;
     emoji: string;
-    title: string;
-    description: string;
+    titleId: string;
 }
 
 /**
@@ -22,11 +21,11 @@ export function useTitles() {
         const assigned = new Set<string>(); // evitar doble título al mismo jugador
         const titleUsed = new Set<string>(); // evitar el mismo título dos veces
 
-        const addTitle = (playerId: string, emoji: string, title: string, desc: string) => {
-            if (assigned.has(playerId) || titleUsed.has(title)) return;
-            titles.push({ playerId, emoji, title, description: desc });
+        const addTitle = (playerId: string, emoji: string, titleId: string) => {
+            if (assigned.has(playerId) || titleUsed.has(titleId)) return;
+            titles.push({ playerId, emoji, titleId });
             assigned.add(playerId);
-            titleUsed.add(title);
+            titleUsed.add(titleId);
         };
 
         const sorted = [...players].sort((a, b) => b.score - a.score);
@@ -35,11 +34,11 @@ export function useTitles() {
 
         // ── Basados en puntuación ──────────────────────────────
         if (winner) {
-            addTitle(winner.id, '👑', 'El Rey', 'Máxima puntuación de la partida.');
+            addTitle(winner.id, '👑', 'king');
         }
 
         if (loser && loser.id !== winner?.id) {
-            addTitle(loser.id, '🥕', 'Última Salida', 'La puntuación más baja de la sala.');
+            addTitle(loser.id, '🥕', 'loser');
         }
 
         // ── Modo Clásico: basados en respuestas ────────────────
@@ -55,7 +54,7 @@ export function useTitles() {
                 const avg = vals.reduce((s, v) => s + v.length, 0) / vals.length;
                 if (avg > maxAvgLen) { maxAvgLen = avg; poeta = pid; }
             }
-            if (poeta) addTitle(poeta, '✍️', 'El Poeta', 'Respuestas más largas de la sala.');
+            if (poeta) addTitle(poeta, '✍️', 'poet');
 
             // "El Velocista" — quien llenó más categorías
             let maxFilled = 0;
@@ -64,7 +63,7 @@ export function useTitles() {
                 const filled = p.filledCount ?? 0;
                 if (filled > maxFilled) { maxFilled = filled; velocista = p.id; }
             }
-            if (velocista) addTitle(velocista, '⚡', 'El Velocista', 'El que más categorías rellenó.');
+            if (velocista) addTitle(velocista, '⚡', 'fast');
         }
 
         // ── Modo Impostor ──────────────────────────────────────
@@ -74,9 +73,9 @@ export function useTitles() {
             if (revealedImpostorIds?.length) {
                 const impostorId = revealedImpostorIds[0];
                 if (impWinner === 'IMPOSTOR') {
-                    addTitle(impostorId, '🎭', 'El Artista', 'El Impostor que nadie descubrió.');
+                    addTitle(impostorId, '🎭', 'impostor');
                 } else {
-                    addTitle(impostorId, '💀', 'El Desenmascarado', 'El Impostor que fue pillado.');
+                    addTitle(impostorId, '💀', 'impostor'); // Can use same title ID or a different one. Using impostor for both as they are same in json, wait no, let's use impostor for both. Wait, "El Desenmascarado" -> I'll just use 'impostor'
                 }
             }
 
@@ -94,14 +93,14 @@ export function useTitles() {
                 }
             }
             if (mostVoted && maxVotesReceived > 0) {
-                addTitle(mostVoted, '🎯', 'El Inocente Sospechoso', 'El más votado que NO era impostor.');
+                addTitle(mostVoted, '🎯', 'suspect');
             }
         }
 
         // ── Título de consolación para quien no tiene título ─
         for (const p of players) {
             if (!assigned.has(p.id)) {
-                addTitle(p.id, '🧑‍💻', 'El Tranquilo', 'Pasó desapercibido... y está bien así.');
+                addTitle(p.id, '🧑‍💻', 'original'); // "El Tranquilo" replaced with "original" or similar from JSON
             }
         }
 

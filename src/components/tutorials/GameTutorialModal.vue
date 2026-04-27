@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import TModal from '../ui/TModal.vue';
+
+const { t } = useI18n();
 
 const props = defineProps<{
     modelValue: boolean;
@@ -20,26 +23,26 @@ watch(() => props.modelValue, (isOpen) => {
     }
 });
 
-const tutorialData = {
+const tutorialData = computed(() => ({
     'CLASSIC': {
-        title: 'TUTI CLÁSICO',
+        title: t('tutorial.classicTitle'),
         steps: [
-            { icon: '🔤', text: 'Se elige una letra al azar. Deberás escribir una palabra que empiece con esa letra para cada categoría.' },
-            { icon: '⏱️', text: 'El primero en completar su lista toca "Tuti" y el contador baja a 10 segundos para el resto.' },
-            { icon: '⚖️', text: '¡Votación! El grupo decide si las respuestas raras o cuestionables de los demás son válidas.' }
+            { icon: '🔤', text: t('tutorial.classicSteps[0]') },
+            { icon: '⏱️', text: t('tutorial.classicSteps[1]') },
+            { icon: '⚖️', text: t('tutorial.classicSteps[2]') }
         ]
     },
     'IMPOSTOR': {
-        title: 'MODO IMPOSTOR',
+        title: t('tutorial.impostorTitle'),
         steps: [
-            { icon: '🤫', text: 'Todos reciben la misma categoría secreta para escribir algo relacionado... menos el Impostor.' },
-            { icon: '🎭', text: 'Si eres Impostor: Lee o observa lo que escriben los demás y disimula. Si eres Tripulante: Escribe una pista sin dejarla tan fácil.' },
-            { icon: '🗳️', text: 'Tribunal Final. Debaten y votan por quién creen que es el impostor. ¡Ojo con las mentiras!' }
+            { icon: '🤫', text: t('tutorial.impostorSteps[0]') },
+            { icon: '🎭', text: t('tutorial.impostorSteps[1]') },
+            { icon: '🗳️', text: t('tutorial.impostorSteps[2]') }
         ]
     }
-};
+}));
 
-const currentTutorial = computed(() => props.mode ? tutorialData[props.mode] : null);
+const currentTutorial = computed(() => props.mode ? tutorialData.value[props.mode] : null);
 const maxSteps = computed(() => currentTutorial.value?.steps.length || 0);
 
 const nextStep = () => {
@@ -59,7 +62,7 @@ const prevStep = () => {
     <TModal 
         :model-value="modelValue" 
         @update:model-value="emit('update:modelValue', $event)"
-        :title="currentTutorial?.title || 'Tutorial'"
+        :title="currentTutorial?.title || t('tutorial.title')"
         max-width="sm"
     >
         <div class="relative w-full overflow-hidden">
@@ -97,7 +100,7 @@ const prevStep = () => {
                     class="flex-1 bg-panel-input hover:bg-panel-input/80 border-[3px] border-panel-card text-ink-muted hover:text-white py-3 rounded-xl font-black uppercase text-xs tracking-wider transition-all active:scale-95 disabled:opacity-0"
                     :disabled="step === 0"
                 >
-                    &lt; Atrás
+                    {{ t('tutorial.back') }}
                 </button>
                 <button 
                     @click="nextStep" 
@@ -106,7 +109,7 @@ const prevStep = () => {
                         ? 'bg-action-primary hover:bg-action-primary/90 text-panel-base border-white/20' 
                         : 'bg-white hover:bg-white/90 text-panel-base border-transparent'"
                 >
-                    {{ step === maxSteps - 1 ? '¡Listo!' : 'Siguiente >' }}
+                    {{ step === maxSteps - 1 ? t('tutorial.ready') : t('tutorial.next') }}
                 </button>
             </div>
         </div>

@@ -36,8 +36,8 @@ const iWon = computed(() => sortedPlayers.value[0]?.id === myUserId.value);
 
 const titles = computed(() => assignTitles(gameState.value));
 const titleMap = computed(() => {
-    const m: Record<string, { emoji: string; title: string; description: string }> = {};
-    for (const t of titles.value) m[t.playerId] = t;
+    const m: Record<string, { emoji: string; titleId: string }> = {};
+    for (const t of titles.value) m[t.playerId] = { emoji: t.emoji, titleId: t.titleId };
     return m;
 });
 // Map plano para MatchHighlightsPanel (evita exponer toda la lista de jugadores)

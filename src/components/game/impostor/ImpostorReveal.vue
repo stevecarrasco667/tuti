@@ -40,7 +40,7 @@ const currentCategory = computed(() => {
                 
                 <!-- Category -->
                 <div class="flex-none flex flex-col items-center">
-                    <p class="text-[clamp(0.7rem,1.5vw,1rem)] font-black tracking-[0.4em] text-white/40 uppercase mb-1">Categoría</p>
+                    <p class="text-[clamp(0.7rem,1.5vw,1rem)] font-black tracking-[0.4em] text-white/40 uppercase mb-1">{{ t('impostorReveal.category') }}</p>
                     <span class="text-[clamp(1.5rem,3vw,2.5rem)] font-black tracking-[0.2em] uppercase drop-shadow-sm opacity-90"
                           :class="isImpostor ? 'text-action-error' : 'text-tuti-teal'">
                         {{ currentCategory }}
@@ -50,24 +50,24 @@ const currentCategory = computed(() => {
                 <!-- Título Principal Liquido -->
                 <h1 class="font-black uppercase tracking-tighter leading-[0.9] flex-none w-full text-balance text-[clamp(3.5rem,8vw,8rem)]"
                     :class="isImpostor ? 'text-action-error drop-shadow-[0_0_50px_rgba(239,68,68,0.6)]' : 'text-tuti-teal drop-shadow-[0_0_50px_rgba(106,215,229,0.6)]'">
-                    {{ isImpostor ? (allies > 0 ? 'Son los Impostores' : 'Eres el Impostor') : 'Eres un Tripulante' }}
+                    {{ isImpostor ? (allies > 0 ? t('impostorReveal.areImpostors') : t('impostorReveal.areImpostor')) : t('impostorReveal.areCrewmate') }}
                 </h1>
 
                 <!-- Misión y Secreto -->
                 <div class="flex-none w-full max-w-3xl mx-auto flex flex-col gap-[clamp(0.2rem,1.5dvh,1rem)]">
                     <p class="text-[clamp(1.1rem,2.5vw,2rem)] text-white/80 font-black uppercase tracking-widest leading-tight">
-                        {{ isImpostor ? 'Tu misión es sobrevivir y engañar.' : 'Encuentra al mentiroso.' }}
+                        {{ isImpostor ? t('impostorReveal.missionSurvive') : t('impostorReveal.missionFind') }}
                     </p>
 
                     <div class="font-black mt-1">
                         <template v-if="isImpostor">
-                            <p class="text-[clamp(1rem,2vw,1.5rem)] text-white/50 font-black tracking-widest uppercase mb-1">No conoces la palabra. ¡Blufea!</p>
+                            <p class="text-[clamp(1rem,2vw,1.5rem)] text-white/50 font-black tracking-widest uppercase mb-1">{{ t('impostorReveal.bluff') }}</p>
                             <template v-if="allies > 0">
-                                <span class="text-[clamp(0.9rem,1.5vw,1.25rem)] text-action-error font-black uppercase tracking-widest opacity-80 block mt-1">Aliados: {{ allies }}</span>
+                                <span class="text-[clamp(0.9rem,1.5vw,1.25rem)] text-action-error font-black uppercase tracking-widest opacity-80 block mt-1">{{ t('impostorReveal.allies', { count: allies }) }}</span>
                             </template>
                         </template>
                         <template v-else>
-                            <span class="text-[clamp(0.8rem,1.5vw,1rem)] text-white/40 leading-none block mb-1 uppercase tracking-[0.4em]">La palabra secreta es:</span>
+                            <span class="text-[clamp(0.8rem,1.5vw,1rem)] text-white/40 leading-none block mb-1 uppercase tracking-[0.4em]">{{ t('impostorReveal.secretWordIs') }}</span>
                             <span class="text-white font-black tracking-[0.1em] text-[clamp(3rem,6vw,6rem)] drop-shadow-[0_0_20px_rgba(255,255,255,0.4)] block text-balance leading-none">{{ secretWord }}</span>
                         </template>
                     </div>

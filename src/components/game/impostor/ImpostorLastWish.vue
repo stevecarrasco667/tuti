@@ -5,6 +5,9 @@ import { useGame } from '../../../composables/useGame';
 import { useSocket, lastWishText } from '../../../composables/useSocket';
 import { useSound } from '../../../composables/useSound';
 import { EVENTS } from '../../../../shared/consts';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const { localImpostorRole } = useGame();
 
@@ -69,7 +72,7 @@ const eliminatedPlayer = computed(() =>
                 <!-- Eliminado Info -->
                 <div class="flex-none flex flex-col items-center">
                     <p class="text-[clamp(0.7rem,1.5vw,1rem)] uppercase tracking-[0.4em] text-white/40 font-black mb-1">
-                        {{ eliminatedPlayer?.avatar || '☠️' }} {{ eliminatedPlayer?.name || 'El Impostor' }} ha sido atrapado
+                        {{ eliminatedPlayer?.avatar || '☠️' }} {{ eliminatedPlayer?.name || t('impostorLastWish.theImpostor') }} {{ t('impostorLastWish.wasCaught') }}
                     </p>
                 </div>
 
@@ -77,7 +80,7 @@ const eliminatedPlayer = computed(() =>
                 <div class="flex flex-col items-center flex-none w-full">
                     <span class="text-[clamp(2.5rem,6vw,4rem)] shrink-0 drop-shadow-md">⚰️</span>
                     <h1 class="font-black uppercase tracking-tighter leading-[0.9] text-[clamp(4rem,9vw,8rem)] w-full text-balance text-white drop-shadow-[0_0_50px_rgba(255,255,255,0.6)]">
-                        Último Deseo
+                        {{ t('impostorLastWish.title') }}
                     </h1>
                 </div>
 
@@ -93,9 +96,9 @@ const eliminatedPlayer = computed(() =>
                         <!-- Instrucciones reducidas en altura -->
                         <div class="shrink-0 flex flex-col gap-1">
                             <p class="text-[clamp(1.1rem,2.5vw,2rem)] text-white/80 font-black uppercase tracking-widest leading-tight">
-                                ¿Cuál era la <span class="text-action-error drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]">PALABRA SECRETA</span>?
+                                ¿{{ t('impostorLastWish.whatWasSecret') }} <span class="text-action-error drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]">{{ t('impostorLastWish.secretWord') }}</span>?
                             </p>
-                            <span class="text-[clamp(0.8rem,1.5vw,1rem)] text-white/40 uppercase tracking-[0.2em] font-black">Tienes una oportunidad. Si fallas, pierdes.</span>
+                            <span class="text-[clamp(0.8rem,1.5vw,1rem)] text-white/40 uppercase tracking-[0.2em] font-black">{{ t('impostorLastWish.oneChance') }}</span>
                         </div>
 
                         <!-- Formulario Flex Shrink-0 -->
@@ -104,7 +107,7 @@ const eliminatedPlayer = computed(() =>
                                 v-model="guess"
                                 :disabled="submitted"
                                 type="text"
-                                placeholder="Escribe la palabra..."
+                                :placeholder="t('impostorLastWish.inputPlaceholder')"
                                 maxlength="80"
                                 autofocus
                                 @input="onInput"
@@ -123,7 +126,7 @@ const eliminatedPlayer = computed(() =>
                                     ? 'bg-white/5 border-white/5 text-white/30 cursor-not-allowed'
                                     : 'bg-action-error hover:bg-red-500 border-red-400 text-white shadow-[0_0_40px_rgba(239,68,68,0.5)] cursor-pointer'"
                             >
-                                {{ submitted ? '⏳ Esperando...' : '🎯 Adivinar' }}
+                                {{ submitted ? t('impostorLastWish.waiting') : t('impostorLastWish.guess') }}
                             </button>
                         </div>
                     </div>
@@ -134,9 +137,9 @@ const eliminatedPlayer = computed(() =>
                     <div class="flex-none w-full max-w-3xl mx-auto flex flex-col items-center gap-[clamp(0.5rem,1.5dvh,1rem)] justify-center min-h-0">
                         <div class="shrink-0 flex flex-col gap-1">
                             <p class="text-[clamp(1.2rem,2.5vw,2.5rem)] text-white/80 font-black uppercase tracking-widest leading-tight text-balance">
-                                El impostor intenta adivinar la palabra...
+                                {{ t('impostorLastWish.guessing') }}
                             </p>
-                            <span class="text-[clamp(0.8rem,1.5vw,1rem)] text-white/40 uppercase tracking-[0.2em] font-black">Si acierta, robará la victoria.</span>
+                            <span class="text-[clamp(0.8rem,1.5vw,1rem)] text-white/40 uppercase tracking-[0.2em] font-black">{{ t('impostorLastWish.stealVictory') }}</span>
                         </div>
 
                         <!-- Texto en vivo -->
@@ -148,7 +151,7 @@ const eliminatedPlayer = computed(() =>
                         </div>
 
                         <p class="text-[clamp(0.7rem,1.2vw,0.9rem)] uppercase tracking-[0.4em] text-white/30 mt-1 shrink-0">
-                            Transmisión en tiempo real
+                            {{ t('impostorLastWish.liveTransmission') }}
                         </p>
                     </div>
                 </template>

@@ -3,6 +3,7 @@ import { RoomState } from '../../shared/types';
 import { useSound } from './useSound';
 import { useReactions } from './useReactions';
 import { useToast } from './useToast';
+import { i18n } from '../i18n';
 
 export function useGameEffects(
     gameState: import('vue').Ref<RoomState>,
@@ -76,7 +77,7 @@ export function useGameEffects(
     // Host Notification
     watch(amIHost, (isHost, wasHost) => {
         if (isHost && !wasHost) {
-            addToast("👑 ¡Ahora eres el Anfitrión!", 'join');
+            addToast(i18n.global.t('system.nowHost'), 'join');
         }
     });
 
