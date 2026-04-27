@@ -3,6 +3,9 @@ import { ref, computed } from 'vue';
 import { MASTER_CATEGORIES } from '../../../shared/engines/categories';
 import type { CategoryRef } from '../../../shared/types';
 import TButton from '../ui/TButton.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 const props = defineProps<{
     categories: CategoryRef[];
@@ -62,9 +65,9 @@ function saveAndClose() {
     <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-game-panel flex-1 flex flex-col overflow-hidden min-h-[120px] lg:min-h-0">
         <div class="p-4 border-b-2 border-white/50 bg-panel-card/50 flex items-center justify-between flex-none">
             <p class="text-ink-main text-[9px] font-black uppercase tracking-[0.2em]">
-                Categorías <span class="text-ink-soft">({{ props.categories.length }})</span>
+                {{ t('lobby.categoriesSelector.title') }} <span class="text-ink-soft">({{ props.categories.length }})</span>
             </p>
-            <TButton v-if="props.amIHost" variant="secondary" size="sm" @click="openModal">Editar +</TButton>
+            <TButton v-if="props.amIHost" variant="secondary" size="sm" @click="openModal">{{ t('lobby.categoriesSelector.edit') }}</TButton>
         </div>
         <div class="flex-1 overflow-y-auto p-4 min-h-0">
             <div v-if="props.categories.length > 0" class="flex flex-wrap gap-2 content-start">
@@ -81,8 +84,8 @@ function saveAndClose() {
             </div>
             <div v-else class="h-full flex flex-col items-center justify-center text-center py-6">
                 <span class="text-4xl mb-3 opacity-30">🎲</span>
-                <p class="text-ink-soft font-bold text-sm">5 categorías aleatorias</p>
-                <p class="text-ink-muted text-[10px] font-bold mt-1">Personaliza con "Editar"</p>
+                <p class="text-ink-soft font-bold text-sm">{{ t('lobby.categoriesSelector.randomSelection') }}</p>
+                <p class="text-ink-muted text-[10px] font-bold mt-1">{{ t('lobby.categoriesSelector.randomSelectionDesc') }}</p>
             </div>
         </div>
     </div>
@@ -94,9 +97,9 @@ function saveAndClose() {
             <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden">
                 <!-- Modal Header -->
                 <div class="p-4 border-b-2 border-white/50 flex items-center justify-between bg-panel-card/80 flex-none">
-                    <h3 class="text-lg font-black text-ink-main uppercase tracking-widest">Selección de Categorías</h3>
+                    <h3 class="text-lg font-black text-ink-main uppercase tracking-widest">{{ t('lobby.categoriesSelector.modalTitle') }}</h3>
                     <div class="text-xs font-bold text-ink-main bg-panel-input px-3 py-1 rounded-full border-2 border-white/10 shadow-sm">
-                        {{ tempSelectedCategories.length }} elegidas
+                        {{ tempSelectedCategories.length }}
                     </div>
                 </div>
 
@@ -144,8 +147,8 @@ function saveAndClose() {
 
                 <!-- Modal Footer -->
                 <div class="p-4 border-t-2 border-white/50 bg-panel-base flex gap-3 flex-none">
-                    <TButton variant="secondary" size="md" class="flex-1 py-4" @click="showModal = false">Cancelar</TButton>
-                    <TButton variant="primary" size="md" class="flex-1 py-4" @click="saveAndClose">Guardar</TButton>
+                    <TButton variant="secondary" size="md" class="flex-1 py-4" @click="showModal = false">{{ t('lobby.categoriesSelector.cancel') }}</TButton>
+                    <TButton variant="primary" size="md" class="flex-1 py-4" @click="saveAndClose">{{ t('lobby.categoriesSelector.save') }}</TButton>
                 </div>
             </div>
         </div>

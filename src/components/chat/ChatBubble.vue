@@ -20,6 +20,9 @@ const displayText = computed(() => {
     if (props.message.type === 'SYSTEM' && props.message.code) {
         return t(`system.${props.message.code}`, props.message.args || {}, { locale: gameState.value?.config?.lang || 'es' });
     }
+    if (props.message.text === '[ERR_SPOILER_BLOCKED]') {
+        return t('chat.spoilerBlocked');
+    }
     return props.message.text;
 });
 </script>

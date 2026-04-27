@@ -1,247 +1,324 @@
 {
-  "home": {
-    "slogan": "The fastest word game",
-    "activeRooms": "{count} active room | {count} active rooms",
-    "publicRoom": "Public Room",
-    "privateRoom": "Private Room",
-    "haveCode": "I have a Room Code",
-    "roomCode": "Room Code",
-    "cancel": "Cancel",
-    "join": "Join",
-    "yourIdentity": "Your Identity",
-    "edit": "Edit",
-    "save": "Save",
-    "customize": "Customize",
-    "publicName": "Public Name",
-    "requiresLogin": "Login Required",
-    "clearLocalData": "Clear my local data",
-    "publicRooms": "Public Rooms",
-    "refresh": "Refresh",
-    "gameMode": "Game Mode",
-    "any": "Any",
-    "region": "Region",
-    "language": "Language",
-    "noResults": "No Results",
-    "adjustFilters": "Adjust filters or create your own room.",
-    "enter": "Enter",
-    "full": "FULL",
-    "inGame": "IN GAME",
-    "loadingIdentity": "Loading Identity...",
-    "joinMetaGame": "Join the Metagame",
-    "claimName": "Claim your name",
-    "signInGoogle": "Sign in with Google",
-    "verified": "Verified",
-    "signOut": "Sign Out"
-  },
-  "common": {
-    "modes": {
-      "classic": "Classic",
-      "impostor": "Imposter"
+    "home": {
+        "slogan": "The fastest word game",
+        "activeRooms": "{count} active room | {count} active rooms",
+        "publicRoom": "Public Room",
+        "privateRoom": "Private Room",
+        "haveCode": "I have a Room Code",
+        "roomCode": "Room Code",
+        "cancel": "Cancel",
+        "join": "Join",
+        "yourIdentity": "Your Identity",
+        "edit": "Edit",
+        "save": "Save",
+        "customize": "Customize",
+        "publicName": "Public Name",
+        "requiresLogin": "Login Required",
+        "clearLocalData": "Clear my local data",
+        "publicRooms": "Public Rooms",
+        "refresh": "Refresh",
+        "gameMode": "Game Mode",
+        "any": "Any",
+        "region": "Region",
+        "language": "Language",
+        "noResults": "No Results",
+        "adjustFilters": "Adjust filters or create your own room.",
+        "enter": "Enter",
+        "full": "FULL",
+        "inGame": "IN GAME",
+        "loadingIdentity": "Loading Identity...",
+        "joinMetaGame": "Join the Metagame",
+        "claimName": "Claim your name",
+        "signInGoogle": "Sign in with Google",
+        "verified": "Verified",
+        "signOut": "Sign Out"
     },
-    "regions": {
-      "sa": "LATAM",
-      "na": "North America",
-      "eu": "Europe",
-      "as": "APAC",
-      "af": "Africa"
+    "common": {
+        "modes": {
+            "classic": "Classic",
+            "impostor": "Imposter"
+        },
+        "regions": {
+            "sa": "LATAM",
+            "na": "North America",
+            "eu": "Europe",
+            "as": "APAC",
+            "af": "Africa"
+        },
+        "languages": {
+            "es": "Spanish",
+            "en": "English",
+            "pt": "Portuguese"
+        },
+        "closeModal": "Close modal"
     },
-    "languages": {
-      "es": "Spanish",
-      "en": "English",
-      "pt": "Portuguese"
-    }
-  },
-  "lobby": {
-    "tabs": {
-      "players": "Players",
-      "settings": "Rules"
+    "lobby": {
+        "tabs": {
+            "players": "Players",
+            "settings": "Rules"
+        },
+        "gameMode": {
+            "title": "Game Mode",
+            "classic": {
+                "title": "CLASSIC TUTI",
+                "subtitle": "Categories · Letters · Speed"
+            },
+            "impostor": {
+                "title": "IMPOSTOR",
+                "subtitle": "Who is lying?"
+            },
+            "howToPlay": "How to play"
+        },
+        "actions": {
+            "start": "START GAME",
+            "waitingPlayers": "WAITING PLAYERS ({current}/{max})",
+            "waitingHost": "Waiting for host..."
+        },
+        "confirm": {
+            "kick": "Remove {name} from the room?"
+        },
+        "share": {
+            "title": "Tuti Games",
+            "text": "Join my Tuti Games room!"
+        },
+        "settings": {
+            "title": "Room Settings",
+            "readOnly": "Read Only",
+            "language": "Game Language",
+            "classic": {
+                "randomCategories": "Random Categories",
+                "randomCategoriesDesc": "Picked randomly at start",
+                "rounds": "Rounds",
+                "timeLimit": "Round Time",
+                "sec": "sec",
+                "votingTime": "Voting Time",
+                "mutators": "Mutators",
+                "suicidalStop": "Suicidal Stop",
+                "suicidalStopDesc": "If you stop, you lose points for blanks",
+                "anonymousVoting": "Anonymous Voting",
+                "anonymousVotingDesc": "Votes won't show who cast them"
+            },
+            "impostor": {
+                "categories": "Categories in Play",
+                "categoriesDesc": "Selected randomly from our secret catalog",
+                "rounds": "Game Rounds",
+                "typingTime": "Typing Time",
+                "votingTime": "Tribunal Time"
+            }
+        },
+        "players": {
+            "spectator": "Spectator",
+            "invite": "Challenge your friends:\nShare the link to invite",
+            "empty": "Empty",
+            "maxPlayers": "PLAYERS",
+            "connected": "Connected",
+            "reconnecting": "Reconnecting...",
+            "players": "Players {count}/{max}",
+            "you": "YOU"
+        },
+        "header": {
+            "publicRoom": "Public Room",
+            "privateRoom": "Private Room",
+            "copy": "Copied",
+            "invite": "Invite"
+        },
+        "categoriesSelector": {
+            "title": "Categories",
+            "edit": "Edit +",
+            "randomSelection": "5 random categories",
+            "randomSelectionDesc": "Customize with \"Edit\"",
+            "modalTitle": "Category Selection",
+            "cancel": "Cancel",
+            "save": "Save"
+        },
+        "closeModal": "Close modal"
     },
-    "gameMode": {
-      "title": "Game Mode",
-      "classic": {
-        "title": "CLASSIC TUTI",
-        "subtitle": "Categories · Letters · Speed"
-      },
-      "impostor": {
-        "title": "IMPOSTOR",
-        "subtitle": "Who is lying?"
-      },
-      "howToPlay": "How to play"
+    "system": {
+        "PLAYER_JOINED": "👥 {name} joined the room",
+        "PLAYER_LEFT": "🚪 {name} left the room",
+        "roomDead": "👋 The room has been closed. See you next time!",
+        "spoilerBlocked": "[Message blocked for safety 🛡️]"
     },
-    "actions": {
-      "start": "START GAME",
-      "waitingPlayers": "WAITING PLAYERS ({current}/{max})",
-      "waitingHost": "Waiting for host..."
+    "gameHUD": {
+        "exit": "Exit",
+        "round": "Round",
+        "completeToStop": "⚠️ Complete all categories to stop"
     },
-    "confirm": {
-      "kick": "Remove {name} from the room?"
+    "review": {
+        "stopAlert": "STOP FOR ME!",
+        "stoppedBy": "Stopped by {name}",
+        "phase": "Phase",
+        "prev": "← Previous",
+        "next": "Next →",
+        "viewing": "VIEWING...",
+        "sent": "Sent! ✅",
+        "completed": "Completed!"
     },
-    "share": {
-      "title": "Tuti Games",
-      "text": "Join my Tuti Games room!"
+    "impostorBoard": {
+        "loading": "Loading Impostor mode..."
     },
-    "settings": {
-      "title": "Settings",
-      "readOnly": "Read only",
-      "language": "Room Language",
-      "classic": {
-        "randomCategories": "Random Categories",
-        "randomCategoriesDesc": "Chosen randomly when starting",
+    "impostorResults": {
+        "tie": "TRIBUNAL TIE",
+        "hunted": "IMPOSTOR HUNTED",
+        "innocent": "INNOCENT EXPELLED",
+        "expelled": "The tribunal has expelled",
+        "nobodyExpelled": "No one was expelled today.",
+        "allSurvive": "Everyone survives.",
+        "wasImpostor": "Was an Impostor.",
+        "wasInnocent": "Was Innocent.",
+        "calculatingVerdict": "Game over. Calculating verdict...",
+        "survivingCrew": "Surviving Crew:",
+        "discoveredImpostors": "The discovered Impostors were:",
+        "impostorsWere": "🦇 The Impostors were:",
+        "secretWordWas": "The ship's secret word was:",
+        "guessedWord": "They survived by guessing the word!"
+    },
+    "impostorTyping": {
+        "category": "Category",
+        "time": "Time",
+        "ghostTitle": "You are a Ghost",
+        "ghostDesc": "Watch the chaos. Your actions no longer affect this world.",
+        "impostorTitle": "You are Impostor",
+        "categoryLabel": "Category:",
+        "allies": "Your allies",
+        "crewTitle": "You are Crewmate",
+        "wordIs": "The word is:",
+        "typeWord": "Type a word to blend in...",
+        "placeholder": "Your word here...",
+        "playersTyping": "Players are typing...",
+        "spoilerWarning": "🚨 Danger: Your word reveals the secret category. Change it!",
+        "readyWaiting": "You're Ready! Waiting for the rest...",
+        "timeUp": "Time's up!",
+        "crewStatus": "Crew Status",
+        "you": "You",
+        "unknown": "Unknown"
+    },
+    "impostorVoting": {
+        "title": "🔎 The Tribunal",
+        "subtitle": "Analyze the evidence and accuse the impostor.",
+        "impostor": "Impostor",
+        "crew": "Crewmate",
+        "spectating": "Analyzing the Tribunal...",
+        "voted": "{votesCast}/{totalVoters} voted",
+        "ghostSilent": "You are a ghost — watch in silence.",
+        "me": "ME",
+        "thinking": "⏳ Thinking...",
+        "accuse": "Accuse",
+        "vote": "vote",
+        "votes": "votes"
+    },
+    "gameFooter": {
+        "someoneStopped": "⏳ {name} stopped!",
+        "sending": "⏳ SENDING...",
+        "waitGrace": "🔒 Wait {seconds}s...",
+        "completeAll": "✍️ Complete all",
+        "stop": "✋ STOP FOR ME!",
+        "playersTyping": "Players are typing...",
+        "nextRound": "Next Round",
+        "waitingHost": "Waiting for host..."
+    },
+    "matchSummaryCard": {
+        "summaryTitle": "MATCH<br>SUMMARY",
+        "finalPodium": "🏆 Final Podium",
         "rounds": "Rounds",
-        "timeLimit": "Typing Time",
-        "votingTime": "Voting Time",
-        "sec": "sec",
-        "mutators": "Mutators",
-        "suicidalStop": "Suicidal Stop",
-        "suicidalStopDesc": "If you press STOP and a word is rejected, you lose all points.",
-        "anonymousVoting": "Anonymous Voting",
-        "anonymousVotingDesc": "Words are evaluated without knowing who wrote them."
-      },
-      "impostor": {
-        "categories": "Categories in Play",
-        "categoriesDesc": "Selected randomly from our secret catalog",
-        "rounds": "Rounds",
-        "typingTime": "Typing Time",
-        "votingTime": "Tribunal Time"
-      }
+        "flashPlayer": "⚡ Flash Player",
+        "mostRejected": "Most rejected word",
+        "impostorWas": "🎭 The Impostor was...",
+        "unknown": "Unknown",
+        "mostSus": "Most suspicious citizen",
+        "mostSusDesc": "Got the most votes while innocent 😅",
+        "playAgain": "Play again? 🎯"
+    },
+    "errorBoundary": {
+        "title": "Oops! Something went wrong",
+        "description": "Our servers detected an unexpected error. We are already working to fix it.",
+        "unknownError": "Unknown error",
+        "returnHome": "Return Home"
+    },
+    "privacyBanner": {
+        "title": "Your Privacy",
+        "text": "We use local storage (LocalStorage) exclusively to keep your session active and temporarily save your avatar/name. <strong>We do not use tracking cookies or third-party advertising.</strong>",
+        "close": "Close"
+    },
+    "chat": {
+        "title": "Chat Room",
+        "empty": "Be the first to speak...",
+        "placeholderGhost": "👻 Ghosts don't speak...",
+        "placeholder": "Type a message...",
+        "spoilerWarning": "🚨 You cannot reveal the word",
+        "pressEnter": "Press",
+        "toSend": "to send",
+        "spoilerBlocked": "[Message blocked for safety 🛡️]"
+    },
+    "results": {
+        "generalTable": "General Leaderboard",
+        "pts": "pts",
+        "matchAwards": "🏅 Match Awards",
+        "victory": "VICTORY!",
+        "gameOver": "GAME OVER",
+        "byAbandon": "🏆 Win by Abandonment",
+        "byAbandonDesc": "Your rivals fled in terror.",
+        "impostorsWin": "IMPOSTORS WIN!",
+        "crewWin": "CREW WINS!",
+        "finalPodium": "Final Podium",
+        "restart": "Play Again",
+        "waitingRestart": "Waiting for host...",
+        "share": "Share",
+        "shareText": "🎮 I just played Tutifruti Online! Dare to beat my score? Join here:",
+        "shareTitle": "🏆 My Tutifruti Match",
+        "shareSuccess": "📸 Image saved to your gallery",
+        "shareCopied": "📥 Image downloaded and link copied — paste it in your chat 🔗",
+        "shareDownloaded": "📥 Image downloaded — share the room link with your friends",
+        "shareError": "Oops, couldn't save the memory 🙅",
+        "finalPositions": "🏆 Final Standings",
+        "yourPerformance": "🎯 Your Performance",
+        "thisRound": "This round"
+    },
+    "categories": {
+        "cat-animales": "Animals",
+        "cat-lugares": "Places",
+        "cat-profesiones": "Professions",
+        "cls-1": "Name",
+        "cls-10": "Movie",
+        "cls-11": "TV Show",
+        "cls-12": "Actor/Actress",
+        "cls-13": "Villain",
+        "cls-14": "Superhero",
+        "cls-15": "Fictional Character",
+        "cls-16": "Video Game",
+        "cls-17": "Youtuber/Streamer",
+        "cls-2": "Last Name",
+        "cls-20": "Song",
+        "cls-21": "Singer/Band",
+        "cls-22": "Musical Instrument",
+        "cls-23": "Reggaeton Song Title",
+        "cls-3": "Country",
+        "cls-30": "Brand",
+        "cls-31": "Car Brand",
+        "cls-32": "Clothing Brand",
+        "cls-33": "Tech Brand",
+        "cls-34": "Mobile App",
+        "cls-35": "Website",
+        "cls-4": "City",
+        "cls-40": "Food",
+        "cls-41": "Cooking Ingredient",
+        "cls-42": "Dessert",
+        "cls-43": "Drink",
+        "cls-5": "Animal",
+        "cls-50": "Sport",
+        "cls-51": "Athlete/Sportsman",
+        "cls-52": "Sports Team",
+        "cls-6": "Color",
+        "cls-60": "Excuse for being late",
+        "cls-61": "Reason for breaking up",
+        "cls-62": "First thing you'd do if you win lottery",
+        "cls-63": "Rock band name",
+        "cls-64": "Insult (soft)",
+        "cls-65": "Word that rhymes with \"Love\"",
+        "cls-66": "Object in this room",
+        "cls-67": "Terrible gift",
+        "cls-7": "Fruit/Vegetable",
+        "cls-8": "Thing",
+        "cls-9": "Profession"
     }
-  },
-  "system": {
-    "PLAYER_JOINED": "👥 {name} joined the room",
-    "PLAYER_LEFT": "🚪 {name} left the room"
-  },
-  "gameHUD": {
-    "exit": "Exit",
-    "round": "Round",
-    "completeToStop": "⚠️ Complete all categories to stop"
-  },
-  "review": {
-    "stopAlert": "STOP FOR ME!",
-    "stoppedBy": "Stopped by {name}",
-    "phase": "Phase",
-    "prev": "← Previous",
-    "next": "Next →",
-    "viewing": "VIEWING...",
-    "sent": "Sent! ✅",
-    "completed": "Completed!"
-  },
-  "impostorBoard": {
-    "loading": "Loading Impostor mode..."
-  },
-  "impostorResults": {
-    "tie": "TRIBUNAL TIE",
-    "hunted": "IMPOSTOR HUNTED",
-    "innocent": "INNOCENT EXPELLED",
-    "expelled": "The tribunal has expelled",
-    "nobodyExpelled": "No one was expelled today.",
-    "allSurvive": "Everyone survives.",
-    "wasImpostor": "Was an Impostor.",
-    "wasInnocent": "Was Innocent.",
-    "calculatingVerdict": "Game over. Calculating verdict...",
-    "survivingCrew": "Surviving Crew:",
-    "discoveredImpostors": "The discovered Impostors were:",
-    "impostorsWere": "🦇 The Impostors were:",
-    "secretWordWas": "The ship's secret word was:",
-    "guessedWord": "They survived by guessing the word!"
-  },
-  "impostorTyping": {
-    "category": "Category",
-    "time": "Time",
-    "ghostTitle": "You are a Ghost",
-    "ghostDesc": "Watch the chaos. Your actions no longer affect this world.",
-    "impostorTitle": "You are Impostor",
-    "categoryLabel": "Category:",
-    "allies": "Your allies",
-    "crewTitle": "You are Crewmate",
-    "wordIs": "The word is:",
-    "typeWord": "Type a word to blend in...",
-    "placeholder": "Your word here...",
-    "playersTyping": "Players are typing...",
-    "spoilerWarning": "🚨 Danger: Your word reveals the secret category. Change it!",
-    "readyWaiting": "You're Ready! Waiting for the rest...",
-    "timeUp": "Time's up!",
-    "crewStatus": "Crew Status",
-    "you": "You",
-    "unknown": "Unknown"
-  },
-  "impostorVoting": {
-    "title": "🔎 The Tribunal",
-    "subtitle": "Analyze the evidence and accuse the impostor.",
-    "impostor": "Impostor",
-    "crew": "Crewmate",
-    "spectating": "Analyzing the Tribunal...",
-    "voted": "{votesCast}/{totalVoters} voted",
-    "ghostSilent": "You are a ghost — watch in silence.",
-    "me": "ME",
-    "thinking": "⏳ Thinking...",
-    "accuse": "Accuse",
-    "vote": "vote",
-    "votes": "votes"
-  },
-  "gameFooter": {
-    "someoneStopped": "⏳ {name} stopped!",
-    "sending": "⏳ SENDING...",
-    "waitGrace": "🔒 Wait {seconds}s...",
-    "completeAll": "✍️ Complete all",
-    "stop": "✋ STOP FOR ME!",
-    "playersTyping": "Players are typing...",
-    "nextRound": "Next Round",
-    "waitingHost": "Waiting for host..."
-  },
-  "matchSummaryCard": {
-    "summaryTitle": "MATCH<br>SUMMARY",
-    "finalPodium": "🏆 Final Podium",
-    "rounds": "Rounds",
-    "flashPlayer": "⚡ Flash Player",
-    "mostRejected": "Most rejected word",
-    "impostorWas": "🎭 The Impostor was...",
-    "unknown": "Unknown",
-    "mostSus": "Most suspicious citizen",
-    "mostSusDesc": "Got the most votes while innocent 😅",
-    "playAgain": "Play again? 🎯"
-  },
-  "errorBoundary": {
-    "title": "Oops! Something went wrong",
-    "description": "Our servers detected an unexpected error. We are already working to fix it.",
-    "unknownError": "Unknown error",
-    "returnHome": "Return Home"
-  },
-  "privacyBanner": {
-    "title": "Your Privacy",
-    "text": "We use local storage (LocalStorage) exclusively to keep your session active and temporarily save your avatar/name. <strong>We do not use tracking cookies or third-party advertising.</strong>",
-    "close": "Close"
-  },
-  "chat": {
-    "title": "Chat Room",
-    "empty": "Be the first to speak...",
-    "placeholderGhost": "👻 Ghosts don't speak...",
-    "placeholder": "Type a message...",
-    "spoilerWarning": "🚨 You cannot reveal the word",
-    "pressEnter": "Press",
-    "toSend": "to send"
-  },
-  "results": {
-    "generalTable": "General Leaderboard",
-    "pts": "pts",
-    "matchAwards": "🏅 Match Awards",
-    "victory": "VICTORY!",
-    "gameOver": "GAME OVER",
-    "byAbandon": "🏆 Win by Abandonment",
-    "byAbandonDesc": "Your rivals fled in terror.",
-    "impostorsWin": "IMPOSTORS WIN!",
-    "crewWin": "CREW WINS!",
-    "finalPodium": "Final Podium",
-    "restart": "Play Again",
-    "waitingRestart": "Waiting for host...",
-    "share": "Share",
-    "shareText": "🎮 I just played Tutifruti Online! Dare to beat my score? Join here:",
-    "shareTitle": "🏆 My Tutifruti Match",
-    "shareSuccess": "📸 Image saved to your gallery",
-    "shareCopied": "📥 Image downloaded and link copied — paste it in your chat 🔗",
-    "shareDownloaded": "📥 Image downloaded — share the room link with your friends",
-    "shareError": "Oops, couldn't save the memory 🙅",
-    "finalPositions": "🏆 Final Standings",
-    "yourPerformance": "🎯 Your Performance",
-    "thisRound": "This round"
-  }
 }

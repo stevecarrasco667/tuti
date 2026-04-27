@@ -279,7 +279,7 @@ function decrementImpostorCategoryCount() {
                         />
                         <button @click="incrementImpostorCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card cursor-pointer hover:bg-panel-input border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm active:scale-95 transition-all text-xl">+</button>
                     </div>
-                    <p class="text-ink-muted text-[8px] font-bold mt-2 text-center">Se seleccionarán al azar de nuestro catálogo secreto</p>
+                    <p class="text-ink-muted text-[8px] font-bold mt-2 text-center">{{ t('lobby.settings.impostor.categoriesDesc') }}</p>
                 </div>
 
                 <!-- Rounds -->

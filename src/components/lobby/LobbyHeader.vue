@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import TButton from '../ui/TButton.vue';
 import TCard from '../ui/TCard.vue';
+
+const { t } = useI18n();
 
 const props = defineProps<{
     roomId: string;
@@ -26,7 +29,7 @@ const emit = defineEmits<{
                 <button
                     @click="emit('leave')"
                     class="flex-none w-9 h-9 rounded-xl border-2 border-white/10 bg-panel-input hover:bg-white/10 flex items-center justify-center text-ink-soft hover:text-ink-main transition-all active:scale-90"
-                    title="Volver al inicio"
+                    :title="t('lobby.header.back')"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -44,7 +47,7 @@ const emit = defineEmits<{
 
                 <!-- Room Code -->
                 <div class="min-w-0">
-                    <p class="text-ink-soft text-[7px] font-black uppercase tracking-widest">{{ props.isPublic ? 'Sala Pública' : 'Sala Privada' }}</p>
+                    <p class="text-ink-soft text-[7px] font-black uppercase tracking-widest">{{ props.isPublic ? t('lobby.header.publicRoom') : t('lobby.header.privateRoom') }}</p>
                     <span class="text-lg lg:text-xl font-black text-ink-main tracking-[0.2em] font-mono select-all block truncate">{{ props.roomId }}</span>
                 </div>
             </div>
@@ -52,7 +55,7 @@ const emit = defineEmits<{
             <!-- Right: Copy Link -->
             <TButton variant="secondary" size="sm" class="flex-none" @click="emit('copy-link')">
                 <span>{{ props.copied ? '✓' : '🔗' }}</span>
-                <span class="hidden sm:inline">{{ props.copied ? 'Copiado' : 'Invitar' }}</span>
+                <span class="hidden sm:inline">{{ props.copied ? t('lobby.header.copied') : t('lobby.header.invite') }}</span>
             </TButton>
         </TCard>
     </div>

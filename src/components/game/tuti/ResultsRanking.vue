@@ -167,8 +167,8 @@ onMounted(() => {
                         >
                             <span class="text-base leading-none flex-none w-5 text-center">{{ statusIcon(category.name) }}</span>
                             <div class="flex-1 min-w-0">
-                                <div class="text-[9px] sm:text-[10px] uppercase font-black text-ink-muted mb-0.5 truncate tracking-widest" :title="category.name">
-                                    {{ category.name }}
+                                <div class="text-[9px] sm:text-[10px] uppercase font-black text-ink-muted mb-0.5 truncate tracking-widest" :title="t(`categories.${category.id}`, category.name)">
+                                    {{ t(`categories.${category.id}`, category.name) }}
                                 </div>
                                 <div
                                     class="text-xs sm:text-sm font-black truncate leading-tight"

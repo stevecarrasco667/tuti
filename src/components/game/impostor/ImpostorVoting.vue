@@ -112,7 +112,7 @@ const votingProgress = computed(() =>
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-action-error font-black text-xs uppercase tracking-widest">{{ t('impostorVoting.impostor') }}</span>
                         <span v-if="!isDead" class="text-ink-muted text-xs font-bold">·
-                            {{ t('impostorTyping.categoryLabel') }} <strong class="text-action-error font-black">{{ impostorData.currentCategoryName }}</strong>
+                            {{ t('impostorTyping.categoryLabel') }} <strong class="text-action-error font-black">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</strong>
                         </span>
                     </div>
                 </div>
@@ -222,7 +222,7 @@ const votingProgress = computed(() =>
                             <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
                                 <TransitionGroup name="burst">
                                     <span
-                                        v-for="b in getBurstsForTarget(s.id, impostorData.currentCategoryName)"
+                                        v-for="b in getBurstsForTarget(s.id, impostorData.currentCategoryId)"
                                         :key="b.id"
                                         class="absolute bottom-0 font-emoji"
                                         :class="isCompact ? 'text-2xl' : 'text-4xl'"
@@ -235,7 +235,7 @@ const votingProgress = computed(() =>
                         <!-- Reacciones: bar visible para TODOS (incluso el propio jugador ve las reacciones en su carta) -->
                         <div class="flex items-center gap-1" v-if="s.word && !s.isPlayerDead">
                             <ReactionBar
-                                :counts="getCountsForTarget(s.id, impostorData.currentCategoryName)"
+                                :counts="getCountsForTarget(s.id, impostorData.currentCategoryId)"
                                 :is-compact="isCompact"
                                 class="flex-1 min-w-0"
                             />
@@ -243,7 +243,7 @@ const votingProgress = computed(() =>
                             <ReactionMenu
                                 v-if="!s.isMe"
                                 :target-player-id="s.id"
-                                :category-id="impostorData.currentCategoryName"
+                                :category-id="impostorData.currentCategoryId"
                                 :is-compact="isCompact"
                                 @react="(emoji, tid, cid) => sendReaction(tid, cid, emoji)"
                             />

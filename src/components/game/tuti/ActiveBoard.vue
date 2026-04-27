@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import type { CategoryRef } from '../../../../shared/types';
+
+const { t } = useI18n();
 
 const props = defineProps<{
     categories: CategoryRef[];
@@ -120,10 +123,10 @@ onUnmounted(() => {
                     <div v-for="(category, index) in categories" :key="category.id" class="group">
                         <!-- FASE 4: title tooltip para labels largas -->
                         <label
-                            :title="category.name"
+                            :title="t(`categories.${category.id}`) || category.name"
                             class="block font-black text-ink-soft mb-1.5 transition-colors group-focus-within:text-action-blue truncate tracking-widest text-xs uppercase cursor-default"
                         >
-                            {{ category.name }}
+                            {{ t(`categories.${category.id}`, category.name) }}
                         </label>
                         <div class="relative">
                             <input 

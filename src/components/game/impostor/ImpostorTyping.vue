@@ -98,7 +98,7 @@ const handleInputFocus = (event: Event) => {
         <div class="w-full flex justify-between items-start mb-4 max-w-4xl">
             <div class="bg-panel-card border-2 border-white/10 px-6 py-3 rounded-3xl backdrop-blur-md shadow-sm">
                 <span class="text-[10px] text-ink-muted uppercase tracking-widest block font-black mb-1">{{ t('impostorTyping.category') }}</span>
-                <span class="text-xl text-ink-main font-black">{{ impostorData.currentCategoryName }}</span>
+                <span class="text-xl text-ink-main font-black">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</span>
             </div>
             
             <div class="bg-panel-card border-2 border-white/10 px-6 py-2 rounded-3xl backdrop-blur-md flex flex-col items-center min-w-[120px] shadow-sm">
@@ -124,7 +124,7 @@ const handleInputFocus = (event: Event) => {
                     <span class="text-3xl drop-shadow-sm">🤫</span>
                     <div>
                         <span class="text-action-error font-black text-sm md:text-base uppercase tracking-widest block text-left">{{ t('impostorTyping.impostorTitle') }}</span>
-                        <span class="text-ink-muted text-sm font-bold ml-2" v-if="!isDead">{{ t('impostorTyping.categoryLabel') }} <strong class="text-action-error font-black">{{ impostorData.currentCategoryName }}</strong></span>
+                        <span class="text-ink-muted text-sm font-bold ml-2" v-if="!isDead">{{ t('impostorTyping.categoryLabel') }} <strong class="text-action-error font-black">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</strong></span>
                     </div>
                 </div>
                 <div v-if="impostorAllies.length > 0" class="flex flex-col items-end">

@@ -66,6 +66,7 @@ export interface GameConfig {
 export type AnswerStatus = 'VALID' | 'VALID_AUTO' | 'DUPLICATE' | 'INVALID' | 'EMPTY' | 'PENDING';
 
 export interface ImpostorData {
+    currentCategoryId: string;    // [Phase 3] Universal ID for local i18n
     currentCategoryName: string;  // Public: the theme of the round (no word secrets)
     alivePlayers: string[];
     words: Record<string, string>; // userId -> palabra

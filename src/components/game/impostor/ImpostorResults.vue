@@ -113,7 +113,7 @@ if (!matchOver.value && eliminatedPlayer.value) {
                         
                         <ReactionMenu
                             :target-player-id="player.id"
-                            :category-id="impostorData.currentCategoryName"
+                            :category-id="impostorData.currentCategoryId"
                             @react="(emoji, tid, cid) => sendReaction(tid, cid, emoji)"
                         />
                     </div>

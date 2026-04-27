@@ -2,7 +2,9 @@
 import { computed } from 'vue';
 import { ImpostorData } from '../../../../shared/types';
 import { useGame } from '../../../composables/useGame';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const { localImpostorRole } = useGame();
 
 const props = defineProps<{
@@ -16,7 +18,9 @@ const props = defineProps<{
 const isImpostor = computed(() => localImpostorRole.value?.role === 'impostor');
 const allies = computed(() => localImpostorRole.value?.allies.length ?? 0);
 const secretWord = computed(() => localImpostorRole.value?.word ?? null);
-const currentCategory = computed(() => props.impostorData.currentCategoryName);
+const currentCategory = computed(() => {
+    return t(`categories.${props.impostorData.currentCategoryId}`, props.impostorData.currentCategoryName);
+});
 </script>
 
 <template>

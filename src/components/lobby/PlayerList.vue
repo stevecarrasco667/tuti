@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { Player } from '../../../shared/types';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const props = defineProps<{
     players: Player[];
     spectators: Player[];
@@ -17,9 +20,6 @@ const emit = defineEmits<{
 const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.length));
 </script>
 
-<script lang="ts">
-import { computed } from 'vue';
-</script>
 
 <template>
     <div class="lg:col-span-3 bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-game-panel flex flex-col lg:overflow-hidden lg:min-h-0 h-max">
@@ -28,7 +28,7 @@ import { computed } from 'vue';
             <div class="flex items-center justify-between sm:justify-start gap-2">
                 <h3 class="text-ink-main text-xs font-black uppercase tracking-widest flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    Jugadores {{ props.players.length }}/{{ props.maxPlayers }}
+                    {{ t('lobby.players.players', { count: props.players.length, max: props.maxPlayers }, `${props.players.length}/${props.maxPlayers}`) }}
                 </h3>
             </div>
             <div v-if="props.amIHost" class="relative">
@@ -37,12 +37,12 @@ import { computed } from 'vue';
                     @change="emit('update-max-players', Number(($event.target as HTMLSelectElement).value))"
                     class="w-full sm:w-auto bg-panel-input border-2 border-panel-card text-ink-main text-xs font-black uppercase tracking-wider px-3 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner sm:shadow-none"
                 >
-                    <option v-for="n in 9" :key="n+1" :value="n+1" class="bg-panel-input">{{ n + 1 }} JUGADORES</option>
+                    <option v-for="n in 9" :key="n+1" :value="n+1" class="bg-panel-input">{{ n + 1 }} {{ t('lobby.players.maxPlayers') }}</option>
                 </select>
                 <span class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[10px]">▼</span>
             </div>
             <div v-else class="bg-panel-input border-2 border-panel-card text-ink-muted text-xs font-black uppercase tracking-wider px-3 py-2 rounded-xl shadow-inner text-center">
-                {{ props.maxPlayers }} JUGADORES
+                {{ props.maxPlayers }} {{ t('lobby.players.maxPlayers') }}
             </div>
         </div>
 
@@ -61,10 +61,10 @@ import { computed } from 'vue';
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
                         </span>
                         <span v-if="player.isHost" class="flex-none text-[8px]">👑</span>
-                        <span v-if="player.id === props.myUserId" class="flex-none text-[8px] font-black text-white bg-action-blue px-1.5 py-0.5 rounded shadow-sm">TÚ</span>
+                        <span v-if="player.id === props.myUserId" class="flex-none text-[8px] font-black text-white bg-action-blue px-1.5 py-0.5 rounded shadow-sm">{{ t('lobby.players.you') }}</span>
                     </div>
                     <div class="text-[8px] font-bold uppercase tracking-wider" :class="player.isConnected ? 'text-action-primary' : 'text-action-error'">
-                        {{ player.isConnected ? 'Conectado' : 'Reconectando...' }}
+                        {{ player.isConnected ? t('lobby.players.connected') : t('lobby.players.reconnecting') }}
                     </div>
                 </div>
                 <button v-if="props.amIHost && !player.isHost" @click="emit('kick-player', player.id, player.name)"
@@ -78,7 +78,7 @@ import { computed } from 'vue';
                 <span class="text-xl opacity-40 flex-none">{{ spec.avatar || '👤' }}</span>
                 <div class="flex-1 min-w-0">
                     <span class="text-ink-soft font-bold text-xs truncate block">{{ spec.name }}</span>
-                    <span class="text-[8px] font-bold text-amber-500 uppercase">👁️ Espectador</span>
+                    <span class="text-[8px] font-bold text-amber-500 uppercase">👁️ {{ t('lobby.players.spectator') }}</span>
                 </div>
             </div>
 
@@ -89,11 +89,11 @@ import { computed } from 'vue';
             >
                 <template v-if="props.players.length === 1 && i === 1">
                     <span class="text-xl flex-none">🔗</span>
-                    <span class="text-action-blue font-black text-xs uppercase tracking-wider">Desafía a tus amigos:<br/><span class="font-bold text-[10px] text-ink-muted">Comparte el link para invitar</span></span>
+                    <span class="text-action-blue font-black text-xs uppercase tracking-wider whitespace-pre-line text-center">{{ t('lobby.players.invite') }}</span>
                 </template>
                 <template v-else>
                     <span class="text-xl opacity-20 flex-none">👤</span>
-                    <span class="text-ink-muted font-bold text-xs uppercase tracking-wider">Vacío</span>
+                    <span class="text-ink-muted font-bold text-xs uppercase tracking-wider">{{ t('lobby.players.empty') }}</span>
                 </template>
             </div>
         </div>

@@ -463,6 +463,7 @@ export class ImpostorEngine extends BaseEngine {
         const alivePlayers = activePlayers.map(p => p.id);
 
         this.state.impostorData = {
+            currentCategoryId: currentCategoryId || '', // Universal ID for UI i18n
             currentCategoryName: secretCategory, // Public: the theme only, no word
             alivePlayers,
             words: {},

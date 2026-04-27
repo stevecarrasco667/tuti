@@ -142,7 +142,7 @@ watch(lastMessage, (newMsg) => {
             // Afecta a usuarios YA conectados que estaban en la pantalla de resultados.
             console.info('[GameSync] ROOM_DEAD recibido — limpiando estado y redirigiendo al Home.');
             disconnectIntentionally();
-            addToast('👋 La sala ha sido cerrada. ¡Hasta la próxima!', 'info');
+            addToast(i18n.global.t('system.roomDead'), 'info');
             if (globalOnNavigate) globalOnNavigate('/');
         } else if (parsed.type === EVENTS.CHAT_NEW) {
             const msg = parsed.payload as ChatMessage;

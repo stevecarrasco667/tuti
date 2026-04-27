@@ -54,7 +54,7 @@ export class ChatHandler extends BaseHandler {
             // Usamos getSecretWord() como proxy: si el mensaje contiene la palabra, es spoiler.
             if (secretWord && isSpoiler(trimmed, secretWord)) {
                 // Mutar el texto y continuar el broadcast (el jugador ve el resultado, disuade reintento)
-                trimmed = '[Mensaje bloqueado por seguridad 🛡️]';
+                trimmed = '[ERR_SPOILER_BLOCKED]';
             }
         }
 

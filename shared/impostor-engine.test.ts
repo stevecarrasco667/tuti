@@ -29,6 +29,7 @@ function forceIntoTypingPhase(engine: ImpostorEngine, impostorIds: string[]) {
     state.status = 'TYPING';
     state.timers.roundEndsAt = Date.now() + 60000;
     state.impostorData = {
+        currentCategoryId: 'cat-test',
         currentCategoryName: 'Test Category',
         alivePlayers: state.players.map(p => p.id),
         words: {},
