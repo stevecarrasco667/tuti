@@ -2,6 +2,10 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { readFileSync } from 'fs'
+
+const packageJsonPath = path.resolve(fileURLToPath(import.meta.url), '../package.json');
+const pkg = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
 
 import { VitePWA } from 'vite-plugin-pwa'
 
@@ -10,6 +14,9 @@ const __dirname = path.dirname(__filename)
 
 // https://vitejs.dev/config/
 export default defineConfig({
+    define: {
+        __APP_VERSION__: JSON.stringify(pkg.version),
+    },
     plugins: [
         vue(),
         VitePWA({

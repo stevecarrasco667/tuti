@@ -66,10 +66,4 @@ export abstract class BaseEngine {
     // --- SUB-SYSTEMS (exposed for server.ts reconnection logic) ---
     abstract get players(): PlayerManager;
 
-    // --- HOT-SWAP SUPPORT ---
-    /** [Deuda P2] Allows handlers to receive a new engine reference without being re-instantiated.
-     *  Called by server.ts during mode transitions (CLASSIC ↔ IMPOSTOR). */
-    public updateEngine(newEngine: BaseEngine): void {
-        (this as any).engine = newEngine;
-    }
 }

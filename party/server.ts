@@ -519,7 +519,6 @@ export default class Server implements Party.Server {
 
             const messageContext = result.data;
             const type = messageContext.type;
-            const payload = 'payload' in messageContext ? messageContext.payload : undefined;
 
             // 1. Recuperar identidad
             const state = sender.state as { userId: string } | null;
@@ -530,14 +529,14 @@ export default class Server implements Party.Server {
 
             logger.debug('MESSAGE_RECEIVED', { sender: sender.id, type });
 
-            switch (type) {
+            switch (messageContext.type) {
                 // --- Game Logic ---
                 case EVENTS.START_GAME:
                     await this.gameHandler.handleStartGame(sender);
                     break;
 
                 case EVENTS.STOP_ROUND:
-                    await this.gameHandler.handleStopRound(payload as any, sender);
+                    await this.gameHandler.handleStopRound(messageContext.payload, sender);
                     break;
 
                 case EVENTS.UPDATE_ANSWERS:
@@ -546,11 +545,11 @@ export default class Server implements Party.Server {
                         logger.warn('ACTION_RATE_LIMITED', { sender: sender.id, type });
                         return;
                     }
-                    await this.gameHandler.handleUpdateAnswers(payload as any, sender);
+                    await this.gameHandler.handleUpdateAnswers(messageContext.payload, sender);
                     break;
 
                 case EVENTS.SUBMIT_ANSWERS:
-                    await this.gameHandler.handleSubmitAnswers(payload as any, sender);
+                    await this.gameHandler.handleSubmitAnswers(messageContext.payload, sender);
                     break;
 
                 // --- Voting Logic ---
@@ -560,7 +559,7 @@ export default class Server implements Party.Server {
                         logger.warn('ACTION_RATE_LIMITED', { sender: sender.id, type });
                         return;
                     }
-                    await this.votingHandler.handleVote(payload as any, sender);
+                    await this.votingHandler.handleVote(messageContext.payload, sender);
                     break;
 
                 case EVENTS.CONFIRM_VOTES:
@@ -570,7 +569,7 @@ export default class Server implements Party.Server {
                 // --- Admin Logic ---
                 case EVENTS.UPDATE_CONFIG: {
                     const oldMode = this.engine.getState().config.mode;
-                    await this.playerHandler.handleUpdateSettings(payload as any, sender);
+                    await this.playerHandler.handleUpdateSettings(messageContext.payload, sender);
                     const newMode = this.engine.getState().config.mode;
 
                     if (oldMode !== newMode) {
@@ -579,7 +578,7 @@ export default class Server implements Party.Server {
                         this.engine = createEngine(this.supabase, newMode, this.room.id, this.onStateChange);
                         this.engine.hydrate(currentState);
 
-                        // [Deuda P2] Hot-Swap: update engine reference in existing handlers — no re-instantiation needed
+                        // Hot-Swap: update engine reference in existing handlers
                         this.connectionHandler.setEngine(this.engine);
                         this.playerHandler.setEngine(this.engine);
                         this.gameHandler.setEngine(this.engine);
@@ -597,7 +596,7 @@ export default class Server implements Party.Server {
                 }
 
                 case EVENTS.KICK_PLAYER:
-                    await this.playerHandler.handleKick(payload as any, sender);
+                    await this.playerHandler.handleKick(messageContext.payload, sender);
                     break;
 
                 case EVENTS.RESTART_GAME:
@@ -619,7 +618,7 @@ export default class Server implements Party.Server {
 
                 // --- CHAT SYSTEM (Phase 2.A + 2.E Security) ---
                 case EVENTS.CHAT_SEND: {
-                    await this.chatHandler.handleChat(payload as any, sender);
+                    await this.chatHandler.handleChat(messageContext.payload, sender);
                     // [Sprint P2 — Fase 2] Chat does NOT mutate RoomState — skip delta sync and alarm scheduling.
                     // Avoids a full JSON Patch compare cycle (clone → diff → empty patch) per chat message.
                     return;
@@ -630,7 +629,7 @@ export default class Server implements Party.Server {
                     // [Patch 2.1] Rate-limit emoji reactions to prevent spam flooding
                     if (!this.actionLimiter.checkLimit(sender.id)) return;
                     // Zero-mutation relay: broadcast emoji to all connections without touching RoomState.
-                    await this.gameHandler.handleWordReact(payload as any, sender, this.room);
+                    await this.gameHandler.handleWordReact(messageContext.payload, sender, this.room);
                     return; // skip delta sync — no state was mutated
                 }
 
@@ -639,19 +638,19 @@ export default class Server implements Party.Server {
                     // [Patch 2.1] Rate-limit live typing relay to avoid text-flood
                     if (!this.actionLimiter.checkLimit(sender.id)) return;
                     // Stateless relay — igual que WORD_REACT, NO toca RoomState
-                    await this.gameHandler.handleLastWishTyping(payload as any, sender, this.room);
+                    await this.gameHandler.handleLastWishTyping(messageContext.payload, sender, this.room);
                     return; // skip delta sync
                 }
 
                 case EVENTS.SUBMIT_LAST_WISH: {
                     // One-Shot: si falla → CREW gana inmediatamente. Sí muta estado → delta sync.
-                    await this.gameHandler.handleSubmitLastWish(payload as any, sender);
+                    await this.gameHandler.handleSubmitLastWish(messageContext.payload, sender);
                     break; // continúa al broadcastStateDelta
                 }
 
                 // --- LIVE DRAFTS + CONFIRMACIÓN (P12) ---
                 case EVENTS.UPDATE_IMPOSTOR_DRAFT: {
-                    await this.gameHandler.handleUpdateImpostorDraft(payload as any, sender);
+                    await this.gameHandler.handleUpdateImpostorDraft(messageContext.payload, sender);
                     break; // muta state.answers y impostorData.words → delta sync
                 }
 

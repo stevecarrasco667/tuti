@@ -57,7 +57,10 @@ export const EVENTS = {
     ROOM_REMOVED: 'ROOM_REMOVED',
 } as const;
 
-export const APP_VERSION = 'v0.5.0';
+// [S2-T4] APP_VERSION is auto-injected at build time by Vite from package.json.
+// The typeof guard ensures this works in both Vite (frontend) and PartyKit (server) environments.
+export const APP_VERSION: string = typeof __APP_VERSION__ !== 'undefined' ? `v${__APP_VERSION__}` : 'v0.0.0-dev';
+
 
 export const GAME_CONSTS = {
     MAX_POINTS: 100,
@@ -104,3 +107,18 @@ export const GAME_CONSTS = {
     // Alias kept for backward compatibility with existing references:
     ROOM_TTL_MS: 10_000
 } as const;
+
+// [S2-T2] Server-side error codes — sent to the client so it can translate them via i18n.
+// The server never sends hardcoded text; the client resolves `t('errors.<CODE>')`.
+export const ERROR_CODES = {
+    NOT_HOST: 'NOT_HOST',
+    NOT_ENOUGH_PLAYERS: 'NOT_ENOUGH_PLAYERS',
+    GAME_ALREADY_STARTED: 'GAME_ALREADY_STARTED',
+    GAME_NOT_STARTED: 'GAME_NOT_STARTED',
+    PLAYER_NOT_FOUND: 'PLAYER_NOT_FOUND',
+    ROOM_FULL: 'ROOM_FULL',
+    RATE_LIMITED: 'RATE_LIMITED',
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+} as const;
+
+export type ErrorCode = typeof ERROR_CODES[keyof typeof ERROR_CODES];

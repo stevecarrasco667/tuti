@@ -1,7 +1,10 @@
 import type * as Party from "partykit/server";
 import { BaseHandler } from "./base";
 import { sendError } from "../utils/broadcaster";
+import { ERROR_CODES } from "../../shared/consts";
 
+
+import { GameConfig, DeepPartial } from "../../shared/types";
 
 export class PlayerHandler extends BaseHandler {
 
@@ -9,7 +12,7 @@ export class PlayerHandler extends BaseHandler {
         try {
             // [Sprint H6 — SEC-1] Defense-in-depth: verify host at handler layer before engine processes anything.
             if (!this.isHost(sender)) {
-                sendError(sender, 'Solo el anfitrión puede expulsar jugadores.');
+                sendError(sender, ERROR_CODES.NOT_HOST);
                 return;
             }
             this.engine.kickPlayer(sender.id, payload.targetUserId);
@@ -18,11 +21,11 @@ export class PlayerHandler extends BaseHandler {
         }
     }
 
-    async handleUpdateSettings(payload: any, sender: Party.Connection) {
+    async handleUpdateSettings(payload: DeepPartial<GameConfig>, sender: Party.Connection) {
         try {
             // [Sprint H1 — SEC-2] Defense-in-depth: verify host at handler layer
             if (!this.isHost(sender)) {
-                sendError(sender, 'Solo el anfitrión puede cambiar la configuración.');
+                sendError(sender, ERROR_CODES.NOT_HOST);
                 return;
             }
             this.engine.updateConfig(sender.id, payload);
