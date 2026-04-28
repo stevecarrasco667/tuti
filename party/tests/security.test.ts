@@ -155,7 +155,7 @@ describe('Security: The Iron Shield', () => {
             // Engine kick must not be called
             expect(mockEngine.kickPlayer).not.toHaveBeenCalled();
             // sendError must be sent to the malicious sender
-            expect(sendError).toHaveBeenCalledWith(mockSender, 'Solo el anfitrión puede expulsar jugadores.');
+            expect(sendError).toHaveBeenCalledWith(mockSender, 'NOT_HOST');
         });
 
         it('GameHandler: should ALLOW stopRound from non-host (Basta is universal)', async () => {
