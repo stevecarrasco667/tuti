@@ -27,16 +27,17 @@ export class ConnectionHandler extends BaseHandler {
     async handleConnect(connection: Party.Connection, ctx: Party.ConnectionContext) {
         try {
             // [S1-T2] Origin Validation — Reject unauthorized cross-origin WebSocket connections (CSWSH defense)
-            const origin = ctx.request.headers.get('Origin');
+            // Optional chaining handles test environments where mock requests may not have a headers object.
+            const origin = ctx.request.headers?.get?.('Origin') ?? null;
             const allowedOriginsEnv = (this.room.env.ALLOWED_ORIGINS as string) || '';
             const ALLOWED_ORIGINS = [
                 'https://tutigame.com',
                 'https://www.tutigame.com',
                 ...allowedOriginsEnv.split(',').map(o => o.trim()).filter(Boolean)
             ];
-            // In DEV mode, allow localhost origins without restriction
+            // null origin (no header / test environment) and localhost are always allowed
             const isDevOrigin = !origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1');
-            if (!isDevOrigin && !ALLOWED_ORIGINS.includes(origin!)) {
+            if (!isDevOrigin && !ALLOWED_ORIGINS.includes(origin)) {
                 logger.warn('ORIGIN_REJECTED', { origin, roomId: this.room.id });
                 connection.close(4403, 'FORBIDDEN_ORIGIN');
                 return;
