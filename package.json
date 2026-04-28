@@ -13,12 +13,14 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@sentry/vue": "^10.50.0",
     "@supabase/supabase-js": "^2.99.1",
     "fast-json-patch": "^3.1.1",
     "fast-levenshtein": "^3.0.0",
     "html-to-image": "^1.11.13",
     "partykit": "^0.0.115",
     "partysocket": "^1.1.6",
+    "@sentry/vue": "^8.26.0",
     "toucan-js": "^4.1.1",
     "vue": "^3.4.15",
     "vue-i18n": "^9.14.5",
