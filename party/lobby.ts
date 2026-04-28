@@ -67,8 +67,28 @@ export default class LobbyServer implements Party.Server {
     }
 
     async onRequest(req: Party.Request): Promise<Response> {
-        if (req.method !== "POST") {
-            return new Response("Method Not Allowed", { status: 405 });
+        // [S1-T5] CORS headers — allow cross-origin requests from the frontend domain
+        const corsHeaders: Record<string, string> = {
+            'Access-Control-Allow-Origin': (this.room.env.FRONTEND_URL as string) || '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Room-Secret',
+        };
+
+        // Handle OPTIONS preflight
+        if (req.method === 'OPTIONS') {
+            return new Response(null, { status: 204, headers: corsHeaders });
+        }
+
+        if (req.method !== 'POST') {
+            return new Response('Method Not Allowed', { status: 405, headers: corsHeaders });
+        }
+
+        // [S1-T3] Secret validation — only room servers with the correct secret can publish heartbeats
+        const roomSecret = req.headers.get('X-Room-Secret');
+        const expectedSecret = this.room.env.LOBBY_SECRET as string | undefined;
+        if (expectedSecret && roomSecret !== expectedSecret) {
+            logger.warn('UNAUTHORIZED_HEARTBEAT', { hasSecret: !!roomSecret });
+            return new Response('Unauthorized', { status: 401, headers: corsHeaders });
         }
 
         try {
@@ -85,7 +105,7 @@ export default class LobbyServer implements Party.Server {
             if (snapshot.currentPlayers === 0) {
                 this.rooms.delete(snapshot.id);
                 this.broadcast(EVENTS.ROOM_REMOVED, { id: snapshot.id });
-                return new Response("OK", { status: 200 });
+                return new Response('OK', { status: 200, headers: corsHeaders });
             }
 
             const existed = this.rooms.has(snapshot.id);
@@ -94,11 +114,11 @@ export default class LobbyServer implements Party.Server {
             // Evento discreto: ROOM_ADDED o ROOM_UPDATED según si ya existía
             this.broadcast(existed ? EVENTS.ROOM_UPDATED : EVENTS.ROOM_ADDED, snapshot);
 
-            return new Response("OK", { status: 200 });
+            return new Response('OK', { status: 200, headers: corsHeaders });
         } catch (err) {
             const error = err instanceof Error ? err : new Error(String(err));
             logger.error('HEARTBEAT_PROCESSING_FAILED', {}, error);
-            return new Response("Internal Server Error", { status: 500 });
+            return new Response('Internal Server Error', { status: 500, headers: corsHeaders });
         }
     }
 

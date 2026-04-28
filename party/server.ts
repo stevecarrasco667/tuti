@@ -185,6 +185,17 @@ export default class Server implements Party.Server {
 
     async onStart() {
         try {
+            // [S1-T4] Env Var Validation — log prominently if critical vars are missing at startup
+            const supabaseUrlCheck = this.room.env.SUPABASE_URL as string | undefined;
+            const supabaseKeyCheck = this.room.env.SUPABASE_ANON_KEY as string | undefined;
+            if (!supabaseUrlCheck || !supabaseKeyCheck) {
+                logger.error('MISSING_ENV_VARS', {
+                    hasSupabaseUrl: !!supabaseUrlCheck,
+                    hasSupabaseKey: !!supabaseKeyCheck,
+                    roomId: this.room.id
+                }, new Error('One or more critical environment variables are missing. JWT verification will be disabled.'));
+            }
+
             // 1. Load Game State
             const stored = await this.room.storage.get<RoomState>(STORAGE_KEY);
             if (stored) {
@@ -330,7 +341,11 @@ export default class Server implements Party.Server {
                 this.room.context.parties.lobby.get("global").fetch("/heartbeat", {
                     method: "POST",
                     body: JSON.stringify(snapshot),
-                    headers: { "Content-Type": "application/json" }
+                    headers: {
+                        "Content-Type": "application/json",
+                        // [S1-T3] Authenticate heartbeat so lobby rejects forged room snapshots
+                        ...(this.room.env.LOBBY_SECRET ? { "X-Room-Secret": this.room.env.LOBBY_SECRET as string } : {})
+                    }
                 }).catch(e => logger.error('HEARTBEAT_FETCH_FAILED', { error: String(e) }, e instanceof Error ? e : new Error(String(e))));
             } catch (err) {
                 logger.error('HEARTBEAT_CRASH', { roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));

@@ -3,6 +3,7 @@ import PartySocket from "partysocket";
 import { supabase } from '../lib/supabase';
 import { useReactions } from './useReactions';
 import { EVENTS } from '../../shared/consts';
+import { devLog, devWarn } from '../utils/devLogger';
 
 // Si es DEV, usa localhost. Si es PROD, usa el host actual del navegador.
 // Si es DEV, usa localhost. Si es PROD, usa la variable de entorno, o el host actual como respaldo.
@@ -50,9 +51,9 @@ export function useSocket() {
     const setRoomId = async (roomId: string | null, userInfo?: { userId: string, name: string, avatar: string, token?: string, public?: string }) => {
         // 1. Close existing connection if any
         if (socket.value) {
-            console.log('🔌 Switching rooms... Closing old connection.');
+            devLog('🔌 Switching rooms... Closing old connection.');
             // Allow immediate reconnection for room switch (unless intentional exit was called before, but here we want to connect to new room)
-            isIntentionalDisconnect.value = false;
+                    isIntentionalDisconnect.value = false;
             socket.value.close();
             socket.value = null;
             isConnected.value = false;
@@ -78,7 +79,7 @@ export function useSocket() {
                     currentToken = sessionResult.data.session.access_token;
                 }
             } catch (error) {
-                console.warn('No se pudo obtener el token de identidad:', error);
+                devWarn('No se pudo obtener el token de identidad:', error);
             }
         }
 
@@ -86,7 +87,7 @@ export function useSocket() {
         const enrichedUserInfo = userInfo ? { ...userInfo, token: currentToken } : undefined;
 
         // 2. Create new connection
-        console.log(`🔌 Connecting to room: ${roomId} on host: ${PARTYKIT_HOST}`);
+        devLog(`🔌 Connecting to room: ${roomId} on host: ${PARTYKIT_HOST}`);
 
         if (import.meta.env.DEV) {
             // Mock Server Connection (Native WebSocket)
@@ -102,15 +103,15 @@ export function useSocket() {
 
             ws.addEventListener('open', () => {
                 isConnected.value = true;
-                console.log('✅ Connected to Mock Server!');
+                devLog('✅ Connected to Mock Server!');
             });
 
             ws.addEventListener('close', () => {
                 isConnected.value = false;
                 if (!isIntentionalDisconnect.value) {
-                    console.log('❌ Disconnected from Mock Server (Unexpected)');
+                    devLog('❌ Disconnected from Mock Server (Unexpected)');
                 } else {
-                    console.log('🛑 Disconnected from Mock Server (Intentional)');
+                    devLog('🛑 Disconnected from Mock Server (Intentional)');
                 }
             });
 
@@ -131,15 +132,15 @@ export function useSocket() {
 
             socket.value.addEventListener('open', () => {
                 isConnected.value = true;
-                console.log('✅ Connected to PartyKit Cloud!');
+                devLog('✅ Connected to PartyKit Cloud!');
             });
 
             socket.value.addEventListener('close', () => {
                 isConnected.value = false;
                 if (!isIntentionalDisconnect.value) {
-                    console.log('❌ Disconnected from PartyKit Cloud (Unexpected)');
+                    devLog('❌ Disconnected from PartyKit Cloud (Unexpected)');
                 } else {
-                    console.log('🛑 Disconnected from PartyKit Cloud (Intentional)');
+                    devLog('🛑 Disconnected from PartyKit Cloud (Intentional)');
                 }
             });
 
@@ -153,7 +154,7 @@ export function useSocket() {
 
     const disconnectIntentionally = () => {
         if (socket.value) {
-            console.log('🛑 Closing connection intentionally via checkmate protocol.');
+            devLog('🛑 Closing connection intentionally via checkmate protocol.');
             isIntentionalDisconnect.value = true;
             socket.value.close();
             socket.value = null;
