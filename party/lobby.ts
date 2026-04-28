@@ -16,6 +16,12 @@ export default class LobbyServer implements Party.Server {
     constructor(readonly room: Party.Room) { }
 
     async onStart() {
+        // [Sprint 3] Observabilidad - Configurar Sentry y Discord Webhook
+        logger.setAlertConfig({
+            sentryDsn: this.room.env.SENTRY_DSN as string | undefined,
+            discordWebhook: this.room.env.DISCORD_WEBHOOK_URL as string | undefined,
+        });
+
         const stored = await this.room.storage.get<RoomSnapshot[]>('public_rooms');
         if (stored) {
             for (const room of stored) {
@@ -77,6 +83,36 @@ export default class LobbyServer implements Party.Server {
         // Handle OPTIONS preflight
         if (req.method === 'OPTIONS') {
             return new Response(null, { status: 204, headers: corsHeaders });
+        }
+
+        // [Sprint 3] S3-T2: Dashboard de Métricas en el Lobby
+        const url = new URL(req.url);
+        if (req.method === 'GET' && url.pathname.endsWith('/stats')) {
+            const authHeader = req.headers.get('Authorization');
+            const expectedSecret = this.room.env.LOBBY_SECRET as string | undefined;
+
+            if (expectedSecret && authHeader !== `Bearer ${expectedSecret}`) {
+                return new Response('Unauthorized', { status: 401, headers: corsHeaders });
+            }
+
+            const totalRooms = this.rooms.size;
+            let joinableRooms = 0;
+            let totalPlayers = 0;
+
+            for (const r of this.rooms.values()) {
+                totalPlayers += r.currentPlayers;
+                if (r.joinable) joinableRooms++;
+            }
+
+            return new Response(JSON.stringify({
+                totalRooms,
+                joinableRooms,
+                totalPlayers,
+                avgPlayersPerRoom: totalRooms > 0 ? (totalPlayers / totalRooms).toFixed(1) : "0.0"
+            }), { 
+                status: 200, 
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            });
         }
 
         if (req.method !== 'POST') {

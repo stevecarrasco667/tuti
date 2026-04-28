@@ -185,6 +185,12 @@ export default class Server implements Party.Server {
 
     async onStart() {
         try {
+            // [Sprint 3] Observabilidad - Configurar Sentry y Discord Webhook
+            logger.setAlertConfig({
+                sentryDsn: this.room.env.SENTRY_DSN as string | undefined,
+                discordWebhook: this.room.env.DISCORD_WEBHOOK_URL as string | undefined,
+            });
+
             // [S1-T4] Env Var Validation — log prominently if critical vars are missing at startup
             const supabaseUrlCheck = this.room.env.SUPABASE_URL as string | undefined;
             const supabaseKeyCheck = this.room.env.SUPABASE_ANON_KEY as string | undefined;
