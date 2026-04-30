@@ -4,7 +4,12 @@ import { TutiEngine } from "../shared/engines/tuti-engine.js";
 import { ImpostorEngine, ImpostorSecretState } from "../shared/engines/impostor-engine.js";
 import { RoomState, RoomSnapshot } from "../shared/types.js";
 import { ClientMessageSchema } from "../shared/schemas.js";
-import { EVENTS, APP_VERSION, GAME_CONSTS } from "../shared/consts.js";
+import { EVENTS, GAME_CONSTS } from "../shared/consts.js";
+
+// [Bug Fix — S2-T4] APP_VERSION (Vite-injected) is not available in Cloudflare Workers.
+// Reading version directly from package.json is the reliable server-side alternative.
+import { version as PKG_VERSION } from "../package.json";
+const SERVER_VERSION = `v${PKG_VERSION}`;
 import { logger } from "../shared/utils/logger";
 import { RateLimiter } from "./utils/rate-limiter";
 import { ConnectionHandler } from "./handlers/connection";
@@ -448,7 +453,7 @@ export default class Server implements Party.Server {
             // 0. Send Version
             const versionMsg = JSON.stringify({
                 type: EVENTS.SYSTEM_VERSION,
-                payload: { version: APP_VERSION }
+                payload: { version: SERVER_VERSION }
             });
             conn.send(versionMsg);
 

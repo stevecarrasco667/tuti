@@ -15,13 +15,12 @@ export function useGameActions(
         const userId = state.myUserId.value;
         const token = typeof localStorage !== 'undefined' ? localStorage.getItem('tuti-session-token') || undefined : undefined;
 
-        // [Perf] Navegar OPTIMISTAMENTE al lobby inmediatamente — sin esperar al servidor.
-        // La conexión WebSocket ocurre en background. El servidor luego confirmará via
-        // UPDATE_STATE y syncRoute() será un no-op (ya estamos en la ruta correcta).
+        // [Bug Fix] Establecer el socket PRIMERO, navegar DESPUÉS.
+        // El patrón anterior navegaba optimísticamente antes de que el socket existiera,
+        // causando que el Navigation Guard (router.beforeEach) asumiera un "cold start"
+        // y re-conectara SIN el parámetro `public=true`, descartando la sala del Lobby.
+        await setRoomId(targetRoomId, { userId, name, avatar, token, public: isPublic ? 'true' : undefined });
         onNavigate(`/lobby/${targetRoomId}`);
-
-        // Iniciar conexión en background (no await)
-        setRoomId(targetRoomId, { userId, name, avatar, token, public: isPublic ? 'true' : undefined });
     };
 
 
