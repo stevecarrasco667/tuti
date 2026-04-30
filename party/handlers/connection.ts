@@ -33,6 +33,7 @@ export class ConnectionHandler extends BaseHandler {
             const ALLOWED_ORIGINS = [
                 'https://tutigame.com',
                 'https://www.tutigame.com',
+                'https://tutigame.pages.dev',  // [Fix] Cloudflare Pages production domain
                 ...allowedOriginsEnv.split(',').map(o => o.trim()).filter(Boolean)
             ];
             // null origin (no header / test environment) and localhost are always allowed
