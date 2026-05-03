@@ -5,14 +5,15 @@ import './style.css'
 import App from './App.vue'
 import { router } from './router/index'
 import { i18n } from './i18n'
+import { logErrorToSupabase } from './utils/telemetry';
 
 const app = createApp(App);
 app.use(router);
 app.use(i18n);
 
-import { logErrorToSupabase } from './utils/telemetry';
-
 // [Sprint 3] Observability - Frontend Sentry Integration
+// IMPORTANT: init AFTER app.use() calls so integrations like browserTracing
+// can access the router. The init() call installs its own app.config.errorHandler.
 const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
 if (sentryDsn) {
     Sentry.init({
@@ -22,29 +23,32 @@ if (sentryDsn) {
             Sentry.browserTracingIntegration({ router }),
             Sentry.replayIntegration(),
         ],
-        // Performance Monitoring
         tracesSampleRate: 1.0,
-        // Session Replay
-        replaysSessionSampleRate: 0.1, 
+        replaysSessionSampleRate: 0.1,
         replaysOnErrorSampleRate: 1.0,
     });
 }
 
-// [Sprint H7] Global Vue Error Boundary (Fallback if ErrorBoundary component doesn't catch it)
-app.config.errorHandler = (err, _instance, info) => {
-    console.error('[Vue Global Error]:', err);
+// [Sprint H7] Global Vue Error Boundary
+// NOTE: We do NOT override app.config.errorHandler here because Sentry.init()
+// already installed its own. Instead, we chain our telemetry after Sentry's.
+const _sentryVueHandler = app.config.errorHandler;
+app.config.errorHandler = (err, instance, info) => {
+    // Let Sentry's handler run first (if installed)
+    if (_sentryVueHandler) _sentryVueHandler(err, instance, info);
+    else console.error('[Vue Global Error]:', err);
     logErrorToSupabase(err, 'Vue Global', info);
 };
 
 // [Sprint H7] Global Unhandled Promise Rejection Catcher
 window.addEventListener('unhandledrejection', (event) => {
-    console.error('[Unhandled Promise Rejection]:', event.reason);
+    Sentry.captureException(event.reason);
     logErrorToSupabase(event.reason, 'UnhandledRejection');
 });
 
 // [Sprint H7] Global Native Error Catcher
 window.addEventListener('error', (event) => {
-    console.error('[Global Native Error]:', event.error || event.message);
+    Sentry.captureException(event.error || new Error(event.message));
     logErrorToSupabase(event.error || new Error(event.message), 'WindowError');
 });
 
