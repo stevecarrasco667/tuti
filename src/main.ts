@@ -5,7 +5,6 @@ import './style.css'
 import App from './App.vue'
 import { router } from './router/index'
 import { i18n } from './i18n'
-import { logErrorToSupabase } from './utils/telemetry';
 
 const app = createApp(App);
 app.use(router);
@@ -37,19 +36,16 @@ app.config.errorHandler = (err, instance, info) => {
     // Let Sentry's handler run first (if installed)
     if (_sentryVueHandler) _sentryVueHandler(err, instance, info);
     else console.error('[Vue Global Error]:', err);
-    logErrorToSupabase(err, 'Vue Global', info);
 };
 
 // [Sprint H7] Global Unhandled Promise Rejection Catcher
 window.addEventListener('unhandledrejection', (event) => {
     Sentry.captureException(event.reason);
-    logErrorToSupabase(event.reason, 'UnhandledRejection');
 });
 
 // [Sprint H7] Global Native Error Catcher
 window.addEventListener('error', (event) => {
     Sentry.captureException(event.error || new Error(event.message));
-    logErrorToSupabase(event.error || new Error(event.message), 'WindowError');
 });
 
 app.mount('#app');

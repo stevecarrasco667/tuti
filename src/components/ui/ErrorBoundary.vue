@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onErrorCaptured, ref } from 'vue';
-import { logErrorToSupabase } from '../../utils/telemetry';
+import * as Sentry from '@sentry/vue';
 import { useRouter } from 'vue-router';
 import { useGame } from '../../composables/useGame';
 import { useI18n } from 'vue-i18n';
@@ -14,7 +14,7 @@ const { t } = useI18n();
 // Capture any error from descendant components
 onErrorCaptured((err: unknown, _instance: any, info: string) => {
     // 1. Log to our telemetry system
-    logErrorToSupabase(err, 'Vue ErrorBoundary', info);
+    Sentry.captureException(err);
     
     // 2. Set local error state for fallback UI
     hasError.value = true;
