@@ -1,14 +1,22 @@
 import { z } from 'zod';
 import { EVENTS } from './consts';
-import { RoomSnapshotSchema } from './schemas';
+import {
+    RoomSnapshotSchema,
+    GameStatusSchema,
+    AnswerStatusSchema,
+    CategoryRefSchema,
+    PlayerSchema,
+    GameConfigSchema,
+} from './schemas';
 
-export type GameStatus = 'LOBBY' | 'LOADING_ROUND' | 'PLAYING' | 'REVIEW' | 'RESULTS' | 'GAME_OVER' | 'ROLE_REVEAL' | 'TYPING' | 'VOTING' | 'LAST_WISH' | 'ENDING_COUNTDOWN';
-
-/** Reference to a game category — id used for DB queries, name for UI display */
-export interface CategoryRef {
-    id: string;
-    name: string;
-}
+// [Sprint 8 — S8-T1] SSOT: Derive primitive game types from Zod schemas.
+// This eliminates duplicate definitions between types.ts and schemas.ts.
+// Any change to validation rules in schemas.ts automatically propagates here.
+export type GameStatus   = z.infer<typeof GameStatusSchema>;
+export type AnswerStatus = z.infer<typeof AnswerStatusSchema>;
+export type CategoryRef  = z.infer<typeof CategoryRefSchema>;
+export type Player       = z.infer<typeof PlayerSchema>;
+export type GameConfig   = z.infer<typeof GameConfigSchema>;
 
 export type DeepPartial<T> = T extends object ? {
     [P in keyof T]?: DeepPartial<T[P]>;
@@ -25,45 +33,6 @@ export interface ChatMessage {
     args?: Record<string, any>;
 }
 
-export interface Player {
-    id: string;
-    name: string;
-    score: number;
-    isHost: boolean;
-    isConnected: boolean;
-    lastSeenAt: number;
-    disconnectedAt?: number; // For Zombie State
-    avatar: string;
-    filledCount?: number;
-    isAuthenticated?: boolean;
-}
-
-export interface GameConfig {
-    mode: 'CLASSIC' | 'IMPOSTOR';
-    isPublic: boolean;
-    maxPlayers: number;
-    lang: string;
-    classic: {
-        rounds: number;
-        timeLimit: number;
-        votingDuration: number;
-        categoryCount?: number;
-        categories: CategoryRef[];
-        customCategories: string[];
-        mutators: {
-            suicidalStop: boolean;
-            anonymousVoting: boolean;
-        };
-    };
-    impostor: {
-        rounds: number;
-        typingTime: number;
-        votingTime: number;
-        categoryCount?: number;
-    };
-}
-
-export type AnswerStatus = 'VALID' | 'VALID_AUTO' | 'DUPLICATE' | 'INVALID' | 'EMPTY' | 'PENDING';
 
 export interface ImpostorData {
     currentCategoryId: string;    // [Phase 3] Universal ID for local i18n
@@ -222,6 +191,7 @@ export function createDefaultRoomState(roomId: string | null = null): RoomState 
                 rounds: 5,
                 timeLimit: 60,
                 votingDuration: 30,
+                categoryCount: 5,
                 categories: [],
                 customCategories: [],
                 mutators: {
@@ -232,7 +202,8 @@ export function createDefaultRoomState(roomId: string | null = null): RoomState 
             impostor: {
                 rounds: 3,
                 typingTime: 30,
-                votingTime: 40
+                votingTime: 40,
+                categoryCount: 3
             }
         },
         timers: {

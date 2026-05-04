@@ -10,6 +10,7 @@ export class ConfigurationManager {
             rounds: 5,
             timeLimit: 60,
             votingDuration: 30,
+            categoryCount: 5,
             categories: [],
             customCategories: [],
             mutators: {

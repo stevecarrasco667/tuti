@@ -8,6 +8,11 @@ export const PlayerSchema = z.object({
     isHost: z.boolean(),
     isConnected: z.boolean(),
     lastSeenAt: z.number(),
+    // [Sprint 8 — S8-T1] Added missing fields so z.infer<typeof PlayerSchema>
+    // matches the Player interface exactly — SSOT via schema.
+    avatar: z.string().max(20),             // emoji avatar; max covers ZWJ sequences
+    disconnectedAt: z.number().optional(),  // Zombie-State timestamp
+    filledCount: z.number().optional(),     // Rival progress counter (live game)
     isAuthenticated: z.boolean().optional()
 });
 
@@ -89,6 +94,13 @@ export const RoomStateSchema = z.object({
         resultsEndsAt: z.number().nullable(),
         graceEndsAt: z.number().nullable() // [Sync] Grace Period end timestamp from server
     }),
+    // [Sprint 8 — S8-T1] Add missing RoomState fields so the schema is
+    // a true mirror of the RoomState interface (SSOT).
+    remainingTime: z.number().default(0),           // Server-canonical countdown in seconds
+    stoppedBy: z.string().nullable(),               // userId of whoever called STOP_ROUND
+    endingCountdownBy: z.string().nullable().optional(), // [P11] nombre del jugador
+    gameOverReason: z.enum(['NORMAL', 'ABANDONED', 'IMPOSTOR_DISCONNECTED']).optional(),
+    gameOverAt: z.number().optional(),              // [Room TTL] timestamp when GAME_OVER set
     uiMetadata: z.object({
         activeView: z.enum(['LOBBY', 'GAME', 'GAME_OVER']),
         showTimer: z.boolean(),
