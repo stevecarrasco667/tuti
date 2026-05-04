@@ -45,14 +45,35 @@ export class ConnectionHandler extends BaseHandler {
             }
 
             const url = new URL(ctx.request.url);
-            const name = url.searchParams.get("name") || "Guest";
-            let userId = url.searchParams.get("userId") || connection.id;
+            // [Sprint 5 — S5-T3] Harden identity inputs before they enter engine state or authTokens.
+            // Without limits, a malicious client can inflate state.players and durable storage
+            // with arbitrarily long names/userIds, causing expensive JSON Patch diffs and DoS.
+            const MAX_NAME_LEN    = 20;
+            const MAX_USERID_LEN  = 64;
+            const MAX_TOKEN_LEN   = 512;
+            const VALID_USERID_RE = /^[\w\-]{1,64}$/; // UUID-like or short alphanumeric
+
+            const rawName   = url.searchParams.get("name") || "Guest";
+            const rawUserId = url.searchParams.get("userId") || connection.id;
+            const rawToken  = url.searchParams.get("token");
+
+            // Sanitize and cap each field
+            const name = rawName.slice(0, MAX_NAME_LEN).trim() || "Guest";
+            let userId = rawUserId.slice(0, MAX_USERID_LEN);
+            let token  = rawToken ? rawToken.slice(0, MAX_TOKEN_LEN) : null;
+
+            // Reject connections with structurally invalid userId (e.g. injected HTML, SQL, etc.)
+            if (!VALID_USERID_RE.test(userId)) {
+                logger.warn('INVALID_USERID_REJECTED', { rawUserId, connectionId: connection.id, roomId: this.room.id });
+                connection.close(4400, 'INVALID_IDENTITY');
+                return;
+            }
+
             // [Sprint H6 — SEC-3] Sanitize avatar before it enters engine state and Durable Storage.
             // Strip control characters (nullbyte, tab, newline) that could corrupt JSON serialization,
             // then truncate to 10 chars (covers ZWJ emoji sequences like 👨‍👩‍👧‍👦 = 8 chars).
             const rawAvatar = url.searchParams.get("avatar") || "👤";
             const avatar = rawAvatar.replace(/[\u0000-\u001F\u007F]/g, '').slice(0, 10) || "👤";
-            let token = url.searchParams.get("token");
             const isPublicRequest = url.searchParams.get('public') === 'true';
 
             // --- FASE 4: ANTI-SPOOFING & IDENTITY SECURITY ---

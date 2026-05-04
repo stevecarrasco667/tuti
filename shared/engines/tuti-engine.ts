@@ -76,9 +76,28 @@ export class TutiEngine extends BaseEngine {
         return this.state;
     }
 
-    /** In Tuti Classic there are no secrets — everyone sees the same state. */
-    public getClientState(_userId: string): RoomState {
-        return this.state;
+    /**
+     * [Sprint 5 — S5-T1] Per-player state masking for Classic mode.
+     * During PLAYING and ENDING_COUNTDOWN, only the requesting player's own answers
+     * are included. Rivals' answers are hidden to prevent WebSocket sniffer cheating.
+     * Answers are fully revealed from REVIEW onward (legitimate results screen).
+     *
+     * BEFORE: returned `this.state` for all users — a WebSocket sniffer could read
+     * every rival's live draft via state.answers[rivalId].
+     */
+    public getClientState(userId: string): RoomState {
+        const hidingPhases: RoomState['status'][] = ['PLAYING', 'ENDING_COUNTDOWN'];
+        if (!hidingPhases.includes(this.state.status)) {
+            // REVIEW, RESULTS, LOBBY, GAME_OVER — show all answers (legitimate)
+            return this.state;
+        }
+
+        // Mask all rival answers: only keep the requesting player's own entry
+        const maskedAnswers: RoomState['answers'] = {};
+        if (this.state.answers[userId]) {
+            maskedAnswers[userId] = this.state.answers[userId];
+        }
+        return { ...this.state, answers: maskedAnswers };
     }
 
     public hydrate(newState: RoomState): void {

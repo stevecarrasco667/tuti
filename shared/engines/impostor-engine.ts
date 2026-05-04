@@ -259,6 +259,21 @@ export class ImpostorEngine extends BaseEngine {
         }
     }
 
+    /**
+     * [Sprint 5 — S5-T2] Cancels and removes ALL pending grace period timers.
+     * Must be called in every full reset path (restartGame, dispose) to prevent
+     * a disconnected impostor's timer from firing _forceCrewVictory() on a room
+     * that has already returned to LOBBY or been discarded.
+     */
+    private _clearAllGraceTimers(): void {
+        for (const timer of this._gracePeriodTimers.values()) clearTimeout(timer);
+        this._gracePeriodTimers.clear();
+        if (this._gracePeriodTimers.size === 0) {
+            // Map.clear() is synchronous — log only when there was something to clear
+        }
+        logger.info('GRACE_TIMERS_CLEARED', { roomId: this.state.roomId ?? 'unknown' });
+    }
+
     public playerExited(connectionId: string): RoomState {
         const userId = this._players.getPlayerId(connectionId);
         if (!userId) return this.state;
@@ -745,6 +760,10 @@ export class ImpostorEngine extends BaseEngine {
             return this.state;
         }
 
+        // [Sprint 5 — S5-T2] Cancel ALL grace period timers BEFORE clearTimer().
+        // A 15s grace timer from a disconnected impostor can fire _forceCrewVictory()
+        // after restartGame() has returned the room to LOBBY, corrupting the state.
+        this._clearAllGraceTimers();
         this.clearTimer();
         this.state.status = 'LOBBY';
         this.state.uiMetadata = { activeView: 'LOBBY', showTimer: false, targetTime: null };
@@ -1007,6 +1026,10 @@ export class ImpostorEngine extends BaseEngine {
 
     // [Sprint 4] Death Hook — release all GlobalImpostorCache references
     public dispose(): void {
+        // [Sprint 5 — S5-T2] Cancel grace timers before clearing secrets.
+        // Without this, a 15s grace timer can outlive the engine object and
+        // fire _forceCrewVictory() after the room has been discarded.
+        this._clearAllGraceTimers();
         this.clearTimer();
         // [Sprint P1 — Fase 3] Clear private secrets to avoid stale state on next warm-start
         this.clearSecrets();

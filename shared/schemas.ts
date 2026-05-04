@@ -12,8 +12,9 @@ export const PlayerSchema = z.object({
 });
 
 export const CategoryRefSchema = z.object({
-    id: z.string(),
-    name: z.string()
+    // [Sprint 5 — S5-T4] Max lengths prevent host from inflating category names
+    id: z.string().max(60),
+    name: z.string().max(60)
 });
 
 export const GameStatusSchema = z.enum(['LOBBY', 'LOADING_ROUND', 'PLAYING', 'REVIEW', 'RESULTS', 'GAME_OVER', 'ROLE_REVEAL', 'TYPING', 'VOTING', 'LAST_WISH', 'ENDING_COUNTDOWN']);
@@ -31,10 +32,11 @@ export const GameConfigSchema = z.object({
         timeLimit: z.number().min(30).max(180),
         votingDuration: z.number().min(10).max(120),
         categoryCount: z.number().min(1).max(10).optional().default(5),
-        categories: z.array(CategoryRefSchema),
-        // [Sprint H2 — DT-5] Fix: must match types.ts `customCategories: string[]`.
-        // These are user-typed category names, not DB-sourced CategoryRef objects.
-        customCategories: z.array(z.string()),
+        // [Sprint 5 — S5-T4] Limit category arrays to prevent state inflation.
+        // A malicious host can't push 100+ categories and blow up JSON Patch and Durable Storage.
+        categories: z.array(CategoryRefSchema).max(10),
+        // [Sprint 5 — S5-T4] Custom category names must be short and bounded.
+        customCategories: z.array(z.string().max(40)).max(10),
         mutators: z.object({
             suicidalStop: z.boolean(),
             anonymousVoting: z.boolean()
