@@ -497,6 +497,20 @@ export default class Server implements Party.Server {
             // [Sprint P2 — Fase 4A] structuredClone is native V8, ~2x faster than JSON.parse(JSON.stringify)
             this.previousStates.set(conn.id, structuredClone(initialClientState));
 
+            // [Sprint 6 — S6-T1] Re-send private role payload to reconnecting players
+            // during active Impostor phases (TYPING, VOTING, LAST_WISH, ROLE_REVEAL).
+            // Without this, a reconnected player doesn't know their role or the secret word.
+            if (this.engine instanceof ImpostorEngine) {
+                const activePhases = ['ROLE_REVEAL', 'TYPING', 'VOTING', 'LAST_WISH'];
+                if (activePhases.includes(this.engine.getState().status)) {
+                    const privatePayload = this.engine.getPrivateRolePayload(userId);
+                    conn.send(JSON.stringify({
+                        type: EVENTS.PRIVATE_ROLE_ASSIGNMENT,
+                        payload: privatePayload
+                    }));
+                }
+            }
+
             // 3. Send Chat History
             conn.send(JSON.stringify({
                 type: EVENTS.CHAT_HISTORY,

@@ -89,8 +89,13 @@ export class ImpostorEngine extends BaseEngine {
         // Shallow copy to avoid CPU bomb
         const maskedState: RoomState = {
             ...this.state,
+            // [Sprint 6 — S6-T2] Shallow copy arrays to prevent fast-json-patch from corrupting the live state
+            players: [...this.state.players],
+            spectators: [...this.state.spectators],
             impostorData: this.state.impostorData ? {
                 ...this.state.impostorData,
+                alivePlayers: [...this.state.impostorData.alivePlayers],
+                readyPlayers: [...this.state.impostorData.readyPlayers],
                 words: { ...this.state.impostorData.words },
                 votes: { ...this.state.impostorData.votes }
             } : undefined
