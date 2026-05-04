@@ -114,13 +114,8 @@ describe('useGame Composable', () => {
 
     it('should correctly identify Host status', async () => {
         const mockUserId = 'user123';
-        const storageMethod = (global as any).localStorage ? (global as any).localStorage : window.localStorage;
-        vi.spyOn(storageMethod, 'getItem').mockImplementation((key) => {
-            if (key === 'tuti-user-id') return mockUserId;
-            return null;
-        });
-
-        const { amIHost } = useGame();
+        const { amIHost, myUserId } = useGame();
+        myUserId.value = mockUserId;
 
         await simulateServerMessage({
             type: 'UPDATE_STATE',
