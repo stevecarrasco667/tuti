@@ -33,10 +33,24 @@ export class TickManager {
     private tickInterval: ReturnType<typeof setInterval> | null = null;
 
     constructor(
-        private readonly engine: BaseEngine,
+        // [Sprint 4 — S4-T2] engine is mutable (not readonly) to support hot-swap and hydration.
+        // Use setEngine() whenever server.ts replaces this.engine — never reconstruct TickManager.
+        private engine: BaseEngine,
         private readonly onBroadcast: () => void,
         private readonly roomId: string,
     ) {}
+
+    /**
+     * [Sprint 4 — S4-T2] Updates the engine reference without reconstructing the manager.
+     * Must be called in server.ts whenever this.engine is replaced:
+     *   1. onStart() hydration: stored mode = IMPOSTOR → new engine created
+     *   2. UPDATE_CONFIG hot-swap: mode changes Classic ↔ Impostor
+     * Without this, tick() calls go to the dead engine while handlers use the live one.
+     */
+    public setEngine(engine: BaseEngine): void {
+        this.engine = engine;
+        logger.info('TICK_ENGINE_UPDATED', { roomId: this.roomId });
+    }
 
     /**
      * Called on every state mutation (from the onStateChange callback).

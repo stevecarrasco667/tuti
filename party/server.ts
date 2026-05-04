@@ -215,7 +215,10 @@ export default class Server implements Party.Server {
                 // Factory Pattern: Re-create engine if stored mode differs
                 if (stored.config.mode === 'IMPOSTOR') {
                     this.engine = createEngine(this.supabase, 'IMPOSTOR', this.room.id, this.onStateChange);
-                    // [Deuda P2] Hot-Swap: update engine reference in existing handlers — no re-instantiation needed
+                    // [Sprint 4 — S4-T2] Hot-Swap: update engine reference in ALL dependents.
+                    // TickManager.setEngine() fixes the stale-ref bug: without this, tick() was
+                    // calling the dead engine's state while handlers used the live one.
+                    this.tickManager.setEngine(this.engine);
                     this.connectionHandler.setEngine(this.engine);
                     this.playerHandler.setEngine(this.engine);
                     this.gameHandler.setEngine(this.engine);
@@ -242,7 +245,14 @@ export default class Server implements Party.Server {
             const storedTokens = await this.room.storage.get<Record<string, string>>(AUTH_TOKENS_KEY);
             if (storedTokens) {
                 logger.info('TOKENS_HYDRATED', { roomId: this.room.id, count: Object.keys(storedTokens).length });
-                this.authTokens = new Map(Object.entries(storedTokens));
+                // [Sprint 4 — S4-T1] Repopulate the existing Map IN-PLACE instead of reassigning.
+                // ConnectionHandler holds a reference to the original this.authTokens object.
+                // Reassigning (= new Map()) would leave the handler with a stale empty Map after hydration,
+                // breaking anti-spoofing, reconnections, and identity persistence.
+                this.authTokens.clear();
+                for (const [k, v] of Object.entries(storedTokens)) {
+                    this.authTokens.set(k, v);
+                }
             }
 
             // 3. [Sprint H3 — BE-2] Start Heartbeat only if room is public (P3 conditional)
@@ -589,7 +599,10 @@ export default class Server implements Party.Server {
                         this.engine = createEngine(this.supabase, newMode, this.room.id, this.onStateChange);
                         this.engine.hydrate(currentState);
 
-                        // Hot-Swap: update engine reference in existing handlers
+                        // [Sprint 4 — S4-T2] Hot-Swap: update engine reference in ALL dependents.
+                        // TickManager must be first: if it ticks before being updated, it calls
+                        // the dead engine's tick() while handlers read the live engine's state.
+                        this.tickManager.setEngine(this.engine);
                         this.connectionHandler.setEngine(this.engine);
                         this.playerHandler.setEngine(this.engine);
                         this.gameHandler.setEngine(this.engine);

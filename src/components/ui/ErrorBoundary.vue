@@ -12,7 +12,7 @@ const { leaveGame } = useGame();
 const { t } = useI18n();
 
 // Capture any error from descendant components
-onErrorCaptured((err: unknown, _instance: any, info: string) => {
+onErrorCaptured((err: unknown, _instance: any, _info: string) => {
     // 1. Log to our telemetry system
     Sentry.captureException(err);
     

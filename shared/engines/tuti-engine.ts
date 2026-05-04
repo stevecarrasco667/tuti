@@ -291,9 +291,13 @@ export class TutiEngine extends BaseEngine {
                 );
 
                 this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
+                // [Sprint 4 — S4-T3] Reset Anti-Troll start time for every new round.
+                // Previously missing here: _roundStartTime kept round-1's value, so the grace-period
+                // check in stopRound() always passed instantly in rounds 2+.
+                this._roundStartTime = Date.now();
                 // [Sync] Emitir graceEndsAt para que todos los clientes usen el mismo timestamp
                 const gracePeriodMs_1 = calcGracePeriod(this.state.categories.length);
-                this.state.timers.graceEndsAt = Date.now() + gracePeriodMs_1;
+                this.state.timers.graceEndsAt = this._roundStartTime + gracePeriodMs_1;
                 this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
             } else {
                 this._triggerGameOver('NORMAL');
@@ -481,8 +485,12 @@ export class TutiEngine extends BaseEngine {
 
             if (this.rounds.nextRound(this.state, this.state.config)) {
                 this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
+                // [Sprint 4 — S4-T3] Reset Anti-Troll start time on auto-advance.
+                // Without this, _roundStartTime stayed at round-1's value, so the grace period
+                // check in stopRound() always passed instantly from round 2 onwards.
+                this._roundStartTime = Date.now();
                 const gracePeriodMs = calcGracePeriod(this.state.categories.length);
-                this.state.timers.graceEndsAt = Date.now() + gracePeriodMs;
+                this.state.timers.graceEndsAt = this._roundStartTime + gracePeriodMs;
                 this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
             } else {
                 this._triggerGameOver('NORMAL');
@@ -710,9 +718,12 @@ export class TutiEngine extends BaseEngine {
             console.log("[TutiEngine] Anti-Freeze: Forcing next round");
             if (this.rounds.nextRound(this.state, this.state.config)) {
                 this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
-                // [Sync] Emitir timestamp exacto de gracia a los clientes al iniciar automáticamente
+                // [Sprint 4 — S4-T3] Reset Anti-Troll start time in the alarm-watchdog path.
+                // Without this, the grace period check in stopRound() always passed instantly
+                // in rounds triggered by the alarm (Worker woke from hibernation at RESULTS end).
+                this._roundStartTime = Date.now();
                 const gracePeriodMs_3 = calcGracePeriod(this.state.categories.length);
-                this.state.timers.graceEndsAt = Date.now() + gracePeriodMs_3;
+                this.state.timers.graceEndsAt = this._roundStartTime + gracePeriodMs_3;
                 this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
             } else {
                 this._triggerGameOver('NORMAL');
