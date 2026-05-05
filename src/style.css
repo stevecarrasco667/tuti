@@ -2,38 +2,110 @@
 @tailwind components;
 @tailwind utilities;
 
+/* [FE-1.4] Fuentes de juego desde Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Inter:wght@400;500;600;700&family=Bebas+Neue&display=swap');
+
 @layer base {
   body {
-    @apply bg-panel-base text-ink-main antialiased selection:bg-action-primary selection:text-white font-sans;
+    @apply bg-panel-base text-ink-main antialiased selection:bg-game-yellow selection:text-game-black font-sans;
     color-scheme: dark;
   }
-  
-  /* Noise Texture Overlay (Arcade Callejero) */
+
+  /* Noise Texture Overlay sutil (Arcade Callejero) */
   body::before {
     content: '';
     position: fixed; inset: 0;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-    pointer-events: none; 
-    z-index: 9999; 
-    opacity: 0.3;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.2;
   }
 }
 
-/* Erradicación del Scrollbar global */
-::-webkit-scrollbar {
-  display: none;
-}
+/* ── Scrollbar oculto global ── */
+::-webkit-scrollbar { display: none; }
 * {
-  -ms-overflow-style: none; /* IE y Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-/* Mobile Chat Animations */
+/* ─────────────────────────────────────────────────────────
+   [FE-1.5] Componentes Neo-Brutalistas — @layer components
+   ───────────────────────────────────────────────────────── */
+@layer components {
+
+  /* ── TCard Neo-Brutalista ── */
+  .nb-card {
+    @apply bg-panel-card border-2 border-game-black/80 shadow-hard rounded-2xl transition-all duration-150;
+  }
+  .nb-card-paper {
+    @apply bg-game-cream border-2 border-game-black shadow-hard rounded-xl text-game-black;
+  }
+
+  /* ── Botón Base Neo-Brutalista ── */
+  /* Efecto press: al hacer active el botón se "hunde" 5px hacia abajo-derecha */
+  .nb-btn {
+    @apply font-heading font-black uppercase tracking-widest
+           border-2 border-game-black shadow-hard
+           transition-all duration-75 ease-press
+           flex items-center justify-center gap-2
+           min-h-[48px] rounded-xl cursor-pointer
+           focus:outline-none focus-visible:ring-4 focus-visible:ring-game-yellow/60
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-x-0 disabled:translate-y-0
+           active:shadow-hard-pressed active:translate-x-[4px] active:translate-y-[4px];
+  }
+  .nb-btn-primary {
+    @apply nb-btn bg-game-yellow text-game-black hover:bg-game-yellow-dark;
+  }
+  .nb-btn-secondary {
+    @apply nb-btn bg-game-white text-game-black hover:bg-gray-100;
+  }
+  .nb-btn-ghost {
+    @apply nb-btn bg-transparent border-dashed text-ink-soft hover:bg-white/5 shadow-none active:shadow-none active:translate-x-0 active:translate-y-0;
+  }
+  .nb-btn-danger {
+    @apply nb-btn bg-game-red text-game-white shadow-hard-red hover:bg-red-600 active:shadow-hard-pressed;
+  }
+  .nb-btn-success {
+    @apply nb-btn bg-game-green text-game-black shadow-hard-green hover:bg-green-500 active:shadow-hard-pressed;
+  }
+
+  /* ── Input Neo-Brutalista (para fase de juego) ── */
+  .nb-input {
+    @apply w-full px-4 py-3 min-h-[48px]
+           bg-white border-2 border-game-black
+           rounded-xl shadow-hard-sm
+           text-game-black font-bold placeholder-gray-400
+           transition-all duration-150
+           focus:outline-none focus:border-game-yellow focus:shadow-hard-yellow focus:ring-0
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* ── Badge / Label de categoría ── */
+  .nb-badge {
+    @apply inline-block px-2.5 py-1 rounded-lg
+           border-2 border-game-black shadow-hard-sm
+           font-heading font-bold text-xs uppercase tracking-wider;
+  }
+  .nb-badge-yellow {
+    @apply nb-badge bg-game-yellow text-game-black;
+  }
+  .nb-badge-red {
+    @apply nb-badge bg-game-red text-white;
+  }
+  .nb-badge-green {
+    @apply nb-badge bg-game-green text-game-black;
+  }
+  .nb-badge-blue {
+    @apply nb-badge bg-game-blue text-game-black;
+  }
+}
+
+/* ── Transiciones de pantalla (Vue) ── */
 .slide-up-enter-active,
 .slide-up-leave-active {
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
 .slide-up-enter-from,
 .slide-up-leave-to {
   transform: translateY(100%);
@@ -43,8 +115,15 @@
 .fade-leave-active {
   transition: opacity 0.2s ease;
 }
-
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.game-enter-active {
+  transition: all 0.2s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+.game-enter-from {
+  opacity: 0;
+  transform: scale(0.95) translateY(8px);
 }
