@@ -101,14 +101,16 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
 
             <!-- LEFT: Consola -->
             <div class="lg:col-span-4 flex flex-col gap-5 justify-center">
-                <TCard padding="lg" class="shadow-2xl border-[3px] border-white/10 relative overflow-hidden">
-                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-action-blue/10 rounded-full blur-3xl pointer-events-none"></div>
+                <!-- [FE-2.2] TCard con nb-card + sombra hard -->
+                <TCard padding="lg" class="shadow-hard-white border-2 border-game-black/80 relative overflow-hidden">
                     <div class="relative z-10">
-                        <h1 class="text-6xl sm:text-7xl lg:text-[5rem] font-display text-center mb-1 tracking-wider uppercase leading-none">
-                            <span class="text-transparent bg-clip-text bg-gradient-to-br from-action-primary via-action-warning to-action-error drop-shadow-md">TUTI GAMES</span>
+                        <!-- [FE-2.1] Logo sólido sin gradientes: amarillo plano con sombra de texto dura -->
+                        <h1 class="font-display text-center mb-1 tracking-wider uppercase leading-none"
+                            style="font-size: clamp(3.5rem, 8vw, 5.5rem); color: #F5C800; text-shadow: 4px 4px 0px #0D0D0D;">
+                            TUTI GAMES
                         </h1>
-                        <p class="text-center font-ui tracking-widest uppercase text-[10px] sm:text-xs text-ink-muted mb-8 font-black">
-                            <span v-if="filteredRooms.length > 0" class="text-action-success px-3 py-1 bg-action-success/10 rounded-full border border-action-success/20 shadow-glow-success animate-pulse">🟢 {{ t('home.activeRooms', { count: filteredRooms.length }, filteredRooms.length) }}</span>
+                        <p class="text-center font-heading tracking-widest uppercase text-[10px] sm:text-xs text-ink-muted mb-8 font-black">
+                            <span v-if="filteredRooms.length > 0" class="nb-badge-green">🟢 {{ t('home.activeRooms', { count: filteredRooms.length }, filteredRooms.length) }}</span>
                             <span v-else class="text-ink-soft">{{ t('home.slogan') }}</span>
                         </p>
                     </div>
@@ -131,7 +133,8 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                     </div>
                 </TCard>
 
-                <TCard padding="md">
+                <!-- [FE-2.4] Identity card con nb-card -->
+                <TCard padding="md" class="border-2 border-game-black/80 shadow-hard-white-sm">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-xs font-black text-ink-main uppercase tracking-widest flex items-center gap-1">
                             {{ t('home.yourIdentity') }}
@@ -142,7 +145,8 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                     </div>
                     <div class="flex items-center gap-4">
                         <div class="relative group flex-none">
-                            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-panel-input border-[3px] border-white/10 rounded-2xl flex items-center justify-center text-4xl shadow-sm transition-transform group-hover:scale-105 overflow-hidden">{{ selectedAvatar }}</div>
+                            <!-- [FE-2.4] Avatar con borde amarillo y sombra hard -->
+                            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-panel-input border-3 border-game-yellow shadow-hard-sm rounded-2xl flex items-center justify-center text-4xl transition-all group-hover:scale-105 group-hover:shadow-hard overflow-hidden">{{ selectedAvatar }}</div>
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-ink-soft text-[10px] font-bold tracking-wider uppercase mb-1">{{ t('home.publicName') }}</p>
@@ -170,7 +174,8 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
 
             <!-- RIGHT: Server Browser -->
             <div class="lg:col-span-3 flex flex-col min-h-0">
-                <TCard padding="none" class="flex flex-col overflow-hidden flex-1 min-h-[400px] max-h-[min(700px,80vh)] border-[3px] border-white/10 shadow-game-panel">
+                <!-- [FE-2.3] Panel de salas con borde negro y sombra hard -->
+                <TCard padding="none" class="flex flex-col overflow-hidden flex-1 min-h-[400px] max-h-[min(700px,80vh)] border-2 border-game-black/80 shadow-hard">
 
 
                     <!-- Filter Bar (Segmented Controls) -->
@@ -188,11 +193,14 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                         <!-- Modo -->
                         <div>
                             <span class="text-[8px] font-black text-ink-muted uppercase tracking-widest mb-1.5 block">{{ t('home.gameMode') }}</span>
-                            <div class="flex gap-1 bg-panel-input p-1 rounded-xl border border-white/5">
+                            <!-- [FE-2.3] Filtros como botones pill: sólido amarillo cuando activo, blanco/ghost cuando no -->
+                            <div class="flex gap-1.5">
                                 <button v-for="m in ['ALL','CLASSIC','IMPOSTOR']" :key="m"
                                     @click="lobbyFilters.mode = m as any"
-                                    class="flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all"
-                                    :class="lobbyFilters.mode === m ? 'bg-panel-card text-white shadow-sm border border-white/10' : 'text-ink-muted hover:text-ink-soft'"
+                                    class="flex-1 py-1.5 px-2 rounded-lg border-2 text-[9px] font-black uppercase tracking-wider transition-all duration-100 active:scale-95"
+                                    :class="lobbyFilters.mode === m
+                                        ? 'bg-game-yellow text-game-black border-game-black shadow-hard-sm translate-x-0'
+                                        : 'bg-transparent text-ink-muted border-white/20 hover:border-white/40 hover:text-ink-soft'"
                                 >{{ m === 'ALL' ? t('home.any') : MODE_LABELS[m] }}</button>
                             </div>
                         </div>
@@ -224,14 +232,15 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                             <p class="text-ink-muted text-[10px] font-bold mt-2">{{ t('home.adjustFilters') }}</p>
                         </div>
 
-                        <!-- Room Card (Arcade Ticket Style) -->
+                        <!-- [FE-2.3] Room Cards — Neo-Brutalistas: borde negro, sombra hard -->
                         <div
                             v-for="room in filteredRooms" :key="room.id"
-                            class="relative rounded-2xl border-[3px] p-1 transition-all overflow-hidden"
-                            :class="room.joinable ? 'bg-panel-card border-white/10 hover:border-action-primary/50 group' : 'bg-panel-card/30 border-white/5 opacity-75'"
+                            class="relative rounded-xl border-2 transition-all overflow-hidden"
+                            :class="room.joinable
+                                ? 'bg-panel-card border-game-black/70 shadow-hard-sm hover:shadow-hard hover:-translate-y-0.5 group cursor-pointer'
+                                : 'bg-panel-card/40 border-white/10 opacity-60'"
                         >
-                            <!-- Inner Content -->
-                            <div class="flex flex-col sm:flex-row bg-panel-base rounded-xl overflow-hidden h-full">
+                            <div class="flex flex-col sm:flex-row bg-panel-base/60 rounded-xl overflow-hidden h-full">
                                 
                                 <!-- Identidad y Datos -->
                                 <div class="flex-1 p-3 flex items-center gap-3">
@@ -276,11 +285,11 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                                         </div>
                                     </div>
 
-                                    <!-- Acción: Botón superpuesto en hover (solo escritorio) / Visible en móvil -->
-                                    <div v-if="room.joinable" class="sm:absolute sm:inset-0 sm:bg-panel-base/90 sm:backdrop-blur-[2px] sm:flex sm:items-center sm:justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-all z-10 p-2 sm:p-0">
-                                        <button @click="handleJoinPublicRoom(room.id)" class="w-full sm:w-auto px-4 py-2 bg-action-primary text-panel-base rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-glow-primary active:scale-95 transition-transform flex items-center justify-center gap-2">
-                                            <span>{{ t('home.enter') }}</span>
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                                    <!-- [FE-2.3] Botón ENTRAR — Neo-Brutalista con press effect -->
+                                    <div v-if="room.joinable" class="sm:absolute sm:inset-0 sm:bg-panel-base/90 sm:flex sm:items-center sm:justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-all z-10 p-2 sm:p-0">
+                                        <button @click="handleJoinPublicRoom(room.id)"
+                                            class="nb-btn-primary text-[10px] sm:text-xs px-5 py-2 rounded-lg w-full sm:w-auto">
+                                            {{ t('home.enter') }} →
                                         </button>
                                     </div>
                                     

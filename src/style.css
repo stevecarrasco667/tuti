@@ -1,9 +1,9 @@
+/* [FE-1.4] Fuentes de juego desde Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Inter:wght@400;500;600;700&family=Bebas+Neue&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* [FE-1.4] Fuentes de juego desde Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Inter:wght@400;500;600;700&family=Bebas+Neue&display=swap');
 
 @layer base {
   body {
