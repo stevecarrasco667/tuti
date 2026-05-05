@@ -113,23 +113,29 @@ onUnmounted(() => {
     <!-- FASE 1: flex-col justify-center min-h-full para centrado vertical real -->
     <div class="w-full max-w-[95%] xl:max-w-7xl mx-auto flex flex-col justify-center min-h-full transition-all duration-500 ease-out">
         
-        <div class="bg-panel-base border-[3px] border-white/20 rounded-[2.5rem] shadow-game-panel overflow-hidden relative transition-all duration-300">
-            
-            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-action-primary via-action-accent to-action-primary opacity-90"></div>
+        <!-- [FE-3] Panel del tablero: borde negro sólido + sombra hard -->
+        <div class="bg-panel-card border-3 border-game-black/80 shadow-hard rounded-2xl overflow-hidden relative transition-all duration-300">
+
+            <!-- [FE-3.4] Barra de progreso superior: amarillo → verde -->
+            <div class="h-2 w-full bg-panel-base/50"
+                 style="background: linear-gradient(to right, #5A1488 var(--prog), #5A1488 var(--prog))">
+            </div>
 
             <!-- FASE 2: padding reducido, grid adaptativo por gridClass computed -->
             <div class="p-4 md:p-5">
                 <div class="grid gap-3 md:gap-4 items-start" :class="gridClass">
                     <div v-for="(category, index) in categories" :key="category.id" class="group">
-                        <!-- FASE 4: title tooltip para labels largas -->
+                        <!-- [FE-3.2] Label de categoría: badge tipo sticker amarillo -->
                         <label
                             :title="t(`categories.${category.id}`) || category.name"
-                            class="block font-black text-ink-soft mb-1.5 transition-colors group-focus-within:text-action-blue truncate tracking-widest text-xs uppercase cursor-default"
+                            class="inline-block mb-2 nb-badge-yellow truncate max-w-full cursor-default"
+                            style="transform: rotate(-0.5deg);"
                         >
                             {{ t(`categories.${category.id}`, category.name) }}
                         </label>
                         <div class="relative">
-                            <input 
+                            <!-- [FE-3.1] Input blanco con borde negro — máximo contraste -->
+                            <input
                                 :value="modelValue[category.name]"
                                 @input="handleInput(category.name, $event)"
                                 @focus="$emit('input-focus', $event)"
@@ -137,19 +143,19 @@ onUnmounted(() => {
                                 :ref="(el) => setInputRef(el, index)"
                                 type="text"
                                 autocomplete="off"
-                                class="w-full bg-panel-input border-[3px] border-white/10 text-ink-main rounded-xl focus:bg-panel-input focus:border-action-primary focus:ring-4 focus:ring-action-primary/50 outline-none transition-all placeholder-ink-muted/50 font-black py-2 px-4 shadow-inner disabled:cursor-not-allowed"
+                                class="nb-input font-black placeholder-gray-300"
                                 :class="[
-                                    inputHeightClass, 
+                                    inputHeightClass,
                                     inputTextClass,
-                                    isSpectator ? 'opacity-60 grayscale' : 'disabled:opacity-50'
+                                    isSpectator ? 'opacity-60 grayscale' : ''
                                 ]"
                                 :placeholder="(currentLetter || '') + '...'"
                                 :disabled="isBlocked || isSpectator"
                                 :tabindex="isSpectator ? -1 : 0"
                             >
-                            <!-- Filled indicator dot (Éxito Semántico) -->
+                            <!-- [FE-3.4] Indicador de completado: punto verde sólido -->
                             <div v-if="modelValue[category.name]?.trim().length > 0"
-                                 class="absolute right-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)] pointer-events-none">
+                                 class="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-game-green border-2 border-game-black shadow-hard-sm pointer-events-none">
                             </div>
                         </div>
                     </div>

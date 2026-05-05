@@ -60,16 +60,21 @@ const buttonLabel = computed(() => {
             <!-- PLAYING / ENDING_COUNTDOWN: Botón BASTA    -->
             <!-- ═══════════════════════════════════════════ -->
             <template v-if="status === 'PLAYING' || status === 'ENDING_COUNTDOWN'">
-                <!-- Barra de progreso integrada (FASE 3) -->
+                <!-- [FE-3.4] Barra de progreso: amarillo → verde al completarse -->
                 <div class="w-full flex items-center gap-3 px-1">
-                    <div class="flex-1 h-1.5 bg-panel-card/80 rounded-full overflow-hidden shadow-inner">
+                    <div class="flex-1 h-2.5 bg-panel-card/80 rounded-full overflow-hidden border border-white/10">
                         <div
                             class="h-full rounded-full transition-all duration-500"
-                            :class="progressPercent === 100 ? 'bg-action-primary shadow-[0_0_8px_rgba(74,222,128,0.7)]' : 'bg-action-blue'"
+                            :class="progressPercent === 100
+                                ? 'bg-game-green'
+                                : progressPercent >= 50
+                                    ? 'bg-game-yellow'
+                                    : 'bg-game-orange'"
                             :style="{ width: progressPercent + '%' }"
                         ></div>
                     </div>
-                    <span class="text-[11px] font-black text-ink-soft tabular-nums whitespace-nowrap">
+                    <span class="text-[11px] font-heading font-black text-ink-main tabular-nums whitespace-nowrap"
+                          :class="progressPercent === 100 ? 'text-game-green' : 'text-ink-soft'">
                         {{ myProgress.current }}<span class="text-ink-muted">/{{ myProgress.total }}</span>
                     </span>
                 </div>
@@ -81,37 +86,37 @@ const buttonLabel = computed(() => {
                     <span class="text-lg">👀</span> {{ t('gameFooter.playersTyping') }}
                 </div>
 
-                <!-- Botón BASTA con jerarquía P11 -->
+                <!-- [FE-3] Botón BASTA — Neo-Brutalista con press effect -->
                 <button
                     v-else
                     @click="$emit('stop')"
                     :title="isGraceActive ? `Debes esperar el tiempo de gracia inicial antes de poder gritar BASTA.` : undefined"
-                    class="w-full font-black py-4 rounded-3xl shadow-game-btn transition-all active:scale-[0.98] flex items-center justify-center gap-3 border-4 uppercase tracking-widest"
+                    class="w-full font-heading font-black py-4 rounded-xl uppercase tracking-widest text-xl flex items-center justify-center gap-3 transition-all duration-75"
                     :class="isEnding
-                        ? 'text-xl bg-action-error/60 border-red-400/60 text-white opacity-90 cursor-not-allowed animate-pulse'
+                        ? 'bg-game-red/60 border-2 border-red-400/60 text-white opacity-90 cursor-not-allowed animate-pulse shadow-none'
                         : isButtonDisabled
-                            ? 'text-xl bg-panel-card border-white/20 text-ink-muted opacity-60 saturate-50 cursor-not-allowed shadow-none'
-                            : 'text-2xl bg-action-error hover:bg-red-500 text-white border-white/90 shadow-[0_0_30px_-5px_rgba(239,68,68,0.6)]'
-                    "
+                            ? 'bg-panel-card border-2 border-white/20 text-ink-muted opacity-60 cursor-not-allowed shadow-none'
+                            : 'nb-btn-danger text-2xl active:translate-x-[5px] active:translate-y-[5px] active:shadow-hard-pressed'"
                     :disabled="isButtonDisabled"
                 >
-                    <span class="drop-shadow-sm">{{ buttonLabel }}</span>
+                    <span>{{ buttonLabel }}</span>
                 </button>
             </template>
 
             <!-- ═══════════════════════════════════════════ -->
             <!-- RESULTS: Siguiente Ronda / Esperando       -->
             <!-- ═══════════════════════════════════════════ -->
+            <!-- [FE-5.3] Botón SIGUIENTE RONDA — nb-btn-success con press effect máximo -->
             <button
                 v-if="status === 'RESULTS' && amIHost"
                 @click="$emit('next-round')"
-                class="w-full bg-action-primary hover:bg-action-hover text-white font-black text-xl py-4 rounded-3xl shadow-[0_0_30px_-5px_rgba(74,222,128,0.4)] border-4 border-green-300 transition-all active:scale-[0.98] uppercase tracking-wide flex items-center justify-center gap-2"
+                class="nb-btn-success w-full text-xl py-4 rounded-xl tracking-widest"
             >
-                {{ t('gameFooter.nextRound') }} <span class="text-2xl">⚡</span>
+                {{ t('gameFooter.nextRound') }} <span class="text-2xl ml-1">⚡</span>
             </button>
             <div
                 v-else-if="status === 'RESULTS'"
-                class="w-full text-center text-amber-500 bg-panel-input border-2 border-amber-500/30 shadow-[0_0_30px_-5px_rgba(245,158,11,0.2)] backdrop-blur-sm rounded-full text-sm font-black uppercase tracking-widest animate-[pulse_2s_ease-in-out_infinite] py-3.5 flex items-center justify-center gap-2"
+                class="w-full text-center text-game-yellow bg-panel-input border-2 border-game-yellow/40 shadow-hard-white-sm rounded-xl text-sm font-heading font-black uppercase tracking-widest animate-pulse py-3.5 flex items-center justify-center gap-2"
             >
                 <span class="text-lg">⏳</span> {{ t('gameFooter.waitingHost') }}
             </div>
