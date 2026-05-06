@@ -60,12 +60,16 @@ const buttonLabel = computed(() => {
             <!-- PLAYING / ENDING_COUNTDOWN: Botón BASTA    -->
             <!-- ═══════════════════════════════════════════ -->
             <template v-if="status === 'PLAYING' || status === 'ENDING_COUNTDOWN'">
-                <!-- Barra de progreso integrada (FASE 3) -->
+                <!-- Barra de progreso — Soft-Pop: amarillo -> verde -->
                 <div class="w-full flex items-center gap-3 px-1">
-                    <div class="flex-1 h-1.5 bg-panel-card/80 rounded-full overflow-hidden shadow-inner">
+                    <div class="flex-1 h-2 bg-panel-card/80 rounded-full overflow-hidden shadow-inner">
                         <div
                             class="h-full rounded-full transition-all duration-500"
-                            :class="progressPercent === 100 ? 'bg-action-primary shadow-[0_0_8px_rgba(74,222,128,0.7)]' : 'bg-action-blue'"
+                            :class="progressPercent === 100
+                                ? 'bg-game-green'
+                                : progressPercent >= 50
+                                    ? 'bg-game-yellow'
+                                    : 'bg-game-yellow/60'"
                             :style="{ width: progressPercent + '%' }"
                         ></div>
                     </div>
@@ -76,42 +80,47 @@ const buttonLabel = computed(() => {
 
                 <!-- [Sprint 5 - Spectator Mode] Audience Passive Status -->
                 <div v-if="isSpectator"
-                    class="w-full text-center text-action-primary bg-panel-input border-2 border-action-primary/30 shadow-[0_0_30px_-5px_rgba(74,222,128,0.2)] backdrop-blur-sm rounded-full text-sm font-black uppercase tracking-widest animate-[pulse_2s_ease-in-out_infinite] py-3.5 flex items-center justify-center gap-2"
+                    class="w-full text-center text-game-yellow bg-game-yellow/10 border-2 border-game-yellow/30 rounded-full text-sm font-heading font-black uppercase tracking-widest animate-pulse py-3.5 flex items-center justify-center gap-2"
                 >
                     <span class="text-lg">👀</span> {{ t('gameFooter.playersTyping') }}
                 </div>
 
-                <!-- Botón BASTA con jerarquía P11 -->
+                <!-- Botón BASTA — Soft-Pop 3D squishy -->
                 <button
                     v-else
                     @click="$emit('stop')"
                     :title="isGraceActive ? `Debes esperar el tiempo de gracia inicial antes de poder gritar BASTA.` : undefined"
-                    class="w-full font-black py-4 rounded-3xl shadow-game-btn transition-all active:scale-[0.98] flex items-center justify-center gap-3 border-4 uppercase tracking-widest"
+                    class="w-full font-heading font-black py-5 rounded-[2rem] uppercase tracking-widest text-xl
+                           flex items-center justify-center gap-3
+                           transition-all duration-75"
                     :class="isEnding
-                        ? 'text-xl bg-action-error/60 border-red-400/60 text-white opacity-90 cursor-not-allowed animate-pulse'
+                        ? 'bg-game-red/50 text-white/70 shadow-none cursor-not-allowed animate-pulse translate-y-[6px]'
                         : isButtonDisabled
-                            ? 'text-xl bg-panel-card border-white/20 text-ink-muted opacity-60 saturate-50 cursor-not-allowed shadow-none'
-                            : 'text-2xl bg-action-error hover:bg-red-500 text-white border-white/90 shadow-[0_0_30px_-5px_rgba(239,68,68,0.6)]'
+                            ? 'bg-panel-card text-ink-muted shadow-none translate-y-[6px] cursor-not-allowed'
+                            : 'bg-game-red text-white shadow-3d-red hover:bg-game-red/90 active:shadow-none active:translate-y-[6px]'
                     "
                     :disabled="isButtonDisabled"
                 >
-                    <span class="drop-shadow-sm">{{ buttonLabel }}</span>
+                    <span>{{ buttonLabel }}</span>
                 </button>
             </template>
 
-            <!-- ═══════════════════════════════════════════ -->
-            <!-- RESULTS: Siguiente Ronda / Esperando       -->
-            <!-- ═══════════════════════════════════════════ -->
+            <!-- RESULTS: Siguiente Ronda / Esperando -->
             <button
                 v-if="status === 'RESULTS' && amIHost"
                 @click="$emit('next-round')"
-                class="w-full bg-action-primary hover:bg-action-hover text-white font-black text-xl py-4 rounded-3xl shadow-[0_0_30px_-5px_rgba(74,222,128,0.4)] border-4 border-green-300 transition-all active:scale-[0.98] uppercase tracking-wide flex items-center justify-center gap-2"
+                class="w-full font-heading font-black text-xl py-5 rounded-[2rem]
+                       bg-game-green text-panel-base shadow-3d-green
+                       hover:bg-game-green/90
+                       active:shadow-none active:translate-y-[6px]
+                       transition-all duration-75 uppercase tracking-widest
+                       flex items-center justify-center gap-2"
             >
                 {{ t('gameFooter.nextRound') }} <span class="text-2xl">⚡</span>
             </button>
             <div
                 v-else-if="status === 'RESULTS'"
-                class="w-full text-center text-amber-500 bg-panel-input border-2 border-amber-500/30 shadow-[0_0_30px_-5px_rgba(245,158,11,0.2)] backdrop-blur-sm rounded-full text-sm font-black uppercase tracking-widest animate-[pulse_2s_ease-in-out_infinite] py-3.5 flex items-center justify-center gap-2"
+                class="w-full text-center text-game-yellow bg-game-yellow/10 border-2 border-game-yellow/30 rounded-full text-sm font-heading font-black uppercase tracking-widest animate-pulse py-3.5 flex items-center justify-center gap-2"
             >
                 <span class="text-lg">⏳</span> {{ t('gameFooter.waitingHost') }}
             </div>

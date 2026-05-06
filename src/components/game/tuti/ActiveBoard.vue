@@ -113,22 +113,24 @@ onUnmounted(() => {
     <!-- FASE 1: flex-col justify-center min-h-full para centrado vertical real -->
     <div class="w-full max-w-[95%] xl:max-w-7xl mx-auto flex flex-col justify-center min-h-full transition-all duration-500 ease-out">
         
-        <div class="bg-panel-base border-[3px] border-white/20 rounded-[2.5rem] shadow-game-panel overflow-hidden relative transition-all duration-300">
+        <div class="bg-panel-card/60 backdrop-blur-sm border-2 border-white/10 rounded-[2.5rem] shadow-3d-panel overflow-hidden relative transition-all duration-300">
             
-            <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-action-primary via-action-accent to-action-primary opacity-90"></div>
+            <!-- Accent strip top — Soft gradient suave -->
 
             <!-- FASE 2: padding reducido, grid adaptativo por gridClass computed -->
             <div class="p-4 md:p-5">
                 <div class="grid gap-3 md:gap-4 items-start" :class="gridClass">
                     <div v-for="(category, index) in categories" :key="category.id" class="group">
-                        <!-- FASE 4: title tooltip para labels largas -->
+                        <!-- Soft-Pop: label como burbuja sutil encima del input -->
                         <label
                             :title="t(`categories.${category.id}`) || category.name"
-                            class="block font-black text-ink-soft mb-1.5 transition-colors group-focus-within:text-action-blue truncate tracking-widest text-xs uppercase cursor-default"
+                            class="inline-block font-heading font-black text-[10px] uppercase tracking-wider px-2.5 py-1 mb-1.5
+                                   bg-game-yellow/20 text-game-yellow rounded-full cursor-default truncate max-w-full"
                         >
                             {{ t(`categories.${category.id}`, category.name) }}
                         </label>
                         <div class="relative">
+                            <!-- Soft-Pop input: fondo crema suave, sombra interior, sin bordes negros -->
                             <input 
                                 :value="modelValue[category.name]"
                                 @input="handleInput(category.name, $event)"
@@ -137,7 +139,7 @@ onUnmounted(() => {
                                 :ref="(el) => setInputRef(el, index)"
                                 type="text"
                                 autocomplete="off"
-                                class="w-full bg-panel-input border-[3px] border-white/10 text-ink-main rounded-xl focus:bg-panel-input focus:border-action-primary focus:ring-4 focus:ring-action-primary/50 outline-none transition-all placeholder-ink-muted/50 font-black py-2 px-4 shadow-inner disabled:cursor-not-allowed"
+                                class="sp-input font-heading font-black py-2 px-4 disabled:cursor-not-allowed"
                                 :class="[
                                     inputHeightClass, 
                                     inputTextClass,
@@ -147,9 +149,11 @@ onUnmounted(() => {
                                 :disabled="isBlocked || isSpectator"
                                 :tabindex="isSpectator ? -1 : 0"
                             >
-                            <!-- Filled indicator dot (Éxito Semántico) -->
+                            <!-- Indicador de completado — punto verde Soft-Pop -->
                             <div v-if="modelValue[category.name]?.trim().length > 0"
-                                 class="absolute right-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)] pointer-events-none">
+                                 class="absolute right-3 top-1/2 -translate-y-1/2
+                                        w-3 h-3 rounded-full bg-game-green shadow-3d-green
+                                        pointer-events-none transition-all duration-200">
                             </div>
                         </div>
                     </div>
