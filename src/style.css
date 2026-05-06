@@ -55,9 +55,10 @@
 
   .sp-input {
     @apply w-full px-5 py-3.5 min-h-[48px] rounded-2xl
-           bg-game-cream text-panel-base placeholder-gray-400 font-bold
-           shadow-inner transition-all duration-300 outline-none
-           focus:ring-4 focus:ring-game-yellow/50 focus:bg-white
+           bg-panel-base text-ink-main placeholder-ink-muted/50 font-bold
+           shadow-[inset_0_4px_12px_rgba(0,0,0,0.6)] border-2 border-white/5
+           transition-all duration-300 outline-none
+           focus:border-game-yellow focus:ring-4 focus:ring-game-yellow/30
            disabled:opacity-50 disabled:cursor-not-allowed;
   }
 }
