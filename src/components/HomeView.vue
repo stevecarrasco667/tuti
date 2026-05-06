@@ -101,7 +101,7 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
 
             <!-- LEFT: Consola -->
             <div class="lg:col-span-4 flex flex-col gap-5 justify-center">
-                <TCard padding="lg" class="shadow-2xl border-[3px] border-white/10 relative overflow-hidden">
+                <TCard padding="lg" class="shadow-3d-panel relative overflow-hidden">
                     <div class="absolute -top-24 -right-24 w-64 h-64 bg-action-blue/10 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="relative z-10">
                         <h1 class="text-6xl sm:text-7xl lg:text-[5rem] font-display text-center mb-1 tracking-wider uppercase leading-none">
@@ -142,7 +142,7 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                     </div>
                     <div class="flex items-center gap-4">
                         <div class="relative group flex-none">
-                            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-panel-input border-[3px] border-white/10 rounded-2xl flex items-center justify-center text-4xl shadow-sm transition-transform group-hover:scale-105 overflow-hidden">{{ selectedAvatar }}</div>
+                            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-panel-input rounded-3xl flex items-center justify-center text-4xl shadow-inner transition-transform group-hover:scale-105 overflow-hidden">{{ selectedAvatar }}</div>
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-ink-soft text-[10px] font-bold tracking-wider uppercase mb-1">{{ t('home.publicName') }}</p>
@@ -170,7 +170,7 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
 
             <!-- RIGHT: Server Browser -->
             <div class="lg:col-span-3 flex flex-col min-h-0">
-                <TCard padding="none" class="flex flex-col overflow-hidden flex-1 min-h-[400px] max-h-[min(700px,80vh)] border-[3px] border-white/10 shadow-game-panel">
+                <TCard padding="none" class="flex flex-col overflow-hidden flex-1 min-h-[400px] max-h-[min(700px,80vh)] shadow-3d-panel">
 
 
                     <!-- Filter Bar (Segmented Controls) -->
@@ -191,8 +191,8 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                             <div class="flex gap-1 bg-panel-input p-1 rounded-xl border border-white/5">
                                 <button v-for="m in ['ALL','CLASSIC','IMPOSTOR']" :key="m"
                                     @click="lobbyFilters.mode = m as any"
-                                    class="flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all"
-                                    :class="lobbyFilters.mode === m ? 'bg-panel-card text-white shadow-sm border border-white/10' : 'text-ink-muted hover:text-ink-soft'"
+                                    class="flex-1 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all"
+                                    :class="lobbyFilters.mode === m ? 'bg-panel-card text-white shadow-3d-panel border border-white/10' : 'text-ink-muted hover:text-ink-soft'"
                                 >{{ m === 'ALL' ? t('home.any') : MODE_LABELS[m] }}</button>
                             </div>
                         </div>
@@ -227,8 +227,8 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                         <!-- Room Card (Arcade Ticket Style) -->
                         <div
                             v-for="room in filteredRooms" :key="room.id"
-                            class="relative rounded-2xl border-[3px] p-1 transition-all overflow-hidden"
-                            :class="room.joinable ? 'bg-panel-card border-white/10 hover:border-action-primary/50 group' : 'bg-panel-card/30 border-white/5 opacity-75'"
+                            class="relative rounded-[2rem] p-1.5 transition-all overflow-hidden"
+                            :class="room.joinable ? 'bg-panel-card shadow-3d-panel hover:scale-[1.02] group' : 'bg-panel-card/30 opacity-75'"
                         >
                             <!-- Inner Content -->
                             <div class="flex flex-col sm:flex-row bg-panel-base rounded-xl overflow-hidden h-full">
@@ -236,7 +236,7 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                                 <!-- Identidad y Datos -->
                                 <div class="flex-1 p-3 flex items-center gap-3">
                                     <!-- Avatar -->
-                                    <div class="w-12 h-12 rounded-xl bg-panel-input border-2 border-white/10 flex items-center justify-center text-2xl shadow-inner flex-none">
+                                    <div class="w-12 h-12 rounded-2xl bg-panel-input flex items-center justify-center text-2xl shadow-inner flex-none">
                                         {{ room.hostAvatar || '👑' }}
                                     </div>
                                     

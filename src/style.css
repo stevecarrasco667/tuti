@@ -1,10 +1,13 @@
+/* [SP-1] Fuentes de juego desde Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Inter:wght@400;500;600;700&family=Bebas+Neue&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    @apply bg-panel-base text-ink-main antialiased selection:bg-action-primary selection:text-white font-sans;
+    @apply bg-panel-base text-ink-main antialiased selection:bg-game-yellow selection:text-game-black font-sans;
     color-scheme: dark;
   }
   
@@ -16,6 +19,46 @@
     pointer-events: none; 
     z-index: 9999; 
     opacity: 0.3;
+  }
+}
+
+@layer components {
+  /* ── Soft-Pop Base Classes ── */
+  .sp-card {
+    @apply bg-panel-card rounded-[2rem] shadow-3d-panel transition-all duration-300;
+  }
+  
+  .sp-btn {
+    @apply font-heading font-black uppercase tracking-widest
+           rounded-2xl transition-all duration-75 ease-out
+           flex items-center justify-center gap-2 min-h-[48px] cursor-pointer
+           focus:outline-none focus-visible:ring-4 focus-visible:ring-game-yellow/50
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-[6px]
+           active:shadow-none active:translate-y-[6px];
+  }
+  
+  .sp-btn-primary {
+    @apply sp-btn bg-game-yellow text-panel-base shadow-3d-yellow hover:bg-game-yellow-dark;
+  }
+  
+  .sp-btn-secondary {
+    @apply sp-btn bg-panel-input text-ink-main shadow-3d-panel hover:bg-panel-input/80 border-2 border-white/5;
+  }
+  
+  .sp-btn-danger {
+    @apply sp-btn bg-game-red text-white shadow-3d-red hover:bg-game-red/90;
+  }
+  
+  .sp-btn-success {
+    @apply sp-btn bg-game-green text-panel-base shadow-3d-green hover:bg-game-green/90;
+  }
+
+  .sp-input {
+    @apply w-full px-5 py-3.5 min-h-[48px] rounded-2xl
+           bg-game-cream text-panel-base placeholder-gray-400 font-bold
+           shadow-inner transition-all duration-300 outline-none
+           focus:ring-4 focus:ring-game-yellow/50 focus:bg-white
+           disabled:opacity-50 disabled:cursor-not-allowed;
   }
 }
 

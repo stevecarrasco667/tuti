@@ -178,15 +178,15 @@ const handleLeave = () => {
                          :class="{ 'opacity-60 pointer-events-none': !amIHost }"
                     >
                         <!-- Game Mode Selector -->
-                        <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-game-panel p-4 flex-none">
+                        <div class="bg-panel-base border-2 border-white/20 rounded-[2rem] shadow-3d-panel p-4 flex-none">
                             <p class="text-ink-main text-[9px] font-black uppercase tracking-[0.2em] mb-3 text-center">{{ t('lobby.gameMode.title') }}</p>
                             <div class="grid grid-cols-2 gap-3">
-                                <button
+                                <div
                                     @click="handleConfigChange('mode', 'CLASSIC')"
-                                    class="relative p-2.5 lg:p-5 rounded-xl lg:rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
+                                    class="cursor-pointer relative p-2.5 lg:p-5 rounded-2xl lg:rounded-[2rem] border-2 transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
                                     :class="localConfig.mode === 'CLASSIC'
-                                        ? 'border-action-primary bg-action-primary/10 shadow-glow-primary'
-                                        : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input shadow-sm hover:shadow-glow-primary/40'"
+                                        ? 'border-action-primary bg-action-primary/10 shadow-3d-yellow'
+                                        : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input shadow-sm hover:shadow-3d-yellow'"
                                 >
                                     <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform">🎯</div>
                                     <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">{{ t('lobby.gameMode.classic.title') }}</h4>
@@ -197,13 +197,13 @@ const handleLeave = () => {
                                         class="absolute top-2 left-2 w-5 h-5 rounded-full bg-panel-base border border-white/20 hover:bg-white/10 hover:border-white/50 text-ink-muted hover:text-white flex items-center justify-center text-[10px] font-black shadow transition-all z-10"
                                         :title="t('lobby.gameMode.howToPlay')"
                                     >?</button>
-                                </button>
-                                <button
+                                </div>
+                                <div
                                     @click="handleConfigChange('mode', 'IMPOSTOR')"
-                                    class="relative p-2.5 lg:p-5 rounded-xl lg:rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
+                                    class="cursor-pointer relative p-2.5 lg:p-5 rounded-2xl lg:rounded-[2rem] border-2 transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
                                     :class="localConfig.mode === 'IMPOSTOR'
-                                        ? 'border-action-blue bg-action-blue/10 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
-                                        : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input shadow-sm hover:shadow-glow-primary/40'"
+                                        ? 'border-action-blue bg-action-blue/10 shadow-3d-blue'
+                                        : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input shadow-sm hover:shadow-3d-blue'"
                                 >
                                     <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform">🕵️</div>
                                     <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">{{ t('lobby.gameMode.impostor.title') }}</h4>
@@ -214,7 +214,7 @@ const handleLeave = () => {
                                         class="absolute top-2 left-2 w-5 h-5 rounded-full bg-panel-base border border-white/20 hover:bg-white/10 hover:border-white/50 text-ink-muted hover:text-white flex items-center justify-center text-[10px] font-black shadow transition-all z-10"
                                         :title="t('lobby.gameMode.howToPlay')"
                                     >?</button>
-                                </button>
+                                </div>
                             </div>
                         </div>
 
