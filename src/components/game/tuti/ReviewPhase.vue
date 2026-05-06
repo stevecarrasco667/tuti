@@ -172,7 +172,7 @@ const selfStatusIcon = (playerId: string, category: string) => {
                 <div
                     v-for="(_, i) in categories" :key="i"
                     class="h-2.5 rounded-full transition-all duration-300 cursor-pointer"
-                    :class="i === currentCategoryIndex ? 'bg-action-primary w-5' : 'bg-panel-input w-2.5'"
+                    :class="i === currentCategoryIndex ? 'bg-game-yellow w-5' : 'bg-panel-input w-2.5'"
                     @click="currentCategoryIndex = i"
                 />
             </div>

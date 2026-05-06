@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import VoteSwitch from './VoteSwitch.vue';
 import ReactionMenu from '../ReactionMenu.vue';
 import ReactionBar from '../ReactionBar.vue';
 
@@ -18,8 +17,7 @@ const props = defineProps<{
     isMe: boolean;
     selfStatusIcon: string;
     modelValue: boolean;
-    // Sistema de tamaño adaptativo por N jugadores
-    cardSize?: CardSize;  // 'xl'=2p | 'lg'=3-4p | 'md'=5-6p | 'sm'=7-8p
+    cardSize?: CardSize;
     playerId: string;
     categoryId: string;
     reactionCounts: Record<string, number>;
@@ -33,35 +31,28 @@ const emit = defineEmits<{
     (e: 'react', emoji: string, targetId: string, catId: string): void;
 }>();
 
-// Mapa cardSize → clases de estilo para cada zona de la tarjeta
 const sizeConfig = computed(() => {
     const s = props.cardSize ?? 'md';
     return {
-        // Contenedor principal
-        card:    s === 'xl' ? 'p-4 md:p-5 min-h-[300px] md:min-h-[340px]'
-               : s === 'lg' ? 'p-3 md:p-4 min-h-[240px] md:min-h-[280px]'
-               : s === 'md' ? 'p-2.5 md:p-3 min-h-[160px]'
-                            : 'p-2 min-h-[130px]',
-        // Avatar emoji
+        card:    s === 'xl' ? 'p-4 md:p-6 min-h-[300px] md:min-h-[340px]'
+               : s === 'lg' ? 'p-4 md:p-5 min-h-[240px] md:min-h-[280px]'
+               : s === 'md' ? 'p-3 md:p-4 min-h-[160px]'
+                            : 'p-3 min-h-[140px]',
         avatar:  s === 'xl' ? 'text-2xl'
                : s === 'lg' ? 'text-xl'
                : s === 'md' ? 'text-base md:text-lg'
                             : 'text-sm',
-        // Nombre del jugador
         name:    s === 'xl' ? 'text-sm md:text-base'
                : s === 'lg' ? 'text-xs md:text-sm'
                             : 'text-xs',
-        // Palabra (clamp responsivo a container-query)
         word:    s === 'xl' ? 'text-[clamp(2rem,14cqi,5rem)]'
                : s === 'lg' ? 'text-[clamp(1.5rem,11cqi,4rem)]'
                : s === 'md' ? 'text-[clamp(1.25rem,10cqi,3.5rem)]'
                             : 'text-[clamp(0.875rem,9cqi,2rem)]',
-        // Icono propio (self-status)
         selfIcon: s === 'xl' ? 'w-12 h-12 text-2xl'
                 : s === 'lg' ? 'w-10 h-10 text-xl'
                 : s === 'md' ? 'w-8 h-8 md:w-10 md:h-10 text-lg md:text-xl'
                              : 'w-7 h-7 text-base',
-        // Burst de reacciones
         burst:   s === 'sm' ? 'text-2xl' : 'text-4xl',
         isCompact: s === 'sm',
     };
@@ -69,46 +60,44 @@ const sizeConfig = computed(() => {
 </script>
 
 <template>
-    <!-- No overflow-hidden en el contenedor raíz: permite que el popover salga hacia arriba -->
     <div
-        class="bg-panel-card backdrop-blur-xl rounded-3xl w-full flex flex-col transition-all duration-500 [container-type:inline-size]"
+        class="backdrop-blur-md rounded-[2.5rem] w-full flex flex-col transition-all duration-300 [container-type:inline-size] border-2"
         :class="[
             sizeConfig.card,
             isAutoValidated
-                ? 'border border-action-primary/50 shadow-glow-primary'
+                ? 'bg-game-yellow/10 border-game-yellow/50 shadow-3d-yellow'
                 : isRejected || !isApproved
-                    ? 'border border-action-error/50 shadow-glow-panic'
+                    ? 'bg-game-red/5 border-game-red/30 shadow-[0_4px_0_rgba(239,68,68,0.2)] opacity-90 scale-[0.98]'
                     : isDuplicate
-                        ? 'border border-action-warning/50 shadow-glow-primary'
-                        : 'border border-white/10 shadow-lg shadow-black/20'
+                        ? 'bg-game-yellow/10 border-game-yellow/50 shadow-3d-yellow'
+                        : 'bg-panel-card border-white/10 shadow-3d-panel hover:-translate-y-1'
         ]"
     >
-
         <!-- ROW 1 — Avatar + Nombre -->
         <div class="flex-none flex items-center gap-2 mb-2">
-            <span class="leading-none drop-shadow-md flex-shrink-0" :class="sizeConfig.avatar">
+            <span class="leading-none drop-shadow-sm flex-shrink-0" :class="sizeConfig.avatar">
                 {{ playerAvatar || '👤' }}
             </span>
-            <span class="font-black text-ink-main drop-shadow-md truncate" :class="sizeConfig.name"
+            <span class="font-black text-ink-main drop-shadow-sm truncate tracking-wide" :class="sizeConfig.name"
                   :title="playerName">
                 {{ playerName }}
             </span>
             <span v-if="isAutoValidated" class="text-xs flex-shrink-0 ml-auto">🛡️</span>
         </div>
 
-        <!-- ROW 2 — La Palabra (protagonista) -->
-        <div class="relative flex-1 flex flex-col items-center justify-center w-full px-1 min-h-0">
+        <!-- ROW 2 — La Palabra (Burbuja Soft-Pop) -->
+        <div class="relative flex-1 flex flex-col items-center justify-center w-full px-2 min-h-0 bg-panel-input/50 rounded-2xl border border-white/5 my-1">
             <span
-                class="font-black text-center uppercase tracking-wide break-words break-all drop-shadow-xl transition-all duration-300 leading-tight"
+                class="font-heading font-black text-center uppercase break-words break-all drop-shadow-sm transition-all duration-300 leading-tight"
                 :class="[
                     sizeConfig.word,
                     'line-clamp-2',
                     isRejected || !isApproved
-                        ? 'line-through opacity-40 text-red-400'
+                        ? 'line-through opacity-50 text-game-red'
                         : isAutoValidated
-                            ? 'text-amber-300'
+                            ? 'text-game-yellow'
                             : isDuplicate
-                                ? 'text-action-warning'
+                                ? 'text-game-yellow'
                                 : 'text-ink-main'
                 ]"
             >
@@ -116,12 +105,12 @@ const sizeConfig = computed(() => {
             </span>
 
             <span v-if="isDuplicate"
-                  class="mt-1 text-[8px] md:text-[10px] font-bold bg-action-warning/20 text-action-warning px-2 py-0.5 rounded-full border border-action-warning/30 uppercase tracking-widest">
+                  class="mt-1 text-[8px] md:text-[10px] font-black bg-game-yellow/20 text-game-yellow px-3 py-0.5 rounded-full uppercase tracking-widest">
                 Repetida
             </span>
 
             <!-- Burst de animación (solo visual, 1.5s) -->
-            <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
+            <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
                 <TransitionGroup name="burst">
                     <span
                         v-for="b in reactionBursts"
@@ -137,7 +126,7 @@ const sizeConfig = computed(() => {
         </div>
 
         <!-- ROW 3 — ReactionBar + Trigger (inline) -->
-        <div class="flex-none flex items-center gap-1.5 mt-1.5 min-h-[22px]" v-if="word">
+        <div class="flex-none flex items-center gap-1.5 mt-2 min-h-[22px]" v-if="word">
             <ReactionBar
                 :counts="reactionCounts"
                 :is-compact="sizeConfig.isCompact"
@@ -152,22 +141,38 @@ const sizeConfig = computed(() => {
             />
         </div>
 
-        <!-- ROW 4 — Switch o self-icon -->
-        <div class="flex-none flex flex-col items-center justify-center gap-1 mt-2">
+        <!-- ROW 4 — Sellos de Goma (Soft-Pop) -->
+        <div class="flex-none flex items-center justify-center gap-3 mt-3 relative">
             <span v-if="voteCount > 0 && !isAutoValidated"
-                  class="bg-action-warning text-ink-base border border-white/10 px-2 py-0.5 rounded-full text-[8px] md:text-[10px] font-black whitespace-nowrap shadow-sm">
+                  class="absolute left-0 bg-game-red text-white px-2 py-0.5 rounded-full text-[9px] md:text-[10px] font-black shadow-sm">
                 {{ voteCount }} 👎
             </span>
 
-            <VoteSwitch
-                v-if="!isMe"
-                :model-value="modelValue"
-                :is-auto-validated="isAutoValidated"
-                :card-size="cardSize ?? 'md'"
-                :label="`Voto ${playerName}`"
-                :disabled="isSpectator"
-                @update:model-value="(val: boolean) => emit('update:modelValue', val)"
-            />
+            <template v-if="!isMe && !isAutoValidated">
+                <!-- Sello Rechazar -->
+                <button
+                    @click="emit('update:modelValue', false)"
+                    class="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-xl transition-all duration-75"
+                    :class="!modelValue 
+                        ? 'bg-game-red text-white shadow-none translate-y-[4px]' 
+                        : 'bg-panel-input border-2 border-white/10 text-ink-muted hover:bg-game-red/20 shadow-sm hover:-translate-y-1 hover:shadow-3d-red'"
+                    :disabled="isSpectator"
+                >
+                    ❌
+                </button>
+                
+                <!-- Sello Aprobar -->
+                <button
+                    @click="emit('update:modelValue', true)"
+                    class="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-xl transition-all duration-75"
+                    :class="modelValue 
+                        ? 'bg-game-green text-white shadow-none translate-y-[4px]' 
+                        : 'bg-panel-input border-2 border-white/10 text-ink-muted hover:bg-game-green/20 shadow-sm hover:-translate-y-1 hover:shadow-3d-green'"
+                    :disabled="isSpectator"
+                >
+                    ✅
+                </button>
+            </template>
             <span v-else
                   class="drop-shadow-sm flex items-center justify-center bg-panel-input rounded-full border-2 border-white/10"
                   :class="sizeConfig.selfIcon">
