@@ -63,38 +63,35 @@ onMounted(() => {
 </script>
 
 <template>
-    <!-- ARQUITECTURA DE 2 COLUMNAS (Responsive: 1 col en mobile, 2 cols asimétricas en desktop) -->
-    <!-- Elimina 'min-h-full justify-center', usa el flow natural. Centrado dinámico mediante 'class="my-auto"' inyectada desde el padre -->
     <div class="w-full max-w-5xl mx-auto py-6 pb-32 xl:pb-6 px-2 lg:px-4">
         
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_400px] gap-6 lg:gap-8 items-start">
             
             <!-- ══════════════════════════════════════════ -->
-            <!-- COLUMNA IZQUIERDA: RANKING (Scroll Nativo) -->
+            <!-- COLUMNA IZQUIERDA: RANKING Soft-Pop        -->
             <!-- ══════════════════════════════════════════ -->
-            <div class="space-y-3">
+            <div class="space-y-4">
                 <h3 class="text-xs font-black text-ink-soft uppercase tracking-widest px-1">{{ t('results.finalPositions') }}</h3>
 
-                <div class="space-y-2">
+                <div class="space-y-3">
                     <div
                         v-for="(player, idx) in players"
                         :key="player.id"
-                        class="relative overflow-hidden rounded-2xl flex items-center justify-between border transition-all duration-300"
+                        class="relative overflow-hidden flex items-center justify-between border-2 transition-all duration-300"
                         :class="{
-                            'p-4 border-amber-500/60 bg-gradient-to-r from-amber-900/30 via-amber-800/10 to-panel-card shadow-[0_0_25px_-5px_rgba(245,158,11,0.3)] scale-[1.02] transform-gpu z-10': idx === 0,
-                            'p-3 border-sky-500/30 bg-gradient-to-r from-sky-900/20 to-panel-card/80 shadow-sm': idx === 1,
-                            'p-3 border-orange-700/30 bg-gradient-to-r from-orange-900/20 to-panel-card/80 shadow-sm': idx === 2,
-                            'p-2.5 border-white/5 bg-panel-card/60': idx > 2,
+                            'p-4 rounded-[2rem] bg-panel-card border-game-yellow shadow-3d-yellow scale-[1.02] transform-gpu z-10': idx === 0,
+                            'p-3 rounded-2xl bg-panel-card/80 border-white/10 shadow-sm': idx === 1,
+                            'p-3 rounded-2xl bg-panel-card/60 border-white/5 shadow-sm': idx === 2,
+                            'p-2.5 rounded-xl bg-panel-input border-transparent': idx > 2,
                         }"
                     >
-                        <!-- Barra Progreso animada -->
+                        <!-- Barra Progreso animada elástica (Soft-Pop) -->
                         <div
-                            class="absolute inset-0 left-0 transition-all duration-1000 ease-out pointer-events-none"
+                            class="absolute inset-0 left-0 pointer-events-none transition-all duration-[1500ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]"
                             :class="{
-                                'bg-gradient-to-r from-amber-500/25 to-transparent': idx === 0,
-                                'bg-gradient-to-r from-sky-500/15 to-transparent': idx === 1,
-                                'bg-gradient-to-r from-orange-600/12 to-transparent': idx === 2,
-                                'bg-gradient-to-r from-white/5 to-transparent': idx > 2,
+                                'bg-game-yellow/20': idx === 0,
+                                'bg-white/10': idx === 1,
+                                'bg-white/5': idx >= 2,
                             }"
                             :style="{ width: (barWidths[player.id] || 0) + '%' }"
                         ></div>
@@ -102,12 +99,12 @@ onMounted(() => {
                         <!-- BADGE & AVATAR -->
                         <div class="relative z-10 flex items-center gap-3">
                             <div
-                                class="flex-none flex items-center justify-center font-black rounded-full border-2 shadow-sm"
+                                class="flex-none flex items-center justify-center font-heading font-black rounded-full shadow-sm"
                                 :class="{
-                                    'w-11 h-11 text-2xl bg-amber-900/40 border-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.4)]': idx === 0,
-                                    'w-9  h-9  text-sm  bg-sky-900/30  border-sky-500/50  text-sky-300': idx === 1,
-                                    'w-9  h-9  text-sm  bg-orange-900/30 border-orange-500/50 text-orange-400': idx === 2,
-                                    'w-7  h-7  text-xs  bg-panel-input  border-white/10  text-ink-muted': idx > 2,
+                                    'w-12 h-12 text-2xl bg-game-yellow text-panel-base shadow-3d-yellow': idx === 0,
+                                    'w-10 h-10 text-base bg-panel-input border-2 border-white/20 text-ink-main': idx === 1,
+                                    'w-10 h-10 text-base bg-panel-input border-2 border-white/10 text-ink-muted': idx === 2,
+                                    'w-8  h-8  text-xs  bg-panel-input border-2 border-transparent text-ink-muted': idx > 2,
                                 }"
                             >
                                 <span v-if="idx === 0">👑</span>
@@ -115,13 +112,13 @@ onMounted(() => {
                             </div>
 
                             <div class="flex items-center gap-2">
-                                <span :class="idx === 0 ? 'text-3xl' : 'text-xl'" class="leading-none drop-shadow-sm">{{ player.avatar }}</span>
+                                <span :class="idx === 0 ? 'text-4xl' : 'text-2xl'" class="leading-none drop-shadow-sm">{{ player.avatar }}</span>
                                 <span
-                                    class="font-black truncate"
+                                    class="font-black truncate tracking-wide"
                                     :class="{
-                                        'text-xl text-ink-main max-w-[150px] sm:max-w-[250px]': idx === 0,
-                                        'text-base text-ink-main max-w-[120px] sm:max-w-[200px]': idx === 1 || idx === 2,
-                                        'text-sm text-ink-soft max-w-[100px] sm:max-w-[180px]': idx > 2,
+                                        'text-xl md:text-2xl text-game-yellow max-w-[150px] sm:max-w-[250px]': idx === 0,
+                                        'text-lg text-ink-main max-w-[120px] sm:max-w-[200px]': idx === 1 || idx === 2,
+                                        'text-base text-ink-soft max-w-[100px] sm:max-w-[180px]': idx > 2,
                                     }"
                                 >{{ player.name }}</span>
                             </div>
@@ -129,12 +126,12 @@ onMounted(() => {
 
                         <!-- SCORE -->
                         <div
-                            class="relative z-10 font-black tabular-nums tracking-tighter drop-shadow-sm pl-2"
+                            class="relative z-10 font-heading font-black tabular-nums tracking-tighter drop-shadow-sm pl-2"
                             :class="{
-                                'text-5xl text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]': idx === 0,
-                                'text-3xl text-sky-300': idx === 1,
-                                'text-3xl text-orange-400': idx === 2,
-                                'text-2xl text-ink-muted': idx > 2,
+                                'text-5xl text-game-yellow': idx === 0,
+                                'text-3xl text-ink-main': idx === 1,
+                                'text-3xl text-ink-muted': idx === 2,
+                                'text-2xl text-ink-muted opacity-50': idx > 2,
                             }"
                         >
                             {{ displayScores[player.id] || 0 }}
@@ -152,29 +149,28 @@ onMounted(() => {
                     <span class="text-[10px] bg-white/5 px-2 py-0.5 rounded-full text-ink-muted hidden lg:inline-block">{{ t('results.thisRound') }}</span>
                 </h3>
 
-                <div class="bg-panel-card/50 border border-white/8 rounded-2xl p-3 shadow-sm">
-                    <!-- En desktop/tablet siempre muestra 1 o 2 columnas según el espacio lateral, en mobile adapta -->
+                <div class="bg-panel-card/50 border-2 border-white/5 rounded-3xl p-3 shadow-3d-panel">
                     <div class="grid grid-cols-2 lg:grid-cols-1 gap-2">
                         <div
                             v-for="category in categories"
                             :key="category.id"
-                            class="rounded-xl p-2.5 flex items-center gap-2 border transition-colors bg-panel-base/40"
+                            class="rounded-2xl p-3 flex items-center gap-3 border-2 transition-colors bg-panel-base/40"
                             :class="{
-                                'bg-green-900/10 border-green-500/20': myAnswers[category.name] && getPlayerStatus(myUserId, category.name).state === 'VALID',
-                                'bg-red-900/10 border-red-500/20': getPlayerStatus(myUserId, category.name).state === 'REJECTED',
+                                'bg-game-green/10 border-game-green/30': myAnswers[category.name] && getPlayerStatus(myUserId, category.name).state === 'VALID',
+                                'bg-game-red/10 border-game-red/30': getPlayerStatus(myUserId, category.name).state === 'REJECTED',
                                 'border-transparent': !myAnswers[category.name] || getPlayerStatus(myUserId, category.name).state === 'EMPTY' || (myAnswers[category.name] && getPlayerStatus(myUserId, category.name).state !== 'VALID' && getPlayerStatus(myUserId, category.name).state !== 'REJECTED'),
                             }"
                         >
-                            <span class="text-base leading-none flex-none w-5 text-center">{{ statusIcon(category.name) }}</span>
+                            <span class="text-xl leading-none flex-none w-6 text-center drop-shadow-sm">{{ statusIcon(category.name) }}</span>
                             <div class="flex-1 min-w-0">
                                 <div class="text-[9px] sm:text-[10px] uppercase font-black text-ink-muted mb-0.5 truncate tracking-widest" :title="t(`categories.${category.id}`, category.name)">
                                     {{ t(`categories.${category.id}`, category.name) }}
                                 </div>
                                 <div
-                                    class="text-xs sm:text-sm font-black truncate leading-tight"
+                                    class="text-sm sm:text-base font-heading font-black truncate leading-tight"
                                     :class="{
-                                        'text-green-400': myAnswers[category.name] && getPlayerStatus(myUserId, category.name).state === 'VALID',
-                                        'text-red-400 line-through opacity-70': getPlayerStatus(myUserId, category.name).state === 'REJECTED',
+                                        'text-game-green': myAnswers[category.name] && getPlayerStatus(myUserId, category.name).state === 'VALID',
+                                        'text-game-red line-through opacity-70': getPlayerStatus(myUserId, category.name).state === 'REJECTED',
                                         'text-ink-muted': !myAnswers[category.name] || getPlayerStatus(myUserId, category.name).state === 'EMPTY',
                                         'text-ink-main': myAnswers[category.name] && getPlayerStatus(myUserId, category.name).state !== 'VALID' && getPlayerStatus(myUserId, category.name).state !== 'REJECTED' && getPlayerStatus(myUserId, category.name).state !== 'EMPTY',
                                     }"
