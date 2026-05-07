@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Bloquear rutas de partidas activas (sin valor SEO)
+Disallow: /game/
+Disallow: /results/
+
+# Permitir home y lobbies para indexación
+Allow: /
+Allow: /lobby/
+
+Sitemap: https://tutigame.pages.dev/sitemap.xml

@@ -3,42 +3,86 @@
 
 <head>
   <meta charset="UTF-8" />
-  <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
   <link rel="icon" href="data:;base64,iVBORw0KGgo=">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  
-  <!-- SEO Base -->
-  <title>TutiGame — Tutifruti Online con Amigos</title>
-  <meta name="description" content="El clásico Tutifruti en línea con tus amigos. Crea una sala, comparte el link y juega ahora mismo — ¡gratis!" />
+
+  <!-- ── SEO Base ─────────────────────────────────────────────────────────── -->
+  <title>TutiGame — Jugar Tutti Frutti Online Gratis con Amigos</title>
+  <meta name="description" content="El clásico Tutti Frutti en línea con tus amigos. Crea una sala, comparte el link y juega ahora mismo — ¡gratis y sin registro!" />
+  <meta name="keywords" content="tutti frutti online, tutifruti con amigos, juego de palabras online, jugar tutti frutti gratis, basta online, juegos para discord con amigos, juegos para jugar en videollamada, stopots alternativa" />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <meta name="author" content="TutiGame" />
   <link rel="canonical" href="https://tutigame.pages.dev/" />
-  
-  <!-- Open Graph (Facebook, WhatsApp, iMessage) -->
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://tutigame.pages.dev/" />
-  <meta property="og:title" content="TutiGame — Tutifruti Online con tus Amigos 🎮" />
-  <meta property="og:description" content="Crea una sala, comparte el link y juega Tutifruti online. ¡Gratis y sin registro!" />
-  <meta property="og:image" content="https://tutigame.pages.dev/og-image.png" />
-  <meta property="og:image:width" content="1200" />
+
+  <!-- ── Hreflang (Audiencia Latam + Brasil + EN) ──────────────────────── -->
+  <link rel="alternate" hreflang="es"      href="https://tutigame.pages.dev/" />
+  <link rel="alternate" hreflang="pt"      href="https://tutigame.pages.dev/" />
+  <link rel="alternate" hreflang="en"      href="https://tutigame.pages.dev/" />
+  <link rel="alternate" hreflang="x-default" href="https://tutigame.pages.dev/" />
+
+  <!-- ── Open Graph (WhatsApp, Facebook, iMessage) ────────────────────── -->
+  <meta property="og:type"        content="website" />
+  <meta property="og:url"         content="https://tutigame.pages.dev/" />
+  <meta property="og:title"       content="TutiGame — Jugar Tutti Frutti Online 🎮" />
+  <meta property="og:description" content="Crea una sala, comparte el link y juega Tutifruti online con tus amigos. ¡Gratis y sin registro!" />
+  <meta property="og:image"       content="https://tutigame.pages.dev/og-image.png" />
+  <meta property="og:image:width"  content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:locale" content="es_ES" />
-  <meta property="og:site_name" content="TutiGame" />
+  <meta property="og:image:alt"    content="TutiGame — Tutti Frutti Online Multijugador" />
+  <meta property="og:locale"      content="es_ES" />
+  <meta property="og:locale:alternate" content="es_419" />
+  <meta property="og:locale:alternate" content="pt_BR" />
+  <meta property="og:site_name"   content="TutiGame" />
 
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="TutiGame — Tutifruti Online 🎮" />
-  <meta name="twitter:description" content="El clásico Tutifruti ahora en línea. ¡Juega con amigos sin instalar nada!" />
-  <meta name="twitter:image" content="https://tutigame.pages.dev/og-image.png" />
+  <!-- ── Twitter Card (también usada por Discord) ─────────────────────── -->
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:site"        content="@tutigame" />
+  <meta name="twitter:title"       content="TutiGame — Tutti Frutti Online 🎮" />
+  <meta name="twitter:description" content="El clásico Tutti Frutti ahora en línea. ¡Juega con amigos sin instalar nada!" />
+  <meta name="twitter:image"       content="https://tutigame.pages.dev/og-image.png" />
+  <meta name="twitter:image:alt"   content="TutiGame — Tutti Frutti Online" />
 
-  <!-- PWA básica y caché -->
-  <meta name="theme-color" content="#7c3aed" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  
-  <!-- Sprint UI-1: Arcade Callejero Fonts -->
+  <!-- ── Schema.org JSON-LD (Rich Results en Google) ──────────────────── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "TutiGame",
+    "alternateName": ["Tutti Frutti Online", "Tutifruti Online", "Basta Online"],
+    "url": "https://tutigame.pages.dev/",
+    "description": "El clásico Tutti Frutti en línea con tus amigos. Crea una sala, comparte el link y juega ahora mismo — gratis y sin registro.",
+    "applicationCategory": "GameApplication",
+    "applicationSubCategory": "Party Game",
+    "operatingSystem": "Web",
+    "browserRequirements": "Requiere JavaScript. Compatible con Chrome, Firefox, Safari y Edge.",
+    "inLanguage": ["es", "pt", "en"],
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "genre": ["Party Game", "Word Game", "Multiplayer"],
+    "keywords": "tutti frutti, tutifruti, basta online, juego de palabras, multijugador",
+    "screenshot": "https://tutigame.pages.dev/og-image.png",
+    "featureList": [
+      "Multijugador en tiempo real",
+      "Sin registro requerido",
+      "Gratis",
+      "Múltiples idiomas",
+      "Categorías personalizables"
+    ]
+  }
+  </script>
+
+  <!-- ── PWA y Performance ──────────────────────────────────────────────── -->
+  <meta name="theme-color" content="#2E0249" />
+  <link rel="preload" href="https://tutigame.pages.dev/og-image.png" as="image" />
+
+  <!-- ── Fuentes (Soft-Pop Design System) ──────────────────────────────── -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Inter:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
 </head>
 
 <body class="h-screen overflow-hidden">
@@ -46,4 +90,4 @@
   <script type="module" src="/src/main.ts"></script>
 </body>
 
-</html>
+</html>

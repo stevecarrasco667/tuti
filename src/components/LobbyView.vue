@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router';
 import { useGame } from '../composables/useGame';
 import { useSound } from '../composables/useSound';
+import { useMeta } from '../composables/useMeta';
 import type { CategoryRef } from '../../shared/types';
 import TButton from './ui/TButton.vue';
 import LobbyHeader from './lobby/LobbyHeader.vue';
@@ -14,6 +16,8 @@ import GameTutorialModal from './tutorials/GameTutorialModal.vue';
 const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer, leaveGame } = useGame();
 const { playClick, playJoin, playAlarm, playSuccess } = useSound();
 const { t } = useI18n();
+const route = useRoute();
+const { setMeta } = useMeta();
 
 // [Sprint 3 - P2] Pre-fetch inteligente de los motores de juego.
 // Se inician silenciosamente mientras el usuario espera en el Lobby, para que cuando el
@@ -21,6 +25,16 @@ const { t } = useI18n();
 onMounted(() => {
     import('./game/tuti/TutiBoard.vue');
     import('./game/impostor/ImpostorBoard.vue');
+
+    // Actualizar metadatos dinamicamente para el link de invitación
+    const roomId = (route.params.roomId as string || '').toUpperCase();
+    if (roomId) {
+        setMeta({
+            title: `🎮 ¡Te invitan a jugar Tutti Frutti! — Sala ${roomId} | TutiGame`,
+            description: `Únete a la sala ${roomId}. Haz clic para entrar directamente — gratis, sin registro, en tu navegador.`,
+            url: `https://tutigame.pages.dev/lobby/${roomId}`,
+        });
+    }
 });
 
 // ── Smart State (Orquestador) ─────────────────────────────────────────────────

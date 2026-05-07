@@ -12,12 +12,14 @@ import TInput from './ui/TInput.vue';
 import PrivacyBanner from './ui/PrivacyBanner.vue';
 import GlobalLanguageSelector from './ui/GlobalLanguageSelector.vue';
 import { useI18n } from 'vue-i18n';
+import { useMeta } from '../composables/useMeta';
 
 const { joinGame, myUserName, myUserAvatar } = useGame();
 const { filteredRooms, lobbyFilters, connect, refreshRooms } = useLobby();
 const { user, isAuthenticated, isLoading, signInWithGoogle, signOut } = useAuth();
 const { addToast } = useToast();
 const { t } = useI18n();
+const { resetMeta } = useMeta();
 
 const showJoinInput = ref(false);
 const joinCode = ref('');
@@ -37,6 +39,8 @@ onMounted(() => {
     if (!myUserAvatar.value || myUserAvatar.value === '🦁') {
         selectedAvatar.value = AVATARS[Math.floor(Math.random() * AVATARS.length)];
     }
+    // Restaurar metadatos de la página de inicio al volver desde una sala
+    resetMeta();
 });
 
 watch(user, (newUser) => {
@@ -94,7 +98,8 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
 </script>
 
 <template>
-    <div class="w-full flex flex-col items-center justify-start sm:justify-center p-4 min-h-full overflow-y-auto">
+    <main class="w-full flex flex-col items-center justify-start sm:justify-center p-4 min-h-full overflow-y-auto"
+          aria-label="Página principal de TutiGame — Jugar Tutti Frutti Online Gratis">
         <GlobalLanguageSelector />
 
         <div class="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-7 gap-6 lg:gap-8 min-h-0 mt-6 sm:mt-0">
@@ -107,6 +112,13 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                         <h1 class="text-6xl sm:text-7xl lg:text-[5rem] font-display text-center mb-1 tracking-wider uppercase leading-none">
                             <span class="text-transparent bg-clip-text bg-gradient-to-br from-action-primary via-action-warning to-action-error drop-shadow-md">TUTI GAMES</span>
                         </h1>
+                        <!-- Texto para bots de Google: invisible visualmente, rico en keywords -->
+                        <p class="sr-only">
+                            Juega Tutti Frutti Online gratis con tus amigos. El clásico juego de basta en línea,
+                            multijugador en tiempo real. Crea una sala privada o únete a una pública sin registro.
+                            Perfecto para jugar en Discord, WhatsApp o en cualquier videollamada.
+                            Alternativa gratuita a Stopots y BastaOnline.
+                        </p>
                         <p class="text-center font-ui tracking-widest uppercase text-[10px] sm:text-xs text-ink-muted mb-8 font-black">
                             <span v-if="filteredRooms.length > 0" class="text-action-success px-3 py-1 bg-action-success/10 rounded-full border border-action-success/20 shadow-glow-success animate-pulse">🟢 {{ t('home.activeRooms', { count: filteredRooms.length }, filteredRooms.length) }}</span>
                             <span v-else class="text-ink-soft">{{ t('home.slogan') }}</span>
@@ -334,5 +346,5 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
         <div class="mt-8">
             <PrivacyBanner />
         </div>
-    </div>
+    </main>
 </template>
