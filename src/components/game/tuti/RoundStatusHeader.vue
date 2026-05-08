@@ -20,14 +20,16 @@ const timerState = computed(() => {
     if (t === null) return 'idle';
     if (t > 20) return 'safe';
     if (t > 10) return 'warning';
-    return 'panic';
+    if (t > 5)  return 'panic';
+    return 'critical';
 });
 
 const timerClasses = computed(() => {
     switch (timerState.value) {
         case 'safe':    return 'bg-game-yellow text-panel-base shadow-3d-yellow';
         case 'warning': return 'bg-game-red/80 text-white shadow-3d-red scale-105';
-        case 'panic':   return 'bg-game-red text-white shadow-3d-red scale-110 animate-pulse';
+        case 'panic':   return 'bg-game-red text-white shadow-3d-red scale-110';
+        case 'critical':return 'bg-game-red text-white shadow-3d-red scale-110 animate-heartbeat';
         default:        return 'bg-panel-card text-ink-muted shadow-3d-panel';
     }
 });
@@ -93,3 +95,16 @@ const timerClasses = computed(() => {
         <div class="hidden lg:block w-full"></div>
     </div>
 </template>
+
+<style scoped>
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1.1); }
+    15% { transform: scale(1.3); }
+    30% { transform: scale(1.1); }
+    45% { transform: scale(1.3); }
+    60% { transform: scale(1.1); }
+}
+.animate-heartbeat {
+    animation: heartbeat 1s ease-in-out infinite;
+}
+</style>

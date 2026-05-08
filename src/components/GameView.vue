@@ -85,7 +85,13 @@ const handleToast = (msg: string, style: 'join' | 'leave' | 'stop-warning', icon
             <span class="text-white font-black text-xs md:text-sm tracking-widest uppercase" style="text-shadow: 0 1px 2px rgba(0,0,0,0.5);">MODO ESPECTADOR - ESPERANDO SIGUIENTE PARTIDA</span>
         </div>
 
-        <CountdownOverlay v-if="showCountdown" @finished="handleCountdownFinished" />
+        <CountdownOverlay 
+            v-if="showCountdown" 
+            :round="gameState.roundsPlayed + 1"
+            :total-rounds="gameState.config?.classic?.rounds || 5"
+            :letter="gameState.currentLetter"
+            @finished="handleCountdownFinished" 
+        />
         <StopSignal v-if="showStopSignal" @finished="showStopSignal = false" />
 
         <!-- ARCHITECTURE PROXY (El Renderizador Camaleónico) -->
