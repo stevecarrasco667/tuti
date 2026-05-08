@@ -8,7 +8,9 @@ import { useToast } from './composables/useToast';
 import { useI18n } from 'vue-i18n';
 import { isBootstrapping } from './router/index';
 import ErrorBoundary from './components/ui/ErrorBoundary.vue';
+import { useKeyboard } from './composables/useKeyboard';
 
+const { viewportHeight } = useKeyboard();
 const { gameState, myUserId, leaveGame, isConnected } = useGame();
 const { isMuted, toggleMute } = useSound();
 const { toasts, addToast } = useToast();
@@ -77,8 +79,9 @@ const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
 </script>
 
 <template>
-  <div class="h-[100dvh] max-h-[100dvh] w-screen overflow-hidden bg-panel-base text-ink-main flex flex-col items-center relative transition-all duration-500 font-sans group"
-       :class="isGameView() ? 'p-0' : 'p-2'">
+  <div class="w-screen overflow-hidden bg-panel-base text-ink-main flex flex-col items-center relative transition-all duration-300 font-sans group"
+       :class="isGameView() ? 'p-0' : 'p-2'"
+       :style="{ height: viewportHeight + 'px', maxHeight: viewportHeight + 'px' }">
 
     <!-- MUTE BUTTON LAYER -->
     <button

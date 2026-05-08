@@ -42,6 +42,7 @@ const secretWord = computed(() => localImpostorRole.value?.word ?? null);
 
 const handleVote = (targetId: string) => {
     if (targetId === props.myUserId || isDead.value) return;
+    if (navigator.vibrate) navigator.vibrate(20);
     toggleVote(targetId, "0");
     playClick();
 };
@@ -249,10 +250,9 @@ const votingProgress = computed(() =>
                             />
                         </div>
 
-                        <!-- Phase 3: ACUSAR button — guaranteed min size -->
                         <button @click="handleVote(s.id)"
                                 :disabled="s.isMe || s.isPlayerDead || isDead || isSpectator"
-                                class="flex items-center justify-between w-full min-h-[40px] rounded-full px-3 py-1.5 transition-all duration-300 border-2 active:scale-95"
+                                class="flex items-center justify-between w-full min-h-[44px] rounded-full px-3 py-1.5 transition-all duration-300 border-2 active:scale-95"
                                 :class="[
                                     s.isSelectedByMe
                                         ? 'bg-action-primary/20 border-action-primary shadow-[0_0_8px_rgba(46,204,113,0.3)]'

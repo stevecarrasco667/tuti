@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import type { CategoryRef } from '../../../../shared/types';
@@ -85,28 +85,7 @@ const handleNextFocus = (currentIndex: number) => {
     }
 };
 
-// --- MOBILE KEYBOARD SPACER LOGIC ---
-const keyboardHeight = ref(0);
-
-const updateKeyboardHeight = () => {
-    if (window.visualViewport) {
-        keyboardHeight.value = Math.max(0, window.innerHeight - window.visualViewport.height);
-    }
-};
-
-onMounted(() => {
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', updateKeyboardHeight);
-        window.visualViewport.addEventListener('scroll', updateKeyboardHeight);
-    }
-});
-
-onUnmounted(() => {
-    if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', updateKeyboardHeight);
-        window.visualViewport.removeEventListener('scroll', updateKeyboardHeight);
-    }
-});
+// --- SMART GRID LOGIC ---
 </script>
 
 <template>
@@ -160,8 +139,5 @@ onUnmounted(() => {
                 </div>
             </div>
         </div>
-        
-        <!-- KEYBOARD SPACER -->
-        <div :style="{ height: keyboardHeight + 'px' }" class="transition-all duration-300 pointer-events-none w-full"></div>
     </div>
 </template>

@@ -31,6 +31,12 @@ const emit = defineEmits<{
     (e: 'react', emoji: string, targetId: string, catId: string): void;
 }>();
 
+const handleVote = (value: boolean) => {
+    // [Sprint B — C2] Haptic feedback for mobile voting
+    if (navigator.vibrate) navigator.vibrate(20);
+    emit('update:modelValue', value);
+};
+
 const sizeConfig = computed(() => {
     const s = props.cardSize ?? 'md';
     return {
@@ -151,8 +157,8 @@ const sizeConfig = computed(() => {
             <template v-if="!isMe && !isAutoValidated">
                 <!-- Sello Rechazar -->
                 <button
-                    @click="emit('update:modelValue', false)"
-                    class="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-xl transition-all duration-75"
+                    @click="handleVote(false)"
+                    class="relative after:absolute after:-inset-4 after:content-[''] w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-xl transition-all duration-75"
                     :class="!modelValue 
                         ? 'bg-game-red text-white shadow-none translate-y-[4px]' 
                         : 'bg-panel-input border-2 border-white/10 text-ink-muted hover:bg-game-red/20 shadow-sm hover:-translate-y-1 hover:shadow-3d-red'"
@@ -163,8 +169,8 @@ const sizeConfig = computed(() => {
                 
                 <!-- Sello Aprobar -->
                 <button
-                    @click="emit('update:modelValue', true)"
-                    class="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-xl transition-all duration-75"
+                    @click="handleVote(true)"
+                    class="relative after:absolute after:-inset-4 after:content-[''] w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-xl transition-all duration-75"
                     :class="modelValue 
                         ? 'bg-game-green text-white shadow-none translate-y-[4px]' 
                         : 'bg-panel-input border-2 border-white/10 text-ink-muted hover:bg-game-green/20 shadow-sm hover:-translate-y-1 hover:shadow-3d-green'"

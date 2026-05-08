@@ -224,7 +224,7 @@ const rivalsActivity = computed(() => {
                     </div>
 
                     <!-- COLUMN 3: CHAT -->
-                    <ChatWidget class="hidden lg:flex order-3 lg:order-3 w-full h-full max-h-[calc(100vh-140px)]" />
+                    <ChatWidget class="hidden lg:flex order-3 lg:order-3 w-full h-full max-h-[calc(100dvh-140px)]" />
                 </div>
             </Transition>
         </div>
