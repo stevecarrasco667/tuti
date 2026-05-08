@@ -222,7 +222,15 @@ export class ImpostorEngine extends BaseEngine {
         // Capture userId BEFORE remove() cleans the connection map.
         const userId = this._players.getPlayerId(connectionId);
 
+        // [Sprint A — A2] Capture the player reference BEFORE remove() deletes it from the array.
+        const disconnectedPlayer = userId ? this.state.players.find(p => p.id === userId) : undefined;
+
         this._players.remove(this.state, connectionId);
+
+        // [Sprint A — A2] Auto-promote next host if the disconnected player was the host.
+        if (disconnectedPlayer?.isHost) {
+            this._migrateHostIfNeeded();
+        }
 
         // Only trigger during active game phases. In LOBBY or GAME_OVER, disconnections are normal.
         const activeGameStatuses: RoomState['status'][] = ['ROLE_REVEAL', 'TYPING', 'VOTING', 'RESULTS', 'LAST_WISH'];
@@ -283,6 +291,9 @@ export class ImpostorEngine extends BaseEngine {
         const userId = this._players.getPlayerId(connectionId);
         if (!userId) return this.state;
 
+        // [Sprint A — A2] Capture the player reference BEFORE filter() removes it.
+        const exitingPlayer = this.state.players.find(p => p.id === userId);
+
         const activeGameStatuses: RoomState['status'][] = ['ROLE_REVEAL', 'TYPING', 'VOTING', 'RESULTS', 'LAST_WISH'];
         if (activeGameStatuses.includes(this.state.status)) {
             AnalyticsSystem.trackEvent(this.supabase, { room_id: this.state.roomId || 'unknown', event_type: 'player_left_mid_game', user_id: userId });
@@ -290,7 +301,30 @@ export class ImpostorEngine extends BaseEngine {
 
         this.state.players = this.state.players.filter(p => p.id !== userId);
         this._players.remove(this.state, connectionId);
+
+        // [Sprint A — A2] If exiting player was host, promote the next connected player.
+        if (exitingPlayer?.isHost) {
+            this._migrateHostIfNeeded();
+        }
+
         return this.state;
+    }
+
+    /**
+     * [Sprint A — A2] Host Migration: when the current host disconnects or exits,
+     * automatically promote the next connected player to host.
+     * Sets lastHostMigration as an ephemeral flag so server.ts can emit a system chat message.
+     */
+    private _migrateHostIfNeeded(): void {
+        const hasHost = this.state.players.some(p => p.isHost && p.isConnected);
+        if (hasHost) return;
+
+        const nextHost = this.state.players.find(p => p.isConnected);
+        if (nextHost) {
+            nextHost.isHost = true;
+            this.state.lastHostMigration = { newHostName: nextHost.name, newHostId: nextHost.id };
+            console.log(`[ImpostorEngine] Host migrated to ${nextHost.name} (${nextHost.id})`);
+        }
     }
 
     // [Sprint P1 — Fase 2] Forces an immediate CREW victory and transitions to GAME_OVER.

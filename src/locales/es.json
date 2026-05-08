@@ -140,6 +140,7 @@
         "invalidCode": "Código de sala inválido",
         "PLAYER_JOINED": "👥 {name} se unió a la sala",
         "PLAYER_LEFT": "🚪 {name} abandonó la sala",
+        "HOST_MIGRATED": "👑 {name} es ahora el anfitrión",
         "roomDead": "👋 La sala ha sido cerrada. ¡Hasta la próxima!",
         "spoilerBlocked": "[Mensaje bloqueado por seguridad 🛡️]",
         "roomExpired": "La sala anterior ha caducado. ¡Hemos preparado una nueva con los mismos ajustes para ti! 🎮",

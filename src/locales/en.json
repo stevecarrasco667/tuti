@@ -140,6 +140,7 @@
         "invalidCode": "Invalid room code",
         "PLAYER_JOINED": "👥 {name} joined the room",
         "PLAYER_LEFT": "🚪 {name} left the room",
+        "HOST_MIGRATED": "👑 {name} is now the host",
         "roomDead": "👋 The room has been closed. See you next time!",
         "spoilerBlocked": "[Message blocked for safety 🛡️]",
         "roomExpired": "The previous room expired. We prepared a new one with the same settings for you! 🎮",

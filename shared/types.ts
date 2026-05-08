@@ -114,6 +114,10 @@ export interface RoomState {
         showTimer: boolean;
         targetTime: number | null;
     };
+    // [Sprint A — Host Migration] Ephemeral flag set by the engine when the host disconnects
+    // and a new host is promoted. The server reads this, emits a system chat message, and clears it.
+    // Never persisted to storage — it is intentionally transient.
+    lastHostMigration?: { newHostName: string; newHostId: string } | null;
 }
 
 // [Phoenix Lobby] Lightweight snapshot for lobby list

@@ -183,7 +183,16 @@ export class TutiEngine extends BaseEngine {
             }
         }
 
+        // [Sprint A — A2] Capture the player reference BEFORE remove() deletes it from the array.
+        const disconnectedPlayer = userId ? this.state.players.find(p => p.id === userId) : undefined;
+
         this._players.remove(this.state, connectionId);
+
+        // [Sprint A — A2] Auto-promote next host if the disconnected player was the host.
+        // This prevents the group from being stuck on a dead "Waiting for host" screen.
+        if (disconnectedPlayer?.isHost) {
+            this._migrateHostIfNeeded();
+        }
 
         // [Sprint 1 - Phase 3] Ghost Player Fix:
         // If a player disconnects during REVIEW and was the last one to vote,
@@ -219,6 +228,9 @@ export class TutiEngine extends BaseEngine {
 
         console.log(`[EXIT GAME] Hard destroying player ${userId}`);
 
+        // [Sprint A — A2] Capture the player reference BEFORE filter() removes it from the array.
+        const exitingPlayer = this.state.players.find(p => p.id === userId);
+
         this.state.players = this.state.players.filter(p => p.id !== userId);
         this.state.spectators = this.state.spectators.filter(s => s.id !== userId);
 
@@ -227,6 +239,11 @@ export class TutiEngine extends BaseEngine {
         delete this.state.answers[userId];
         delete this.state.roundScores[userId];
         this.voting.cleanupPlayerVotes(this.state, userId);
+
+        // [Sprint A — A2] If exiting player was host, promote the next connected player.
+        if (exitingPlayer?.isHost) {
+            this._migrateHostIfNeeded();
+        }
 
         if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW' || this.state.status === 'ENDING_COUNTDOWN') {
             if (this.state.status === 'PLAYING') {
@@ -259,6 +276,26 @@ export class TutiEngine extends BaseEngine {
             }
         }
         return stateChanged;
+    }
+
+    // --- HELPERS ---
+
+    /**
+     * [Sprint A — A2] Host Migration: when the current host disconnects or exits,
+     * automatically promote the next connected player to host.
+     * Sets lastHostMigration as an ephemeral flag so server.ts can emit a chat message.
+     */
+    private _migrateHostIfNeeded(): void {
+        // Only migrate if no host remains
+        const hasHost = this.state.players.some(p => p.isHost && p.isConnected);
+        if (hasHost) return;
+
+        const nextHost = this.state.players.find(p => p.isConnected);
+        if (nextHost) {
+            nextHost.isHost = true;
+            this.state.lastHostMigration = { newHostName: nextHost.name, newHostId: nextHost.id };
+            console.log(`[TutiEngine] Host migrated to ${nextHost.name} (${nextHost.id})`);
+        }
     }
 
     // --- CONFIGURATION ---

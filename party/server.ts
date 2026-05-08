@@ -571,6 +571,13 @@ export default class Server implements Party.Server {
                     break;
 
                 case EVENTS.STOP_ROUND:
+                    // [Sprint A — A3] Rate-limit STOP_ROUND to prevent CPU-draining spam.
+                    // The engine already guards via status check, but the limiter prevents
+                    // even reaching the engine on spammed requests.
+                    if (!this.actionLimiter.checkLimit(sender.id)) {
+                        logger.warn('ACTION_RATE_LIMITED', { sender: sender.id, type });
+                        return;
+                    }
                     await this.gameHandler.handleStopRound(messageContext.payload, sender);
                     break;
 
@@ -827,6 +834,14 @@ export default class Server implements Party.Server {
         const leftPlayer = this.engine.getState().players.find(p => p.id === leftUserId);
         if (leftPlayer) {
             this.broadcastSystemMessage('PLAYER_LEFT', { name: leftPlayer.name });
+        }
+
+        // [Sprint A — A2] If the engine promoted a new host, broadcast a system message.
+        // The flag is set by _migrateHostIfNeeded() in the engine and is ephemeral (never persisted).
+        const migration = this.engine.getState().lastHostMigration;
+        if (migration) {
+            this.broadcastSystemMessage('HOST_MIGRATED', { name: migration.newHostName });
+            this.engine.getState().lastHostMigration = null; // Clear the ephemeral flag
         }
 
         // Unified Delta Broadcast (notify remaining players)
