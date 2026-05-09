@@ -7,6 +7,7 @@ import { useToast } from '../composables/useToast';
 import { i18n } from '../i18n';
 import { generateRoomId } from '../utils/random';
 import { EVENTS } from '../../shared/consts';
+import { useAnalytics } from '../composables/useAnalytics';
 
 // [Sprint 2 - P2] Vue Router: URLs navegables para Viralidad (Sprint 4)
 // El backend sigue siendo la autoridad. useGameSync hace router.push() cuando el
@@ -169,4 +170,12 @@ router.beforeEach(async (to, _from, next) => {
         addToast(i18n.global.t('system.connectionFailed'), 'error');
         next('/');
     }
+});
+
+// [PostHog] Capturar pageview en cada cambio de ruta
+// Se usa afterEach para garantizar que el componente ya está montado
+router.afterEach((to) => {
+    const { page } = useAnalytics();
+    const name = (to.name as string) || to.path;
+    page(name, { path: to.path, room_id: to.params.roomId });
 });

@@ -12,6 +12,7 @@ import { computeMatchHighlights } from '../composables/useMatchHighlights';
 import type { MatchHighlights } from '../composables/useMatchHighlights';
 import { useToast } from '../composables/useToast';
 import { useI18n } from 'vue-i18n';
+import { useAnalytics } from '../composables/useAnalytics';
 
 import ResultsHeader from './results/ResultsHeader.vue';
 import RankingBoard from './results/RankingBoard.vue';
@@ -27,6 +28,7 @@ const { assignTitles } = useTitles();
 const { saveEntry } = usePlayerHistory();
 const { addToast } = useToast();
 const { t } = useI18n();
+const { trackShareInitiated } = useAnalytics();
 
 const amIHost = computed(() => gameState.value.players.find(p => p.id === myUserId.value)?.isHost || false);
 const sortedPlayers = computed(() => [...gameState.value.players].sort((a, b) => b.score - a.score));
@@ -117,6 +119,8 @@ const shareMatchSummary = async () => {
                         url: roomUrl,
                         files: [file],
                     });
+                    // [PostHog] Share nativo exitoso
+                    trackShareInitiated({ method: 'native', screen: 'game_over' });
                     // Si el usuario cerró el menú sin compartir (AbortError), lo ignoramos
                 } catch (shareErr: any) {
                     if (shareErr?.name !== 'AbortError') {
@@ -134,6 +138,8 @@ const shareMatchSummary = async () => {
             // Copiamos solo la URL (texto limpio, listo para pegar en Discord/WhatsApp Web).
             try {
                 await navigator.clipboard.writeText(roomUrl);
+                // [PostHog] Share por clipboard en desktop
+                trackShareInitiated({ method: 'clipboard', screen: 'game_over' });
                 addToast(t('results.shareCopied'), 'success');
             } catch {
                 // Clipboard API no disponible o bloqueada por política del navegador.

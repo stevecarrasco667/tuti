@@ -5,6 +5,7 @@ import { useRoute } from 'vue-router';
 import { useGame } from '../composables/useGame';
 import { useSound } from '../composables/useSound';
 import { useMeta } from '../composables/useMeta';
+import { useAnalytics } from '../composables/useAnalytics';
 import type { CategoryRef } from '../../shared/types';
 import TButton from './ui/TButton.vue';
 import LobbyHeader from './lobby/LobbyHeader.vue';
@@ -18,6 +19,7 @@ const { playClick, playJoin, playAlarm, playSuccess } = useSound();
 const { t } = useI18n();
 const route = useRoute();
 const { setMeta } = useMeta();
+const { trackLobbyEntered, trackShareInitiated, identify } = useAnalytics();
 
 // [Sprint 3 - P2] Pre-fetch inteligente de los motores de juego.
 // Se inician silenciosamente mientras el usuario espera en el Lobby, para que cuando el
@@ -35,6 +37,15 @@ onMounted(() => {
             url: `https://tutigame.pages.dev/lobby/${roomId}`,
         });
     }
+    // [PostHog] Identifica al usuario y registra que entró al Lobby
+    if (myUserId.value) {
+        identify(myUserId.value, gameState.value.players.find(p => p.id === myUserId.value)?.name || 'unknown');
+    }
+    trackLobbyEntered({
+        player_count: gameState.value.players.length,
+        mode: gameState.value.config.mode as 'CLASSIC' | 'IMPOSTOR',
+        room_id: roomId,
+    });
 });
 
 // ── Smart State (Orquestador) ─────────────────────────────────────────────────
@@ -100,9 +111,10 @@ const copyRoomLink = async () => {
     if (navigator.share) {
         try {
             await navigator.share(shareData);
-            return; // Si el share nativo tiene éxito, no copiamos al portapapeles
+            // [PostHog] Share nativo exitoso (WhatsApp, Telegram, etc.)
+            trackShareInitiated({ method: 'native', screen: 'lobby' });
+            return;
         } catch (e) {
-            // Si el usuario cancela o falla, hacemos fallback al portapapeles
             console.log("Share cancelado o fallido, usando portapapeles.");
         }
     }

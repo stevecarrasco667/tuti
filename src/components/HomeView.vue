@@ -13,6 +13,7 @@ import PrivacyBanner from './ui/PrivacyBanner.vue';
 import GlobalLanguageSelector from './ui/GlobalLanguageSelector.vue';
 import { useI18n } from 'vue-i18n';
 import { useMeta } from '../composables/useMeta';
+import { useAnalytics } from '../composables/useAnalytics';
 
 const { joinGame, myUserName, myUserAvatar } = useGame();
 const { filteredRooms, lobbyFilters, connect, refreshRooms } = useLobby();
@@ -20,6 +21,7 @@ const { user, isAuthenticated, isLoading, signInWithGoogle, signOut } = useAuth(
 const { addToast } = useToast();
 const { t } = useI18n();
 const { resetMeta } = useMeta();
+const { trackHomeView, trackRoomCreated, trackRoomJoined } = useAnalytics();
 
 const showJoinInput = ref(false);
 const joinCode = ref('');
@@ -41,6 +43,8 @@ onMounted(() => {
     }
     // Restaurar metadatos de la página de inicio al volver desde una sala
     resetMeta();
+    // [PostHog] Evento de inicio del funnel
+    trackHomeView();
 });
 
 watch(user, (newUser) => {
@@ -52,6 +56,8 @@ watch(user, (newUser) => {
 const handleCreateRoom = (asPublic = false) => {
     isPublicRoom.value = asPublic;
     const roomId = generateRoomId();
+    // [PostHog] Primer paso del funnel de conversión
+    trackRoomCreated({ mode: 'CLASSIC', is_public: asPublic });
     joinGame(playerName.value, roomId, selectedAvatar.value, asPublic || undefined);
 };
 
@@ -60,10 +66,14 @@ const handleJoinRoom = () => {
         addToast(t('system.invalidCode'), 'error');
         return;
     }
+    // [PostHog] Intento de unión por código
+    trackRoomJoined({ method: 'code' });
     joinGame(playerName.value, joinCode.value.toUpperCase(), selectedAvatar.value);
 };
 
 const handleJoinPublicRoom = (roomId: string) => {
+    // [PostHog] Unión desde lista pública
+    trackRoomJoined({ method: 'public_list' });
     joinGame(playerName.value, roomId, selectedAvatar.value);
 };
 

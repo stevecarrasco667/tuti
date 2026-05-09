@@ -6,6 +6,7 @@ import ReloadPrompt from './ReloadPrompt.vue';
 import CountdownOverlay from './overlays/CountdownOverlay.vue';
 import StopSignal from './overlays/StopSignal.vue';
 import MobileChatDrawer from './chat/MobileChatDrawer.vue';
+import { useAnalytics } from '../composables/useAnalytics';
 
 // --- GAME BOARDS (Lazy-loaded — no forman parte del bundle inicial) ---
 // El pre-fetch ocurre en LobbyView mientras el usuario espera el inicio de la partida.
@@ -18,6 +19,7 @@ const ImpostorBoard = defineAsyncComponent(() => import('./game/impostor/Imposto
 const boardRef = ref<any>(null);
 
 const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVotes, myUserId, amIHost, startGame, leaveGame, isStopping } = useGame();
+const { trackGameStarted, trackRoundStopped, trackGameOver } = useAnalytics();
 
 const showCountdown = ref(false);
 const showStopSignal = ref(false);
@@ -48,8 +50,23 @@ watch(shouldSubmit, (needsSubmit) => {
 watch(() => gameState.value.status, (newStatus) => {
     if (newStatus === 'PLAYING') {
         showCountdown.value = true;
+        // [PostHog] Partida iniciada — dato más importante del funnel
+        trackGameStarted({
+            player_count:  gameState.value.players.length,
+            mode:          gameState.value.config.mode as 'CLASSIC' | 'IMPOSTOR',
+            round_total:   gameState.value.config.classic?.rounds || 5,
+            letter:        gameState.value.currentLetter || '?',
+        });
     } else if (newStatus === 'REVIEW') {
         showStopSignal.value = true;
+    } else if (newStatus === 'GAME_OVER') {
+        // [PostHog] Partida terminada
+        trackGameOver({
+            mode:          gameState.value.config.mode as 'CLASSIC' | 'IMPOSTOR',
+            rounds_played: gameState.value.roundsPlayed,
+            player_count:  gameState.value.players.length,
+            reason:        gameState.value.gameOverReason || 'NORMAL',
+        });
     }
 });
 
@@ -59,6 +76,12 @@ const handleExit = () => { leaveGame(); showExitModal.value = false; };
 const handleBoardStop = (answers: Record<string, string>) => {
     stopRound(answers);
     playAlarm();
+    // [PostHog] Quién detuvo la ronda y en qué estado
+    trackRoundStopped({
+        trigger:       'basta',
+        round_number:  gameState.value.roundsPlayed + 1,
+        categories:    gameState.value.categories.length,
+    });
 };
 
 const handleBoardVote = (playerId: string, category: string) => {

@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 // @ts-ignore: ignora el error de tipos si npm install falló por red
 import * as Sentry from '@sentry/vue'
+import { initPostHog } from './composables/useAnalytics'
 import './style.css'
 import App from './App.vue'
 import { router } from './router/index'
@@ -27,6 +28,11 @@ if (sentryDsn) {
         replaysOnErrorSampleRate: 1.0,
     });
 }
+
+// [Sprint D — Analytics] PostHog Funnel Tracking
+// Condicional igual que Sentry: si la clave no está configurada, es un no-op silencioso.
+const posthogKey = import.meta.env.VITE_POSTHOG_KEY;
+if (posthogKey) initPostHog(posthogKey);
 
 // [Sprint H7] Global Vue Error Boundary
 // NOTE: We do NOT override app.config.errorHandler here because Sentry.init()
