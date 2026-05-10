@@ -13,6 +13,10 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@capacitor/android": "^8.3.3",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/core": "^8.3.3",
+    "@capacitor/keyboard": "^8.0.3",
     "@sentry/vue": "^10.50.0",
     "@supabase/supabase-js": "^2.99.1",
     "fast-json-patch": "^3.1.1",
@@ -28,6 +32,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.6.4",
     "@types/fast-levenshtein": "^0.0.4",
     "@types/node": "^20.11.10",
     "@types/ws": "^8.18.1",

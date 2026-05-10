@@ -9,6 +9,7 @@ import { useI18n } from 'vue-i18n';
 import { isBootstrapping } from './router/index';
 import ErrorBoundary from './components/ui/ErrorBoundary.vue';
 import { useKeyboard } from './composables/useKeyboard';
+import { App as CapacitorApp } from '@capacitor/app';
 
 const { viewportHeight } = useKeyboard();
 const { gameState, myUserId, leaveGame, isConnected } = useGame();
@@ -76,6 +77,25 @@ watch(() => gameState.value.players.map(p => p.id).join(','), () => {
 
 // Detectar si la vista actual está en GAME (para posicionar el botón mute)
 const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
+
+// ── [Capacitor] Hardware Back Button Interceptor ──────────────────────────────
+// Evita que el usuario salga del juego accidentalmente al usar el gesto de 
+// "Atrás" o el botón físico en Android.
+CapacitorApp.addListener('backButton', ({ canGoBack }) => {
+    const currentPath = router.currentRoute.value.path;
+    const gameStatus = gameState.value.status;
+
+    if (currentPath === '/') {
+        // Estamos en el inicio, permitir salir de la app
+        CapacitorApp.exitApp();
+    } else if (gameStatus !== 'LOBBY') {
+        // En partida, ignoramos el botón para evitar accidentes
+        addToast(t('system.actionDisabled'), 'stop-warning');
+    } else if (canGoBack) {
+        // Si no estamos jugando y el router puede retroceder
+        router.back();
+    }
+});
 </script>
 
 <template>
