@@ -1,5 +1,15 @@
 apply plugin: 'com.android.application'
 
+configurations.all {
+    resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == 'org.jetbrains.kotlin') {
+            if (details.requested.name.startsWith('kotlin-stdlib-jdk')) {
+                details.useVersion '1.8.22'
+            }
+        }
+    }
+}
+
 android {
     namespace "com.tutigame.app"
     compileSdk rootProject.ext.compileSdkVersion
