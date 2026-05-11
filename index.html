@@ -87,6 +87,22 @@
 
 <body class="h-screen overflow-hidden">
   <div id="app"></div>
+  <!-- [Capacitor] Desregistrar SW viejo ANTES de que Vue cargue.
+       Sin esto, el SW intercepta los requests y sirve JS cacheado viejo. -->
+  <script>
+    if (window.location.protocol === 'https:' && window.location.hostname === 'localhost') {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          regs.forEach(function(r) { r.unregister(); });
+        });
+      }
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          names.forEach(function(n) { caches.delete(n); });
+        });
+      }
+    }
+  </script>
   <script type="module" src="/src/main.ts"></script>
 </body>
 

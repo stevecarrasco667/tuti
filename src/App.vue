@@ -18,31 +18,56 @@ const { toasts, addToast } = useToast();
 const { t } = useI18n();
 const router = useRouter();
 
-// ─── Auto-Update Service Worker (Opción A: Silenciosa) ────────────────────────
-// Cuando el SW detecta una nueva versión, recarga automáticamente SOLO si el
-// usuario está en la pantalla de inicio (no en medio de una partida).
-// Si está jugando, el nuevo SW queda instalado y activa en la próxima visita a /.
-useRegisterSW({
-    onRegisteredSW(_scriptUrl: string, registration: ServiceWorkerRegistration | undefined) {
-        // Revisar actualizaciones cada 60 segundos (útil cuando la pestaña queda abierta)
-        if (registration) {
-            setInterval(() => {
-                registration.update();
-            }, 60 * 1000);
-        }
-    },
-    onNeedRefresh() {
-        const isHome = router.currentRoute.value.path === '/';
-        const isInGame = gameState.value.status !== 'LOBBY';
+// ─── Service Worker: Desactivar en Capacitor Nativo ────────────────────────
+// En Capacitor, los assets se sirven desde el filesystem, NO desde la red.
+// El SW de PWA (workbox) cachea los JS del build y puede servir versiones VIEJAS
+// indefinidamente porque no hay "red" para triggear la actualización.
+// Solución: desregistrar todos los SWs existentes y limpiar caches en nativo.
+const isCapacitorNative = window.location.protocol === 'https:' && window.location.hostname === 'localhost';
 
-        if (isHome && !isInGame) {
-            // Usuario en home y sin partida activa → recargar silenciosamente
-            window.location.reload();
-        }
-        // Si está en juego, el nuevo SW ya está instalado.
-        // Tomará control automáticamente la próxima vez que naveguen a /.
-    },
-});
+if (isCapacitorNative) {
+    // Limpiar cualquier SW viejo que haya quedado cacheado en el WebView
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            for (const registration of registrations) {
+                registration.unregister();
+                console.log('[TUTI] Unregistered stale Service Worker');
+            }
+        });
+    }
+    // Limpiar todas las caches de workbox/CacheStorage
+    if ('caches' in window) {
+        caches.keys().then(names => {
+            for (const name of names) {
+                caches.delete(name);
+                console.log('[TUTI] Deleted cache:', name);
+            }
+        });
+    }
+} else {
+    // Solo registrar el SW en la versión WEB (no en Capacitor)
+    useRegisterSW({
+        onRegisteredSW(_scriptUrl: string, registration: ServiceWorkerRegistration | undefined) {
+            // Revisar actualizaciones cada 60 segundos (útil cuando la pestaña queda abierta)
+            if (registration) {
+                setInterval(() => {
+                    registration.update();
+                }, 60 * 1000);
+            }
+        },
+        onNeedRefresh() {
+            const isHome = router.currentRoute.value.path === '/';
+            const isInGame = gameState.value.status !== 'LOBBY';
+
+            if (isHome && !isInGame) {
+                // Usuario en home y sin partida activa → recargar silenciosamente
+                window.location.reload();
+            }
+            // Si está en juego, el nuevo SW ya está instalado.
+            // Tomará control automáticamente la próxima vez que naveguen a /.
+        },
+    });
+}
 
 // Detectar jugador kickeado — solo en LOBBY para evitar falsos positivos durante
 // la transición de fase LOBBY → GAME donde el array de jugadores puede fluctuar.
