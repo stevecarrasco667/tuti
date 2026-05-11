@@ -1,5 +1,4 @@
 import { ref, computed, onUnmounted } from 'vue';
-import PartySocket from 'partysocket';
 import { EVENTS } from '../../shared/consts';
 import type { RoomSnapshot } from '../../shared/types';
 
@@ -9,7 +8,7 @@ const PARTYKIT_HOST = import.meta.env.DEV
 
 // Estado compartido entre montajes de componentes
 const publicRooms = ref<RoomSnapshot[]>([]);
-let lobbySocket: PartySocket | null = null;
+let lobbySocket: WebSocket | null = null;
 let refCount = 0;
 
 if (import.meta.hot) {
@@ -50,9 +49,11 @@ export function useLobby() {
         refCount++;
         if (lobbySocket) return;
 
-        lobbySocket = new PartySocket({ host: PARTYKIT_HOST, room: 'global', party: 'lobby' });
+        const lobbyUrl = `wss://${PARTYKIT_HOST}/parties/lobby/global`;
+        console.log('[TUTI] Lobby connecting to:', lobbyUrl);
+        lobbySocket = new WebSocket(lobbyUrl) as any;
 
-        lobbySocket.addEventListener('message', (event: MessageEvent) => {
+        lobbySocket!.addEventListener('message', (event: MessageEvent) => {
             try {
                 const data = JSON.parse(event.data as string);
 
@@ -94,7 +95,9 @@ export function useLobby() {
     };
 
     const refreshRooms = () => {
-        if (lobbySocket) lobbySocket.send('REFRESH');
+        if (lobbySocket && lobbySocket.readyState === WebSocket.OPEN) {
+            lobbySocket.send('REFRESH');
+        }
     };
 
     // Algoritmo de Partida Rápida: detectar región del cliente por timezone

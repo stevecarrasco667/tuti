@@ -1,5 +1,4 @@
 import { ref, watch } from 'vue';
-import PartySocket from "partysocket";
 import { supabase } from '../lib/supabase';
 import { useReactions } from './useReactions';
 import { EVENTS } from '../../shared/consts';
@@ -12,7 +11,7 @@ const PARTYKIT_HOST = import.meta.env.DEV
     : import.meta.env.VITE_PARTYKIT_HOST || window.location.host;
 
 // Global state (Singleton pattern) to ensure App.vue and useGame.ts share the connection
-const socket = ref<PartySocket | null>(null);
+const socket = ref<WebSocket | null>(null);
 const isConnected = ref(false);
 const lastMessage = ref<string>('');
 const isIntentionalDisconnect = ref(false);
@@ -123,32 +122,40 @@ export function useSocket() {
 
             socket.value = ws as any; // Cast for compatibility
         } else {
-            // Production PartyKit Connection
-            socket.value = new PartySocket({
-                host: PARTYKIT_HOST,
-                room: roomId,
-                query: enrichedUserInfo // PartySocket handles object to query string conversion
-            });
+            // Production PartyKit Connection — WebSocket nativo para evitar el bug
+            // del vendor bundle de partysocket que tiene localhost:1999 hardcodeado internamente.
+            const prodQuery = new URLSearchParams();
+            if (enrichedUserInfo) {
+                prodQuery.append('userId', enrichedUserInfo.userId);
+                prodQuery.append('name', enrichedUserInfo.name);
+                prodQuery.append('avatar', enrichedUserInfo.avatar);
+                if (enrichedUserInfo.token) prodQuery.append('token', enrichedUserInfo.token);
+                if (enrichedUserInfo.public) prodQuery.append('public', enrichedUserInfo.public);
+            }
+            const prodUrl = `wss://${PARTYKIT_HOST}/parties/main/${roomId}?${prodQuery.toString()}`;
+            console.log('[TUTI] Connecting to:', prodUrl);
+            const prodWs = new WebSocket(prodUrl);
 
-            socket.value.addEventListener('open', () => {
+            prodWs.addEventListener('open', () => {
                 isConnected.value = true;
-                devLog('✅ Connected to PartyKit Cloud!');
+                console.log('[TUTI] ✅ Connected to PartyKit Cloud!');
             });
 
-            socket.value.addEventListener('close', () => {
+            prodWs.addEventListener('close', (event) => {
                 isConnected.value = false;
-                if (!isIntentionalDisconnect.value) {
-                    devLog('❌ Disconnected from PartyKit Cloud (Unexpected)');
-                } else {
-                    devLog('🛑 Disconnected from PartyKit Cloud (Intentional)');
-                }
+                console.log('[TUTI] WebSocket closed. Code:', event.code, 'Reason:', event.reason, 'Intentional:', isIntentionalDisconnect.value);
             });
 
-            socket.value.addEventListener('message', (event: MessageEvent) => {
+            prodWs.addEventListener('error', (event) => {
+                console.error('[TUTI] ❌ WebSocket error:', event);
+            });
+
+            prodWs.addEventListener('message', (event: MessageEvent) => {
                 lastMessage.value = event.data as string;
-                // Singleton handler — se ejecuta 1 sola vez sin importar cuántos useGame() estén montados
                 handleEphemeralMessages(event.data as string);
             });
+
+            socket.value = prodWs as any;
         }
     };
 
