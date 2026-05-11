@@ -90,7 +90,7 @@
   <!-- [Capacitor] Desregistrar SW viejo ANTES de que Vue cargue.
        Sin esto, el SW intercepta los requests y sirve JS cacheado viejo. -->
   <script>
-    if (window.location.protocol === 'https:' && window.location.hostname === 'localhost') {
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(regs) {
           regs.forEach(function(r) { r.unregister(); });

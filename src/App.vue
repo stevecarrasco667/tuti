@@ -23,7 +23,7 @@ const router = useRouter();
 // El SW de PWA (workbox) cachea los JS del build y puede servir versiones VIEJAS
 // indefinidamente porque no hay "red" para triggear la actualización.
 // Solución: desregistrar todos los SWs existentes y limpiar caches en nativo.
-const isCapacitorNative = window.location.protocol === 'https:' && window.location.hostname === 'localhost';
+const isCapacitorNative = !!(window as any).Capacitor?.isNativePlatform?.();
 
 if (isCapacitorNative) {
     // Limpiar cualquier SW viejo que haya quedado cacheado en el WebView
