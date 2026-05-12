@@ -29,7 +29,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="fixed inset-0 z-overlay flex flex-col items-center justify-center bg-tuti-base/90 backdrop-blur-md">
+    <div class="fixed inset-0 z-overlay flex flex-col items-center justify-center bg-panel-base/90 backdrop-blur-md">
         
         <!-- Detalles de la Ronda -->
         <div v-if="round && totalRounds" class="mb-4 text-center animate-fade-in-down">

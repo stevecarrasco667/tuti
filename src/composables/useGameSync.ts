@@ -112,8 +112,8 @@ watch(lastMessage, (newMsg) => {
             const { userId, sessionToken } = parsed.payload;
 
             if (typeof localStorage !== 'undefined') {
-                localStorage.setItem('tuti-session-token', sessionToken);
-                localStorage.setItem('tuti-session-token-expiry', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString());
+                localStorage.setItem('flippo-session-token', sessionToken);
+                localStorage.setItem('flippo-session-token-expiry', (Date.now() + 7 * 24 * 60 * 60 * 1000).toString());
             }
 
             if (userId !== state.myUserId.value) {

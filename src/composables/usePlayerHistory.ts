@@ -11,7 +11,7 @@ export interface GameHistoryEntry {
     won: boolean;
 }
 
-const HISTORY_KEY = 'tuti_player_history_v1';
+const HISTORY_KEY = 'flippo_player_history_v1';
 const MAX_ENTRIES = 20;
 
 export function usePlayerHistory() {

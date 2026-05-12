@@ -50,7 +50,7 @@ export function useLobby() {
         if (lobbySocket) return;
 
         const lobbyUrl = `wss://${PARTYKIT_HOST}/parties/lobby/global`;
-        console.log('[TUTI] Lobby connecting to:', lobbyUrl);
+        console.log('[FLIPPO] Lobby connecting to:', lobbyUrl);
         lobbySocket = new WebSocket(lobbyUrl) as any;
 
         lobbySocket!.addEventListener('message', (event: MessageEvent) => {

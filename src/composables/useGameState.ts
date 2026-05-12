@@ -4,11 +4,11 @@ import { generateRandomName } from '../utils/random';
 import { AVATARS } from '../constants/avatars';
 
 // Storage Constants
-export const STORAGE_KEY_USER_ID = 'tuti-user-id';
-export const STORAGE_KEY_USER_NAME = 'tuti-user-name';
-export const STORAGE_KEY_USER_AVATAR = 'tuti-user-avatar';
-export const STORAGE_KEY_SESSION_TOKEN = 'tuti-session-token';
-export const STORAGE_KEY_TOKEN_EXPIRY = 'tuti-session-token-expiry';
+export const STORAGE_KEY_USER_ID = 'flippo-user-id';
+export const STORAGE_KEY_USER_NAME = 'flippo-user-name';
+export const STORAGE_KEY_USER_AVATAR = 'flippo-user-avatar';
+export const STORAGE_KEY_SESSION_TOKEN = 'flippo-session-token';
+export const STORAGE_KEY_TOKEN_EXPIRY = 'flippo-session-token-expiry';
 
 // Global state to persist across component mounts if needed
 const localImpostorRole = ref<PrivateRolePayload | null>(null);

@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.tutigame.app',
-  appName: 'Tuti',
+  appId: 'com.flippo.app',
+  appName: 'Flippo',
   webDir: 'dist',
 
   // El WebView de Android sirve desde https://localhost por defecto.
@@ -10,7 +10,7 @@ const config: CapacitorConfig = {
   // rechaza conexiones WebSocket con ese origin.
   // Al usar el dominio real, el Origin coincide con la versión web y es aceptado.
   server: {
-    hostname: 'tutigame.pages.dev',
+    hostname: 'flippo.pages.dev',
     androidScheme: 'https'
   },
 

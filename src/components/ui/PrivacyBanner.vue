@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue';
 import TButton from './TButton.vue';
 import { useI18n } from 'vue-i18n';
 
-const STORAGE_KEY = 'tuti-privacy-accepted';
+const STORAGE_KEY = 'flippo-privacy-accepted';
 const isVisible = ref(false);
 const { t } = useI18n();
 

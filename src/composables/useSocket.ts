@@ -133,21 +133,21 @@ export function useSocket() {
                 if (enrichedUserInfo.public) prodQuery.append('public', enrichedUserInfo.public);
             }
             const prodUrl = `wss://${PARTYKIT_HOST}/parties/main/${roomId}?${prodQuery.toString()}`;
-            console.log('[TUTI] Connecting to:', prodUrl);
+            console.log('[FLIPPO] Connecting to:', prodUrl);
             const prodWs = new WebSocket(prodUrl);
 
             prodWs.addEventListener('open', () => {
                 isConnected.value = true;
-                console.log('[TUTI] ✅ Connected to PartyKit Cloud!');
+                console.log('[FLIPPO] ✅ Connected to PartyKit Cloud!');
             });
 
             prodWs.addEventListener('close', (event) => {
                 isConnected.value = false;
-                console.log('[TUTI] WebSocket closed. Code:', event.code, 'Reason:', event.reason, 'Intentional:', isIntentionalDisconnect.value);
+                console.log('[FLIPPO] WebSocket closed. Code:', event.code, 'Reason:', event.reason, 'Intentional:', isIntentionalDisconnect.value);
             });
 
             prodWs.addEventListener('error', (event) => {
-                console.error('[TUTI] ❌ WebSocket error:', event);
+                console.error('[FLIPPO] ❌ WebSocket error:', event);
             });
 
             prodWs.addEventListener('message', (event: MessageEvent) => {

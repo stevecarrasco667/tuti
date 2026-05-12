@@ -5,7 +5,7 @@ export type SupportedLanguage = 'es' | 'en' | 'pt';
 // Load default language from localStorage or navigator
 export function detectLanguage(): SupportedLanguage {
     if (typeof localStorage !== 'undefined') {
-        const cached = localStorage.getItem('tuti-lang');
+        const cached = localStorage.getItem('flippo-lang');
         if (cached === 'es' || cached === 'en' || cached === 'pt') {
             return cached;
         }
@@ -48,7 +48,7 @@ export async function setLanguage(lang: SupportedLanguage) {
 
     i18n.global.locale.value = lang;
     if (typeof window !== 'undefined') {
-        localStorage.setItem('tuti-lang', lang);
+        localStorage.setItem('flippo-lang', lang);
         document.querySelector('html')?.setAttribute('lang', lang);
     }
 }

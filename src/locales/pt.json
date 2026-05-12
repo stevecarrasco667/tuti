@@ -79,8 +79,8 @@
             "kick": "Remover {name} da sala?"
         },
         "share": {
-            "title": "Tuti Games",
-            "text": "Junte-se à minha sala do Tuti Games!"
+            "title": "Flippo",
+            "text": "Junte-se à minha sala do Flippo!"
         },
         "settings": {
             "title": "Configurações da Sala",
@@ -272,8 +272,8 @@
         "restart": "Jogar Novamente",
         "waitingRestart": "Aguardando o anfitrião...",
         "share": "Compartilhar",
-        "shareText": "🎮 Acabei de jogar Tutifruti Online! Tem coragem de bater meu recorde? Entre aqui:",
-        "shareTitle": "🏆 Minha partida de Tutifruti",
+        "shareText": "🎮 Acabei de jogar Flippo! Tem coragem de bater meu recorde? Entre aqui:",
+        "shareTitle": "🏆 Minha partida de Flippo",
         "shareSuccess": "📸 Imagem salva na sua galeria",
         "shareCopied": "📥 Imagem baixada e link copiado — cole no seu chat 🔗",
         "shareDownloaded": "📥 Imagem baixada — compartilhe o link da sala com seus amigos",

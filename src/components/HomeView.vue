@@ -81,7 +81,7 @@ const handleClearData = () => {
     if (typeof localStorage !== 'undefined') {
         for (let i = localStorage.length - 1; i >= 0; i--) {
             const key = localStorage.key(i);
-            if (key && key.startsWith('tuti-')) localStorage.removeItem(key);
+            if (key && key.startsWith('flippo-')) localStorage.removeItem(key);
         }
     }
     window.location.reload();
@@ -119,8 +119,8 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                 <TCard padding="lg" class="shadow-3d-panel relative overflow-hidden">
                     <div class="absolute -top-24 -right-24 w-64 h-64 bg-action-blue/10 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="relative z-10">
-                        <h1 class="text-6xl sm:text-7xl lg:text-[5rem] font-display text-center mb-1 tracking-wider uppercase leading-none">
-                            <span class="text-transparent bg-clip-text bg-gradient-to-br from-action-primary via-action-warning to-action-error drop-shadow-md">TUTI GAMES</span>
+                        <h1 class="text-7xl sm:text-8xl lg:text-[6rem] font-display text-center mb-2 tracking-wider uppercase leading-none">
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-action-primary drop-shadow-[0_5px_15px_rgba(255,0,128,0.3)] hover:drop-shadow-[0_5px_25px_rgba(255,0,128,0.5)] transition-all duration-300">FLIPPO</span>
                         </h1>
                         <!-- Texto para bots de Google: invisible visualmente, rico en keywords -->
                         <p class="sr-only">

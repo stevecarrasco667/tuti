@@ -68,7 +68,7 @@ if (!matchOver.value && eliminatedPlayer.value) {
                 
                 <!-- HEADER DE RESULTADO Brutalista -->
                 <h1 class="font-black uppercase tracking-tighter leading-[0.9] flex-none text-[clamp(3.5rem,8vw,8rem)] w-full text-balance shrink-0"
-                    :class="(isEliminatedImpostor || !eliminatedPlayer) ? 'text-tuti-teal drop-shadow-[0_0_50px_rgba(106,215,229,0.6)]' : 'text-action-error drop-shadow-[0_0_50px_rgba(239,68,68,0.6)]'">
+                    :class="(isEliminatedImpostor || !eliminatedPlayer) ? 'text-flippo-teal drop-shadow-[0_0_50px_rgba(106,215,229,0.6)]' : 'text-action-error drop-shadow-[0_0_50px_rgba(239,68,68,0.6)]'">
                     <template v-if="!eliminatedPlayer">{{ t('impostorResults.tie') }}</template>
                     <template v-else-if="isEliminatedImpostor">{{ t('impostorResults.hunted') }}</template>
                     <template v-else>{{ t('impostorResults.innocent') }}</template>
@@ -91,7 +91,7 @@ if (!matchOver.value && eliminatedPlayer.value) {
                     <div v-if="!eliminatedPlayer" class="text-white/60">
                         {{ t('impostorResults.allSurvive') }}
                     </div>
-                    <div v-else :class="isEliminatedImpostor ? 'text-tuti-teal drop-shadow-[0_0_30px_rgba(106,215,229,0.5)]' : 'text-action-error drop-shadow-[0_0_30px_rgba(239,68,68,0.5)]'">
+                    <div v-else :class="isEliminatedImpostor ? 'text-flippo-teal drop-shadow-[0_0_30px_rgba(106,215,229,0.5)]' : 'text-action-error drop-shadow-[0_0_30px_rgba(239,68,68,0.5)]'">
                         {{ isEliminatedImpostor ? t('impostorResults.wasImpostor') : t('impostorResults.wasInnocent') }}
                     </div>
                 </div>

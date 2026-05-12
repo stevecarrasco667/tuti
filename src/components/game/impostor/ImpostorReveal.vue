@@ -42,14 +42,14 @@ const currentCategory = computed(() => {
                 <div class="flex-none flex flex-col items-center">
                     <p class="text-[clamp(0.7rem,1.5vw,1rem)] font-black tracking-[0.4em] text-white/40 uppercase mb-1">{{ t('impostorReveal.category') }}</p>
                     <span class="text-[clamp(1.5rem,3vw,2.5rem)] font-black tracking-[0.2em] uppercase drop-shadow-sm opacity-90"
-                          :class="isImpostor ? 'text-action-error' : 'text-tuti-teal'">
+                          :class="isImpostor ? 'text-action-error' : 'text-flippo-teal'">
                         {{ currentCategory }}
                     </span>
                 </div>
 
                 <!-- Título Principal Liquido -->
                 <h1 class="font-black uppercase tracking-tighter leading-[0.9] flex-none w-full text-balance text-[clamp(3.5rem,8vw,8rem)]"
-                    :class="isImpostor ? 'text-action-error drop-shadow-[0_0_50px_rgba(239,68,68,0.6)]' : 'text-tuti-teal drop-shadow-[0_0_50px_rgba(106,215,229,0.6)]'">
+                    :class="isImpostor ? 'text-action-error drop-shadow-[0_0_50px_rgba(239,68,68,0.6)]' : 'text-flippo-teal drop-shadow-[0_0_50px_rgba(106,215,229,0.6)]'">
                     {{ isImpostor ? (allies > 0 ? t('impostorReveal.areImpostors') : t('impostorReveal.areImpostor')) : t('impostorReveal.areCrewmate') }}
                 </h1>
 
@@ -77,7 +77,7 @@ const currentCategory = computed(() => {
             <!-- Timer Adaptativo -->
             <div class="mt-auto flex-none flex flex-col items-center justify-end">
                 <div class="text-[clamp(4rem,8vw,6rem)] font-black font-mono animate-pulse drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] leading-none" 
-                     :class="isImpostor ? 'text-action-error/80' : 'text-tuti-teal/80'">
+                     :class="isImpostor ? 'text-action-error/80' : 'text-flippo-teal/80'">
                     {{ Math.max(0, timeRemaining) }}
                 </div>
             </div>

@@ -91,7 +91,7 @@ router.beforeEach(async (to, _from, next) => {
         const name = state.myUserName.value;
         const avatar = state.myUserAvatar.value;
         const token = typeof localStorage !== 'undefined'
-            ? localStorage.getItem('tuti-session-token') || undefined
+            ? localStorage.getItem('flippo-session-token') || undefined
             : undefined;
 
         // 2. Establecer conexión WebSocket con el servidor
@@ -128,7 +128,7 @@ router.beforeEach(async (to, _from, next) => {
             const name = state.myUserName.value;
             const avatar = state.myUserAvatar.value;
             const token = typeof localStorage !== 'undefined'
-                ? localStorage.getItem('tuti-session-token') || undefined
+                ? localStorage.getItem('flippo-session-token') || undefined
                 : undefined;
 
             // Conectar a la nueva sala en background (sin await — optimistic navigation)

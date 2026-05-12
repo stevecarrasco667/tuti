@@ -13,7 +13,7 @@ export function useGameActions(
 
     const joinGame = async (name: string, targetRoomId: string, avatar: string, isPublic?: boolean) => {
         const userId = state.myUserId.value;
-        const token = typeof localStorage !== 'undefined' ? localStorage.getItem('tuti-session-token') || undefined : undefined;
+        const token = typeof localStorage !== 'undefined' ? localStorage.getItem('flippo-session-token') || undefined : undefined;
 
         // [Bug Fix] Establecer el socket PRIMERO, navegar DESPUÉS.
         // El patrón anterior navegaba optimísticamente antes de que el socket existiera,

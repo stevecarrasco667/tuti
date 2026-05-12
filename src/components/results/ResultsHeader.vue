@@ -29,7 +29,7 @@ defineProps<{
         <template v-else-if="gameState.config.mode === 'IMPOSTOR'">
             <h2 class="text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-black animate-pulse uppercase"
                 style="line-height: 1.1;"
-                :class="gameState.impostorData?.cycleResult?.winner === 'IMPOSTOR' ? 'text-action-error drop-shadow-[0_0_30px_rgba(239,68,68,0.8)]' : 'text-tuti-teal drop-shadow-[0_0_30px_rgba(106,215,229,0.8)]'">
+                :class="gameState.impostorData?.cycleResult?.winner === 'IMPOSTOR' ? 'text-action-error drop-shadow-[0_0_30px_rgba(239,68,68,0.8)]' : 'text-flippo-teal drop-shadow-[0_0_30px_rgba(106,215,229,0.8)]'">
                 {{ gameState.impostorData?.cycleResult?.winner === 'IMPOSTOR' ? t('results.impostorsWin') : t('results.crewWin') }}
             </h2>
         </template>

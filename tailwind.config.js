@@ -30,7 +30,7 @@ export default {
                     warning: '#fbbf24',
                     info: '#38bdf8',
                 },
-                tuti: {
+                flippo: {
                     teal: '#2dd4bf',
                 },
                 ink: {

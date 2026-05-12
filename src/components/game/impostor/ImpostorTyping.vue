@@ -191,7 +191,7 @@ const handleInputFocus = (event: Event) => {
                 {{ t('impostorTyping.spoilerWarning') }}
             </p>
             
-            <p v-else-if="hasConfirmed" class="mt-6 text-tuti-teal font-black uppercase tracking-widest text-sm">
+            <p v-else-if="hasConfirmed" class="mt-6 text-flippo-teal font-black uppercase tracking-widest text-sm">
                 {{ t('impostorTyping.readyWaiting') }}
             </p>
             <p v-else-if="timeRemaining <= 0" class="mt-6 text-action-error font-black uppercase tracking-widest text-sm">

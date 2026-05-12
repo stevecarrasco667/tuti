@@ -28,8 +28,8 @@ const { t } = useI18n();
             <!-- ESCENARIO A: Victoria Tripulante -->
             <template v-if="gameState.impostorData?.cycleResult?.winner === 'CREW'">
                 <!-- Héroes Sobrevivientes -->
-                <div class="bg-panel-card/80 backdrop-blur-md border-[3px] border-tuti-teal/40 rounded-3xl p-6 shadow-xl relative overflow-hidden">
-                    <h3 class="text-lg md:text-xl font-black text-center uppercase tracking-widest mb-6 text-tuti-teal drop-shadow-md">{{ t('impostorResults.survivingCrew') }}</h3>
+                <div class="bg-panel-card/80 backdrop-blur-md border-[3px] border-flippo-teal/40 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+                    <h3 class="text-lg md:text-xl font-black text-center uppercase tracking-widest mb-6 text-flippo-teal drop-shadow-md">{{ t('impostorResults.survivingCrew') }}</h3>
                     <div class="flex flex-wrap items-center justify-center gap-4">
                         <div v-for="crew in crewWinners" :key="crew.id"
                              class="flex items-center gap-3 bg-panel-base border border-white/20 px-4 py-3 rounded-2xl shadow-lg hover:scale-105 transition-transform">

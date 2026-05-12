@@ -27,9 +27,9 @@ export default defineConfig({
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,mp3}']
             },
             manifest: {
-                name: 'TutiGame',
-                short_name: 'TutiGame',
-                description: 'El clásico Tutifruti en línea con tus amigos',
+                name: 'Flippo',
+                short_name: 'Flippo',
+                description: 'Plataforma de minijuegos y party games online',
                 theme_color: '#7c3aed',
                 background_color: '#0f0a1e',
                 display: 'standalone',

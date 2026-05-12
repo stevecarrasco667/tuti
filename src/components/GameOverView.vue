@@ -90,7 +90,7 @@ const shareMatchSummary = async () => {
         const opts = { width: 1080, height: 1920, pixelRatio: 1, cacheBust: true };
         await toPng(summaryCardRef.value!, opts); // Warmup render (evita artefactos en iOS)
         const dataUrl = await toPng(summaryCardRef.value!, opts);
-        const filename = `tuti-resumen-${Date.now()}.png`;
+        const filename = `flippo-resumen-${Date.now()}.png`;
 
         // ── PASO 2: Descarga forzada (SIEMPRE, independiente del dispositivo) ──
         // Este es el "Punto de Retorno Seguro": el usuario siempre se queda

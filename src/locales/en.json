@@ -79,8 +79,8 @@
             "kick": "Remove {name} from the room?"
         },
         "share": {
-            "title": "Tuti Games",
-            "text": "Join my Tuti Games room!"
+            "title": "Flippo",
+            "text": "Join my Flippo room!"
         },
         "settings": {
             "title": "Room Settings",
@@ -272,8 +272,8 @@
         "restart": "Play Again",
         "waitingRestart": "Waiting for host...",
         "share": "Share",
-        "shareText": "🎮 I just played Tutifruti Online! Dare to beat my score? Join here:",
-        "shareTitle": "🏆 My Tutifruti Match",
+        "shareText": "🎮 I just played Flippo! Dare to beat my score? Join here:",
+        "shareTitle": "🏆 My Flippo Match",
         "shareSuccess": "📸 Image saved to your gallery",
         "shareCopied": "📥 Image downloaded and link copied — paste it in your chat 🔗",
         "shareDownloaded": "📥 Image downloaded — share the room link with your friends",

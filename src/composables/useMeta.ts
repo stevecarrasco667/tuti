@@ -17,7 +17,7 @@ interface MetaConfig {
     image?: string;
 }
 
-const BASE_URL = 'https://tutigame.pages.dev';
+const BASE_URL = 'https://flippo.pages.dev';
 const DEFAULT_IMAGE = `${BASE_URL}/og-image.png`;
 
 export function useMeta() {
@@ -54,8 +54,8 @@ export function useMeta() {
 
     const resetMeta = () => {
         setMeta({
-            title:       'TutiGame — Jugar Tutti Frutti Online Gratis con Amigos',
-            description: 'El clásico Tutti Frutti en línea. Crea una sala, comparte el link y juega con amigos en tiempo real. ¡Gratis y sin registro!',
+            title:       'Flippo — Plataforma de Minijuegos y Party Games Online',
+            description: 'Juega con tus amigos a diferentes minijuegos en línea. Crea una sala, comparte el link y juega ahora mismo — ¡gratis y sin registro!',
             url:         BASE_URL + '/',
         });
     };
