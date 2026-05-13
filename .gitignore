@@ -41,3 +41,7 @@ android/.gradle/
 android/app/build/
 android/build/
 android/local.properties
+
+# Asset source files (generated, too large for git)
+assets/
+tutigames.png
