@@ -119,11 +119,13 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                 <TCard padding="lg" class="shadow-3d-panel relative overflow-hidden">
                     <div class="absolute -top-24 -right-24 w-64 h-64 bg-action-blue/10 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="relative z-10">
-                        <h1 class="text-center mb-1">
+                        <h1 class="text-center mb-1 relative flex justify-center items-center">
+                            <!-- Glow radial para que el fondo de la imagen se funda perfectamente con el TCard -->
+                            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_#2E0249_0%,_transparent_70%)] opacity-100 -z-10 mix-blend-lighten pointer-events-none"></div>
                             <img src="/tutigames-wordmark.png"
                                  alt="TUTI GAMES"
-                                 class="mx-auto h-16 sm:h-20 lg:h-24 w-auto object-contain drop-shadow-lg"
-                                 style="mix-blend-mode: lighten;"
+                                 class="relative h-16 sm:h-20 lg:h-24 w-auto object-contain"
+                                 style="mix-blend-mode: screen; filter: contrast(1.1) saturate(1.1);"
                             />
                         </h1>
                         <!-- Texto para bots de Google: invisible visualmente, rico en keywords -->
