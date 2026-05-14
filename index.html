@@ -91,6 +91,8 @@
        Sin esto, el SW intercepta los requests y sirve JS cacheado viejo. -->
   <script>
     if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      // [Capacitor] Native: desregistrar SW viejo ANTES de que Vue cargue.
+      // Sin esto, el SW intercepta los requests y sirve JS cacheado viejo.
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(regs) {
           regs.forEach(function(r) { r.unregister(); });
@@ -101,6 +103,12 @@
           names.forEach(function(n) { caches.delete(n); });
         });
       }
+    } else if ('serviceWorker' in navigator) {
+      // [Web] Cuando el SW nuevo toma control (skipWaiting + clientsClaim),
+      // recargamos la página para que el usuario reciba el CSS/JS actualizado.
+      navigator.serviceWorker.addEventListener('controllerchange', function() {
+        window.location.reload();
+      });
     }
   </script>
   <script type="module" src="/src/main.ts"></script>

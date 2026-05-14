@@ -24,14 +24,16 @@ export default defineConfig({
             injectRegister: 'auto',
             workbox: {
                 cleanupOutdatedCaches: true,
+                skipWaiting: true,
+                clientsClaim: true,
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,mp3}']
             },
             manifest: {
                 name: 'TutiGame',
                 short_name: 'TutiGame',
                 description: 'El clásico Tutifruti en línea con tus amigos',
-                theme_color: '#7c3aed',
-                background_color: '#0f0a1e',
+                theme_color: '#2E0249',
+                background_color: '#2E0249',
                 display: 'standalone',
                 orientation: 'portrait-primary',
                 icons: [
