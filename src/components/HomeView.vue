@@ -117,10 +117,10 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
             <!-- LEFT: Consola -->
             <div class="lg:col-span-4 flex flex-col gap-5 justify-center">
                 <TCard padding="lg" class="shadow-3d-panel relative overflow-hidden">
-                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-action-blue/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-action-info/10 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="relative z-10">
-                        <h1 class="text-6xl sm:text-7xl lg:text-[5rem] font-display text-center mb-1 tracking-wider uppercase leading-none">
-                            <span class="text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 via-pink-400 to-purple-400 drop-shadow-md">TUTI GAMES</span>
+                        <h1 class="animate-float text-6xl sm:text-7xl lg:text-[5rem] font-display text-center mb-1 tracking-wider uppercase leading-none">
+                            <span class="text-transparent bg-clip-text bg-gradient-to-br from-game-yellow via-game-red to-action-info drop-shadow-md">TUTI GAMES</span>
                         </h1>
                         <!-- Texto para bots de Google: invisible visualmente, rico en keywords -->
                         <p class="sr-only">
@@ -159,12 +159,12 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                             {{ t('home.yourIdentity') }}
                             <span v-if="!isAuthenticated" title="Inicia sesión para editar tu nombre" class="cursor-help w-4 h-4 rounded-full bg-panel-input flex items-center justify-center text-[10px] font-bold ml-1 border border-white/5">?</span>
                         </h3>
-                        <button v-if="isAuthenticated" @click="isEditingProfile = !isEditingProfile" class="text-[10px] font-bold text-white bg-white/5 hover:bg-white/10 px-2 py-1 rounded border border-white/10 transition-colors uppercase">{{ isEditingProfile ? t('home.save') : t('home.edit') }}</button>
-                        <button v-else @click="signInWithGoogle" class="text-[10px] font-bold text-action-blue opacity-80 hover:opacity-100 uppercase underline">{{ t('home.customize') }}</button>
+                        <button v-if="isAuthenticated" @click="isEditingProfile = !isEditingProfile" class="text-[10px] font-bold text-white bg-white/5 hover:bg-white/10 px-3 py-2 rounded-lg border border-white/10 transition-colors uppercase">{{ isEditingProfile ? t('home.save') : t('home.edit') }}</button>
+                        <button v-else @click="signInWithGoogle" class="text-[10px] font-bold text-action-info opacity-80 hover:opacity-100 uppercase underline">{{ t('home.customize') }}</button>
                     </div>
                     <div class="flex items-center gap-4">
                         <div class="relative group flex-none">
-                            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-panel-input rounded-3xl flex items-center justify-center text-4xl shadow-inner transition-transform group-hover:scale-105 overflow-hidden">{{ selectedAvatar }}</div>
+                            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl flex items-center justify-center text-5xl shadow-inner transition-transform group-hover:scale-110 overflow-hidden ring-4 ring-action-secondary/40 bg-gradient-to-br from-panel-card to-panel-input">{{ selectedAvatar }}</div>
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-ink-soft text-[10px] font-bold tracking-wider uppercase mb-1">{{ t('home.publicName') }}</p>
@@ -202,19 +202,19 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                                 📡 {{ t('home.publicRooms') }}
                                 <span class="bg-action-blue/20 text-action-blue border border-action-blue/30 px-2 py-0.5 rounded-md text-[9px]">{{ filteredRooms.length }}</span>
                             </h3>
-                            <button @click="handleRefresh" class="text-ink-muted hover:text-white transition-colors flex items-center gap-1 text-[9px] font-bold uppercase bg-white/5 px-2 py-1 rounded-md" :class="{ 'opacity-50 cursor-not-allowed': isRefreshing }">
+                            <button @click="handleRefresh" class="text-ink-soft hover:text-white transition-colors flex items-center gap-1 text-[9px] font-bold uppercase bg-white/5 px-3 py-2 rounded-lg" :class="{ 'opacity-50 cursor-not-allowed': isRefreshing }">
                                 <span :class="{ 'animate-spin': isRefreshing }">↻</span> {{ t('home.refresh') }}
                             </button>
                         </div>
 
                         <!-- Modo -->
                         <div>
-                            <span class="text-[8px] font-black text-ink-muted uppercase tracking-widest mb-1.5 block">{{ t('home.gameMode') }}</span>
+                            <span class="text-[9px] font-black text-ink-soft uppercase tracking-widest mb-1.5 block">{{ t('home.gameMode') }}</span>
                             <div class="flex gap-1 bg-panel-input p-1 rounded-xl border border-white/5">
                                 <button v-for="m in ['ALL','CLASSIC','IMPOSTOR']" :key="m"
                                     @click="lobbyFilters.mode = m as any"
                                     class="flex-1 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all"
-                                    :class="lobbyFilters.mode === m ? 'bg-panel-card text-white shadow-3d-panel border border-white/10' : 'text-ink-muted hover:text-ink-soft'"
+                                    :class="lobbyFilters.mode === m ? 'bg-panel-card text-white shadow-3d-panel border border-white/20' : 'text-ink-soft hover:text-white'"
                                 >{{ m === 'ALL' ? t('home.any') : MODE_LABELS[m] }}</button>
                             </div>
                         </div>
@@ -222,15 +222,15 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                         <!-- Región & Idioma (Grid) -->
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <span class="text-[8px] font-black text-ink-muted uppercase tracking-widest mb-1.5 block">{{ t('home.region') }}</span>
-                                <select v-model="lobbyFilters.region" class="w-full bg-panel-input border border-white/10 rounded-xl px-2 py-2 text-[10px] font-bold text-ink-main uppercase tracking-wider outline-none focus:border-action-blue appearance-none">
+                                <span class="text-[9px] font-black text-ink-soft uppercase tracking-widest mb-1.5 block">{{ t('home.region') }}</span>
+                                <select v-model="lobbyFilters.region" class="w-full bg-panel-input border border-white/10 rounded-xl px-2 py-2 text-[10px] font-bold text-ink-main uppercase tracking-wider outline-none focus:border-action-secondary appearance-none">
                                     <option value="ALL">🌐 {{ t('home.any') }}</option>
                                     <option v-for="r in ['SA','NA','EU','AS']" :key="r" :value="r">{{ REGION_LABELS[r] }}</option>
                                 </select>
                             </div>
                             <div>
-                                <span class="text-[8px] font-black text-ink-muted uppercase tracking-widest mb-1.5 block">{{ t('home.language') }}</span>
-                                <select v-model="lobbyFilters.lang" class="w-full bg-panel-input border border-white/10 rounded-xl px-2 py-2 text-[10px] font-bold text-ink-main uppercase tracking-wider outline-none focus:border-action-blue appearance-none">
+                                <span class="text-[9px] font-black text-ink-soft uppercase tracking-widest mb-1.5 block">{{ t('home.language') }}</span>
+                                <select v-model="lobbyFilters.lang" class="w-full bg-panel-input border border-white/10 rounded-xl px-2 py-2 text-[10px] font-bold text-ink-main uppercase tracking-wider outline-none focus:border-action-secondary appearance-none">
                                     <option value="ALL">💬 {{ t('home.any') }}</option>
                                     <option v-for="l in ['es','en','pt']" :key="l" :value="l">{{ LANG_LABELS[l] }}</option>
                                 </select>
@@ -240,20 +240,20 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
 
                     <!-- Room List -->
                     <div class="flex-1 overflow-y-auto p-4 space-y-3 relative min-h-[200px] bg-panel-base/50 scrollbar-thin">
-                        <div v-if="filteredRooms.length === 0" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-                            <div class="w-16 h-16 mb-4 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSIxMCIvPjxwYXRoIGQ9Im0xNSA5LTMgM20wIDAgMyAzbS0zLTN2OG0wLTh2LTgiLz48L3N2Zz4=')] bg-contain bg-center bg-no-repeat"></div>
+                        <div v-if="filteredRooms.length === 0" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 gap-3">
+                            <div class="animate-float text-6xl select-none">👾</div>
                             <p class="text-ink-soft font-black text-sm uppercase tracking-wider">{{ t('home.noResults') }}</p>
-                            <p class="text-ink-muted text-[10px] font-bold mt-2">{{ t('home.adjustFilters') }}</p>
+                            <p class="text-ink-muted text-[10px] font-bold">{{ t('home.adjustFilters') }}</p>
                         </div>
 
                         <!-- Room Card (Arcade Ticket Style) -->
                         <div
                             v-for="room in filteredRooms" :key="room.id"
-                            class="relative rounded-[2rem] p-1.5 transition-all overflow-hidden"
-                            :class="room.joinable ? 'bg-panel-card shadow-3d-panel hover:scale-[1.02] group' : 'bg-panel-card/30 opacity-75'"
+                            class="relative rounded-2xl p-px transition-all overflow-hidden"
+                            :class="room.joinable ? `shadow-3d-panel hover:scale-[1.02] group ${room.mode === 'CLASSIC' ? 'bg-action-info/40' : 'bg-game-red/40'}` : 'bg-panel-card/30 opacity-75'"
                         >
                             <!-- Inner Content -->
-                            <div class="flex flex-col sm:flex-row bg-panel-base rounded-xl overflow-hidden h-full">
+                            <div class="flex flex-col sm:flex-row bg-panel-card rounded-xl overflow-hidden h-full">
                                 
                                 <!-- Identidad y Datos -->
                                 <div class="flex-1 p-3 flex items-center gap-3">
@@ -269,7 +269,7 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                                                 :class="room.mode === 'CLASSIC' ? 'text-action-blue bg-action-blue/10 border border-action-blue/20' : 'text-red-400 bg-red-400/10 border border-red-400/20'">
                                                 {{ MODE_LABELS[room.mode] || room.mode }}
                                             </span>
-                                            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-md text-violet-400 bg-violet-400/10 border border-violet-400/20">
+                                            <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-md text-action-info bg-action-info/10 border border-action-info/20">
                                                 {{ REGION_LABELS[room.region] || room.region }}
                                             </span>
                                             <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-md text-action-warning bg-action-warning/10 border border-action-warning/20">
@@ -287,9 +287,9 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                                         <div class="text-[10px] font-black uppercase tracking-widest mb-1" :class="getStatusInfo(room).color.split(' ')[0]">
                                             {{ getStatusInfo(room).label }}
                                         </div>
-                                        <div class="h-6 bg-panel-input rounded-lg overflow-hidden border border-white/10 relative">
-                                            <div class="absolute inset-y-0 left-0 transition-all duration-500 ease-out"
-                                                :class="fillPercent(room) >= 100 ? 'bg-red-500/80' : fillPercent(room) >= 75 ? 'bg-amber-500/80' : 'bg-emerald-500/80'"
+                                        <div class="h-8 bg-panel-input rounded-xl overflow-hidden border border-white/10 relative">
+                                            <div class="absolute inset-y-0 left-0 transition-all duration-500 ease-out rounded-xl"
+                                                :class="fillPercent(room) >= 100 ? 'bg-game-red/80' : fillPercent(room) >= 75 ? 'bg-game-yellow/80' : 'bg-game-green/80'"
                                                 :style="`width: ${fillPercent(room)}%`">
                                             </div>
                                             <div class="absolute inset-0 flex items-center justify-center text-[11px] font-black text-white drop-shadow-md">
@@ -298,9 +298,9 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                                         </div>
                                     </div>
 
-                                    <!-- Acción: Botón superpuesto en hover (solo escritorio) / Visible en móvil -->
-                                    <div v-if="room.joinable" class="sm:absolute sm:inset-0 sm:bg-panel-base/90 sm:backdrop-blur-[2px] sm:flex sm:items-center sm:justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-all z-10 p-2 sm:p-0">
-                                        <button @click="handleJoinPublicRoom(room.id)" class="w-full sm:w-auto px-4 py-2 bg-action-primary text-panel-base rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-glow-primary active:scale-95 transition-transform flex items-center justify-center gap-2">
+                                    <!-- Acción: Botón con hover mejorado -->
+                                    <div v-if="room.joinable" class="sm:absolute sm:inset-0 sm:bg-panel-card/95 sm:backdrop-blur-[2px] sm:flex sm:items-center sm:justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200 z-10 p-2 sm:p-0">
+                                        <button @click="handleJoinPublicRoom(room.id)" class="w-full sm:w-auto px-5 py-2.5 bg-action-primary text-panel-base rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-glow-primary active:scale-95 hover:scale-105 transition-transform flex items-center justify-center gap-2">
                                             <span>{{ t('home.enter') }}</span>
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
                                         </button>
@@ -322,7 +322,8 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                     <div v-if="isLoading" class="flex justify-center h-10 items-center">
                         <span class="animate-pulse text-ink-muted text-xs font-bold tracking-widest uppercase">{{ t('home.loadingIdentity') }}</span>
                     </div>
-                    <div v-else-if="!isAuthenticated" class="bg-panel-card/40 border-2 border-white/20 rounded-2xl p-4 flex flex-col items-center gap-3 shadow-xl backdrop-blur-sm">
+                    <div v-else-if="!isAuthenticated" class="relative rounded-2xl p-px overflow-hidden" style="background: linear-gradient(120deg, #fbbf24, #fb7185, #7dd3fc, #fbbf24); background-size: 200% auto; animation: border-glow 3s linear infinite;">
+                    <div class="bg-panel-card/95 backdrop-blur-sm rounded-2xl p-4 flex flex-col items-center gap-3">
                         <div class="flex items-center gap-3 w-full">
                             <div class="w-10 h-10 rounded-xl bg-panel-base border-2 border-action-primary flex items-center justify-center text-xl shadow-inner bg-gradient-to-br from-action-primary/20 to-panel-input/20 flex-none">⭐</div>
                             <div class="text-left flex-1 min-w-0">
@@ -334,7 +335,7 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                             <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.2,4.73C15.29,4.73 17.1,6.7 17.1,6.7L19,4.72C19,4.72 16.56,2 12.1,2C6.42,2 2.03,6.8 2.03,12C2.03,17.05 6.16,22 12.25,22C17.6,22 21.5,18.33 21.5,12.91C21.5,11.76 21.35,11.1 21.35,11.1V11.1Z" /></svg>
                             {{ t('home.signInGoogle') }}
                         </button>
-                    </div>
+                    </div></div>
                     <div v-else class="bg-panel-card border-2 border-white/10 rounded-2xl p-3 flex items-center justify-between gap-3 shadow-lg">
                         <div class="flex items-center gap-2 min-w-0">
                             <img v-if="user?.user_metadata.avatar_url" :src="user.user_metadata.avatar_url" class="w-10 h-10 rounded-xl border-2 border-action-primary shadow-sm flex-none" alt="Avatar">

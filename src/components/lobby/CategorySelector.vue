@@ -62,8 +62,8 @@ function saveAndClose() {
 
 <template>
     <!-- Category Panel (inline chip list) -->
-    <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-game-panel flex-1 flex flex-col overflow-hidden min-h-[120px] lg:min-h-0">
-        <div class="p-4 border-b-2 border-white/50 bg-panel-card/50 flex items-center justify-between flex-none">
+    <div class="bg-panel-base border-2 border-white/5 rounded-3xl shadow-game-panel flex-1 flex flex-col overflow-hidden min-h-[120px] lg:min-h-0">
+        <div class="p-4 border-b-2 border-white/5 bg-panel-card/50 flex items-center justify-between flex-none">
             <p class="text-ink-main text-[9px] font-black uppercase tracking-[0.2em]">
                 {{ t('lobby.categoriesSelector.title') }} <span class="text-ink-soft">({{ props.categories.length }})</span>
             </p>
@@ -82,10 +82,10 @@ function saveAndClose() {
                     </div>
                 </TransitionGroup>
             </div>
-            <div v-else class="h-full flex flex-col items-center justify-center text-center py-6">
-                <span class="text-4xl mb-3 opacity-30">🎲</span>
+            <div v-else class="h-full flex flex-col items-center justify-center text-center py-6 gap-2">
+                <span class="animate-float text-4xl mb-1 opacity-50 select-none">🎲</span>
                 <p class="text-ink-soft font-bold text-sm">{{ t('lobby.categoriesSelector.randomSelection') }}</p>
-                <p class="text-ink-muted text-[10px] font-bold mt-1">{{ t('lobby.categoriesSelector.randomSelectionDesc') }}</p>
+                <p class="text-ink-muted text-[10px] font-bold">{{ t('lobby.categoriesSelector.randomSelectionDesc') }}</p>
             </div>
         </div>
     </div>

@@ -159,7 +159,7 @@ const handleLeave = () => {
                     @click="activeTab = 'players'"
                     class="flex-1 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2"
                     :class="activeTab === 'players'
-                        ? 'bg-panel-base text-action-blue shadow-sm border border-white/10'
+                        ? 'bg-panel-base text-action-info shadow-sm border border-white/10'
                         : 'text-ink-muted hover:text-ink-soft'"
                 >
                     👥 {{ t('lobby.tabs.players') }}
@@ -169,7 +169,7 @@ const handleLeave = () => {
                     @click="activeTab = 'settings'"
                     class="flex-1 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2"
                     :class="activeTab === 'settings'
-                        ? 'bg-panel-base text-action-blue shadow-sm border border-white/10'
+                        ? 'bg-panel-base text-action-info shadow-sm border border-white/10'
                         : 'text-ink-muted hover:text-ink-soft'"
                 >
                     ⚙️ {{ t('lobby.tabs.settings') }}
@@ -212,9 +212,9 @@ const handleLeave = () => {
                                     class="cursor-pointer relative p-2.5 lg:p-5 rounded-2xl lg:rounded-[2rem] border-2 transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
                                     :class="localConfig.mode === 'CLASSIC'
                                         ? 'border-action-primary bg-action-primary/10 shadow-3d-yellow'
-                                        : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input shadow-sm hover:shadow-3d-yellow'"
+                                        : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input shadow-sm hover:scale-105'"
                                 >
-                                    <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform">🎯</div>
+                                    <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform drop-shadow-md">🎯</div>
                                     <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">{{ t('lobby.gameMode.classic.title') }}</h4>
                                     <p class="text-ink-soft text-[8px] font-bold mt-1">{{ t('lobby.gameMode.classic.subtitle') }}</p>
                                     <div v-if="localConfig.mode === 'CLASSIC'" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-action-primary text-panel-base flex items-center justify-center text-[10px] font-black shadow-lg">✓</div>
@@ -228,13 +228,13 @@ const handleLeave = () => {
                                     @click="handleConfigChange('mode', 'IMPOSTOR')"
                                     class="cursor-pointer relative p-2.5 lg:p-5 rounded-2xl lg:rounded-[2rem] border-2 transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
                                     :class="localConfig.mode === 'IMPOSTOR'
-                                        ? 'border-action-blue bg-action-blue/10 shadow-3d-blue'
-                                        : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input shadow-sm hover:shadow-3d-blue'"
+                                        ? 'border-action-error bg-action-error/10 shadow-3d-red'
+                                        : 'border-white/10 bg-panel-card hover:border-action-error hover:bg-panel-input shadow-sm hover:scale-105'"
                                 >
-                                    <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform">🕵️</div>
+                                    <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform drop-shadow-md">🕵️</div>
                                     <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">{{ t('lobby.gameMode.impostor.title') }}</h4>
                                     <p class="text-ink-soft text-[8px] font-bold mt-1">{{ t('lobby.gameMode.impostor.subtitle') }}</p>
-                                    <div v-if="localConfig.mode === 'IMPOSTOR'" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-action-blue text-white flex items-center justify-center text-[10px] font-black shadow-lg">✓</div>
+                                    <div v-if="localConfig.mode === 'IMPOSTOR'" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-action-error text-white flex items-center justify-center text-[10px] font-black shadow-lg">✓</div>
                                     <button 
                                         @click.stop="tutorialMode = 'IMPOSTOR'"
                                         class="absolute top-2 left-2 w-5 h-5 rounded-full bg-panel-base border border-white/20 hover:bg-white/10 hover:border-white/50 text-ink-muted hover:text-white flex items-center justify-center text-[10px] font-black shadow transition-all z-10"

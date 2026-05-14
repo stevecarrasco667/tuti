@@ -39,7 +39,7 @@ const emit = defineEmits<{
                 <button v-if="props.amIHost"
                     @click="emit('toggle-privacy')"
                     class="flex-none w-10 h-10 rounded-xl border-2 flex items-center justify-center text-lg transition-all active:scale-90"
-                    :class="props.isPublic ? 'bg-action-primary border-green-400 shadow-game-btn' : 'bg-panel-input border-panel-card shadow-inner'"
+                    :class="props.isPublic ? 'bg-game-green border-game-green-dark shadow-game-btn' : 'bg-panel-input border-panel-card shadow-inner'"
                 >
                     {{ props.isPublic ? '🌐' : '🔒' }}
                 </button>
@@ -53,7 +53,7 @@ const emit = defineEmits<{
             </div>
 
             <!-- Right: Copy Link -->
-            <TButton variant="secondary" size="sm" class="flex-none" @click="emit('copy-link')">
+            <TButton variant="primary" size="sm" class="flex-none" @click="emit('copy-link')">
                 <span>{{ props.copied ? '✓' : '🔗' }}</span>
                 <span class="hidden sm:inline">{{ props.copied ? t('lobby.header.copied') : t('lobby.header.invite') }}</span>
             </TButton>

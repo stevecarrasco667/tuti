@@ -22,9 +22,9 @@ const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.l
 
 
 <template>
-    <div class="lg:col-span-3 bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-game-panel flex flex-col lg:overflow-hidden lg:min-h-0 h-max">
+    <div class="lg:col-span-3 bg-panel-base border-2 border-white/5 rounded-3xl shadow-game-panel flex flex-col lg:overflow-hidden lg:min-h-0 h-max">
         <!-- Header: Title + MaxPlayers -->
-        <div class="p-4 border-b-2 border-white/50 bg-panel-card/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-none">
+        <div class="p-4 border-b-2 border-white/5 bg-panel-card/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-none">
             <div class="flex items-center justify-between sm:justify-start gap-2">
                 <h3 class="text-ink-main text-xs font-black uppercase tracking-widest flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -50,9 +50,9 @@ const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.l
         <div class="lg:flex-1 lg:overflow-y-auto lg:min-h-0 p-3 space-y-2 lg:scrollbar-thin">
             <!-- Active Players -->
             <div v-for="player in props.players" :key="player.id"
-                 class="flex items-center gap-3 p-3 bg-panel-card rounded-xl border-2 border-white/10 hover:border-action-primary transition-colors group shadow-sm"
+                 class="flex items-center gap-3 p-3 bg-panel-card rounded-2xl border-2 border-white/10 hover:border-action-primary transition-colors group shadow-sm"
             >
-                <span class="text-2xl flex-none">{{ player.avatar || '👤' }}</span>
+                <div class="w-12 h-12 bg-panel-input border border-white/10 rounded-xl flex items-center justify-center text-2xl flex-none shadow-inner">{{ player.avatar || '👤' }}</div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-1.5 truncate">
                         <span class="text-ink-main font-black text-sm truncate">{{ player.name }}</span>
@@ -74,8 +74,8 @@ const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.l
 
             <!-- Spectators -->
             <div v-for="spec in props.spectators" :key="spec.id"
-                 class="flex items-center gap-3 p-3 bg-panel-modal rounded-xl border-2 border-dashed border-panel-card">
-                <span class="text-xl opacity-40 flex-none">{{ spec.avatar || '👤' }}</span>
+                 class="flex items-center gap-3 p-3 bg-panel-input rounded-2xl border-2 border-panel-card shadow-inner opacity-75">
+                <div class="w-10 h-10 bg-panel-base rounded-xl flex items-center justify-center text-xl opacity-50 flex-none">{{ spec.avatar || '👤' }}</div>
                 <div class="flex-1 min-w-0">
                     <span class="text-ink-soft font-bold text-xs truncate block">{{ spec.name }}</span>
                     <span class="text-[8px] font-bold text-amber-500 uppercase">👁️ {{ t('lobby.players.spectator') }}</span>
@@ -84,15 +84,15 @@ const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.l
 
             <!-- Empty Slots -->
             <div v-for="i in emptySlots" :key="'empty-' + i"
-                 class="flex items-center gap-3 p-3 rounded-xl border-[3px] border-dashed bg-white/30"
-                 :class="props.players.length === 1 && i === 1 ? 'border-action-blue/50 animate-pulse' : 'border-white/60'"
+                 class="flex items-center gap-3 p-3 rounded-2xl border-2 transition-all bg-panel-input shadow-inner"
+                 :class="props.players.length === 1 && i === 1 ? 'border-action-info shadow-glow-primary animate-pulse cursor-pointer' : 'border-white/5'"
             >
                 <template v-if="props.players.length === 1 && i === 1">
                     <span class="text-xl flex-none">🔗</span>
                     <span class="text-action-blue font-black text-xs uppercase tracking-wider whitespace-pre-line text-center">{{ t('lobby.players.invite') }}</span>
                 </template>
                 <template v-else>
-                    <span class="text-xl opacity-20 flex-none">👤</span>
+                    <div class="w-10 h-10 rounded-xl bg-panel-base flex items-center justify-center text-xl opacity-30 flex-none shadow-inner">👤</div>
                     <span class="text-ink-muted font-bold text-xs uppercase tracking-wider">{{ t('lobby.players.empty') }}</span>
                 </template>
             </div>

@@ -50,7 +50,8 @@
   }
   
   .sp-btn-secondary {
-    @apply sp-btn bg-panel-input text-ink-main shadow-3d-panel hover:bg-panel-input/80 border-2 border-white/5;
+    @apply sp-btn bg-panel-input text-ink-main hover:bg-panel-input/80 border-2 border-white/10;
+    box-shadow: 0 6px 0 0 #0c0b20, 0 2px 8px rgba(0,0,0,0.4);
   }
   
   .sp-btn-danger {
@@ -99,4 +100,24 @@
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* Animaciones Personalizadas (Soft-Pop) */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes border-glow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-border-glow {
+  background-size: 200% auto;
+  animation: border-glow 3s linear infinite;
 }
