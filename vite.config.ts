@@ -32,8 +32,8 @@ export default defineConfig({
                 name: 'TutiGame',
                 short_name: 'TutiGame',
                 description: 'El clásico Tutifruti en línea con tus amigos',
-                theme_color: '#2E0249',
-                background_color: '#2E0249',
+                theme_color: '#1e1b4b',
+                background_color: '#1e1b4b',
                 display: 'standalone',
                 orientation: 'portrait-primary',
                 icons: [
