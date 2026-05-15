@@ -74,6 +74,7 @@ export function useGame() {
         sendReaction: actions.sendReaction,
         updateImpostorDraft: actions.updateImpostorDraft,
         debouncedUpdateImpostorDraft: actions.debouncedUpdateImpostorDraft,
-        confirmImpostorWord: actions.confirmImpostorWord
+        confirmImpostorWord: actions.confirmImpostorWord,
+        sendReadyForNextPhase: actions.sendReadyForNextPhase
     };
 }

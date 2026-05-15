@@ -527,11 +527,12 @@ export class ImpostorEngine extends BaseEngine {
         };
 
         this.state.status = 'ROLE_REVEAL';
-        this.state.timers.roundEndsAt = Date.now() + 10000;
+        // [GD-1] Reduced from 10s to 6s — pacing fix (players read their role in ~2s)
+        this.state.timers.roundEndsAt = Date.now() + 6000;
         this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
 
         this.clearTimer();
-        this.currentTimer = setTimeout(() => this.handleRoleRevealTimeUp(), 10000);
+        this.currentTimer = setTimeout(() => this.handleRoleRevealTimeUp(), 6000);
     }
 
     private handleRoleRevealTimeUp() {
@@ -585,8 +586,9 @@ export class ImpostorEngine extends BaseEngine {
             return;
         }
 
+        // [GD-1] Reduced from 10s to 7s — pacing fix
         this.state.status = 'RESULTS';
-        this.state.timers.resultsEndsAt = Date.now() + 10000;
+        this.state.timers.resultsEndsAt = Date.now() + 7000;
         this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.resultsEndsAt };
 
         if (this.onGameStateChange) {
@@ -594,7 +596,7 @@ export class ImpostorEngine extends BaseEngine {
         }
 
         this.clearTimer();
-        this.currentTimer = setTimeout(() => this.handleResultsTimeUp(), 10000);
+        this.currentTimer = setTimeout(() => this.handleResultsTimeUp(), 7000);
     }
 
     // [P10] El tiempo del Último Deseo agotó — la tripulación gana
@@ -634,11 +636,12 @@ export class ImpostorEngine extends BaseEngine {
         this.state.impostorData.cycleResult.matchOver = true;
 
         this.state.status = 'RESULTS';
-        this.state.timers.resultsEndsAt = Date.now() + 10000;
+        // [GD-1] Reduced from 10s to 7s — pacing fix
+        this.state.timers.resultsEndsAt = Date.now() + 7000;
         this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.resultsEndsAt };
 
         if (this.onGameStateChange) this.onGameStateChange(this.state);
-        this.currentTimer = setTimeout(() => this.handleResultsTimeUp(), 10000);
+        this.currentTimer = setTimeout(() => this.handleResultsTimeUp(), 7000);
     }
 
     private handleResultsTimeUp() {
@@ -879,6 +882,33 @@ export class ImpostorEngine extends BaseEngine {
         // Añadir a readyPlayers si no está ya (sin duplicados)
         if (!this.state.impostorData.readyPlayers.includes(userId)) {
             this.state.impostorData.readyPlayers.push(userId);
+        }
+
+        return this.state;
+    }
+
+    // [GD-1 — Tarea 1.4] Player acknowledges their role during ROLE_REVEAL.
+    // If ALL alive players are ready, immediately skip to TYPING (cancel the 6s timer).
+    public readyForNextPhase(connectionId: string): RoomState {
+        if (this.state.status !== 'ROLE_REVEAL') return this.state;
+        const userId = this._players.getPlayerId(connectionId);
+        if (!userId) return this.state;
+        if (!this.state.impostorData) return this.state;
+
+        // Add to readyPlayers (reuse the existing field)
+        if (!this.state.impostorData.readyPlayers.includes(userId)) {
+            this.state.impostorData.readyPlayers.push(userId);
+        }
+
+        // Check if ALL alive players have confirmed
+        const allReady = this.state.impostorData.alivePlayers.every(
+            pid => this.state.impostorData!.readyPlayers.includes(pid)
+        );
+
+        if (allReady) {
+            console.log('[ImpostorEngine] All players ready — skipping ROLE_REVEAL timer early.');
+            this.clearTimer();
+            this.handleRoleRevealTimeUp();
         }
 
         return this.state;

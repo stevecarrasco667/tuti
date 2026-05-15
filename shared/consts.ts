@@ -17,6 +17,7 @@ export const EVENTS = {
     LAST_WISH_TYPING: 'LAST_WISH_TYPING',   // [P10] Bidireccional: retransmisión en vivo del texto del Impostor
     UPDATE_IMPOSTOR_DRAFT: 'UPDATE_IMPOSTOR_DRAFT', // [P12] Live draft autoguardado (debounce)
     CONFIRM_IMPOSTOR_WORD: 'CONFIRM_IMPOSTOR_WORD', // [P12] El jugador declara "estoy listo"
+    READY_FOR_NEXT_PHASE: 'READY_FOR_NEXT_PHASE',   // [GD-1] Player acked role reveal — skip timer if all ready
 
     // Chat Events (Client -> Server)
     CHAT_SEND: 'CHAT_SEND',

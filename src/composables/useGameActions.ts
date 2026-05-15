@@ -157,6 +157,15 @@ export function useGameActions(
         }));
     };
 
+    // [GD-1 — Tarea 1.4] Confirmar que el jugador ha visto su rol en ROLE_REVEAL.
+    // Si todos confirman, el servidor salta el timer restante inmediatamente.
+    const sendReadyForNextPhase = () => {
+        if (!socket.value) return;
+        socket.value.send(JSON.stringify({
+            type: EVENTS.READY_FOR_NEXT_PHASE
+        }));
+    };
+
     return {
         joinGame,
         startGame,
@@ -175,6 +184,7 @@ export function useGameActions(
         sendReaction,
         updateImpostorDraft,
         debouncedUpdateImpostorDraft,
-        confirmImpostorWord
+        confirmImpostorWord,
+        sendReadyForNextPhase
     };
 }

@@ -10,6 +10,8 @@ const props = defineProps<{
     categories: CategoryRef[];
     myUserId: string;
     getPlayerStatus: (playerId: string, category: string) => { state: string };
+    answerStatuses?: Record<string, Record<string, any>>;
+    isLastRound?: boolean;
 }>();
 
 const { playWin, playTally } = useSound();
@@ -112,16 +114,21 @@ onMounted(() => {
                             </div>
 
                             <div class="flex items-center gap-2">
-                                <span :class="idx === 0 ? 'text-4xl' : 'text-2xl'" class="leading-none drop-shadow-sm">{{ player.avatar }}</span>
-                                <span
-                                    class="font-black truncate tracking-wide"
-                                    :class="{
-                                        'text-xl md:text-2xl text-game-yellow max-w-[150px] sm:max-w-[250px]': idx === 0,
-                                        'text-lg text-ink-main max-w-[120px] sm:max-w-[200px]': idx === 1 || idx === 2,
-                                        'text-base text-ink-soft max-w-[100px] sm:max-w-[180px]': idx > 2,
-                                    }"
-                                >{{ player.name }}</span>
-                            </div>
+                            <span :class="idx === 0 ? 'text-4xl' : 'text-2xl'" class="leading-none drop-shadow-sm">{{ player.avatar }}</span>
+                            <span
+                                class="font-black truncate tracking-wide"
+                                :class="{
+                                    'text-xl md:text-2xl text-game-yellow max-w-[150px] sm:max-w-[250px]': idx === 0,
+                                    'text-lg text-ink-main max-w-[120px] sm:max-w-[200px]': idx === 1 || idx === 2,
+                                    'text-base text-ink-soft max-w-[100px] sm:max-w-[180px]': idx > 2,
+                                }"
+                            >{{ player.name }}</span>
+                            <!-- [GD-1] Badge "✨ PERFECTO" si el jugador logró la ronda perfecta -->
+                            <span
+                                v-if="answerStatuses?.[player.id]?.['__perfect__']"
+                                class="flex-none text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-game-yellow/20 text-game-yellow border border-game-yellow/40 animate-pulse"
+                            >✨ Perfecto</span>
+                        </div>
                         </div>
 
                         <!-- SCORE -->

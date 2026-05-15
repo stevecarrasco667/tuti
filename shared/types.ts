@@ -114,9 +114,9 @@ export interface RoomState {
         showTimer: boolean;
         targetTime: number | null;
     };
-    // [Sprint A — Host Migration] Ephemeral flag set by the engine when the host disconnects
-    // and a new host is promoted. The server reads this, emits a system chat message, and clears it.
-    // Never persisted to storage — it is intentionally transient.
+    // [GD-1] Ephemeral flag — true when the current round is the final round (double points).
+    // Set by ScoreSystem.calculate() and RoundManager so the UI can display the "DOUBLE POINTS" banner.
+    isLastRound?: boolean;
     lastHostMigration?: { newHostName: string; newHostId: string } | null;
 }
 

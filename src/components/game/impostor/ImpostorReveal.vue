@@ -5,7 +5,7 @@ import { useGame } from '../../../composables/useGame';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const { localImpostorRole } = useGame();
+const { localImpostorRole, sendReadyForNextPhase } = useGame();
 
 const props = defineProps<{
     impostorData: ImpostorData;
@@ -21,6 +21,11 @@ const secretWord = computed(() => localImpostorRole.value?.word ?? null);
 const currentCategory = computed(() => {
     return t(`categories.${props.impostorData.currentCategoryId}`, props.impostorData.currentCategoryName);
 });
+
+// [GD-1] Ready state: has this player already clicked "Listo"?
+const iAmReady = computed(() => props.impostorData.readyPlayers.includes(props.myUserId));
+const readyCount = computed(() => props.impostorData.readyPlayers.length);
+const totalCount = computed(() => props.impostorData.alivePlayers.length);
 </script>
 
 <template>
@@ -74,9 +79,31 @@ const currentCategory = computed(() => {
                 </div>
             </div>
 
-            <!-- Timer Adaptativo -->
-            <div class="mt-auto flex-none flex flex-col items-center justify-end">
-                <div class="text-[clamp(4rem,8vw,6rem)] font-black font-mono animate-pulse drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] leading-none" 
+            <!-- Footer: Timer + Botón "Listo" [GD-1] -->
+            <div class="mt-auto flex-none flex flex-col items-center justify-end gap-4 pb-2">
+
+                <!-- [GD-1] Botón "Listo" + contador -->
+                <div class="flex flex-col items-center gap-2">
+                    <button
+                        @click="sendReadyForNextPhase"
+                        :disabled="iAmReady"
+                        class="px-8 py-3 rounded-2xl font-black text-base uppercase tracking-widest transition-all duration-200 active:scale-95"
+                        :class="iAmReady
+                            ? 'bg-white/10 border-2 border-white/20 text-white/40 cursor-default'
+                            : isImpostor
+                                ? 'bg-action-error border-2 border-red-400 text-white shadow-[0_4px_0_rgba(0,0,0,0.5)] hover:brightness-110'
+                                : 'bg-tuti-teal border-2 border-teal-300 text-panel-base shadow-[0_4px_0_rgba(0,0,0,0.5)] hover:brightness-110'"
+                    >
+                        {{ iAmReady ? '✓ Listo' : '¡Listo!' }}
+                    </button>
+                    <!-- Contador de listos -->
+                    <span class="text-white/30 text-xs font-bold tracking-widest uppercase">
+                        {{ readyCount }} / {{ totalCount }} listos
+                    </span>
+                </div>
+
+                <!-- Timer -->
+                <div class="text-[clamp(3rem,6vw,5rem)] font-black font-mono animate-pulse drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] leading-none" 
                      :class="isImpostor ? 'text-action-error/80' : 'text-tuti-teal/80'">
                     {{ Math.max(0, timeRemaining) }}
                 </div>
@@ -85,5 +112,3 @@ const currentCategory = computed(() => {
         </div>
     </div>
 </template>
-        
-

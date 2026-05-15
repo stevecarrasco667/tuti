@@ -165,6 +165,7 @@ const rivalsActivity = computed(() => {
             :time-left="timeRemaining"
             :timer-color="timerColor"
             :status="gameState.status"
+            :is-last-round="gameState.isLastRound"
             @exit="emit('exit')"
         />
 
@@ -219,6 +220,8 @@ const rivalsActivity = computed(() => {
                             :categories="gameState.categories"
                             :my-user-id="myUserId"
                             :get-player-status="getPlayerStatusForRanking"
+                            :answer-statuses="gameState.answerStatuses"
+                            :is-last-round="gameState.isLastRound"
                             class="my-auto"
                         />
                     </div>
