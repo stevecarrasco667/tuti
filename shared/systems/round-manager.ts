@@ -23,6 +23,11 @@ export class RoundManager {
         // Reset per-player progress counters (fix: filledCount was persisting across rounds)
         state.players.forEach(p => { p.filledCount = 0; });
 
+        // [GD-1] Set isLastRound flag so UI can show the banner starting from PLAYING phase
+        const currentRound = state.roundsPlayed + 1;
+        const totalRounds = config.classic?.rounds ?? 5;
+        state.isLastRound = currentRound >= totalRounds;
+
         // Pick new letter (Random)
         state.currentLetter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.charAt(Math.floor(Math.random() * 26));
 

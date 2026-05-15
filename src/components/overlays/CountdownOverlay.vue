@@ -39,6 +39,13 @@ onMounted(() => {
             <h2 class="text-4xl md:text-5xl font-black text-white mt-1">
                 {{ round }}<span class="text-white/40 text-2xl md:text-3xl">/{{ totalRounds }}</span>
             </h2>
+            
+            <!-- [GD-1] Puntos Dobles -->
+            <div v-if="round === totalRounds" class="mt-3 flex items-center justify-center gap-2">
+                <span class="text-base md:text-xl leading-none animate-bounce">🔥</span>
+                <span class="text-xs md:text-sm font-black uppercase tracking-[0.25em] text-game-yellow drop-shadow-[0_0_8px_rgba(255,214,0,0.8)]">¡Puntaje Doble!</span>
+                <span class="text-base md:text-xl leading-none animate-bounce" style="animation-delay:0.15s">🔥</span>
+            </div>
         </div>
         
         <!-- Letra Elegida -->

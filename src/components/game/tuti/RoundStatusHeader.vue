@@ -95,20 +95,6 @@ const timerClasses = computed(() => {
         <!-- Right Dummy Column (Chat space) -->
         <div class="hidden lg:block w-full"></div>
     </div>
-
-    <!-- [GD-1] Banner "RONDA FINAL — PUNTOS DOBLES" -->
-    <Transition name="double-pts">
-        <div
-            v-if="isLastRound && (status === 'PLAYING' || status === 'REVIEW' || status === 'RESULTS')"
-            class="w-full flex items-center justify-center gap-2 py-1.5 px-4
-                   bg-gradient-to-r from-game-yellow/0 via-game-yellow/20 to-game-yellow/0
-                   border-y border-game-yellow/30 pointer-events-none"
-        >
-            <span class="text-base leading-none animate-bounce">🔥</span>
-            <span class="text-[10px] md:text-xs font-black uppercase tracking-[0.25em] text-game-yellow drop-shadow-[0_0_8px_rgba(255,214,0,0.6)]">Ronda Final &mdash; ¡Puntos Dobles!</span>
-            <span class="text-base leading-none animate-bounce" style="animation-delay:0.15s">🔥</span>
-        </div>
-    </Transition>
 </template>
 
 <style scoped>
