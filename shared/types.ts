@@ -153,7 +153,7 @@ export type ServerMessage =
     | { type: typeof EVENTS.AUTH_GRANTED; payload: { userId: string; sessionToken: string } } // [Phoenix] Anti-Spoofing
     | { type: typeof EVENTS.WORD_REACT; payload: { targetPlayerId: string; categoryId: string; emoji: string; senderId: string } }
     | { type: typeof EVENTS.LAST_WISH_TYPING; payload: { text: string } }              // [P10] broadcast en vivo
-    | { type: typeof EVENTS.RIVAL_UPDATE; payload: { playerId: string; filledCount: number } }
+    | { type: typeof EVENTS.RIVAL_UPDATE; payload: { playerId: string; filledCount: number; lastTypedAt?: number } }
     | { type: typeof EVENTS.PRIVATE_ROLE_ASSIGNMENT; payload: PrivateRolePayload } // [Sprint 3.4] Whisper
     | { type: typeof EVENTS.SYSTEM_MESSAGE; payload: string }
     | { type: typeof EVENTS.SYSTEM_VERSION; payload: { version: string } }

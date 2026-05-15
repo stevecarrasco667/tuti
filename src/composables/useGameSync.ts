@@ -121,10 +121,11 @@ watch(lastMessage, (newMsg) => {
                 state.myUserId.value = userId;
             }
         } else if (parsed.type === EVENTS.RIVAL_UPDATE) {
-            const { playerId, filledCount } = parsed.payload;
+            const { playerId, filledCount, lastTypedAt } = parsed.payload;
             const player = state.gameState.value.players.find(p => p.id === playerId);
             if (player) {
                 player.filledCount = filledCount;
+                if (lastTypedAt) player.lastTypedAt = lastTypedAt;
             }
         } else if (parsed.type === EVENTS.PRIVATE_ROLE_ASSIGNMENT) {
             state.localImpostorRole.value = parsed.payload as PrivateRolePayload;

@@ -147,10 +147,19 @@ const rivalsActivity = computed(() => {
                 ? p.filledCount 
                 : Object.values(pAnswers).filter(val => val && val.trim().length > 0).length;
             
+            // [GD-2] AFK Indicator: No interactions in last 15 seconds
+            const isAFK = Boolean(
+                props.gameState.status === 'PLAYING' &&
+                p.lastTypedAt &&
+                (_now.value - p.lastTypedAt > 15000) &&
+                filledCount < totalCategories
+            );
+
             return {
                 id: p.id, name: p.name, avatar: p.avatar, filledCount, totalCategories,
                 isFinished: filledCount === totalCategories, isActive: filledCount > 0 && filledCount < totalCategories,
-                isConnected: p.isConnected
+                isConnected: p.isConnected,
+                isAFK
             };
         });
 });
@@ -250,10 +259,11 @@ const rivalsActivity = computed(() => {
         />
 
         <!-- [P11] M3: Viñeteado de Pánico — ENDING_COUNTDOWN overlay -->
+        <!-- [GD-2] También se muestra en los últimos 5 segundos de la ronda normal -->
         <Teleport to="body">
             <div
-                v-if="gameState.status === 'ENDING_COUNTDOWN'"
-                class="fixed inset-0 pointer-events-none z-modal animate-pulse shadow-glow-panic"
+                v-if="gameState.status === 'ENDING_COUNTDOWN' || (gameState.status === 'PLAYING' && timeRemaining <= 5 && timeRemaining > 0)"
+                class="fixed inset-0 pointer-events-none z-modal animate-pulse shadow-glow-panic transition-opacity duration-300"
             />
         </Teleport>
     </div>

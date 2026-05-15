@@ -52,6 +52,7 @@ export class GameHandler extends BaseHandler {
             const player = state.players.find((p: any) => p.id === userId);
             if (player) {
                 player.filledCount = filledCount;
+                player.lastTypedAt = Date.now(); // [GD-2] Marcar actividad
             }
 
             // Also send lightweight RIVAL_UPDATE for instant UI feedback (no full delta needed)
@@ -59,7 +60,8 @@ export class GameHandler extends BaseHandler {
                 type: EVENTS.RIVAL_UPDATE,
                 payload: {
                     playerId: userId,
-                    filledCount
+                    filledCount,
+                    lastTypedAt: player?.lastTypedAt // [GD-2] Propagar actividad
                 }
             });
             this.room.broadcast(msg, [sender.id]);

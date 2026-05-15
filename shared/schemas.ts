@@ -12,6 +12,7 @@ export const PlayerSchema = z.object({
     // matches the Player interface exactly — SSOT via schema.
     avatar: z.string().max(20),             // emoji avatar; max covers ZWJ sequences
     disconnectedAt: z.number().optional(),  // Zombie-State timestamp
+    lastTypedAt: z.number().optional(),     // [GD-2] Última interacción
     filledCount: z.number().optional(),     // Rival progress counter (live game)
     isAuthenticated: z.boolean().optional()
 });

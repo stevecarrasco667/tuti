@@ -25,9 +25,12 @@ export function useGameEffects(
             const remaining = Math.max(0, Math.ceil((targetTime - now) / 1000));
             timeRemaining.value = remaining;
 
-            // Tick Sound
+            // Tick Sound [GD-2] Accelerated in last 5 seconds
             if (remaining <= 10 && remaining > 0) {
                 playTick();
+                if (remaining <= 5) {
+                    setTimeout(() => playTick(), 500);
+                }
             }
         } else {
             timeRemaining.value = null;

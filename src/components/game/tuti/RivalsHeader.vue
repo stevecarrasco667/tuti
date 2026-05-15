@@ -10,6 +10,7 @@ interface Rival {
     isFinished: boolean;
     isActive: boolean;
     isConnected: boolean;
+    isAFK?: boolean;
 }
 
 defineProps<{
@@ -23,15 +24,21 @@ defineProps<{
         
         <div v-for="rival in rivals" :key="rival.id" 
              class="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 group transition-all duration-500 lg:w-full"
-             :class="{'opacity-50 grayscale': !rival.isConnected}"
+             :class="{
+                 'opacity-50 grayscale': !rival.isConnected,
+                 'opacity-70 saturate-50': rival.isAFK && rival.isConnected
+             }"
         >
             <!-- Avatar -->
             <div class="relative transition-transform group-hover:scale-110 flex-shrink-0">
                  <div class="w-16 h-16 lg:w-12 lg:h-12 rounded-full bg-panel-card border-2 border-white/10 flex items-center justify-center text-3xl lg:text-xl shadow-sm relative z-10">
                     {{ rival.isConnected ? (rival.avatar || '👤') : '🔌' }}
                 </div>
+                <!-- AFK Indicator -->
+                <div v-if="rival.isAFK && rival.isConnected" class="absolute -top-1 -right-1 z-20 text-[10px] bg-panel-card border border-white/20 rounded-full px-1 shadow-sm animate-bounce" title="Ausente">💤</div>
+                
                 <!-- Status Ring -->
-                 <div v-if="rival.isActive && rival.isConnected" class="absolute inset-0 rounded-full border-2 border-yellow-400/50 animate-pulse"></div>
+                 <div v-if="rival.isActive && rival.isConnected && !rival.isAFK" class="absolute inset-0 rounded-full border-2 border-yellow-400/50 animate-pulse"></div>
             </div>
             
             <div class="flex flex-col items-center lg:items-start">

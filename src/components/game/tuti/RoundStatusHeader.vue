@@ -30,7 +30,7 @@ const timerClasses = computed(() => {
         case 'safe':    return 'bg-game-yellow text-panel-base shadow-3d-yellow';
         case 'warning': return 'bg-game-red/80 text-white shadow-3d-red scale-105';
         case 'panic':   return 'bg-game-red text-white shadow-3d-red scale-110';
-        case 'critical':return 'bg-game-red text-white shadow-3d-red scale-110 animate-heartbeat';
+        case 'critical':return 'bg-game-red text-white shadow-3d-red scale-110 animate-panic-shake';
         default:        return 'bg-panel-card text-ink-muted shadow-3d-panel';
     }
 });
@@ -107,5 +107,22 @@ const timerClasses = computed(() => {
 }
 .animate-heartbeat {
     animation: heartbeat 1s ease-in-out infinite;
+}
+
+/* [GD-2] Animación de pánico extrema para los últimos 5 segundos */
+@keyframes panic-shake {
+    0%, 100% { transform: scale(1.1) translateX(0) rotate(0deg); }
+    10% { transform: scale(1.2) translateX(-2px) rotate(-1deg); }
+    20% { transform: scale(1.15) translateX(2px) rotate(1deg); }
+    30% { transform: scale(1.25) translateX(-2px) rotate(-2deg); }
+    40% { transform: scale(1.1) translateX(2px) rotate(1deg); }
+    50% { transform: scale(1.3) translateX(-3px) rotate(-1deg); }
+    60% { transform: scale(1.1) translateX(3px) rotate(2deg); }
+    70% { transform: scale(1.2) translateX(-2px) rotate(-1deg); }
+    80% { transform: scale(1.15) translateX(2px) rotate(1deg); }
+    90% { transform: scale(1.2) translateX(-1px) rotate(0deg); }
+}
+.animate-panic-shake {
+    animation: panic-shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
 }
 </style>
