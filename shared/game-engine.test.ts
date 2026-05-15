@@ -279,8 +279,8 @@ describe('TutiEngine Core', () => {
             expect(finalState.status).toBe('RESULTS');
 
             // Verify points
-            // A (Unique): 100
-            expect(finalState.roundScores[pA]).toBe(100);
+            // A (Unique + Perfect Bonus): 150
+            expect(finalState.roundScores[pA]).toBe(150);
 
             // B (Repeated): 50
             expect(finalState.roundScores[pB]).toBe(50);
