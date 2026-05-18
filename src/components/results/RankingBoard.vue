@@ -38,9 +38,9 @@ const getMedalColor = (index: number) => {
                     </div>
                 </div>
                 <!-- Card -->
-                <div class="w-full bg-white/[0.03] backdrop-blur-md border border-white/10 rounded-2xl p-4 pt-6 sm:pt-8 flex flex-col items-center shadow-2xl transition-all hover:bg-white/[0.05]">
-                    <span class="text-white/90 font-black text-sm sm:text-base uppercase tracking-widest truncate w-full text-center">{{ top3[1].name }}</span>
-                    <div class="mt-1.5 text-slate-300 font-bold text-xs sm:text-sm bg-white/5 px-3 py-1 rounded-full border border-white/5">{{ top3[1].score }} pts</div>
+                <div class="w-full bg-white/[0.05] backdrop-blur-md border border-slate-300/30 rounded-2xl p-4 pt-6 sm:pt-8 flex flex-col items-center shadow-2xl transition-all hover:bg-white/[0.08]">
+                    <span class="text-white/95 font-black text-sm sm:text-base uppercase tracking-widest truncate w-full text-center">{{ top3[1].name }}</span>
+                    <div class="mt-1.5 text-slate-200 font-bold text-xs sm:text-sm bg-white/10 px-3 py-1 rounded-full border border-white/10">{{ top3[1].score }} pts</div>
                 </div>
             </div>
 
@@ -80,9 +80,9 @@ const getMedalColor = (index: number) => {
                     </div>
                 </div>
                 <!-- Card -->
-                <div class="w-full bg-white/[0.02] backdrop-blur-md border border-white/5 rounded-2xl p-3 pt-5 sm:pt-7 flex flex-col items-center shadow-lg transition-all hover:bg-white/[0.04]">
-                    <span class="text-white/80 font-black text-xs sm:text-sm uppercase tracking-widest truncate w-full text-center">{{ top3[2].name }}</span>
-                    <div class="mt-1.5 text-amber-500/80 font-bold text-xs sm:text-sm bg-white/5 px-2 py-1 rounded-full border border-white/5">{{ top3[2].score }} pts</div>
+                <div class="w-full bg-white/[0.04] backdrop-blur-md border border-amber-600/30 rounded-2xl p-3 pt-5 sm:pt-7 flex flex-col items-center shadow-lg transition-all hover:bg-white/[0.06]">
+                    <span class="text-white/85 font-black text-xs sm:text-sm uppercase tracking-widest truncate w-full text-center">{{ top3[2].name }}</span>
+                    <div class="mt-1.5 text-amber-400 font-bold text-xs sm:text-sm bg-white/10 px-2 py-1 rounded-full border border-white/10">{{ top3[2].score }} pts</div>
                 </div>
             </div>
         </div>

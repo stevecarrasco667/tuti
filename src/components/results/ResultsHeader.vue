@@ -45,7 +45,7 @@ defineProps<{
                 <div class="absolute inset-0 blur-[40px] -z-10 opacity-40 mix-blend-screen" :class="iWon ? 'bg-yellow-500' : 'bg-rose-600'"></div>
             </div>
         </template>
-        <div v-if="gameState.config.mode !== 'IMPOSTOR'" class="inline-block mt-6 bg-white/[0.03] backdrop-blur-xl border border-white/10 px-8 py-2 rounded-full shadow-lg relative overflow-hidden">
+        <div v-if="gameState.config.mode !== 'IMPOSTOR'" class="inline-block mt-10 sm:mt-12 bg-white/[0.03] backdrop-blur-xl border border-white/10 px-8 py-2 rounded-full shadow-lg relative overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
             <p class="text-white/70 font-bold text-xs sm:text-sm lg:text-base tracking-[0.4em] uppercase relative z-10">{{ t('results.finalPodium') || 'PODIO FINAL' }}</p>
         </div>
