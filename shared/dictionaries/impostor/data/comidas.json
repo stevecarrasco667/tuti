@@ -1,0 +1,21 @@
+{
+    "categoryId": "cat-comidas",
+    "name": "Comidas",
+    "words": [
+        { "id": "com-pizza", "word": "Pizza", "difficulty": 1 },
+        { "id": "com-sushi", "word": "Sushi", "difficulty": 1 },
+        { "id": "com-hamburguesa", "word": "Hamburguesa", "difficulty": 1 },
+        { "id": "com-tacos", "word": "Tacos", "difficulty": 1 },
+        { "id": "com-pasta", "word": "Pasta", "difficulty": 1 },
+        { "id": "com-ensalada", "word": "Ensalada", "difficulty": 1 },
+        { "id": "com-sopa", "word": "Sopa", "difficulty": 1 },
+        { "id": "com-paella", "word": "Paella", "difficulty": 2 },
+        { "id": "com-ceviche", "word": "Ceviche", "difficulty": 2 },
+        { "id": "com-curry", "word": "Curry", "difficulty": 2 },
+        { "id": "com-lasagna", "word": "Lasaña", "difficulty": 1 },
+        { "id": "com-empanada", "word": "Empanada", "difficulty": 1 },
+        { "id": "com-croissant", "word": "Croissant", "difficulty": 2 },
+        { "id": "com-risotto", "word": "Risotto", "difficulty": 2 },
+        { "id": "com-kebab", "word": "Kebab", "difficulty": 1 }
+    ]
+}

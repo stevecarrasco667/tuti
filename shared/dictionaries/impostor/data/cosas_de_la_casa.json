@@ -1,0 +1,21 @@
+{
+    "categoryId": "cat-casa",
+    "name": "Cosas de la Casa",
+    "words": [
+        { "id": "cas-almohada", "word": "Almohada", "difficulty": 1 },
+        { "id": "cas-cuchara", "word": "Cuchara", "difficulty": 1 },
+        { "id": "cas-llave", "word": "Llave", "difficulty": 1 },
+        { "id": "cas-espejo", "word": "Espejo", "difficulty": 1 },
+        { "id": "cas-sofa", "word": "Sofá", "difficulty": 1 },
+        { "id": "cas-nevera", "word": "Nevera", "difficulty": 1 },
+        { "id": "cas-televisor", "word": "Televisor", "difficulty": 1 },
+        { "id": "cas-escoba", "word": "Escoba", "difficulty": 1 },
+        { "id": "cas-toalla", "word": "Toalla", "difficulty": 1 },
+        { "id": "cas-silla", "word": "Silla", "difficulty": 1 },
+        { "id": "cas-cama", "word": "Cama", "difficulty": 1 },
+        { "id": "cas-taza", "word": "Taza", "difficulty": 1 },
+        { "id": "cas-lampara", "word": "Lámpara", "difficulty": 1 },
+        { "id": "cas-cepillo", "word": "Cepillo", "difficulty": 1 },
+        { "id": "cas-reloj", "word": "Reloj", "difficulty": 1 }
+    ]
+}

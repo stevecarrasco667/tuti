@@ -1,0 +1,21 @@
+{
+    "categoryId": "cat-emociones",
+    "name": "Emociones",
+    "words": [
+        { "id": "emo-alegria", "word": "Alegría", "difficulty": 1 },
+        { "id": "emo-tristeza", "word": "Tristeza", "difficulty": 1 },
+        { "id": "emo-miedo", "word": "Miedo", "difficulty": 1 },
+        { "id": "emo-ira", "word": "Ira", "difficulty": 1 },
+        { "id": "emo-sorpresa", "word": "Sorpresa", "difficulty": 1 },
+        { "id": "emo-asco", "word": "Asco", "difficulty": 1 },
+        { "id": "emo-ansiedad", "word": "Ansiedad", "difficulty": 2 },
+        { "id": "emo-nostalgia", "word": "Nostalgia", "difficulty": 2 },
+        { "id": "emo-euforia", "word": "Euforia", "difficulty": 2 },
+        { "id": "emo-verguenza", "word": "Vergüenza", "difficulty": 2 },
+        { "id": "emo-esperanza", "word": "Esperanza", "difficulty": 2 },
+        { "id": "emo-culpa", "word": "Culpa", "difficulty": 2 },
+        { "id": "emo-orgullo", "word": "Orgullo", "difficulty": 2 },
+        { "id": "emo-celos", "word": "Celos", "difficulty": 1 },
+        { "id": "emo-aburrimiento", "word": "Aburrimiento", "difficulty": 1 }
+    ]
+}

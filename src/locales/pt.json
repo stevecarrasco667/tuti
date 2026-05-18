@@ -111,11 +111,7 @@
             "spectator": "Espectador",
             "invite": "Desafie seus amigos:\nCompartilhe o link para convidar",
             "empty": "Vazio",
-            "maxPlayers": "JOGADORES",
-            "connected": "Conectado",
-            "reconnecting": "Reconectando...",
-            "players": "Jogadores {count}/{max}",
-            "you": "VOCÊ"
+            "maxPlayers": "JOGADORES"
         },
         "header": {
             "publicRoom": "Sala Pública",
@@ -327,7 +323,13 @@
         "cls-67": "Presente terrível",
         "cls-7": "Fruta/Vegetal",
         "cls-8": "Coisa",
-        "cls-9": "Profissão"
+        "cls-9": "Profissão",
+        "cat-comidas": "Comidas",
+        "cat-deportes": "Esportes",
+        "cat-peliculas": "Filmes Famosos",
+        "cat-casa": "Coisas de Casa",
+        "cat-emociones": "Emoções",
+        "cat-ropa": "Roupas e Acessórios"
     },
     "tutorial": {
         "classicTitle": "TUTI CLÁSSICO",

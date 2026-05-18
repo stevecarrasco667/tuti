@@ -1,0 +1,21 @@
+{
+    "categoryId": "cat-deportes",
+    "name": "Deportes",
+    "words": [
+        { "id": "dep-futbol", "word": "Fútbol", "difficulty": 1 },
+        { "id": "dep-baloncesto", "word": "Baloncesto", "difficulty": 1 },
+        { "id": "dep-tenis", "word": "Tenis", "difficulty": 1 },
+        { "id": "dep-natacion", "word": "Natación", "difficulty": 1 },
+        { "id": "dep-atletismo", "word": "Atletismo", "difficulty": 2 },
+        { "id": "dep-voleibol", "word": "Voleibol", "difficulty": 1 },
+        { "id": "dep-beisbol", "word": "Béisbol", "difficulty": 1 },
+        { "id": "dep-boxeo", "word": "Boxeo", "difficulty": 1 },
+        { "id": "dep-rugby", "word": "Rugby", "difficulty": 2 },
+        { "id": "dep-ciclismo", "word": "Ciclismo", "difficulty": 1 },
+        { "id": "dep-golf", "word": "Golf", "difficulty": 1 },
+        { "id": "dep-esgrima", "word": "Esgrima", "difficulty": 2 },
+        { "id": "dep-judo", "word": "Judo", "difficulty": 2 },
+        { "id": "dep-surf", "word": "Surf", "difficulty": 1 },
+        { "id": "dep-esqui", "word": "Esquí", "difficulty": 1 }
+    ]
+}

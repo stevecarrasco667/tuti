@@ -1,0 +1,21 @@
+{
+    "categoryId": "cat-ropa",
+    "name": "Ropa y Accesorios",
+    "words": [
+        { "id": "rop-camisa", "word": "Camisa", "difficulty": 1 },
+        { "id": "rop-pantalon", "word": "Pantalón", "difficulty": 1 },
+        { "id": "rop-zapatos", "word": "Zapatos", "difficulty": 1 },
+        { "id": "rop-chaqueta", "word": "Chaqueta", "difficulty": 1 },
+        { "id": "rop-sombrero", "word": "Sombrero", "difficulty": 1 },
+        { "id": "rop-bufanda", "word": "Bufanda", "difficulty": 1 },
+        { "id": "rop-calcetines", "word": "Calcetines", "difficulty": 1 },
+        { "id": "rop-guantes", "word": "Guantes", "difficulty": 1 },
+        { "id": "rop-corbata", "word": "Corbata", "difficulty": 2 },
+        { "id": "rop-vestido", "word": "Vestido", "difficulty": 1 },
+        { "id": "rop-falda", "word": "Falda", "difficulty": 1 },
+        { "id": "rop-abrigo", "word": "Abrigo", "difficulty": 1 },
+        { "id": "rop-cinturon", "word": "Cinturón", "difficulty": 1 },
+        { "id": "rop-botas", "word": "Botas", "difficulty": 1 },
+        { "id": "rop-reloj", "word": "Reloj", "difficulty": 2 }
+    ]
+}

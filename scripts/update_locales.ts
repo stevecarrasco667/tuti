@@ -74,6 +74,14 @@ const esLobby = {
 };
 
 const esCategories = JSON.parse(fs.readFileSync('categories_dump.json', 'utf-8'));
+Object.assign(esCategories, {
+  "cat-comidas": "Comidas",
+  "cat-deportes": "Deportes",
+  "cat-peliculas": "Películas Famosas",
+  "cat-casa": "Cosas de la Casa",
+  "cat-emociones": "Emociones",
+  "cat-ropa": "Ropa y Accesorios"
+});
 
 const esSystem = {
     roomDead: "👋 La sala ha sido cerrada. ¡Hasta la próxima!",
@@ -135,6 +143,12 @@ const enCategories = {
   "cat-animales": "Animals",
   "cat-lugares": "Places",
   "cat-profesiones": "Professions",
+  "cat-comidas": "Food",
+  "cat-deportes": "Sports",
+  "cat-peliculas": "Famous Movies",
+  "cat-casa": "Household Items",
+  "cat-emociones": "Emotions",
+  "cat-ropa": "Clothing & Accessories",
   "cls-1": "Name",
   "cls-10": "Movie",
   "cls-11": "TV Show",
@@ -239,6 +253,12 @@ const ptCategories = {
   "cat-animales": "Animais",
   "cat-lugares": "Lugares",
   "cat-profesiones": "Profissões",
+  "cat-comidas": "Comidas",
+  "cat-deportes": "Esportes",
+  "cat-peliculas": "Filmes Famosos",
+  "cat-casa": "Coisas de Casa",
+  "cat-emociones": "Emoções",
+  "cat-ropa": "Roupas e Acessórios",
   "cls-1": "Nome",
   "cls-10": "Filme",
   "cls-11": "Série de TV",

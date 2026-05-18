@@ -1,0 +1,21 @@
+{
+    "categoryId": "cat-peliculas",
+    "name": "Películas Famosas",
+    "words": [
+        { "id": "pel-titanic", "word": "Titanic", "difficulty": 1 },
+        { "id": "pel-matrix", "word": "Matrix", "difficulty": 1 },
+        { "id": "pel-avatar", "word": "Avatar", "difficulty": 1 },
+        { "id": "pel-shrek", "word": "Shrek", "difficulty": 1 },
+        { "id": "pel-joker", "word": "Joker", "difficulty": 1 },
+        { "id": "pel-inception", "word": "Inception", "difficulty": 2 },
+        { "id": "pel-gladiador", "word": "Gladiador", "difficulty": 1 },
+        { "id": "pel-padrino", "word": "El Padrino", "difficulty": 1 },
+        { "id": "pel-rey-leon", "word": "El Rey León", "difficulty": 1 },
+        { "id": "pel-jurassic", "word": "Jurassic Park", "difficulty": 1 },
+        { "id": "pel-star-wars", "word": "Star Wars", "difficulty": 1 },
+        { "id": "pel-harry-potter", "word": "Harry Potter", "difficulty": 1 },
+        { "id": "pel-avengers", "word": "Avengers", "difficulty": 1 },
+        { "id": "pel-rocky", "word": "Rocky", "difficulty": 1 },
+        { "id": "pel-terminator", "word": "Terminator", "difficulty": 1 }
+    ]
+}

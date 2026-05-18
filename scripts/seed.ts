@@ -16,7 +16,7 @@ async function seedImpostorData() {
     console.log('🚀 Iniciando migración de datos de Impostor...');
     
     // 1. Ruta a tus JSON de Impostor
-    const impostorDir = path.resolve(__dirname, './shared/dictionaries/impostor/data');
+    const impostorDir = path.resolve(__dirname, '../shared/dictionaries/impostor/data');
     
     if (!fs.existsSync(impostorDir)) {
         console.error('❌ No se encontró la carpeta:', impostorDir);

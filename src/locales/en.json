@@ -111,11 +111,7 @@
             "spectator": "Spectator",
             "invite": "Challenge your friends:\nShare the link to invite",
             "empty": "Empty",
-            "maxPlayers": "PLAYERS",
-            "connected": "Connected",
-            "reconnecting": "Reconnecting...",
-            "players": "Players {count}/{max}",
-            "you": "YOU"
+            "maxPlayers": "PLAYERS"
         },
         "header": {
             "publicRoom": "Public Room",
@@ -327,7 +323,13 @@
         "cls-67": "Terrible gift",
         "cls-7": "Fruit/Vegetable",
         "cls-8": "Thing",
-        "cls-9": "Profession"
+        "cls-9": "Profession",
+        "cat-comidas": "Food",
+        "cat-deportes": "Sports",
+        "cat-peliculas": "Famous Movies",
+        "cat-casa": "Household Items",
+        "cat-emociones": "Emotions",
+        "cat-ropa": "Clothing & Accessories"
     },
     "tutorial": {
         "classicTitle": "CLASSIC TUTI",
