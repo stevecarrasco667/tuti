@@ -2,7 +2,7 @@
 import type { Player } from '../../../shared/types';
 import { useI18n } from 'vue-i18n';
 
-// [Sprint 2 - P2] Podio Classic Mode + Tabla General
+// [Sprint 2 - P2] Podio Classic Mode + Tabla General (Rediseño Premium)
 defineProps<{
     top3: Player[];
     rest: Player[];
@@ -10,72 +10,104 @@ defineProps<{
 }>();
 
 const { t } = useI18n();
+
+const getMedalColor = (index: number) => {
+    if (index === 0) return 'from-yellow-300 via-yellow-400 to-yellow-600 border-yellow-200 text-yellow-900 shadow-[0_0_15px_rgba(250,204,21,0.5)]'; // Oro
+    if (index === 1) return 'from-slate-200 via-slate-300 to-slate-400 border-slate-100 text-slate-800 shadow-[0_0_10px_rgba(148,163,184,0.4)]'; // Plata
+    return 'from-amber-600 via-amber-700 to-amber-800 border-amber-500 text-amber-100 shadow-[0_0_10px_rgba(217,119,6,0.4)]'; // Bronce
+};
 </script>
 
 <template>
-    <!-- PODIO (Glassmorphism) - Solo Modo Clásico -->
-    <div class="flex items-end justify-center gap-3 sm:gap-6 lg:gap-8 w-full mx-auto mt-6">
-        <!-- 2nd -->
-        <div v-if="top3[1]" class="relative w-1/3 max-w-[180px] lg:max-w-[200px] bg-panel-card/40 backdrop-blur-xl border border-white/10 rounded-3xl h-44 sm:h-48 lg:h-56 flex flex-col items-center justify-start pt-10 lg:pt-12 shadow-xl transition-transform duration-500 hover:-translate-y-2">
-            <div class="absolute -top-12 lg:-top-14 left-1/2 -translate-x-1/2">
-                <div class="relative">
-                    <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full border-4 border-panel-base bg-panel-input flex items-center justify-center shadow-xl relative z-10">
-                        <span class="text-4xl sm:text-5xl lg:text-6xl drop-shadow-md">{{ top3[1].avatar || '👤' }}</span>
+    <div class="w-full flex flex-col gap-10 lg:gap-12 mt-4">
+        
+        <!-- ============================================== -->
+        <!-- PODIO TOP 3 (Glassmorphism Premium)            -->
+        <!-- ============================================== -->
+        <div class="flex items-end justify-center gap-4 sm:gap-6 lg:gap-8 w-full max-w-4xl mx-auto px-2">
+            
+            <!-- SEGUNDO LUGAR (Izquierda) -->
+            <div v-if="top3[1]" class="relative w-[30%] max-w-[180px] flex flex-col items-center">
+                <!-- Avatar & Medal -->
+                <div class="relative mb-4">
+                    <div class="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-full border-[3px] border-slate-300/80 bg-panel-input flex items-center justify-center shadow-lg relative z-10 transition-transform duration-500 hover:scale-105">
+                        <span class="text-5xl sm:text-6xl lg:text-7xl drop-shadow-md">{{ top3[1].avatar || '👤' }}</span>
                     </div>
-                    <div class="absolute -bottom-1 -right-1 lg:-bottom-2 lg:-right-2 bg-panel-base border border-white/20 text-ink-muted font-black rounded-full w-7 h-7 lg:w-9 lg:h-9 flex items-center justify-center shadow-md z-20 text-xs lg:text-sm">2</div>
+                    <div class="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-gradient-to-b border-2 font-black rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center z-20 text-sm sm:text-base" :class="getMedalColor(1)">
+                        2
+                    </div>
+                </div>
+                <!-- Card -->
+                <div class="w-full bg-white/[0.03] backdrop-blur-md border border-white/10 rounded-2xl p-4 pt-6 sm:pt-8 flex flex-col items-center shadow-2xl transition-all hover:bg-white/[0.05]">
+                    <span class="text-white/90 font-black text-sm sm:text-base uppercase tracking-widest truncate w-full text-center">{{ top3[1].name }}</span>
+                    <div class="mt-1.5 text-slate-300 font-bold text-xs sm:text-sm bg-white/5 px-3 py-1 rounded-full border border-white/5">{{ top3[1].score }} pts</div>
                 </div>
             </div>
-            <span class="text-ink-main font-black text-sm sm:text-base lg:text-lg uppercase tracking-wider truncate w-full text-center px-2 drop-shadow-sm z-10">{{ top3[1].name }}</span>
-            <div class="mt-2 text-ink-main font-black text-sm sm:text-base lg:text-lg z-10 bg-white/5 px-3 py-1 lg:py-1.5 rounded-full border border-white/10 shadow-inner">{{ top3[1].score }} pts</div>
-            <span v-if="titleMap[top3[1].id]" class="mt-auto mb-3 lg:mb-4 text-[9px] sm:text-[10px] lg:text-xs font-bold px-2 lg:px-3 py-1 bg-panel-card/80 backdrop-blur-md rounded-full text-white/70 border border-white/10 text-center mx-2 z-10">{{ titleMap[top3[1].id].emoji }} {{ t(`titles.${titleMap[top3[1].id].titleId}.name`) }}</span>
-        </div>
 
-        <!-- 1st -->
-        <div v-if="top3[0]" class="relative w-1/3 max-w-[220px] lg:max-w-[260px] bg-panel-card/60 backdrop-blur-xl border border-yellow-400/30 rounded-3xl h-56 sm:h-64 lg:h-72 flex flex-col items-center justify-start pt-14 lg:pt-16 shadow-[0_0_40px_rgba(250,204,21,0.15)] z-20 transition-transform duration-500 hover:-translate-y-2">
-            <div class="absolute -top-16 lg:-top-20 left-1/2 -translate-x-1/2">
-                <div class="relative">
-                    <div class="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full border-4 lg:border-[6px] border-panel-base bg-panel-input flex items-center justify-center shadow-2xl relative z-10">
+            <!-- PRIMER LUGAR (Centro) -->
+            <div v-if="top3[0]" class="relative w-[40%] max-w-[220px] flex flex-col items-center z-20 -mt-8 sm:-mt-12">
+                <!-- Corona SVG Integrada -->
+                <div class="absolute -top-10 sm:-top-12 left-1/2 -translate-x-1/2 z-30 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]">
+                    <svg class="w-12 h-12 sm:w-16 sm:h-16 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.5 19H21.5V21H2.5V19ZM12 2L15.5 10L22 8L18.5 16H5.5L2 8L8.5 10L12 2Z"/>
+                    </svg>
+                </div>
+                <!-- Avatar & Medal -->
+                <div class="relative mb-5">
+                    <div class="w-24 h-24 sm:w-32 sm:h-32 lg:w-36 lg:h-36 rounded-full border-[4px] sm:border-[5px] border-yellow-400 bg-panel-input flex items-center justify-center shadow-[0_0_40px_rgba(250,204,21,0.3)] relative z-10 transition-transform duration-500 hover:scale-105">
                         <span class="text-6xl sm:text-7xl lg:text-[5.5rem] drop-shadow-md">{{ top3[0].avatar || '👤' }}</span>
                     </div>
-                    <div class="absolute -top-6 lg:-top-8 left-1/2 -translate-x-1/2 text-5xl lg:text-6xl z-20 drop-shadow-lg animate-bounce">👑</div>
-                    <div class="absolute -bottom-1 -right-1 lg:-bottom-2 lg:-right-2 bg-gradient-to-br from-yellow-300 to-yellow-600 border border-yellow-200 text-panel-base font-black rounded-full w-9 h-9 lg:w-11 lg:h-11 flex items-center justify-center shadow-lg z-20 text-sm lg:text-base">1</div>
+                    <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-b border-2 font-black rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center z-20 text-base sm:text-xl" :class="getMedalColor(0)">
+                        1
+                    </div>
+                </div>
+                <!-- Card -->
+                <div class="w-full bg-gradient-to-b from-yellow-500/10 to-transparent backdrop-blur-xl border border-yellow-400/30 rounded-[2rem] p-5 pt-8 sm:pt-10 flex flex-col items-center shadow-[0_0_30px_rgba(250,204,21,0.1)] transition-all hover:border-yellow-400/50">
+                    <span class="text-yellow-400 font-black text-base sm:text-lg lg:text-xl uppercase tracking-widest truncate w-full text-center drop-shadow-sm">{{ top3[0].name }}</span>
+                    <div class="mt-2 text-yellow-950 font-black text-sm sm:text-base lg:text-lg bg-gradient-to-r from-yellow-300 to-yellow-500 px-4 py-1.5 rounded-full shadow-md">{{ top3[0].score }} pts</div>
                 </div>
             </div>
-            <span class="text-white font-black text-base sm:text-lg lg:text-2xl uppercase tracking-widest truncate w-full text-center px-2 drop-shadow-md z-10">{{ top3[0].name }}</span>
-            <div class="mt-2 text-panel-base font-black text-lg sm:text-2xl lg:text-3xl z-10 bg-gradient-to-r from-yellow-300 to-yellow-500 px-4 py-1.5 lg:py-2 rounded-full border border-yellow-200 shadow-[0_4px_10px_rgba(250,204,21,0.3)]">{{ top3[0].score }} pts</div>
-            <span v-if="titleMap[top3[0].id]" class="mt-auto mb-4 lg:mb-5 text-[10px] sm:text-xs lg:text-sm font-bold px-3 py-1.5 bg-panel-card/80 backdrop-blur-md rounded-full text-white/90 border border-white/10 text-center mx-2 z-10">{{ titleMap[top3[0].id].emoji }} {{ t(`titles.${titleMap[top3[0].id].titleId}.name`) }}</span>
+
+            <!-- TERCER LUGAR (Derecha) -->
+            <div v-if="top3[2]" class="relative w-[30%] max-w-[180px] flex flex-col items-center">
+                <!-- Avatar & Medal -->
+                <div class="relative mb-4">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full border-[3px] border-amber-600/80 bg-panel-input flex items-center justify-center shadow-lg relative z-10 transition-transform duration-500 hover:scale-105">
+                        <span class="text-4xl sm:text-5xl lg:text-6xl drop-shadow-md">{{ top3[2].avatar || '👤' }}</span>
+                    </div>
+                    <div class="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-gradient-to-b border-2 font-black rounded-full w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center z-20 text-xs sm:text-sm" :class="getMedalColor(2)">
+                        3
+                    </div>
+                </div>
+                <!-- Card -->
+                <div class="w-full bg-white/[0.02] backdrop-blur-md border border-white/5 rounded-2xl p-3 pt-5 sm:pt-7 flex flex-col items-center shadow-lg transition-all hover:bg-white/[0.04]">
+                    <span class="text-white/80 font-black text-xs sm:text-sm uppercase tracking-widest truncate w-full text-center">{{ top3[2].name }}</span>
+                    <div class="mt-1.5 text-amber-500/80 font-bold text-xs sm:text-sm bg-white/5 px-2 py-1 rounded-full border border-white/5">{{ top3[2].score }} pts</div>
+                </div>
+            </div>
         </div>
 
-        <!-- 3rd -->
-        <div v-if="top3[2]" class="relative w-1/3 max-w-[180px] lg:max-w-[200px] bg-panel-card/30 backdrop-blur-xl border border-white/10 rounded-3xl h-36 sm:h-40 lg:h-48 flex flex-col items-center justify-start pt-8 lg:pt-10 shadow-lg transition-transform duration-500 hover:-translate-y-2">
-            <div class="absolute -top-10 lg:-top-12 left-1/2 -translate-x-1/2">
-                <div class="relative">
-                    <div class="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full border-4 border-panel-base bg-panel-input flex items-center justify-center shadow-lg relative z-10">
-                        <span class="text-3xl sm:text-4xl lg:text-5xl drop-shadow-md">{{ top3[2].avatar || '👤' }}</span>
+        <!-- ============================================== -->
+        <!-- TABLA GENERAL (4to lugar en adelante)        -->
+        <!-- ============================================== -->
+        <div v-if="rest.length > 0" class="w-full max-w-2xl mx-auto px-2">
+            <div class="bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-[2rem] p-4 sm:p-6 shadow-2xl">
+                <h3 class="text-white/40 font-black text-center mb-4 uppercase tracking-[0.3em] text-[10px] sm:text-xs">
+                    {{ t('results.generalTable') || 'RESTO DE LA CLASIFICACIÓN' }}
+                </h3>
+                <div class="space-y-2">
+                    <div v-for="(player, idx) in rest" :key="player.id" class="flex items-center justify-between p-3 sm:p-4 bg-white/[0.03] rounded-2xl border border-white/[0.05] hover:bg-white/[0.06] transition-colors">
+                        <div class="flex items-center gap-3 sm:gap-4">
+                            <span class="text-white/30 font-black text-[10px] sm:text-xs uppercase w-6 text-center">#{{ idx + 4 }}</span>
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-panel-base border border-white/10 shadow-sm text-lg sm:text-2xl flex items-center justify-center">{{ player.avatar || '👤' }}</div>
+                            <span class="text-white/80 font-bold uppercase tracking-wider text-xs sm:text-sm">{{ player.name }}</span>
+                        </div>
+                        <span class="text-white/60 font-black bg-panel-base/50 px-3 py-1 rounded-full text-xs sm:text-sm">{{ player.score }} pts</span>
                     </div>
-                    <div class="absolute -bottom-1 -right-1 lg:-bottom-2 lg:-right-2 bg-panel-base border border-white/20 text-ink-muted font-black rounded-full w-6 h-6 lg:w-8 lg:h-8 flex items-center justify-center shadow-sm z-20 text-[10px] lg:text-xs">3</div>
-                </div>
-            </div>
-            <span class="text-ink-main font-black text-xs sm:text-sm lg:text-base uppercase tracking-wider truncate w-full text-center px-1 drop-shadow-sm z-10">{{ top3[2].name }}</span>
-            <div class="mt-1 text-ink-muted font-bold text-xs sm:text-sm lg:text-base z-10 bg-white/5 px-2 lg:px-3 py-0.5 lg:py-1 rounded-full border border-white/5">{{ top3[2].score }} pts</div>
-            <span v-if="titleMap[top3[2].id]" class="mt-auto mb-3 lg:mb-4 text-[8px] sm:text-[9px] lg:text-xs font-bold px-2 py-0.5 lg:py-1 bg-panel-card/80 backdrop-blur-md rounded-full text-white/60 border border-white/5 text-center mx-1 z-10">{{ titleMap[top3[2].id].emoji }} {{ t(`titles.${titleMap[top3[2].id].titleId}.name`) }}</span>
-        </div>
-    </div>
-
-    <!-- TABLA GENERAL (4to lugar en adelante) -->
-    <div v-if="rest.length > 0" class="w-full mt-6">
-        <div class="bg-panel-base/60 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-6 shadow-2xl">
-            <h3 class="text-white/50 font-black text-center mb-5 sm:mb-6 uppercase tracking-[0.2em] text-xs">{{ t('results.generalTable') }}</h3>
-            <div class="space-y-2 sm:space-y-3">
-                <div v-for="(player, idx) in rest" :key="player.id" class="flex items-center justify-between p-2 sm:p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">
-                    <div class="flex items-center gap-2 sm:gap-3">
-                        <span class="text-white/30 font-black text-[10px] sm:text-xs uppercase w-5 sm:w-6 text-center">#{{ idx + 4 }}</span>
-                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-panel-input border border-white/10 shadow-sm text-lg sm:text-2xl flex items-center justify-center">{{ player.avatar || '👤' }}</div>
-                        <span class="text-white/90 font-black uppercase tracking-wider text-xs sm:text-sm">{{ player.name }}</span>
-                    </div>
-                    <span class="text-white/70 font-black bg-panel-base/80 px-2 sm:px-3 py-1 rounded-full border border-white/5 text-xs sm:text-sm">{{ player.score }} pts</span>
                 </div>
             </div>
         </div>
+        
     </div>
 </template>
+

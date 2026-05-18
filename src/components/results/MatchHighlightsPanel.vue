@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// [Sprint 2 - P2] Premios / Highlights de partida (títulos cómicos)
+// [Sprint 2 - P2] Premios / Highlights de partida (títulos cómicos) Rediseño Premium
 defineProps<{
     titles: Array<{ playerId: string; emoji: string; titleId: string }>;
     playerMap: Record<string, { name: string; avatar: string }>;
@@ -11,25 +11,45 @@ const { t } = useI18n();
 
 <template>
     <div v-if="titles.length > 0" class="w-full">
-        <div class="flex items-center justify-center gap-4 mb-6">
-            <div class="h-px bg-white/10 flex-1"></div>
-            <h3 class="text-white/50 font-black text-center uppercase tracking-[0.2em] text-xs">{{ t('results.matchAwards') }}</h3>
-            <div class="h-px bg-white/10 flex-1"></div>
+        <!-- Header -->
+        <div class="flex items-center justify-center gap-4 mb-5 sm:mb-6">
+            <div class="h-px bg-gradient-to-r from-transparent to-white/20 flex-1"></div>
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-yellow-500/80" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                <h3 class="text-white/60 font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs">{{ t('results.matchAwards') || 'PREMIOS DE LA PARTIDA' }}</h3>
+                <svg class="w-4 h-4 text-yellow-500/80" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+            </div>
+            <div class="h-px bg-gradient-to-l from-transparent to-white/20 flex-1"></div>
         </div>
-        <div class="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4">
+
+        <!-- Lista Vertical Elegante -->
+        <div class="flex flex-col gap-3 sm:gap-4">
             <div
                 v-for="award in titles"
                 :key="award.playerId"
-                class="relative overflow-hidden bg-panel-card/40 backdrop-blur-md border border-white/10 rounded-2xl p-4 sm:p-5 flex flex-col items-center text-center shadow-lg hover:border-white/20 transition-all group"
+                class="group relative flex items-center justify-between p-3 sm:p-4 bg-white/[0.03] backdrop-blur-md rounded-[1.25rem] border border-white/5 shadow-sm hover:bg-white/[0.05] transition-all duration-300"
             >
-                <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <span class="text-4xl sm:text-5xl mb-2 sm:mb-3">{{ award.emoji }}</span>
-                <span class="text-white font-black text-[11px] sm:text-sm uppercase tracking-wide leading-tight">{{ t(`titles.${award.titleId}.name`) }}</span>
-                <div class="mt-3 sm:mt-4 flex items-center gap-2 bg-panel-base/50 px-3 py-1.5 rounded-full border border-white/5 w-full justify-center max-w-[140px]">
-                    <span class="text-sm sm:text-lg">{{ playerMap[award.playerId]?.avatar || '👤' }}</span>
-                    <span class="text-white/80 font-bold text-[9px] sm:text-xs truncate w-full text-left">{{ playerMap[award.playerId]?.name }}</span>
+                <!-- Info del Premio (Izquierda) -->
+                <div class="flex items-center gap-3 sm:gap-4 min-w-0 pr-4">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 flex-none rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/10 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-300">
+                        <span class="text-xl sm:text-2xl drop-shadow-sm">{{ award.emoji }}</span>
+                    </div>
+                    <div class="flex flex-col min-w-0">
+                        <span class="text-white/90 font-black text-xs sm:text-sm uppercase tracking-wider truncate">{{ t(`titles.${award.titleId}.name`) }}</span>
+                        <span class="text-white/40 font-medium text-[10px] sm:text-xs leading-tight line-clamp-1 mt-0.5">{{ t(`titles.${award.titleId}.desc`) }}</span>
+                    </div>
                 </div>
-                <span class="text-white/40 font-medium text-[9px] sm:text-[10px] mt-2 sm:mt-3 italic line-clamp-2 px-1">{{ t(`titles.${award.titleId}.desc`) }}</span>
+
+                <!-- Ganador (Derecha) -->
+                <div class="flex items-center gap-2 sm:gap-3 flex-none pl-4 border-l border-white/10">
+                    <div class="flex flex-col items-end">
+                        <span class="text-white/30 font-bold text-[8px] sm:text-[9px] uppercase tracking-widest mb-0.5">GANADOR</span>
+                        <span class="text-yellow-400/90 font-bold text-[10px] sm:text-xs uppercase max-w-[80px] sm:max-w-[120px] truncate">{{ playerMap[award.playerId]?.name }}</span>
+                    </div>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-panel-base border border-yellow-400/20 flex items-center justify-center shadow-md">
+                        <span class="text-lg sm:text-xl">{{ playerMap[award.playerId]?.avatar || '👤' }}</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

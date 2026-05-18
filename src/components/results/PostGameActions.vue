@@ -27,10 +27,10 @@ const { t } = useI18n();
             id="btn-share-summary"
             @click="$emit('share')"
             :disabled="isCapturing"
-            class="w-full relative overflow-hidden group bg-gradient-to-tr from-violet-600 via-purple-500 to-pink-500 hover:from-violet-500 hover:via-purple-400 hover:to-pink-400 text-white font-black text-sm uppercase tracking-[0.12em] py-4 rounded-2xl shadow-[0_0_24px_rgba(168,85,247,0.5)] border border-purple-300/20 transition-all hover:-translate-y-0.5 active:scale-95 disabled:opacity-60 disabled:cursor-wait flex items-center justify-center gap-2"
+            class="w-full relative overflow-hidden group bg-gradient-to-tr from-yellow-500 via-yellow-400 to-amber-500 hover:from-yellow-400 hover:via-yellow-300 hover:to-amber-400 text-yellow-950 font-black text-sm uppercase tracking-[0.12em] py-4 rounded-2xl shadow-[0_0_24px_rgba(250,204,21,0.4)] border border-yellow-200 transition-all hover:-translate-y-0.5 active:scale-95 disabled:opacity-60 disabled:cursor-wait flex items-center justify-center gap-2"
         >
             <!-- Shimmer animado para captar la atención del ojo -->
-            <span class="absolute inset-0 w-1/3 bg-white/10 skew-x-[-20deg] -translate-x-full group-hover:translate-x-[400%] transition-transform duration-700 ease-in-out pointer-events-none" />
+            <span class="absolute inset-0 w-1/3 bg-white/30 skew-x-[-20deg] -translate-x-full group-hover:translate-x-[400%] transition-transform duration-700 ease-in-out pointer-events-none" />
 
             <span class="text-lg leading-none">{{ isCapturing ? '⏳' : '🚀' }}</span>
             <span>{{ isCapturing ? '...' : t('results.share') }}</span>
