@@ -479,6 +479,9 @@ export default class Server implements Party.Server {
             // 1. Handle Identity FIRST (adds/reconnects player in engine)
             await this.connectionHandler.handleConnect(conn, ctx);
 
+            // [Phoenix Lobby] Ensure heartbeat is started now that the room is marked as public (if requested)
+            this.startHeartbeat();
+
             // [Sprint P2 — Fase 1] Grace Period: if this user has a pending grace period timer
             // (they were the Impostor and lost connection), cancel it — they reconnected in time.
             const reconnectedUserId = (conn.state as any)?.userId;
