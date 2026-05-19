@@ -49,7 +49,8 @@ export class PlayerManager {
             isHost: state.players.length === 0, // First joiner acts as Host
             isConnected: true,
             lastSeenAt: Date.now(),
-            isAuthenticated: profile.isAuthenticated
+            isAuthenticated: profile.isAuthenticated,
+            isBot: false
         };
 
         state.players.push(newPlayer);

@@ -159,7 +159,8 @@ export class TutiEngine extends BaseEngine {
                     isConnected: true,
                     lastSeenAt: Date.now(),
                     filledCount: 0,
-                    isAuthenticated
+                    isAuthenticated,
+                    isBot: false
                 };
                 this.state.spectators.push(newPlayer);
             }

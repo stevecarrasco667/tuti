@@ -40,7 +40,7 @@ describe('TutiEngine Core', () => {
             state.status = 'PLAYING';
             state.currentLetter = 'A';
             state.categories = [{ id: 'test-fruta', name: 'Fruta' }, { id: 'test-pais', name: 'País' }];
-            state.players = [{ id: 'p1', name: 'Tester', score: 0, isHost: true, isConnected: true, lastSeenAt: Date.now(), avatar: '🙂' }];
+            state.players = [{ id: 'p1', name: 'Tester', score: 0, isHost: true, isConnected: true, lastSeenAt: Date.now(), avatar: '🙂', isBot: false }];
         });
 
         it('should normalize input (trim, uppercase, remove accents)', () => {
