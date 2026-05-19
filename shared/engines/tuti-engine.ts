@@ -213,7 +213,11 @@ export class TutiEngine extends BaseEngine {
                 AnalyticsSystem.trackEvent(this.supabase, { room_id: this.state.roomId || 'unknown', event_type: 'player_left_mid_game', user_id: userId });
             }
 
-            if (this.state.players.length < 2) {
+            const activeHumans = this.state.players.filter(p => !p.isBot && p.isConnected);
+            if (activeHumans.length < 1) {
+                console.log(`[GAME OVER] No active human players remaining.`);
+                this._triggerGameOver('ABANDONED');
+            } else if (this.state.players.length < 2) {
                 console.log(`[GAME OVER] Not enough players (Active+Zombie) to continue.`);
                 this._triggerGameOver('ABANDONED');
             }
@@ -250,7 +254,11 @@ export class TutiEngine extends BaseEngine {
                 AnalyticsSystem.trackEvent(this.supabase, { room_id: this.state.roomId || 'unknown', event_type: 'player_left_mid_game', user_id: userId });
             }
 
-            if (this.state.players.length < 2) {
+            const activeHumans = this.state.players.filter(p => !p.isBot && p.isConnected);
+            if (activeHumans.length < 1) {
+                console.log(`[GAME OVER] No active human players remaining (Exited).`);
+                this._triggerGameOver('ABANDONED');
+            } else if (this.state.players.length < 2) {
                 console.log(`[GAME OVER] Abandonment (Exited).`);
                 this._triggerGameOver('ABANDONED');
             }
@@ -264,10 +272,17 @@ export class TutiEngine extends BaseEngine {
 
         let stateChanged = changed;
 
-        if ((this.state.status === 'PLAYING' || this.state.status === 'REVIEW' || this.state.status === 'ENDING_COUNTDOWN') && this.state.players.length < 2) {
-            console.log(`[GAME OVER] Abandonment after Zombie Purge.`);
-            this._triggerGameOver('ABANDONED');
-            stateChanged = true;
+        if (this.state.status === 'PLAYING' || this.state.status === 'REVIEW' || this.state.status === 'ENDING_COUNTDOWN') {
+            const activeHumans = this.state.players.filter(p => !p.isBot && p.isConnected);
+            if (activeHumans.length < 1) {
+                console.log(`[GAME OVER] No active human players after Zombie Purge.`);
+                this._triggerGameOver('ABANDONED');
+                stateChanged = true;
+            } else if (this.state.players.length < 2) {
+                console.log(`[GAME OVER] Abandonment after Zombie Purge.`);
+                this._triggerGameOver('ABANDONED');
+                stateChanged = true;
+            }
         }
 
         if (stateChanged) {
@@ -421,10 +436,13 @@ export class TutiEngine extends BaseEngine {
 
     private handleTimeUp_Internal() {
         console.log("[TutiEngine] auto-stop triggered by timer.");
+        this.generateBotAnswers();
         this.rounds.stopRound(this.state, this.state.config);
 
         // [Auto-Advance] Start the voting timer — primary mechanism for REVIEW → RESULTS
         this._scheduleVotingEnd();
+
+        this.castBotVotes();
 
         if (this.onGameStateChange) {
             this.onGameStateChange(this.state);
@@ -476,10 +494,13 @@ export class TutiEngine extends BaseEngine {
 
         this._endingTimer = null;
         this.rounds.cancelTimer(); // Cancelar el timer natural original
+        this.generateBotAnswers();
         this.rounds.stopRound(this.state, this.state.config);
 
         // [Auto-Advance] Start the voting timer — primary mechanism for REVIEW → RESULTS
         this._scheduleVotingEnd();
+
+        this.castBotVotes();
 
         // --- 1vs1 GHOST VOTING ---
         const activePlayers = this.state.players.filter(p => p.isConnected);
@@ -709,6 +730,54 @@ export class TutiEngine extends BaseEngine {
         return this.state;
     }
 
+    public addBot(): RoomState {
+        const botNames = ["TutiBot 🤖", "PacoBot 🤖", "RingoBot 🤖", "AlphaBot 🤖", "ZetaBot 🤖", "LoloBot 🤖", "GigaBot 🤖", "ByteBot 🤖", "ChemaBot 🤖", "TitoBot 🤖"];
+        const botAvatars = ["🤖", "👾", "👽", "🚀", "🛸", "🧠", "💿", "⚙️", "🔋", "🔌"];
+
+        // Buscar un nombre que no esté en uso
+        let finalName = "";
+        for (const name of botNames) {
+            if (!this.state.players.some(p => p.name === name)) {
+                finalName = name;
+                break;
+            }
+        }
+        if (!finalName) {
+            finalName = `Bot ${this.state.players.filter(p => p.isBot).length + 1} 🤖`;
+        }
+
+        // Buscar un avatar aleatorio no usado
+        let finalAvatar = "🤖";
+        const usedAvatars = this.state.players.map(p => p.avatar);
+        for (const avatar of botAvatars) {
+            if (!usedAvatars.includes(avatar)) {
+                finalAvatar = avatar;
+                break;
+            }
+        }
+
+        const botId = `bot-${Math.random().toString(36).substring(2, 8)}`;
+        const botPlayer = {
+            id: botId,
+            name: finalName,
+            avatar: finalAvatar,
+            score: 0,
+            isHost: false,
+            isConnected: true,
+            isBot: true,
+            lastSeenAt: Date.now(),
+            filledCount: 0
+        };
+
+        this.state.players.push(botPlayer);
+
+        if (this.onGameStateChange) {
+            this.onGameStateChange(this.state);
+        }
+
+        return this.state;
+    }
+
     // --- SYSTEMS DELEGATION ---
 
     private calculateResults() {
@@ -741,7 +810,9 @@ export class TutiEngine extends BaseEngine {
         const allowedLetter = this.state.currentLetter || "";
 
         for (const [key, value] of Object.entries(answers)) {
-            const valResult = this.validation.processAnswer(this.state.config.lang || 'es', value, allowedLetter, key);
+            const category = this.state.categories.find(c => c.name === key);
+            const catIdOrName = category ? category.id : key;
+            const valResult = this.validation.processAnswer(this.state.config.lang || 'es', value, allowedLetter, catIdOrName);
 
             if (valResult.status === 'INVALID' || valResult.status === 'EMPTY') {
                 if (valResult.status === 'INVALID') {
@@ -803,6 +874,20 @@ export class TutiEngine extends BaseEngine {
     // [Sprint 1 - Phase 1] Server-canonical countdown mutator
     public tick(newValue: number): void {
         this.state.remainingTime = Math.max(-1, newValue);
+
+        // Simular escritura de los bots en fase PLAYING
+        if (this.state.status === 'PLAYING') {
+            const bots = this.state.players.filter(p => p.isBot);
+            const totalCategories = this.state.categories.length;
+
+            for (const bot of bots) {
+                if ((bot.filledCount || 0) < totalCategories) {
+                    if (Math.random() < 0.25) { // 25% de probabilidad por segundo de llenar una casilla
+                        bot.filledCount = (bot.filledCount || 0) + 1;
+                    }
+                }
+            }
+        }
     }
 
     // [Deuda P2] Encapsulates the public room flag mutation — handlers must not write state directly.
@@ -849,6 +934,97 @@ export class TutiEngine extends BaseEngine {
                 end_reason: reason,
                 winner_data: winnerData
             });
+        }
+    }
+
+    private generateBotAnswers(): void {
+        const lang = this.state.config.lang || 'es';
+        const bots = this.state.players.filter(p => p.isBot);
+        const allowedLetter = (this.state.currentLetter || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+        for (const bot of bots) {
+            const botAnswers: Record<string, string> = {};
+            const botStatuses: Record<string, AnswerStatus> = {};
+
+            for (const category of this.state.categories) {
+                const collection = this.validation.dictionary.getCollection(lang, category.id);
+                const matchingWords = collection
+                    ? Array.from(collection).filter(w => w.startsWith(allowedLetter))
+                    : [];
+
+                if (matchingWords.length > 0 && Math.random() < 0.85) {
+                    const word = matchingWords[Math.floor(Math.random() * matchingWords.length)];
+                    const capitalized = word.charAt(0).toUpperCase() + word.slice(1);
+                    botAnswers[category.name] = capitalized;
+                    botStatuses[category.name] = 'VALID_AUTO';
+                } else {
+                    if (Math.random() < 0.5) {
+                        botAnswers[category.name] = "";
+                        botStatuses[category.name] = 'EMPTY';
+                    } else {
+                        botAnswers[category.name] = "¡No lo sé! 🧠";
+                        botStatuses[category.name] = 'INVALID';
+                    }
+                }
+            }
+
+            this.state.answers[bot.id] = botAnswers;
+            if (!this.state.answerStatuses[bot.id]) {
+                this.state.answerStatuses[bot.id] = {};
+            }
+            Object.assign(this.state.answerStatuses[bot.id], botStatuses);
+        }
+    }
+
+    private castBotVotes(): void {
+        const lang = this.state.config.lang || 'es';
+        const bots = this.state.players.filter(p => p.isBot);
+        const allowedLetter = this.state.currentLetter || '';
+
+        for (const bot of bots) {
+            for (const player of this.state.players) {
+                if (player.id === bot.id) continue;
+
+                for (const category of this.state.categories) {
+                    const answer = this.state.answers[player.id]?.[category.name] || '';
+                    const valResult = this.validation.processAnswer(lang, answer, allowedLetter, category.id);
+
+                    if (valResult.status === 'INVALID' || valResult.status === 'EMPTY') {
+                        if (!this.state.votes[player.id]) this.state.votes[player.id] = {};
+                        if (!this.state.votes[player.id][category.name]) this.state.votes[player.id][category.name] = [];
+                        if (!this.state.votes[player.id][category.name].includes(bot.id)) {
+                            this.state.votes[player.id][category.name].push(bot.id);
+                        }
+                    } else if (valResult.status === 'PENDING') {
+                        if (Math.random() < 0.25) {
+                            if (!this.state.votes[player.id]) this.state.votes[player.id] = {};
+                            if (!this.state.votes[player.id][category.name]) this.state.votes[player.id][category.name] = [];
+                            if (!this.state.votes[player.id][category.name].includes(bot.id)) {
+                                this.state.votes[player.id][category.name].push(bot.id);
+                            }
+                        }
+                    }
+                }
+            }
+
+            const delay = 4000 + Math.random() * 2000;
+            setTimeout(() => {
+                if (this.state.status !== 'REVIEW') return;
+
+                console.log(`[Bot] ${bot.name} confirmando votos tras ${Math.round(delay)}ms`);
+                if (this.voting.confirmVotes(this.state, bot.id)) {
+                    if (this._votingTimer) {
+                        clearTimeout(this._votingTimer);
+                        this._votingTimer = null;
+                    }
+                    this.calculateResults();
+                    this._scheduleResultsEnd();
+                }
+
+                if (this.onGameStateChange) {
+                    this.onGameStateChange(this.state);
+                }
+            }, delay);
         }
     }
 

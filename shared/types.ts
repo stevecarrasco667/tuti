@@ -129,6 +129,7 @@ export type RoundAnswers = Record<string, string>;
 export type ClientMessage =
     | { type: typeof EVENTS.JOIN; payload: { name: string; roomId: string; userId: string; avatar: string } }
     | { type: typeof EVENTS.START_GAME }
+    | { type: typeof EVENTS.ADD_BOT }
     | { type: typeof EVENTS.STOP_ROUND; payload: { answers: RoundAnswers } }
     | { type: typeof EVENTS.SUBMIT_ANSWERS; payload: { answers: RoundAnswers } }
     | { type: typeof EVENTS.UPDATE_ANSWERS; payload: { answers: RoundAnswers } }

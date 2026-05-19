@@ -343,4 +343,71 @@ describe('TutiEngine Core', () => {
             expect(newState.whoFinishedVoting).toEqual([]);
         });
     });
+
+    // D. Inyección de Bots en el Lobby y Simulación
+    describe('Lobby Bot Injection & Simulation', () => {
+        it('should add a bot player successfully', () => {
+            const state = engine.getState();
+            expect(state.players).toHaveLength(0);
+
+            engine.addBot();
+
+            expect(state.players).toHaveLength(1);
+            expect(state.players[0].isBot).toBe(true);
+            expect(state.players[0].name).toContain('Bot');
+            expect(state.players[0].isConnected).toBe(true);
+            expect(state.players[0].id).toMatch(/^bot-/);
+        });
+
+        it('should kick a bot player successfully', () => {
+            engine.joinPlayer(hostId, 'Host', 'av1', hostConn);
+            engine.addBot();
+
+            const state = engine.getState();
+            expect(state.players).toHaveLength(2);
+            const bot = state.players.find(p => p.isBot);
+            expect(bot).toBeDefined();
+
+            // Kick the bot
+            engine.kickPlayer(hostConn, bot!.id);
+            expect(state.players).toHaveLength(1);
+            expect(state.players.some(p => p.isBot)).toBe(false);
+        });
+
+        it('should trigger abandonment game over if last human leaves room containing bots', () => {
+            engine.joinPlayer(hostId, 'Host', 'av1', hostConn);
+            engine.addBot();
+
+            const state = engine.getState();
+            state.status = 'PLAYING';
+
+            // Human disconnects
+            engine.playerDisconnected(hostConn);
+
+            expect(state.status).toBe('GAME_OVER');
+            expect(state.players.find(p => p.id === hostId)?.isConnected).toBe(false);
+        });
+
+        it('should simulate bot typing progression during PLAYING tick', () => {
+            engine.joinPlayer(hostId, 'Host', 'av1', hostConn);
+            engine.addBot();
+
+            const state = engine.getState();
+            state.status = 'PLAYING';
+            state.categories = [{ id: 'test-cat', name: 'Cat1' }];
+            const bot = state.players.find(p => p.isBot)!;
+            bot.filledCount = 0;
+
+            // Call tick multiple times to simulate ticks
+            const originalRandom = Math.random;
+            Math.random = () => 0.1;
+
+            try {
+                engine.tick(30);
+                expect(bot.filledCount).toBe(1);
+            } finally {
+                Math.random = originalRandom;
+            }
+        });
+    });
 });

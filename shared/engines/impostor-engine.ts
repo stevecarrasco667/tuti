@@ -258,6 +258,12 @@ export class ImpostorEngine extends BaseEngine {
             this._gracePeriodTimers.set(userId, timer);
         }
 
+        const activeHumans = this.state.players.filter(p => !p.isBot && p.isConnected);
+        if (activeGameStatuses.includes(this.state.status) && activeHumans.length < 1) {
+            console.log(`[ImpostorEngine] 💀 No active humans left. Forcing victory.`);
+            this._forceCrewVictory('IMPOSTOR_DISCONNECTED');
+        }
+
         return this.state;
     }
 
@@ -305,6 +311,12 @@ export class ImpostorEngine extends BaseEngine {
         // [Sprint A — A2] If exiting player was host, promote the next connected player.
         if (exitingPlayer?.isHost) {
             this._migrateHostIfNeeded();
+        }
+
+        const activeHumans = this.state.players.filter(p => !p.isBot && p.isConnected);
+        if (activeGameStatuses.includes(this.state.status) && activeHumans.length < 1) {
+            console.log(`[ImpostorEngine] 💀 No active humans left (exited). Forcing victory.`);
+            this._forceCrewVictory('IMPOSTOR_DISCONNECTED');
         }
 
         return this.state;
@@ -960,6 +972,52 @@ export class ImpostorEngine extends BaseEngine {
             // Si el jugador aborta o lo kickean, lo descartamos de los vivos
             this.state.impostorData.alivePlayers = this.state.impostorData.alivePlayers.filter(id => id !== targetUserId);
         }
+        return this.state;
+    }
+
+    public addBot(): RoomState {
+        const botNames = ["TutiBot 🤖", "PacoBot 🤖", "RingoBot 🤖", "AlphaBot 🤖", "ZetaBot 🤖", "LoloBot 🤖", "GigaBot 🤖", "ByteBot 🤖", "ChemaBot 🤖", "TitoBot 🤖"];
+        const botAvatars = ["🤖", "👾", "👽", "🚀", "🛸", "🧠", "💿", "⚙️", "🔋", "🔌"];
+
+        let finalName = "";
+        for (const name of botNames) {
+            if (!this.state.players.some(p => p.name === name)) {
+                finalName = name;
+                break;
+            }
+        }
+        if (!finalName) {
+            finalName = `Bot ${this.state.players.filter(p => p.isBot).length + 1} 🤖`;
+        }
+
+        let finalAvatar = "🤖";
+        const usedAvatars = this.state.players.map(p => p.avatar);
+        for (const avatar of botAvatars) {
+            if (!usedAvatars.includes(avatar)) {
+                finalAvatar = avatar;
+                break;
+            }
+        }
+
+        const botId = `bot-${Math.random().toString(36).substring(2, 8)}`;
+        const botPlayer = {
+            id: botId,
+            name: finalName,
+            avatar: finalAvatar,
+            score: 0,
+            isHost: false,
+            isConnected: true,
+            isBot: true,
+            lastSeenAt: Date.now(),
+            filledCount: 0
+        };
+
+        this.state.players.push(botPlayer);
+
+        if (this.onGameStateChange) {
+            this.onGameStateChange(this.state);
+        }
+
         return this.state;
     }
 

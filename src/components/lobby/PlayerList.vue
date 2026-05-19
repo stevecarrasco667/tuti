@@ -15,6 +15,7 @@ const props = defineProps<{
 const emit = defineEmits<{
     (e: 'kick-player', userId: string, name: string): void;
     (e: 'update-max-players', max: number): void;
+    (e: 'add-bot'): void;
 }>();
 
 const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.length));
@@ -84,17 +85,28 @@ const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.l
 
             <!-- Empty Slots -->
             <div v-for="i in emptySlots" :key="'empty-' + i"
-                 class="flex items-center gap-3 p-3 rounded-2xl border-2 transition-all bg-panel-input shadow-inner"
-                 :class="props.players.length === 1 && i === 1 ? 'border-action-info shadow-glow-primary animate-pulse cursor-pointer' : 'border-white/5'"
+                 class="flex items-center justify-between gap-3 p-3 rounded-2xl border-2 transition-all bg-panel-input shadow-inner border-white/5"
+                 :class="{ 'border-action-info shadow-glow-primary animate-pulse': props.players.length === 1 && i === 1 }"
             >
-                <template v-if="props.players.length === 1 && i === 1">
-                    <span class="text-xl flex-none">🔗</span>
-                    <span class="text-action-blue font-black text-xs uppercase tracking-wider whitespace-pre-line text-center">{{ t('lobby.players.invite') }}</span>
-                </template>
-                <template v-else>
-                    <div class="w-10 h-10 rounded-xl bg-panel-base flex items-center justify-center text-xl opacity-30 flex-none shadow-inner">👤</div>
-                    <span class="text-ink-muted font-bold text-xs uppercase tracking-wider">{{ t('lobby.players.empty') }}</span>
-                </template>
+                <div class="flex items-center gap-3 min-w-0">
+                    <template v-if="props.players.length === 1 && i === 1">
+                        <span class="text-xl flex-none">🔗</span>
+                        <span class="text-action-blue font-black text-xs uppercase tracking-wider whitespace-pre-line text-left">{{ t('lobby.players.invite') }}</span>
+                    </template>
+                    <template v-else>
+                        <div class="w-10 h-10 rounded-xl bg-panel-base flex items-center justify-center text-xl opacity-30 flex-none shadow-inner">👤</div>
+                        <span class="text-ink-muted font-bold text-xs uppercase tracking-wider truncate">{{ t('lobby.players.empty') }}</span>
+                    </template>
+                </div>
+
+                <!-- Añadir Bot (Solo Host) -->
+                <button
+                    v-if="props.amIHost"
+                    @click="emit('add-bot')"
+                    class="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-action-primary/10 text-action-primary hover:bg-action-primary hover:text-panel-base border border-action-primary/20 hover:border-action-primary hover:shadow-glow-primary rounded-xl cursor-pointer transition-all duration-300 flex-none"
+                >
+                    <span>+ 🤖 Bot</span>
+                </button>
             </div>
         </div>
     </div>

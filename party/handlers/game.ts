@@ -27,6 +27,18 @@ export class GameHandler extends BaseHandler {
         }
     }
 
+    async handleAddBot(sender: Party.Connection) {
+        try {
+            if (!this.isHost(sender)) {
+                sendError(sender, 'Solo el anfitrión puede agregar bots.');
+                return;
+            }
+            this.engine.addBot();
+        } catch (err) {
+            sendError(sender, (err as Error).message);
+        }
+    }
+
     async handleStopRound(payload: { answers: Record<string, string> }, sender: Party.Connection) {
         try {
             this.engine.stopRound(sender.id, payload.answers);

@@ -44,6 +44,7 @@ export abstract class BaseEngine {
 
     // --- ADMIN ---
     abstract kickPlayer(hostConnectionId: string, targetUserId: string): RoomState;
+    abstract addBot(): RoomState;
     abstract checkInactivePlayers(): boolean;
 
     /** [Deuda P2] Marks this room as publicly visible in the lobby list.

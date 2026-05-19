@@ -573,6 +573,10 @@ export default class Server implements Party.Server {
                     await this.gameHandler.handleStartGame(sender);
                     break;
 
+                case EVENTS.ADD_BOT:
+                    await this.gameHandler.handleAddBot(sender);
+                    break;
+
                 case EVENTS.STOP_ROUND:
                     // [Sprint A — A3] Rate-limit STOP_ROUND to prevent CPU-draining spam.
                     // The engine already guards via status check, but the limiter prevents

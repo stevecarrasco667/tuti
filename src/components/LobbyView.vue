@@ -14,7 +14,7 @@ import GameConfigPanel from './lobby/GameConfigPanel.vue';
 import CategorySelector from './lobby/CategorySelector.vue';
 import GameTutorialModal from './tutorials/GameTutorialModal.vue';
 
-const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer, leaveGame } = useGame();
+const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer, leaveGame, addBot } = useGame();
 const { playClick, playJoin, playAlarm, playSuccess } = useSound();
 const { t } = useI18n();
 const route = useRoute();
@@ -193,26 +193,30 @@ const handleLeave = () => {
                     :my-user-id="myUserId"
                     @kick-player="handleKick"
                     @update-max-players="(max) => handleConfigChange('maxPlayers', max)"
+                    @add-bot="addBot"
                 />
 
                 <!-- Center + Right Panels: Settings -->
-                <div class="lg:col-span-9 lg:grid lg:grid-cols-9 lg:gap-3 flex flex-col gap-4 overflow-y-auto"
+                <div class="lg:col-span-9 lg:grid lg:grid-cols-9 lg:gap-3 flex flex-col gap-4 lg:h-full lg:overflow-hidden overflow-y-auto"
                      :class="{ 'hidden lg:grid': activeTab !== 'settings' }"
                 >
                     <!-- Center: Mode Selector + Categories -->
                     <div class="lg:col-span-5 flex flex-col gap-4 lg:min-h-0 lg:overflow-y-auto"
-                         :class="{ 'opacity-60 pointer-events-none': !amIHost }"
+                         :class="{ 'opacity-80': !amIHost }"
                     >
                         <!-- Game Mode Selector -->
                         <div class="bg-panel-base border-2 border-white/20 rounded-[2rem] shadow-3d-panel p-4 flex-none">
                             <p class="text-ink-main text-[9px] font-black uppercase tracking-[0.2em] mb-3 text-center">{{ t('lobby.gameMode.title') }}</p>
                             <div class="grid grid-cols-2 gap-3">
                                 <div
-                                    @click="handleConfigChange('mode', 'CLASSIC')"
-                                    class="cursor-pointer relative p-2.5 lg:p-5 rounded-2xl lg:rounded-[2rem] border-2 transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
-                                    :class="localConfig.mode === 'CLASSIC'
-                                        ? 'border-action-primary bg-action-primary/10 shadow-3d-yellow'
-                                        : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input shadow-sm hover:scale-105'"
+                                    @click="amIHost && handleConfigChange('mode', 'CLASSIC')"
+                                    class="relative p-2.5 lg:p-5 rounded-2xl lg:rounded-[2rem] border-2 transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
+                                    :class="[
+                                        localConfig.mode === 'CLASSIC'
+                                            ? 'border-action-primary bg-action-primary/10 shadow-3d-yellow'
+                                            : 'border-white/10 bg-panel-card hover:border-action-primary hover:bg-panel-input shadow-sm hover:scale-105',
+                                        !amIHost ? 'cursor-not-allowed hover:scale-100 opacity-60' : 'cursor-pointer'
+                                    ]"
                                 >
                                     <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform drop-shadow-md">🎯</div>
                                     <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">{{ t('lobby.gameMode.classic.title') }}</h4>
@@ -225,11 +229,14 @@ const handleLeave = () => {
                                     >?</button>
                                 </div>
                                 <div
-                                    @click="handleConfigChange('mode', 'IMPOSTOR')"
-                                    class="cursor-pointer relative p-2.5 lg:p-5 rounded-2xl lg:rounded-[2rem] border-2 transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
-                                    :class="localConfig.mode === 'IMPOSTOR'
-                                        ? 'border-action-error bg-action-error/10 shadow-3d-red'
-                                        : 'border-white/10 bg-panel-card hover:border-action-error hover:bg-panel-input shadow-sm hover:scale-105'"
+                                    @click="amIHost && handleConfigChange('mode', 'IMPOSTOR')"
+                                    class="relative p-2.5 lg:p-5 rounded-2xl lg:rounded-[2rem] border-2 transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
+                                    :class="[
+                                        localConfig.mode === 'IMPOSTOR'
+                                            ? 'border-action-error bg-action-error/10 shadow-3d-red'
+                                            : 'border-white/10 bg-panel-card hover:border-action-error hover:bg-panel-input shadow-sm hover:scale-105',
+                                        !amIHost ? 'cursor-not-allowed hover:scale-100 opacity-60' : 'cursor-pointer'
+                                    ]"
                                 >
                                     <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform drop-shadow-md">🕵️</div>
                                     <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">{{ t('lobby.gameMode.impostor.title') }}</h4>

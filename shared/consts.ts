@@ -2,6 +2,7 @@ export const EVENTS = {
     // Client -> Server
     JOIN: 'JOIN',
     START_GAME: 'START_GAME',
+    ADD_BOT: 'ADD_BOT',
     STOP_ROUND: 'STOP_ROUND',
     SUBMIT_ANSWERS: 'SUBMIT_ANSWERS',
     UPDATE_ANSWERS: 'UPDATE_ANSWERS',

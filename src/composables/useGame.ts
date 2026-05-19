@@ -59,6 +59,7 @@ export function useGame() {
         // --- ACCIONES (Mutadores y WebSockets Outbound) ---
         joinGame: actions.joinGame,
         startGame: actions.startGame,
+        addBot: actions.addBot,
         submitAnswers: actions.submitAnswers,
         stopRound: actions.stopRound,
         updateAnswers: actions.updateAnswers,

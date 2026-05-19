@@ -14,7 +14,8 @@ export const PlayerSchema = z.object({
     disconnectedAt: z.number().optional(),  // Zombie-State timestamp
     lastTypedAt: z.number().optional(),     // [GD-2] Última interacción
     filledCount: z.number().optional(),     // Rival progress counter (live game)
-    isAuthenticated: z.boolean().optional()
+    isAuthenticated: z.boolean().optional(),
+    isBot: z.boolean().optional().default(false)
 });
 
 export const CategoryRefSchema = z.object({
@@ -135,6 +136,10 @@ export const JoinRoomSchema = z.object({
     }),
 });
 
+export const AddBotSchema = z.object({
+    type: z.literal(EVENTS.ADD_BOT)
+});
+
 
 export const RoundAnswersSchema = z.record(z.string(), z.string().trim().max(40));
 
@@ -251,6 +256,7 @@ export const ConfirmImpostorWordSchema = z.object({
 export const ClientMessageSchema = z.discriminatedUnion('type', [
     JoinRoomSchema,
     StartGameSchema,
+    AddBotSchema,
     StopRoundSchema,
     SubmitAnswersSchema,
     UpdateAnswersSchema,

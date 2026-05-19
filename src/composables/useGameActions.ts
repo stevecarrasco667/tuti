@@ -29,6 +29,11 @@ export function useGameActions(
         socket.value.send(JSON.stringify({ type: EVENTS.START_GAME }));
     };
 
+    const addBot = () => {
+        if (!socket.value) return;
+        socket.value.send(JSON.stringify({ type: EVENTS.ADD_BOT }));
+    };
+
     const submitAnswers = (answers: Record<string, string>) => {
         if (!socket.value) return;
         socket.value.send(JSON.stringify({
@@ -169,6 +174,7 @@ export function useGameActions(
     return {
         joinGame,
         startGame,
+        addBot,
         submitAnswers,
         stopRound,
         updateAnswers,
