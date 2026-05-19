@@ -65,11 +65,19 @@ jobs:
       - name: Build Frontend
         run: npm run build
 
-      - name: Deploy to PartyKit
+      - name: Deploy to PartyKit (with retries)
         env:
           PARTYKIT_TOKEN: ${{ secrets.PARTYKIT_TOKEN }}
           PARTYKIT_LOGIN: ${{ secrets.PARTYKIT_LOGIN }}
-        run: npx partykit deploy
+        run: |
+          for attempt in 1 2 3; do
+            echo "🚀 Deploy attempt $attempt/3..."
+            npx partykit deploy && echo "✅ Deploy successful!" && exit 0
+            echo "⚠️ Attempt $attempt failed. Waiting before retry..."
+            sleep $((attempt * 15))
+          done
+          echo "❌ All 3 deploy attempts failed."
+          exit 1
 
   # JOB 3: RELEASE & TAG
   # Etiqueta versiones automáticamente (v0.0.1 -> v0.0.2)
