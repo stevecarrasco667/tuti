@@ -108,6 +108,10 @@
             }
         },
         "players": {
+            "players": "{count}/{max}",
+            "you": "VOCÊ",
+            "connected": "Conectado",
+            "reconnecting": "Reconectando...",
             "spectator": "Espectador",
             "invite": "Desafie seus amigos:\nCompartilhe o link para convidar",
             "empty": "Vazio",

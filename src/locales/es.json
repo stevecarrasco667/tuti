@@ -111,7 +111,11 @@
             "spectator": "Espectador",
             "invite": "Desafía a tus amigos:\nComparte el link para invitar",
             "empty": "Vacío",
-            "maxPlayers": "JUGADORES"
+            "maxPlayers": "JUGADORES",
+            "players": "{count}/{max}",
+            "you": "TÚ",
+            "connected": "Conectado",
+            "reconnecting": "Reconectando..."
         },
         "header": {
             "publicRoom": "Sala Pública",

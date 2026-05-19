@@ -1,4 +1,4 @@
-import { ref, computed, onUnmounted } from 'vue';
+import { ref, computed, onUnmounted, triggerRef } from 'vue';
 import { EVENTS } from '../../shared/consts';
 import type { RoomSnapshot } from '../../shared/types';
 
@@ -60,23 +60,27 @@ export function useLobby() {
                 if (data.type === EVENTS.LOBBY_STATE_UPDATE) {
                     // Snapshot inicial (top 50)
                     publicRooms.value = data.payload as RoomSnapshot[];
+                    triggerRef(publicRooms);
 
                 } else if (data.type === EVENTS.ROOM_ADDED) {
                     // Nueva sala: agregar si no existe ya
                     const room = data.payload as RoomSnapshot;
                     if (!publicRooms.value.find(r => r.id === room.id)) {
                         publicRooms.value = [...publicRooms.value, room];
+                        triggerRef(publicRooms);
                     }
 
                 } else if (data.type === EVENTS.ROOM_UPDATED) {
                     // Sala actualizada: reemplazar
                     const room = data.payload as RoomSnapshot;
                     publicRooms.value = publicRooms.value.map(r => r.id === room.id ? room : r);
+                    triggerRef(publicRooms);
 
                 } else if (data.type === EVENTS.ROOM_REMOVED) {
                     // Sala eliminada: filtrar
                     const { id } = data.payload as { id: string };
                     publicRooms.value = publicRooms.value.filter(r => r.id !== id);
+                    triggerRef(publicRooms);
                 }
             } catch {
                 // Ignorar mensajes malformados

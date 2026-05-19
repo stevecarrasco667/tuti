@@ -1,11 +1,23 @@
 import * as fs from 'fs';
 
+function deepMerge(target: any, source: any): any {
+    const result = { ...target };
+    for (const key of Object.keys(source)) {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+            result[key] = deepMerge(target[key] || {}, source[key]);
+        } else {
+            result[key] = source[key];
+        }
+    }
+    return result;
+}
+
 function updateLocale(file: string, lobbyTranslations: any, categoryTranslations: any, systemTranslations: any) {
     const raw = fs.readFileSync(file, 'utf-8');
     const data = JSON.parse(raw);
     
-    // Merge lobby
-    data.lobby = { ...data.lobby, ...lobbyTranslations };
+    // Deep merge lobby (to preserve nested keys like players.connected)
+    data.lobby = deepMerge(data.lobby || {}, lobbyTranslations);
     
     // Merge categories
     data.categories = { ...data.categories, ...categoryTranslations };
@@ -50,6 +62,10 @@ const esLobby = {
         }
     },
     players: {
+        players: "{count}/{max}",
+        you: "TÚ",
+        connected: "Conectado",
+        reconnecting: "Reconectando...",
         spectator: "Espectador",
         invite: "Desafía a tus amigos:\nComparte el link para invitar",
         empty: "Vacío",
@@ -116,6 +132,10 @@ const enLobby = {
         }
     },
     players: {
+        players: "{count}/{max}",
+        you: "YOU",
+        connected: "Connected",
+        reconnecting: "Reconnecting...",
         spectator: "Spectator",
         invite: "Challenge your friends:\nShare the link to invite",
         empty: "Empty",
@@ -226,6 +246,10 @@ const ptLobby = {
         }
     },
     players: {
+        players: "{count}/{max}",
+        you: "VOCÊ",
+        connected: "Conectado",
+        reconnecting: "Reconectando...",
         spectator: "Espectador",
         invite: "Desafie seus amigos:\nCompartilhe o link para convidar",
         empty: "Vazio",
