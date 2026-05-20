@@ -38,46 +38,56 @@ const nextCategory = () => { if (!isLastCategory.value)  currentCategoryIndex.va
 const prevCategory = () => { if (!isFirstCategory.value) currentCategoryIndex.value--; };
 
 // ─── Layout adaptativo por número de jugadores ────────────────────────────────
-// cardSize escala el tamaño interno de cada tarjeta (padding, fuente, switch)
-// según cuántos jugadores hay en la partida.
 type CardSize = 'xl' | 'lg' | 'md' | 'sm';
 
 const layoutConfig = computed(() => {
     const n = props.players.length;
+    
+    // 7-8 jugadores: la gran innovación - MODO FILA HORIZONTAL
+    if (n >= 7) {
+        return {
+            gridClass:    'grid-cols-1 gap-2 md:gap-2.5',
+            maxWidthClass:'max-w-4xl mx-auto pb-4',
+            cardSize:     'sm' as CardSize,
+            centerVertically: false,
+            isHorizontal: true,
+        };
+    }
+    
     // 2 jugadores: tarjetas enormes, centradas, máxima legibilidad
     if (n <= 2) return {
-        gridClass:    'grid-cols-2',
-        maxWidthClass:'max-w-2xl mx-auto',
+        gridClass:    'grid-cols-2 gap-4',
+        maxWidthClass:'max-w-3xl mx-auto',
         cardSize:     'xl' as CardSize,
         centerVertically: true,
+        isHorizontal: false,
     };
+    
     // 3 jugadores: 3 en fila pero grandes, sin dejar espacio muerto
     if (n === 3) return {
-        gridClass:    'grid-cols-3',
-        maxWidthClass:'max-w-3xl mx-auto',
+        gridClass:    'grid-cols-3 gap-3',
+        maxWidthClass:'max-w-4xl mx-auto',
         cardSize:     'lg' as CardSize,
         centerVertically: true,
+        isHorizontal: false,
     };
-    // 4 jugadores: 2×2 simétrico — NO 4 en fila
+    
+    // 4 jugadores: 2×2 simétrico
     if (n === 4) return {
-        gridClass:    'grid-cols-2',
+        gridClass:    'grid-cols-2 gap-4',
         maxWidthClass:'max-w-3xl mx-auto',
         cardSize:     'lg' as CardSize,
         centerVertically: false,
+        isHorizontal: false,
     };
-    // 5-6 jugadores: 3 cols (referencia que funciona bien)
-    if (n <= 6) return {
-        gridClass:    'grid-cols-2 md:grid-cols-3',
+    
+    // 5-6 jugadores: 2 o 3 cols compactas
+    return {
+        gridClass:    'grid-cols-2 md:grid-cols-3 gap-3',
         maxWidthClass:'max-w-full',
         cardSize:     'md' as CardSize,
         centerVertically: false,
-    };
-    // 7-8 jugadores: modo amigable móvil (1 col en mobile, 2 sm, 4 en lg)
-    return {
-        gridClass:    'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
-        maxWidthClass:'max-w-full',
-        cardSize:     'sm' as CardSize,
-        centerVertically: false,
+        isHorizontal: false,
     };
 });
 
@@ -107,33 +117,56 @@ const selfStatusIcon = (playerId: string, category: string) => {
 </script>
 
 <template>
-    <div class="h-full flex flex-col w-full mx-auto px-2 md:px-6">
+    <div class="h-full flex flex-col w-full mx-auto px-2 md:px-6 relative group">
+
+        <!-- Botón de navegación flotante izquierdo (Solo mediano/grande en escritorio/tablet) -->
+        <button
+            v-if="!isFirstCategory"
+            @click="prevCategory"
+            class="hidden md:flex absolute left-0 top-[50%] -translate-y-1/2 -translate-x-1.5 lg:-translate-x-4 z-40 w-10 h-10 items-center justify-center rounded-full bg-panel-card border border-white/10 text-white shadow-3d-panel hover:bg-panel-input transition-all duration-75 hover:scale-105 active:scale-95"
+            title="Categoría Anterior"
+        >
+            <span class="text-lg">←</span>
+        </button>
+
+        <!-- Botón de navegación flotante derecho (Solo mediano/grande en escritorio/tablet) -->
+        <button
+            v-if="!isLastCategory"
+            @click="nextCategory"
+            class="hidden md:flex absolute right-0 top-[50%] -translate-y-1/2 translate-x-1.5 lg:translate-x-4 z-40 w-10 h-10 items-center justify-center rounded-full bg-game-yellow text-panel-base shadow-3d-yellow hover:bg-game-yellow/90 transition-all duration-75 hover:scale-105 active:scale-95"
+            title="Siguiente Categoría"
+        >
+            <span class="text-lg">→</span>
+        </button>
 
         <!-- Stop Alert -->
         <div v-if="showStopAlert && stopperPlayer"
-             class="flex-none bg-action-error/20 backdrop-blur-xl border border-action-error shadow-glow-panic rounded-3xl p-4 flex items-center justify-center gap-4 mb-4 mx-2">
-            <div class="text-5xl animate-bounce drop-shadow-md">{{ stopperPlayer.avatar || '🛑' }}</div>
-            <div class="flex flex-col items-center md:items-start text-center md:text-left gap-1">
-                <h3 class="font-black text-action-error text-3xl md:text-4xl uppercase tracking-tighter drop-shadow-glow leading-none">{{ t('review.stopAlert') }}</h3>
-                <p class="text-white text-xs font-black uppercase tracking-widest bg-action-error/40 border border-action-error/50 px-3 py-1 rounded-full shadow-inner">{{ t('review.stoppedBy', { name: stopperPlayer.name }) }}</p>
+             class="flex-none bg-action-error/20 backdrop-blur-xl border border-action-error shadow-glow-panic rounded-3xl p-3 flex items-center justify-center gap-4 mb-3 mx-2">
+            <div class="text-4xl animate-bounce drop-shadow-md">{{ stopperPlayer.avatar || '🛑' }}</div>
+            <div class="flex flex-col items-center md:items-start text-center md:text-left gap-0.5">
+                <h3 class="font-black text-action-error text-2xl md:text-3xl uppercase tracking-tighter drop-shadow-glow leading-none">{{ t('review.stopAlert') }}</h3>
+                <p class="text-white text-[10px] font-black uppercase tracking-widest bg-action-error/40 border border-action-error/50 px-2.5 py-0.5 rounded-full shadow-inner">{{ t('review.stoppedBy', { name: stopperPlayer.name }) }}</p>
             </div>
         </div>
 
-        <!-- Phase 6: CONTROL BAR — grid 3 cols para centrado limpio -->
-        <div class="flex-none grid grid-cols-3 items-center bg-panel-card/40 border border-white/5 rounded-2xl px-4 md:px-6 py-2 my-2 backdrop-blur-sm">
-            <div class="text-[10px] md:text-sm font-bold text-ink-muted uppercase tracking-widest">
+        <!-- Barra de Categoría Ultra Compacta y Estilizada (Sin caja azul gigante) -->
+        <div class="flex-none flex items-center justify-between py-1 my-1 px-2 select-none">
+            <div class="text-[9px] md:text-xs font-bold text-ink-muted uppercase tracking-widest">
                 {{ t('review.phase') }} {{ currentCategoryIndex + 1 }} / {{ categories.length }}
             </div>
-            <h2 class="text-base md:text-2xl font-black text-action-primary uppercase tracking-[0.15em] drop-shadow-md text-center">
+            <h2 class="text-base md:text-xl font-black text-action-primary uppercase tracking-[0.18em] drop-shadow-glow text-center">
                 {{ activeCategory?.name }}
             </h2>
-            <div></div>
+            <!-- Spacer para centrado simétrico -->
+            <div class="text-[9px] md:text-xs font-bold text-ink-muted uppercase tracking-widest invisible">
+                {{ t('review.phase') }} {{ currentCategoryIndex + 1 }} / {{ categories.length }}
+            </div>
         </div>
 
-        <!-- ARENA — Adaptive Grid por número de jugadores -->
-        <div class="flex-1 min-h-0 w-full overflow-y-auto flex flex-col" :class="layoutConfig.maxWidthClass">
-            <div class="grid gap-2 md:gap-3 w-full px-1 transition-all duration-500 ease-in-out"
-                 :class="[layoutConfig.gridClass, layoutConfig.centerVertically ? 'my-auto pb-6' : 'content-start']">
+        <!-- ARENA — Adaptive Grid o Row List por número de jugadores -->
+        <div class="flex-1 min-h-0 w-full overflow-y-auto flex flex-col px-1" :class="layoutConfig.maxWidthClass">
+            <div class="grid w-full transition-all duration-500 ease-in-out"
+                 :class="[layoutConfig.gridClass, layoutConfig.centerVertically ? 'my-auto pb-4' : 'content-start']">
                 <VotingCard
                     v-for="player in players" :key="player.id"
                     :player-name="player.name"
@@ -153,37 +186,43 @@ const selfStatusIcon = (playerId: string, category: string) => {
                     :reaction-counts="getCountsForTarget(player.id, activeCategory.name)"
                     :reaction-bursts="getBurstsForTarget(player.id, activeCategory.name)"
                     :is-spectator="isSpectator"
+                    :is-horizontal="layoutConfig.isHorizontal"
                     @update:model-value="emit('vote', player.id, activeCategory.name)"
                     @react="(emoji: string, targetId: string, catId: string) => sendReaction(targetId, catId, emoji)"
                 />
             </div>
         </div>
 
-        <!-- Phase 5: ACTION BAR — safe area + z-index -->
-        <div class="flex-none pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0.5rem))] md:pb-3 flex justify-between items-center gap-3 z-30 relative">
+        <!-- Phase 5: ACTION BAR — safe area + z-index compactado -->
+        <div class="flex-none pt-1.5 pb-[max(0.35rem,env(safe-area-inset-bottom,0.35rem))] md:pb-2.5 flex justify-between items-center gap-3 z-30 relative">
 
-            <!-- Atrás -->
-            <TButton variant="secondary" size="md" :disabled="isFirstCategory" @click="prevCategory">
+            <!-- Atrás (Visible en móvil, oculto en escritorio gracias a flotantes) -->
+            <TButton variant="secondary" size="sm" :disabled="isFirstCategory" @click="prevCategory" class="md:hidden shrink-0">
                 {{ t('review.prev') }}
             </TButton>
+            <!-- Spacer simétrico en escritorio -->
+            <div class="hidden md:block w-[75px]"></div>
 
-            <!-- Phase 5: Dots — tamaño aumentado para mejor target -->
-            <div class="flex gap-1.5 items-center">
+            <!-- Dots compactos -->
+            <div class="flex gap-1 items-center">
                 <div
                     v-for="(_, i) in categories" :key="i"
-                    class="h-2.5 rounded-full transition-all duration-300 cursor-pointer"
-                    :class="i === currentCategoryIndex ? 'bg-game-yellow w-5' : 'bg-panel-input w-2.5'"
+                    class="h-1.5 rounded-full transition-all duration-300 cursor-pointer"
+                    :class="i === currentCategoryIndex ? 'bg-game-yellow w-4.5' : 'bg-panel-input w-1.5'"
                     @click="currentCategoryIndex = i"
                 />
             </div>
 
-            <!-- Siguiente ó Enviar Votos -->
-            <TButton v-if="!isLastCategory" variant="primary" size="md" @click="nextCategory">
+            <!-- Siguiente ó Enviar Votos (Siguiente se oculta en escritorio por los flotantes) -->
+            <TButton v-if="!isLastCategory" variant="primary" size="sm" @click="nextCategory" class="md:hidden shrink-0">
                 {{ t('review.next') }}
             </TButton>
-            <TButton v-else variant="primary" size="md" :disabled="hasConfirmed || isSpectator" @click="!isSpectator && emit('submit-votes')">
+            <TButton v-else variant="primary" size="sm" :disabled="hasConfirmed || isSpectator" @click="!isSpectator && emit('submit-votes')" class="shrink-0">
                 {{ isSpectator ? t('review.viewing') : (hasConfirmed ? t('review.sent') : t('review.completed')) }}
             </TButton>
+            
+            <!-- Spacer simétrico en escritorio si no es la última categoría (para centrado perfecto de dots) -->
+            <div v-if="!isLastCategory" class="hidden md:block w-[75px]"></div>
         </div>
     </div>
 </template>
