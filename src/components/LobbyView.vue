@@ -197,7 +197,7 @@ const handleLeave = () => {
                 />
 
                 <!-- Center + Right Panels: Settings -->
-                <div class="lg:col-span-9 lg:grid lg:grid-cols-9 lg:gap-3 flex flex-col gap-4 lg:h-full lg:overflow-hidden overflow-y-auto"
+                <div class="lg:col-span-9 lg:grid lg:grid-cols-9 lg:gap-3 flex flex-col gap-4 lg:h-full lg:overflow-hidden"
                      :class="{ 'hidden lg:grid': activeTab !== 'settings' }"
                 >
                     <!-- Center: Mode Selector + Categories -->
@@ -261,8 +261,9 @@ const handleLeave = () => {
                         />
                     </div>
 
-                    <!-- Right: Settings Panel -->
+                    <!-- Right: Settings Panel — always independently scrollable -->
                     <GameConfigPanel
+                        class="lg:col-span-4 lg:h-full lg:min-h-0 lg:overflow-y-auto"
                         :config="localConfig"
                         :am-i-host="amIHost"
                         @update-config="handleConfigChange"
