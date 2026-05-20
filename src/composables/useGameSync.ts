@@ -107,6 +107,9 @@ watch(lastMessage, (newMsg) => {
                     return true;
                 });
             }
+
+            // Force Vue reactivity trigger for deep changes (like bot filledCount)
+            state.gameState.value = { ...state.gameState.value };
         } else if (parsed.type === EVENTS.AUTH_GRANTED) {
             // Update Session IDs (persisted automatically by watchers)
             const { userId, sessionToken } = parsed.payload;
@@ -126,6 +129,8 @@ watch(lastMessage, (newMsg) => {
             if (player) {
                 player.filledCount = filledCount;
                 if (lastTypedAt) player.lastTypedAt = lastTypedAt;
+                // Force Vue reactivity trigger for deep changes (like rival filledCount)
+                state.gameState.value = { ...state.gameState.value };
             }
         } else if (parsed.type === EVENTS.PRIVATE_ROLE_ASSIGNMENT) {
             state.localImpostorRole.value = parsed.payload as PrivateRolePayload;
