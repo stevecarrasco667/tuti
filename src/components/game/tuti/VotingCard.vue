@@ -114,7 +114,7 @@ const sizeConfig = computed(() => {
             <span class="font-black text-ink-main drop-shadow-sm truncate tracking-wide" :class="sizeConfig.name" :title="playerName">
                 {{ playerName }}
             </span>
-            <span v-slot="isAutoValidated" class="text-xs shrink-0 select-none">🛡️</span>
+            <span v-if="isAutoValidated" class="text-xs shrink-0 select-none">🛡️</span>
             
             <!-- Badge de votos integrado directamente en el perfil del jugador -->
             <span v-if="voteCount > 0 && !isAutoValidated"
@@ -141,7 +141,7 @@ const sizeConfig = computed(() => {
                 {{ word || '—' }}
             </span>
 
-            <span v-slot="isDuplicate"
+            <span v-if="isDuplicate"
                   class="ml-2 text-[7px] md:text-[8px] font-black bg-game-yellow/20 text-game-yellow px-2 py-0.5 rounded-full uppercase tracking-widest select-none shrink-0">
                 Repetida
             </span>

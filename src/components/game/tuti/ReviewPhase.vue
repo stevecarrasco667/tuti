@@ -82,8 +82,7 @@ const selfStatusIcon = (playerId: string, category: string) => {
     <div class="h-full flex flex-col w-full mx-auto px-2 md:px-6 relative group">
 
         <!-- Stop Alert -->
-        <div v-slot="showStopAlert && stopperPlayer"
-             v-if="showStopAlert && stopperPlayer"
+        <div v-if="showStopAlert && stopperPlayer"
              class="flex-none bg-action-error/20 backdrop-blur-xl border border-action-error shadow-glow-panic rounded-3xl p-3 flex items-center justify-center gap-4 mb-3 mx-2">
             <div class="text-4xl animate-bounce drop-shadow-md">{{ stopperPlayer.avatar || '🛑' }}</div>
             <div class="flex flex-col items-center md:items-start text-center md:text-left gap-0.5">
