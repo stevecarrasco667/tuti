@@ -8,6 +8,7 @@ import { RoomState, GameConfig, AnswerStatus, DeepPartial, CategoryRef, createDe
 import { RoundAnswersSchema } from '../schemas.js';
 import { BaseEngine } from './base-engine.js';
 import { MASTER_CATEGORIES } from './categories.js';
+import { getFallbackWords } from '../dictionaries/fallback-words.js';
 
 import { ScoreSystem } from '../systems/score-system.js';
 import { RoundManager } from '../systems/round-manager.js';
@@ -118,6 +119,15 @@ export class TutiEngine extends BaseEngine {
         }
 
         console.log("[TutiEngine] State hydrated from storage");
+
+        // Pre-load dictionary categories in the background so validation/bots have access to them
+        if (this.state.categories && this.state.categories.length > 0) {
+            const lang = this.state.config.lang || 'es';
+            this.state.categories.forEach(cat => {
+                this.validation.getDictionaryManager().loadCategory(lang, cat.id, this.supabase)
+                    .catch(err => console.error(`[TutiEngine] Error pre-loading category ${cat.id} during hydration:`, err));
+            });
+        }
     }
 
     // --- CONNECTION MANAGEMENT ---
@@ -881,12 +891,27 @@ export class TutiEngine extends BaseEngine {
             const bots = this.state.players.filter(p => p.isBot);
             const totalCategories = this.state.categories.length;
 
+            let botWantsToStop = null;
+
             for (const bot of bots) {
                 if ((bot.filledCount || 0) < totalCategories) {
                     if (Math.random() < 0.25) { // 25% de probabilidad por segundo de llenar una casilla
                         bot.filledCount = (bot.filledCount || 0) + 1;
                     }
+                } else if ((bot.filledCount || 0) === totalCategories) {
+                    // Si ya llenó todo, tiene un 20% de probabilidad por segundo de decir "¡Basta!"
+                    // Pero hay que respetar el candado anti-troll (grace period)
+                    const gracePeriodMs = calcGracePeriod(this.state.categories.length);
+                    if (Date.now() - this._roundStartTime >= gracePeriodMs) {
+                        if (Math.random() < 0.20) {
+                            botWantsToStop = bot;
+                        }
+                    }
                 }
+            }
+
+            if (botWantsToStop) {
+                this.botStopRound(botWantsToStop);
             }
         }
     }
@@ -944,14 +969,24 @@ export class TutiEngine extends BaseEngine {
         const allowedLetter = (this.state.currentLetter || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
         for (const bot of bots) {
+            // Guard: don't overwrite if answers were already generated for this bot
+            if (this.state.answers[bot.id] && Object.keys(this.state.answers[bot.id]).length > 0) {
+                continue;
+            }
+
             const botAnswers: Record<string, string> = {};
             const botStatuses: Record<string, AnswerStatus> = {};
 
             for (const category of this.state.categories) {
                 const collection = this.validation.dictionary.getCollection(lang, category.id);
-                const matchingWords = collection
+                let matchingWords = collection
                     ? Array.from(collection).filter(w => w.startsWith(allowedLetter))
                     : [];
+
+                // Si no hay palabras en el diccionario global, buscar en el fallback
+                if (matchingWords.length === 0) {
+                    matchingWords = getFallbackWords(lang, category.name, allowedLetter);
+                }
 
                 if (matchingWords.length > 0 && Math.random() < 0.85) {
                     const word = matchingWords[Math.floor(Math.random() * matchingWords.length)];
@@ -1027,6 +1062,35 @@ export class TutiEngine extends BaseEngine {
                 }
             }, delay);
         }
+    }
+
+    private botStopRound(botPlayer: any) {
+        if (this.state.status !== 'PLAYING') return;
+
+        // Candado Anti-Troll: ignorar peticiones prematuras
+        const gracePeriodMs = calcGracePeriod(this.state.categories.length);
+        if (Date.now() - this._roundStartTime < gracePeriodMs) {
+            return;
+        }
+
+        console.log(`[Bot] ${botPlayer.name} ha presionado ¡Basta!`);
+
+        // Generate answers for all bots
+        this.generateBotAnswers();
+
+        this.state.stoppedBy = botPlayer.id;
+        this.state.endingCountdownBy = botPlayer.name;
+
+        // Transicionar a ENDING_COUNTDOWN (3s de pánico)
+        this.state.status = 'ENDING_COUNTDOWN';
+        this.state.timers.roundEndsAt = Date.now() + 3000;
+        this.state.timers.graceEndsAt = null; // Grace period ya expiró, limpiar
+        this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
+
+        if (this.onGameStateChange) this.onGameStateChange(this.state);
+
+        if (this._endingTimer) clearTimeout(this._endingTimer);
+        this._endingTimer = setTimeout(() => this._forceReview(), 3000);
     }
 
     // [Sprint 4] Death Hook — release all GlobalWordCache references

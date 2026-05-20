@@ -178,7 +178,7 @@ const handleLeave = () => {
         </div>
 
         <!-- Main Content Grid -->
-        <div class="flex-1 min-h-0 px-3 pt-2 pb-2 lg:pb-3 lg:px-4 overflow-y-auto lg:overflow-hidden">
+        <div class="flex-1 min-h-0 px-3 pt-2 pb-2 lg:pb-3 lg:px-4 overflow-y-auto lg:overflow-hidden lg:flex lg:flex-col">
             <!-- min-h-full en mobile permite que el grid crezca libremente (scroll real).
                  h-full en desktop mantiene el layout de 2 columnas a altura fija. -->
             <div class="min-h-full lg:h-full grid grid-cols-1 lg:grid-cols-12 gap-3">
@@ -201,7 +201,7 @@ const handleLeave = () => {
                      :class="{ 'hidden lg:grid': activeTab !== 'settings' }"
                 >
                     <!-- Center: Mode Selector + Categories -->
-                    <div class="lg:col-span-5 flex flex-col gap-4 lg:min-h-0 lg:overflow-y-auto"
+                    <div class="lg:col-span-5 flex flex-col gap-4 lg:h-full lg:min-h-0 lg:overflow-y-auto"
                          :class="{ 'opacity-80': !amIHost }"
                     >
                         <!-- Game Mode Selector -->

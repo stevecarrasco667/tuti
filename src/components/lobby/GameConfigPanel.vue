@@ -108,7 +108,7 @@ function decrementImpostorCategoryCount() {
 </script>
 
 <template>
-    <div class="lg:col-span-4 bg-panel-base border-2 border-white/5 rounded-3xl shadow-game-panel flex flex-col lg:overflow-hidden lg:min-h-0"
+    <div class="lg:col-span-4 bg-panel-base border-2 border-white/5 rounded-3xl shadow-game-panel flex flex-col lg:h-full lg:overflow-hidden lg:min-h-0"
          :class="{ 'opacity-80': !props.amIHost }"
     >
         <div class="p-3 md:p-4 border-b-2 border-white/5 bg-panel-card/50 flex items-center justify-between flex-none gap-2">

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TutiEngine } from './engines/tuti-engine';
 import { SupabaseClient } from '@supabase/supabase-js';
 
@@ -408,6 +408,67 @@ describe('TutiEngine Core', () => {
             } finally {
                 Math.random = originalRandom;
             }
+        });
+
+        it('should use fallback dictionary when global cache is empty', () => {
+            engine.joinPlayer(hostId, 'Host', 'av1', hostConn);
+            engine.addBot();
+
+            const state = engine.getState();
+            state.status = 'PLAYING';
+            state.currentLetter = 'A';
+            state.categories = [{ id: '1', name: 'Nombre' }]; // Classic category 'Nombre'
+
+            // Force generating bot answers
+            const bot = state.players.find(p => p.isBot)!;
+            (engine as any).generateBotAnswers();
+
+            const botAnswer = state.answers[bot.id]?.['Nombre'];
+            expect(botAnswer).toBeDefined();
+            if (botAnswer !== '¡No lo sé! 🧠' && botAnswer !== '') {
+                expect(botAnswer.toLowerCase().startsWith('a')).toBe(true);
+            }
+        });
+
+        it('should trigger Basta! and end round when a bot has completed all categories and grace period passed', () => {
+            engine.joinPlayer(hostId, 'Host', 'av1', hostConn);
+            engine.addBot();
+
+            const state = engine.getState();
+            state.status = 'PLAYING';
+            state.categories = [{ id: '1', name: 'Nombre' }];
+            state.currentLetter = 'A';
+            const bot = state.players.find(p => p.isBot)!;
+            bot.filledCount = 1; // Completed the category count
+
+            // Set _roundStartTime in the past to satisfy grace period
+            (engine as any)._roundStartTime = Date.now() - 10000;
+
+            // Force random to trigger 20% Basta logic
+            const originalRandom = Math.random;
+            Math.random = () => 0.1; // Will pass Math.random() < 0.20
+
+            try {
+                engine.tick(30);
+                expect(state.status).toBe('ENDING_COUNTDOWN');
+                expect(state.stoppedBy).toBe(bot.id);
+                expect(state.endingCountdownBy).toBe(bot.name);
+            } finally {
+                Math.random = originalRandom;
+            }
+        });
+
+        it('should pre-load categories during hydration', () => {
+            const state = engine.getState();
+            state.categories = [{ id: '1', name: 'Nombre' }];
+            state.config.lang = 'es';
+
+            const loadSpy = vi.spyOn(engine.validation.getDictionaryManager(), 'loadCategory').mockResolvedValue();
+
+            engine.hydrate(state);
+
+            expect(loadSpy).toHaveBeenCalledWith('es', '1', expect.any(Object));
+            loadSpy.mockRestore();
         });
     });
 });
