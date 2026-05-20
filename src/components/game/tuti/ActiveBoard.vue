@@ -116,7 +116,7 @@ const handleNextFocus = (currentIndex: number) => {
                                 :ref="(el) => setInputRef(el, index)"
                                 type="text"
                                 autocomplete="off"
-                                class="w-full px-5 py-2.5 rounded-2xl bg-panel-base/60 text-ink-main placeholder-ink-muted/30 font-heading font-black border-2 border-white/10 outline-none transition-all duration-300 focus:border-tuti-teal focus:shadow-[0_0_15px_rgba(45,212,191,0.35),_inset_0_2px_8px_rgba(0,0,0,0.5)] disabled:cursor-not-allowed"
+                                class="w-full px-5 py-2.5 rounded-2xl bg-[#2dd4bf]/10 text-ink-main placeholder-ink-muted/30 font-heading font-black border-2 border-[#2dd4bf]/25 outline-none transition-all duration-300 focus:border-tuti-teal focus:shadow-[0_0_15px_rgba(45,212,191,0.35),_inset_0_2px_8px_rgba(0,0,0,0.5)] disabled:cursor-not-allowed"
                                 :class="[
                                     inputHeightClass, 
                                     inputTextClass,
