@@ -62,14 +62,80 @@ const suspects = computed(() => {
 // Phase 1: Adaptive grid strategy by player count
 const gridClass = computed(() => {
     const n = suspects.value.length;
-    if (n <= 2) return 'grid-cols-2 max-w-lg mx-auto';
-    if (n <= 4) return 'grid-cols-2 max-w-2xl mx-auto';
-    if (n <= 6) return 'grid-cols-3 max-w-4xl mx-auto sm:grid-cols-3';
-    return 'grid-cols-2 sm:grid-cols-4 max-w-5xl mx-auto'; // ≥7: compact mode
+    if (n <= 2) return 'grid-cols-2 max-w-2xl mx-auto gap-6';
+    if (n === 3) return 'grid-cols-3 max-w-4xl mx-auto gap-6';
+    if (n === 4) return 'grid-cols-2 max-w-3xl mx-auto gap-4';
+    if (n <= 6) return 'grid-cols-3 max-w-5xl mx-auto gap-4';
+    return 'grid-cols-2 sm:grid-cols-4 max-w-5xl mx-auto gap-3'; // ≥7: compact mode
 });
 
-// Compact mode for ≥7 players
-const isCompact = computed(() => suspects.value.length >= 7);
+// Card sizing calculation based on suspects count
+const cardSize = computed(() => {
+    const n = suspects.value.length;
+    if (n <= 4) return 'lg';
+    if (n <= 6) return 'md';
+    return 'sm';
+});
+
+// Dynamic configuration for padding, sizing, font and transitions
+const cardConfig = computed(() => {
+    const size = cardSize.value;
+    if (size === 'lg') {
+        return {
+            bodyPadding: 'p-5 md:p-6 gap-3',
+            footerPadding: 'py-2.5 px-4',
+            avatarContainer: 'w-12 h-12 text-2xl',
+            avatarText: 'text-xl md:text-2xl',
+            nameClass: 'text-xs md:text-sm',
+            wordContainer: 'py-3 px-4 min-h-[48px]',
+            wordClass: 'text-base md:text-lg',
+            thinkingClass: 'text-xs md:text-sm',
+            buttonClass: 'min-h-[48px] px-3.5',
+            buttonText: 'text-[11px] md:text-xs',
+            switchContainer: 'w-[48px] h-[28px] p-[3px]',
+            switchCircle: 'w-[22px] h-[22px]',
+            switchCircleTranslate: 'translate-x-[20px]',
+            footerText: 'text-[10px] md:text-xs',
+            reactionsCompact: false
+        };
+    } else if (size === 'md') {
+        return {
+            bodyPadding: 'p-4 gap-2.5',
+            footerPadding: 'py-2 px-3',
+            avatarContainer: 'w-10 h-10 text-xl',
+            avatarText: 'text-lg md:text-xl',
+            nameClass: 'text-[11px] md:text-xs',
+            wordContainer: 'py-2 px-3 min-h-[40px]',
+            wordClass: 'text-sm md:text-base',
+            thinkingClass: 'text-[11px] md:text-xs',
+            buttonClass: 'min-h-[44px] px-3',
+            buttonText: 'text-[10px] md:text-[11px]',
+            switchContainer: 'w-[40px] h-[24px] p-[3px]',
+            switchCircle: 'w-[18px] h-[18px]',
+            switchCircleTranslate: 'translate-x-[16px]',
+            footerText: 'text-[9px] md:text-[10px]',
+            reactionsCompact: true
+        };
+    } else { // 'sm'
+        return {
+            bodyPadding: 'p-2.5 md:p-3 gap-1.5',
+            footerPadding: 'py-1.5 px-2',
+            avatarContainer: 'w-8 h-8 text-lg',
+            avatarText: 'text-base md:text-lg',
+            nameClass: 'text-[9px] md:text-[10px]',
+            wordContainer: 'py-1.5 px-2 min-h-[32px]',
+            wordClass: 'text-xs md:text-sm',
+            thinkingClass: 'text-[9px] md:text-[10px]',
+            buttonClass: 'min-h-[38px] px-2',
+            buttonText: 'text-[9px]',
+            switchContainer: 'w-[32px] h-[20px] p-[2px]',
+            switchCircle: 'w-[16px] h-[16px]',
+            switchCircleTranslate: 'translate-x-[12px]',
+            footerText: 'text-[8px] md:text-[9px]',
+            reactionsCompact: true
+        };
+    }
+});
 
 // Phase 6: Global voting progress
 const votesCast = computed(() => Object.keys(props.impostorData.votes || {}).length);
@@ -154,34 +220,40 @@ const votingProgress = computed(() =>
 
         <!-- SUSPECT CARDS GRID -->
         <div class="flex-1 overflow-y-auto px-3 pb-4 scrollbar-thin">
-            <div class="grid gap-3 w-full" :class="gridClass">
+            <div class="grid w-full" :class="gridClass">
 
                 <div v-for="s in suspects" :key="s.id"
-                     class="relative bg-panel-card backdrop-blur-md border-[3px] rounded-2xl flex flex-col transition-all duration-300 shadow-sm"
+                     class="relative bg-panel-card backdrop-blur-md border-[2.5px] rounded-3xl flex flex-col transition-all duration-300 shadow-sm hover:scale-[1.01]"
                      :class="[
+                         s.isPlayerDead ? 'opacity-50 grayscale pointer-events-none' : '',
                          s.isSelectedByMe
-                             ? 'border-action-primary bg-action-primary/5 shadow-[0_0_16px_rgba(46,204,113,0.25)]'
-                             : 'border-white/10 hover:border-white/20',
-                         s.isPlayerDead ? 'opacity-50 grayscale pointer-events-none' : ''
+                             ? 'border-action-primary bg-action-primary/10 shadow-[0_0_20px_rgba(251,191,36,0.25)]'
+                             : (s.currentVotes >= 3
+                                 ? 'border-action-error/60 shadow-[0_0_20px_rgba(251,113,133,0.35)] animate-glow-panic'
+                                 : (s.currentVotes > 0
+                                     ? 'border-action-error/30 shadow-[0_0_12px_rgba(251,113,133,0.15)] bg-action-error/5'
+                                     : 'border-white/10 hover:border-white/20'
+                                 )
+                             )
                      ]"
                 >
                     <!-- Card body -->
-                    <div class="p-3 flex flex-col gap-2 flex-1">
+                    <div class="flex flex-col flex-1" :class="cardConfig.bodyPadding">
 
                         <!-- Row: Avatar + Name -->
                         <div class="flex items-center gap-2">
                             <!-- Avatar -->
                             <div class="flex-none rounded-full bg-panel-input flex items-center justify-center border-2 border-white/10 shadow-sm overflow-hidden"
-                                 :class="isCompact ? 'w-8 h-8' : 'w-10 h-10 md:w-11 md:h-11'">
+                                 :class="cardConfig.avatarContainer">
                                 <img v-if="s.avatar && (s.avatar.startsWith('/') || s.avatar.startsWith('http'))"
                                      :src="s.avatar" class="w-full h-full object-cover rounded-full" />
-                                <span v-else :class="isCompact ? 'text-lg' : 'text-xl md:text-2xl'">{{ s.avatar || '👤' }}</span>
+                                <span v-else :class="cardConfig.avatarText">{{ s.avatar || '👤' }}</span>
                             </div>
 
                             <!-- Name -->
                             <div class="min-w-0 flex-1">
                                 <span class="block font-black text-ink-main uppercase tracking-wide leading-tight truncate"
-                                      :class="isCompact ? 'text-[10px]' : 'text-xs md:text-sm'"
+                                      :class="cardConfig.nameClass"
                                       :title="s.name">
                                     {{ s.name }}
                                 </span>
@@ -199,25 +271,31 @@ const votingProgress = computed(() =>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
                                 <span v-else-if="s.hasVoted && !s.isMe && !s.isPlayerDead"
-                                      class="text-action-primary font-black text-sm">✓</span>
+                                      class="text-action-primary font-black text-sm drop-shadow-[0_0_4px_rgba(251,191,36,0.3)]">✓</span>
                             </div>
                         </div>
 
-                        <!-- Phase 2: WORD — Visual protagonist -->
-                        <div class="relative w-full rounded-xl px-3 py-2 text-center transition-colors duration-300"
-                             :class="s.word
-                                 ? 'bg-tuti-teal/10 border border-tuti-teal/30'
-                                 : 'bg-panel-input/60 border border-white/10 border-dashed'"
+                        <!-- WORD — Visual protagonist -->
+                        <div class="relative w-full rounded-xl px-3 py-2 text-center transition-all duration-300"
+                             :class="[
+                                 cardConfig.wordContainer,
+                                 s.word
+                                     ? 'bg-tuti-teal/10 border border-tuti-teal/30 shadow-[0_0_8px_rgba(20,184,166,0.05)]'
+                                     : 'bg-panel-input/30 border border-white/5 backdrop-blur-sm animate-pulse'
+                             ]"
                         >
                             <span v-if="s.word"
                                   class="font-black text-tuti-teal break-all leading-tight"
-                                  :class="isCompact ? 'text-sm' : 'text-base md:text-lg'">
+                                  :class="cardConfig.wordClass">
                                 {{ s.word }}
                             </span>
-                            <span v-else class="text-ink-muted/60 font-bold italic"
-                                  :class="isCompact ? 'text-[10px]' : 'text-xs'">
-                                {{ t('impostorVoting.thinking') }}
-                            </span>
+                            <div v-else class="flex items-center justify-center gap-1.5 py-0.5">
+                                <span class="text-xs animate-spin-slow">⏳</span>
+                                <span class="font-bold italic text-ink-soft/60"
+                                      :class="cardConfig.thinkingClass">
+                                    {{ t('impostorVoting.thinking') }}
+                                </span>
+                            </div>
 
                             <!-- Burst de animación de reacciones (posición fija en datos) -->
                             <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
@@ -226,7 +304,7 @@ const votingProgress = computed(() =>
                                         v-for="b in getBurstsForTarget(s.id, impostorData.currentCategoryId)"
                                         :key="b.id"
                                         class="absolute bottom-0 font-emoji"
-                                        :class="isCompact ? 'text-2xl' : 'text-4xl'"
+                                        :class="cardConfig.reactionsCompact ? 'text-2xl' : 'text-4xl'"
                                         :style="{ left: `${b.offsetX}%` }"
                                     >{{ b.emoji }}</span>
                                 </TransitionGroup>
@@ -237,7 +315,7 @@ const votingProgress = computed(() =>
                         <div class="flex items-center gap-1" v-if="s.word && !s.isPlayerDead">
                             <ReactionBar
                                 :counts="getCountsForTarget(s.id, impostorData.currentCategoryId)"
-                                :is-compact="isCompact"
+                                :is-compact="cardConfig.reactionsCompact"
                                 class="flex-1 min-w-0"
                             />
                             <!-- Trigger solo para otros jugadores -->
@@ -245,45 +323,46 @@ const votingProgress = computed(() =>
                                 v-if="!s.isMe"
                                 :target-player-id="s.id"
                                 :category-id="impostorData.currentCategoryId"
-                                :is-compact="isCompact"
+                                :is-compact="cardConfig.reactionsCompact"
                                 @react="(emoji, tid, cid) => sendReaction(tid, cid, emoji)"
                             />
                         </div>
 
                         <button @click="handleVote(s.id)"
                                 :disabled="s.isMe || s.isPlayerDead || isDead || isSpectator"
-                                class="flex items-center justify-between w-full min-h-[44px] rounded-full px-3 py-1.5 transition-all duration-300 border-2 active:scale-95"
+                                class="flex items-center justify-between w-full rounded-full transition-all duration-300 border-2 active:scale-95"
                                 :class="[
+                                    cardConfig.buttonClass,
                                     s.isSelectedByMe
-                                        ? 'bg-action-primary/20 border-action-primary shadow-[0_0_8px_rgba(46,204,113,0.3)]'
-                                        : 'bg-panel-input border-white/10',
+                                        ? 'bg-game-green/10 border-game-green/45 shadow-[0_0_8px_rgba(52,211,153,0.15)]'
+                                        : 'bg-panel-input border-white/10 hover:border-white/20',
                                     (!s.isMe && !s.isPlayerDead && !isDead && !isSpectator)
-                                        ? 'cursor-pointer hover:border-white/30'
+                                        ? 'cursor-pointer'
                                         : 'cursor-not-allowed opacity-60 grayscale'
                                 ]"
                         >
                             <span class="font-black tracking-widest uppercase text-left flex-shrink-0 mr-2"
                                   :class="[
-                                      s.isSelectedByMe ? 'text-action-primary' : 'text-ink-soft',
-                                      isCompact ? 'text-[9px]' : 'text-[11px] md:text-xs'
+                                      s.isSelectedByMe ? 'text-game-green' : 'text-ink-soft',
+                                      cardConfig.buttonText
                                   ]">
                                 {{ t('impostorVoting.accuse') }}
                             </span>
 
                             <!-- Toggle visual — flex-shrink-0 so it never compresses -->
-                            <div class="relative flex-shrink-0 rounded-full border-2 transition-colors duration-300"
+                            <div class="relative inline-flex items-center rounded-full border transition-colors duration-300 border-white/10 shrink-0 shadow-inner focus:outline-none"
                                  :class="[
-                                     isCompact ? 'w-8 h-4' : 'w-10 h-5 md:w-11 md:h-6',
-                                     s.isSelectedByMe ? 'bg-action-primary border-transparent' : 'bg-panel-input border-panel-card shadow-inner',
+                                     cardConfig.switchContainer,
+                                     s.isSelectedByMe 
+                                         ? 'bg-game-green shadow-[0_0_10px_rgba(34,197,94,0.25)] border-game-green/30' 
+                                         : 'bg-game-red shadow-[0_0_10px_rgba(239,68,68,0.25)] border-game-red/30',
                                      s.isMe ? 'opacity-40' : ''
                                  ]">
                                 <div v-if="!s.isMe"
-                                     class="absolute top-0.5 left-0.5 rounded-full bg-white shadow-sm transition-transform duration-300 border border-black/5"
+                                     class="inline-block bg-white rounded-full transition-transform duration-200 ease-out shadow-md"
                                      :class="[
-                                         isCompact ? 'w-2.5 h-2.5' : 'w-3 h-3 md:w-4 md:h-4',
-                                         s.isSelectedByMe
-                                             ? (isCompact ? 'translate-x-[14px]' : 'translate-x-[1.1rem] md:translate-x-5')
-                                             : 'translate-x-0'
+                                         cardConfig.switchCircle,
+                                         s.isSelectedByMe ? cardConfig.switchCircleTranslate : 'translate-x-0'
                                      ]">
                                 </div>
                             </div>
@@ -291,18 +370,18 @@ const votingProgress = computed(() =>
                     </div>
 
                     <!-- Footer: vote count -->
-                    <div class="bg-panel-input/60 flex justify-center items-center border-t-2 border-white/10"
-                         :class="isCompact ? 'py-1 px-2' : 'py-1.5 px-3'">
-                        <span class="text-action-warning mr-1 drop-shadow-sm" :class="isCompact ? 'text-xs' : 'text-sm'">🔥</span>
+                    <div class="bg-panel-input/60 flex justify-center items-center border-t-2 border-white/10 rounded-b-3xl"
+                         :class="cardConfig.footerPadding">
+                        <span class="text-action-warning mr-1 drop-shadow-sm" :class="cardConfig.reactionsCompact ? 'text-xs' : 'text-sm'">🔥</span>
                         <span class="font-black text-ink-soft uppercase tracking-widest"
-                              :class="isCompact ? 'text-[9px]' : 'text-[10px] md:text-xs'">
+                              :class="cardConfig.footerText">
                             {{ s.currentVotes }} {{ s.currentVotes === 1 ? t('impostorVoting.vote') : t('impostorVoting.votes') }}
                         </span>
                     </div>
 
                     <!-- Dead overlay -->
                     <div v-if="s.isPlayerDead"
-                         class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 bg-panel-base/80 backdrop-blur-[1px] rounded-xl overflow-hidden">
+                         class="absolute inset-0 flex items-center justify-center pointer-events-none z-10 bg-panel-base/80 backdrop-blur-[1px] rounded-3xl overflow-hidden">
                         <span class="text-5xl drop-shadow-md">💀</span>
                     </div>
                 </div>
@@ -327,5 +406,27 @@ const votingProgress = computed(() =>
 }
 .animate-float-up {
     animation: float-up 2s ease-out forwards;
+}
+
+@keyframes glow-panic {
+    0%, 100% {
+        box-shadow: 0 0 12px rgba(251, 113, 133, 0.15);
+        border-color: rgba(244, 63, 94, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 22px rgba(251, 113, 133, 0.4);
+        border-color: rgba(244, 63, 94, 0.75);
+    }
+}
+.animate-glow-panic {
+    animation: glow-panic 2s infinite ease-in-out;
+}
+
+@keyframes spin-slow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+    animation: spin-slow 8s linear infinite;
 }
 </style>
