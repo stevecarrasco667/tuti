@@ -92,10 +92,8 @@ const handleNextFocus = (currentIndex: number) => {
     <!-- FASE 1: flex-col justify-center min-h-full para centrado vertical real -->
     <div class="w-full max-w-[95%] xl:max-w-7xl mx-auto flex flex-col justify-center min-h-full transition-all duration-500 ease-out">
         
-        <div class="bg-panel-card/60 backdrop-blur-sm border-2 border-white/10 rounded-[2.5rem] shadow-3d-panel overflow-hidden relative transition-all duration-300">
+        <div class="bg-panel-base/30 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-[0_8px_32px_0_rgba(15,14,45,0.47)] overflow-hidden relative transition-all duration-300">
             
-            <!-- Accent strip top — Soft gradient suave -->
-
             <!-- FASE 2: padding reducido, grid adaptativo por gridClass computed -->
             <div class="p-4 md:p-5">
                 <div class="grid gap-3 md:gap-4 items-start" :class="gridClass">
@@ -103,8 +101,8 @@ const handleNextFocus = (currentIndex: number) => {
                         <!-- Soft-Pop: label como burbuja sutil encima del input -->
                         <label
                             :title="t(`categories.${category.id}`) || category.name"
-                            class="inline-block font-heading font-black text-[10px] uppercase tracking-wider px-2.5 py-1 mb-1.5
-                                   bg-game-yellow/20 text-game-yellow rounded-full cursor-default truncate max-w-full"
+                            class="inline-block font-heading font-black text-[10px] uppercase tracking-widest px-3 py-1 mb-2
+                                   bg-gradient-to-r from-tuti-teal/20 to-tuti-teal/5 text-tuti-teal border border-tuti-teal/30 rounded-full cursor-default truncate max-w-full shadow-[0_2px_8px_rgba(45,212,191,0.05)]"
                         >
                             {{ t(`categories.${category.id}`, category.name) }}
                         </label>
@@ -118,7 +116,7 @@ const handleNextFocus = (currentIndex: number) => {
                                 :ref="(el) => setInputRef(el, index)"
                                 type="text"
                                 autocomplete="off"
-                                class="sp-input font-heading font-black py-2 px-4 disabled:cursor-not-allowed"
+                                class="w-full px-5 py-2.5 rounded-2xl bg-panel-base/60 text-ink-main placeholder-ink-muted/30 font-heading font-black border-2 border-white/10 outline-none transition-all duration-300 focus:border-tuti-teal focus:shadow-[0_0_15px_rgba(45,212,191,0.35),_inset_0_2px_8px_rgba(0,0,0,0.5)] disabled:cursor-not-allowed"
                                 :class="[
                                     inputHeightClass, 
                                     inputTextClass,
@@ -128,11 +126,13 @@ const handleNextFocus = (currentIndex: number) => {
                                 :disabled="isBlocked || isSpectator"
                                 :tabindex="isSpectator ? -1 : 0"
                             >
-                            <!-- Indicador de completado — punto verde Soft-Pop -->
+                            <!-- Indicador de completado — checkmark verde con animación de rebote y neon glow -->
                             <div v-if="modelValue[category.name]?.trim().length > 0"
-                                 class="absolute right-3 top-1/2 -translate-y-1/2
-                                        w-3 h-3 rounded-full bg-game-green shadow-3d-green
-                                        pointer-events-none transition-all duration-200">
+                                 class="absolute right-4 top-1/2 -translate-y-1/2
+                                        flex items-center justify-center w-6 h-6 rounded-full 
+                                        bg-[#34d399] text-[#0f0e2d] text-xs font-black shadow-[0_0_12px_rgba(52,211,153,0.6)]
+                                        pointer-events-none transition-all duration-300 animate-bounce">
+                                 ✓
                             </div>
                         </div>
                     </div>

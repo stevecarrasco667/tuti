@@ -67,13 +67,19 @@ const timerClasses = computed(() => {
                 </div>
             </div>
 
-            <!-- Center: THE LETTER BADGE (Soft-Pop Bouncy Circle) -->
-            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
+            <!-- Center: THE LETTER BADGE (Soft-Pop Bouncy Circle with Orbital Neon Rings) -->
+            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none flex items-center justify-center">
+                <!-- Outer Ring (Clockwise) -->
+                <div class="absolute w-20 h-20 md:w-24 md:h-24 rounded-full border border-dashed border-tuti-teal/40 animate-spin-slow"></div>
+                <!-- Inner Ring (Counter-clockwise) -->
+                <div class="absolute w-18 h-18 md:w-21 md:h-21 rounded-full border border-dotted border-game-yellow/50 animate-spin-reverse"></div>
+                
                 <div class="w-14 h-14 md:w-16 md:h-16 rounded-full
-                            bg-game-yellow shadow-3d-yellow
+                            bg-gradient-to-br from-game-yellow to-game-yellow-dark
+                            shadow-[0_0_20px_rgba(253,230,138,0.6),_0_6px_0_0_#d97706]
                             flex items-center justify-center
-                            transition-all duration-300">
-                    <span class="text-3xl md:text-4xl font-heading font-black text-panel-base drop-shadow-sm">
+                            transition-all duration-300 relative z-20">
+                    <span class="text-3xl md:text-4xl font-heading font-black text-panel-base drop-shadow-md">
                         {{ currentLetter }}
                     </span>
                 </div>
@@ -107,5 +113,19 @@ const timerClasses = computed(() => {
 }
 .animate-heartbeat {
     animation: heartbeat 1s ease-in-out infinite;
+}
+@keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+@keyframes spin-reverse {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+}
+.animate-spin-slow {
+    animation: spin-slow 10s linear infinite;
+}
+.animate-spin-reverse {
+    animation: spin-reverse 7s linear infinite;
 }
 </style>
