@@ -83,6 +83,12 @@ watch(lastMessage, (newMsg) => {
                 applyPatch(state.gameState.value, patches);
                 state.gameState.value.stateVersion = stateVersion;
 
+                // Force Vue reactivity to propagate deep mutations (like bot filledCount)
+                state.gameState.value = {
+                    ...state.gameState.value,
+                    players: state.gameState.value.players ? [...state.gameState.value.players] : []
+                };
+
                 // También sincronizar URL en patches: el servidor puede cambiar
                 // activeView via un patch delta (ej. LOBBY→GAME al iniciar partida)
                 syncRoute(

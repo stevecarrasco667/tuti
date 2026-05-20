@@ -180,8 +180,10 @@ const handleLeave = () => {
         <!-- Main Content Grid -->
         <div class="flex-1 min-h-0 px-3 pt-2 pb-2 lg:pb-3 lg:px-4 overflow-y-auto lg:overflow-hidden lg:flex lg:flex-col">
             <!-- min-h-full en mobile permite que el grid crezca libremente (scroll real).
-                 h-full en desktop mantiene el layout de 2 columnas a altura fija. -->
-            <div class="min-h-full lg:h-full grid grid-cols-1 lg:grid-cols-12 gap-3">
+                 En desktop: h-full + items-stretch garantizan que todos los grid-items
+                 (incluido GameConfigPanel) tengan la misma altura real y puedan activar
+                 su propio overflow-y-auto interno. -->
+            <div class="min-h-full lg:h-full grid grid-cols-1 lg:grid-cols-12 gap-3 lg:items-stretch">
 
                 <!-- Left Panel: Player List -->
                 <PlayerList
@@ -197,11 +199,11 @@ const handleLeave = () => {
                 />
 
                 <!-- Center + Right Panels: Settings -->
-                <div class="lg:col-span-9 lg:grid lg:grid-cols-9 lg:gap-3 flex flex-col gap-4 lg:h-full lg:overflow-hidden overflow-y-auto"
+                <div class="lg:col-span-9 flex flex-col gap-4 lg:gap-0 lg:grid lg:grid-cols-9 lg:gap-3 lg:h-full"
                      :class="{ 'hidden lg:grid': activeTab !== 'settings' }"
                 >
                     <!-- Center: Mode Selector + Categories -->
-                    <div class="lg:col-span-5 flex flex-col gap-4 lg:h-full lg:min-h-0 lg:overflow-y-auto"
+                    <div class="lg:col-span-5 flex flex-col gap-4 lg:min-h-0 lg:overflow-y-auto lg:pr-0"
                          :class="{ 'opacity-80': !amIHost }"
                     >
                         <!-- Game Mode Selector -->
