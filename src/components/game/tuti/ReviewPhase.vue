@@ -43,51 +43,13 @@ type CardSize = 'xl' | 'lg' | 'md' | 'sm';
 const layoutConfig = computed(() => {
     const n = props.players.length;
     
-    // 7-8 jugadores: la gran innovación - MODO FILA HORIZONTAL
-    if (n >= 7) {
-        return {
-            gridClass:    'grid-cols-1 gap-2 md:gap-2.5',
-            maxWidthClass:'max-w-4xl mx-auto pb-4',
-            cardSize:     'sm' as CardSize,
-            centerVertically: false,
-            isHorizontal: true,
-        };
-    }
-    
-    // 2 jugadores: tarjetas enormes, centradas, máxima legibilidad
-    if (n <= 2) return {
-        gridClass:    'grid-cols-2 gap-4',
-        maxWidthClass:'max-w-3xl mx-auto',
-        cardSize:     'xl' as CardSize,
-        centerVertically: true,
-        isHorizontal: false,
-    };
-    
-    // 3 jugadores: 3 en fila pero grandes, sin dejar espacio muerto
-    if (n === 3) return {
-        gridClass:    'grid-cols-3 gap-3',
-        maxWidthClass:'max-w-4xl mx-auto',
-        cardSize:     'lg' as CardSize,
-        centerVertically: true,
-        isHorizontal: false,
-    };
-    
-    // 4 jugadores: 2×2 simétrico
-    if (n === 4) return {
-        gridClass:    'grid-cols-2 gap-4',
-        maxWidthClass:'max-w-3xl mx-auto',
-        cardSize:     'lg' as CardSize,
-        centerVertically: false,
-        isHorizontal: false,
-    };
-    
-    // 5-6 jugadores: 2 o 3 cols compactas
+    // Siempre en MODO FILA HORIZONTAL, variando tamaño por cantidad de jugadores
     return {
-        gridClass:    'grid-cols-2 md:grid-cols-3 gap-3',
-        maxWidthClass:'max-w-full',
-        cardSize:     'md' as CardSize,
-        centerVertically: false,
-        isHorizontal: false,
+        gridClass:    'grid-cols-1 gap-2 md:gap-2.5',
+        maxWidthClass: n <= 3 ? 'max-w-3xl mx-auto' : n <= 5 ? 'max-w-4xl mx-auto' : 'max-w-5xl mx-auto',
+        cardSize:     (n <= 3 ? 'xl' : n <= 5 ? 'lg' : n <= 6 ? 'md' : 'sm') as CardSize,
+        centerVertically: n <= 3,
+        isHorizontal: true,
     };
 });
 
@@ -119,28 +81,9 @@ const selfStatusIcon = (playerId: string, category: string) => {
 <template>
     <div class="h-full flex flex-col w-full mx-auto px-2 md:px-6 relative group">
 
-        <!-- Botón de navegación flotante izquierdo (Solo mediano/grande en escritorio/tablet) -->
-        <button
-            v-if="!isFirstCategory"
-            @click="prevCategory"
-            class="hidden md:flex absolute left-0 top-[50%] -translate-y-1/2 -translate-x-1.5 lg:-translate-x-4 z-40 w-10 h-10 items-center justify-center rounded-full bg-panel-card border border-white/10 text-white shadow-3d-panel hover:bg-panel-input transition-all duration-75 hover:scale-105 active:scale-95"
-            title="Categoría Anterior"
-        >
-            <span class="text-lg">←</span>
-        </button>
-
-        <!-- Botón de navegación flotante derecho (Solo mediano/grande en escritorio/tablet) -->
-        <button
-            v-if="!isLastCategory"
-            @click="nextCategory"
-            class="hidden md:flex absolute right-0 top-[50%] -translate-y-1/2 translate-x-1.5 lg:translate-x-4 z-40 w-10 h-10 items-center justify-center rounded-full bg-game-yellow text-panel-base shadow-3d-yellow hover:bg-game-yellow/90 transition-all duration-75 hover:scale-105 active:scale-95"
-            title="Siguiente Categoría"
-        >
-            <span class="text-lg">→</span>
-        </button>
-
         <!-- Stop Alert -->
-        <div v-if="showStopAlert && stopperPlayer"
+        <div v-slot="showStopAlert && stopperPlayer"
+             v-if="showStopAlert && stopperPlayer"
              class="flex-none bg-action-error/20 backdrop-blur-xl border border-action-error shadow-glow-panic rounded-3xl p-3 flex items-center justify-center gap-4 mb-3 mx-2">
             <div class="text-4xl animate-bounce drop-shadow-md">{{ stopperPlayer.avatar || '🛑' }}</div>
             <div class="flex flex-col items-center md:items-start text-center md:text-left gap-0.5">
@@ -163,7 +106,7 @@ const selfStatusIcon = (playerId: string, category: string) => {
             </div>
         </div>
 
-        <!-- ARENA — Adaptive Grid o Row List por número de jugadores -->
+        <!-- ARENA — Adaptive Row List por número de jugadores (Siempre Fila) -->
         <div class="flex-1 min-h-0 w-full overflow-y-auto flex flex-col px-1" :class="layoutConfig.maxWidthClass">
             <div class="grid w-full transition-all duration-500 ease-in-out"
                  :class="[layoutConfig.gridClass, layoutConfig.centerVertically ? 'my-auto pb-4' : 'content-start']">
@@ -186,22 +129,19 @@ const selfStatusIcon = (playerId: string, category: string) => {
                     :reaction-counts="getCountsForTarget(player.id, activeCategory.name)"
                     :reaction-bursts="getBurstsForTarget(player.id, activeCategory.name)"
                     :is-spectator="isSpectator"
-                    :is-horizontal="layoutConfig.isHorizontal"
                     @update:model-value="emit('vote', player.id, activeCategory.name)"
                     @react="(emoji: string, targetId: string, catId: string) => sendReaction(targetId, catId, emoji)"
                 />
             </div>
         </div>
 
-        <!-- Phase 5: ACTION BAR — safe area + z-index compactado -->
+        <!-- Phase 5: ACTION BAR — safe area + z-index compactado visible siempre -->
         <div class="flex-none pt-1.5 pb-[max(0.35rem,env(safe-area-inset-bottom,0.35rem))] md:pb-2.5 flex justify-between items-center gap-3 z-30 relative">
 
-            <!-- Atrás (Visible en móvil, oculto en escritorio gracias a flotantes) -->
-            <TButton variant="secondary" size="sm" :disabled="isFirstCategory" @click="prevCategory" class="md:hidden shrink-0">
+            <!-- Atrás -->
+            <TButton variant="secondary" size="sm" :disabled="isFirstCategory" @click="prevCategory" class="shrink-0">
                 {{ t('review.prev') }}
             </TButton>
-            <!-- Spacer simétrico en escritorio -->
-            <div class="hidden md:block w-[75px]"></div>
 
             <!-- Dots compactos -->
             <div class="flex gap-1 items-center">
@@ -213,16 +153,13 @@ const selfStatusIcon = (playerId: string, category: string) => {
                 />
             </div>
 
-            <!-- Siguiente ó Enviar Votos (Siguiente se oculta en escritorio por los flotantes) -->
-            <TButton v-if="!isLastCategory" variant="primary" size="sm" @click="nextCategory" class="md:hidden shrink-0">
+            <!-- Siguiente ó Enviar Votos -->
+            <TButton v-if="!isLastCategory" variant="primary" size="sm" @click="nextCategory" class="shrink-0">
                 {{ t('review.next') }}
             </TButton>
             <TButton v-else variant="primary" size="sm" :disabled="hasConfirmed || isSpectator" @click="!isSpectator && emit('submit-votes')" class="shrink-0">
                 {{ isSpectator ? t('review.viewing') : (hasConfirmed ? t('review.sent') : t('review.completed')) }}
             </TButton>
-            
-            <!-- Spacer simétrico en escritorio si no es la última categoría (para centrado perfecto de dots) -->
-            <div v-if="!isLastCategory" class="hidden md:block w-[75px]"></div>
         </div>
     </div>
 </template>
