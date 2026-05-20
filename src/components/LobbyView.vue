@@ -261,9 +261,8 @@ const handleLeave = () => {
                         />
                     </div>
 
-                    <!-- Right: Settings Panel — always independently scrollable -->
+                    <!-- Right: Settings Panel -->
                     <GameConfigPanel
-                        class="lg:col-span-4 lg:h-full lg:min-h-0 lg:overflow-y-auto"
                         :config="localConfig"
                         :am-i-host="amIHost"
                         @update-config="handleConfigChange"

@@ -108,7 +108,7 @@ function decrementImpostorCategoryCount() {
 </script>
 
 <template>
-    <div class="bg-panel-base border-2 border-white/5 rounded-3xl shadow-game-panel flex flex-col"
+    <div class="lg:col-span-4 bg-panel-base border-2 border-white/5 rounded-3xl shadow-game-panel flex flex-col"
          :class="{ 'opacity-80': !props.amIHost }"
     >
         <div class="p-3 md:p-4 border-b-2 border-white/5 bg-panel-card/50 flex items-center justify-between flex-none gap-2">
@@ -116,7 +116,7 @@ function decrementImpostorCategoryCount() {
             <span v-if="!props.amIHost" class="text-action-warning text-[8px] font-black uppercase tracking-wider bg-action-warning/20 px-2 py-0.5 rounded-full border border-action-warning/50">{{ t('lobby.settings.readOnly') }}</span>
         </div>
 
-        <div class="p-4 space-y-4">
+        <div class="overflow-y-auto p-4 space-y-4" style="max-height: calc(100dvh - 200px)">
 
             <!-- Idioma de la sala -->
             <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
