@@ -75,18 +75,18 @@ const sizeConfig = computed(() => {
                    : s === 'lg' ? '110px'
                    : s === 'md' ? '100px'
                                 : '85px',
-        switchContainerClass: s === 'xl' ? 'w-14 h-8 p-0.5'
-                            : s === 'lg' ? 'w-12 h-7 p-0.5'
-                            : s === 'md' ? 'w-11 h-6.5 p-0.5'
-                                         : 'w-9 h-5.5 p-0.5',
-        switchCircleClass: s === 'xl' ? 'w-7 h-7'
-                         : s === 'lg' ? 'w-6 h-6'
-                         : s === 'md' ? 'w-5.5 h-5.5'
-                                      : 'w-4.5 h-4.5',
-        switchTranslateClass: s === 'xl' ? 'translate-x-6'
-                            : s === 'lg' ? 'translate-x-5'
-                            : s === 'md' ? 'translate-x-4.5'
-                                         : 'translate-x-3.5',
+        switchContainerClass: s === 'xl' ? 'w-[56px] h-[32px] p-[4px]'
+                            : s === 'lg' ? 'w-[48px] h-[28px] p-[3px]'
+                            : s === 'md' ? 'w-[40px] h-[24px] p-[3px]'
+                                         : 'w-[32px] h-[20px] p-[2px]',
+        switchCircleClass: s === 'xl' ? 'w-[24px] h-[24px]'
+                         : s === 'lg' ? 'w-[22px] h-[22px]'
+                         : s === 'md' ? 'w-[18px] h-[18px]'
+                                      : 'w-[16px] h-[16px]',
+        switchTranslateClass: s === 'xl' ? 'translate-x-[24px]'
+                            : s === 'lg' ? 'translate-x-[20px]'
+                            : s === 'md' ? 'translate-x-[16px]'
+                                         : 'translate-x-[12px]',
     };
 });
 </script>
