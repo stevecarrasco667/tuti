@@ -181,7 +181,7 @@ const handleLeave = () => {
         <div class="flex-1 min-h-0 px-3 pt-2 pb-2 lg:pb-3 lg:px-4 overflow-y-auto lg:overflow-hidden lg:flex lg:flex-col">
             <!-- min-h-full en mobile permite que el grid crezca libremente (scroll real).
                  h-full en desktop mantiene el layout de 2 columnas a altura fija. -->
-            <div class="min-h-full lg:h-full grid grid-cols-1 lg:grid-cols-12 gap-3">
+            <div class="min-h-full lg:h-full grid grid-cols-1 lg:grid-cols-12 gap-2.5">
 
                 <!-- Left Panel: Player List -->
                 <PlayerList
@@ -197,20 +197,20 @@ const handleLeave = () => {
                 />
 
                 <!-- Center + Right Panels: Settings -->
-                <div class="lg:col-span-9 lg:grid lg:grid-cols-9 lg:gap-3 flex flex-col gap-4 lg:h-full lg:overflow-hidden"
+                <div class="lg:col-span-9 lg:grid lg:grid-cols-9 lg:gap-2.5 flex flex-col gap-3 lg:h-full lg:overflow-hidden"
                      :class="{ 'hidden lg:grid': activeTab !== 'settings' }"
                 >
                     <!-- Center: Mode Selector + Categories -->
-                    <div class="lg:col-span-5 flex flex-col gap-4 lg:h-full lg:min-h-0 lg:overflow-y-auto"
+                    <div class="lg:col-span-5 flex flex-col gap-3 lg:h-full lg:min-h-0 lg:overflow-hidden"
                          :class="{ 'opacity-80': !amIHost }"
                     >
                         <!-- Game Mode Selector -->
-                        <div class="bg-panel-base border-2 border-white/20 rounded-[2rem] shadow-3d-panel p-4 flex-none">
+                        <div class="bg-panel-base border-2 border-white/10 rounded-2xl shadow-game-panel p-3 flex-none">
                             <p class="text-ink-main text-[9px] font-black uppercase tracking-[0.2em] mb-3 text-center">{{ t('lobby.gameMode.title') }}</p>
                             <div class="grid grid-cols-2 gap-3">
                                 <div
                                     @click="amIHost && handleConfigChange('mode', 'CLASSIC')"
-                                    class="relative p-2.5 lg:p-5 rounded-2xl lg:rounded-[2rem] border-2 transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
+                                    class="relative p-2.5 lg:p-4 rounded-2xl border-2 transition-all duration-300 text-center group min-h-[90px] lg:min-h-[95px] flex flex-col items-center justify-center"
                                     :class="[
                                         localConfig.mode === 'CLASSIC'
                                             ? 'border-action-primary bg-action-primary/10 shadow-3d-yellow'
@@ -218,7 +218,7 @@ const handleLeave = () => {
                                         !amIHost ? 'cursor-not-allowed hover:scale-100 opacity-60' : 'cursor-pointer'
                                     ]"
                                 >
-                                    <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform drop-shadow-md">🎯</div>
+                                    <div class="text-3xl lg:text-3xl mb-1 group-hover:scale-110 transition-transform drop-shadow-md">🎯</div>
                                     <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">{{ t('lobby.gameMode.classic.title') }}</h4>
                                     <p class="text-ink-soft text-[8px] font-bold mt-1">{{ t('lobby.gameMode.classic.subtitle') }}</p>
                                     <div v-if="localConfig.mode === 'CLASSIC'" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-action-primary text-panel-base flex items-center justify-center text-[10px] font-black shadow-lg">✓</div>
@@ -230,7 +230,7 @@ const handleLeave = () => {
                                 </div>
                                 <div
                                     @click="amIHost && handleConfigChange('mode', 'IMPOSTOR')"
-                                    class="relative p-2.5 lg:p-5 rounded-2xl lg:rounded-[2rem] border-2 transition-all duration-300 text-center group min-h-[90px] lg:min-h-[110px] flex flex-col items-center justify-center"
+                                    class="relative p-2.5 lg:p-4 rounded-2xl border-2 transition-all duration-300 text-center group min-h-[90px] lg:min-h-[95px] flex flex-col items-center justify-center"
                                     :class="[
                                         localConfig.mode === 'IMPOSTOR'
                                             ? 'border-action-error bg-action-error/10 shadow-3d-red'
@@ -238,7 +238,7 @@ const handleLeave = () => {
                                         !amIHost ? 'cursor-not-allowed hover:scale-100 opacity-60' : 'cursor-pointer'
                                     ]"
                                 >
-                                    <div class="text-3xl lg:text-4xl mb-1.5 group-hover:scale-110 transition-transform drop-shadow-md">🕵️</div>
+                                    <div class="text-3xl lg:text-3xl mb-1 group-hover:scale-110 transition-transform drop-shadow-md">🕵️</div>
                                     <h4 class="text-ink-main font-black text-xs lg:text-sm tracking-wide">{{ t('lobby.gameMode.impostor.title') }}</h4>
                                     <p class="text-ink-soft text-[8px] font-bold mt-1">{{ t('lobby.gameMode.impostor.subtitle') }}</p>
                                     <div v-if="localConfig.mode === 'IMPOSTOR'" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-action-error text-white flex items-center justify-center text-[10px] font-black shadow-lg">✓</div>
@@ -273,7 +273,7 @@ const handleLeave = () => {
         </div>
 
         <!-- Sticky Footer: Start Button -->
-        <div class="flex-none px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] md:pb-3 lg:px-4 lg:pt-0 lg:pb-4 bg-panel-base/90 lg:bg-transparent border-t-[3px] border-white/10 lg:border-0 shadow-none backdrop-blur-2xl lg:backdrop-blur-none">
+        <div class="flex-none px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] md:pb-3 lg:px-4 lg:pt-1 lg:pb-3 bg-panel-base/90 lg:bg-transparent border-t-[3px] border-white/10 lg:border-0 shadow-none backdrop-blur-2xl lg:backdrop-blur-none">
             <div class="max-w-[1400px] mx-auto">
                 <TButton v-if="amIHost"
                     :variant="players.length >= 2 ? 'primary' : 'secondary'" size="md"
@@ -284,7 +284,7 @@ const handleLeave = () => {
                     <span v-if="players.length >= 2" class="text-lg md:text-2xl">⚡</span> 
                     {{ players.length >= 2 ? t('lobby.actions.start') : t('lobby.actions.waitingPlayers', { current: players.length, max: 2 }) }}
                 </TButton>
-                <div v-else class="w-full py-3 md:py-5 text-center bg-panel-card rounded-2xl border-[3px] border-white/10 text-ink-main text-sm font-black uppercase shadow-sm flex flex-col items-center justify-center">
+                <div v-else class="w-full py-2.5 md:py-3.5 text-center bg-panel-card rounded-2xl border-[3px] border-white/10 text-ink-main text-sm font-black uppercase shadow-sm flex flex-col items-center justify-center">
                     <span class="animate-pulse flex items-center gap-2">⏳ {{ t('lobby.actions.waitingHost') }}</span>
                 </div>
             </div>

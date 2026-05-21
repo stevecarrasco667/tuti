@@ -108,24 +108,26 @@ function decrementImpostorCategoryCount() {
 </script>
 
 <template>
-    <div class="lg:col-span-4 bg-panel-base border-2 border-white/5 rounded-3xl shadow-game-panel flex flex-col"
+    <div class="lg:col-span-4 bg-panel-base border-2 border-white/10 rounded-2xl shadow-game-panel flex flex-col lg:h-full lg:min-h-0 lg:overflow-hidden"
          :class="{ 'opacity-80': !props.amIHost }"
     >
-        <div class="p-3 md:p-4 border-b-2 border-white/5 bg-panel-card/50 flex items-center justify-between flex-none gap-2">
+        <!-- Header -->
+        <div class="p-3 border-b-2 border-white/10 bg-panel-card/50 flex items-center justify-between flex-none gap-2">
             <h3 class="text-ink-main text-xs font-black uppercase tracking-widest">{{ t('lobby.settings.title') }}</h3>
             <span v-if="!props.amIHost" class="text-action-warning text-[8px] font-black uppercase tracking-wider bg-action-warning/20 px-2 py-0.5 rounded-full border border-action-warning/50">{{ t('lobby.settings.readOnly') }}</span>
         </div>
 
-        <div class="overflow-y-auto p-4 space-y-4" style="max-height: calc(100dvh - 200px)">
+        <!-- Scrollable content -->
+        <div class="flex-1 overflow-y-auto p-3 space-y-3 lg:scrollbar-thin">
 
             <!-- Idioma de la sala -->
-            <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">💬 {{ t('lobby.settings.language') }}</label>
+            <div class="bg-panel-input rounded-xl border border-white/10 shadow-inner p-2">
+                <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-1.5">💬 {{ t('lobby.settings.language') }}</label>
                 <div class="flex gap-2">
-                    <button v-for="lang in [{ code:'es', label:'🇪🇸 Español' }, { code:'en', label:'🇬🇧 English' }, { code:'pt', label:'🇧🇷 Português' }]" :key="lang.code"
+                    <button v-for="lang in [{ code:'es', label:'🇪🇸 Español' }, { code:'en', label:'🇬🇧' }, { code:'pt', label:'🇧🇷' }]" :key="lang.code"
                         :disabled="!props.amIHost"
                         @click="emit('update-config', 'lang', lang.code)"
-                        class="flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wide border-2 transition-all"
+                        class="flex-1 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wide border transition-all cursor-pointer"
                         :class="[
                             props.config.lang === lang.code || (!props.config.lang && lang.code === 'es')
                                 ? 'bg-action-warning/20 border-action-warning text-action-warning shadow-sm'
@@ -140,10 +142,10 @@ function decrementImpostorCategoryCount() {
             <template v-if="props.config.mode === 'CLASSIC'">
 
                 <!-- Category Count (only when no manual categories selected) -->
-                <div v-if="!(props.config.classic?.categories?.length > 0)" class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🎲 {{ t('lobby.settings.classic.randomCategories') }}</label>
+                <div v-if="!(props.config.classic?.categories?.length > 0)" class="bg-panel-input rounded-xl border border-white/10 shadow-inner p-2 px-2.5">
+                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-1.5">🎲 {{ t('lobby.settings.classic.randomCategories') }}</label>
                     <div class="flex items-center justify-between">
-                        <button :disabled="!props.amIHost" @click="decrementCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-xl" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:bg-panel-input/80 active:scale-90'"></button>
+                        <button :disabled="!props.amIHost" @click="decrementCategoryCount" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'hover:bg-panel-input/80 active:scale-90'">-</button>
                         <input
                             type="number"
                             :disabled="!props.amIHost"
@@ -152,19 +154,19 @@ function decrementImpostorCategoryCount() {
                             @change="handleNumericInput('classic.categoryCount', ($event.target as HTMLInputElement).value, 1, 10)"
                             @keydown.enter="($event.target as HTMLInputElement).blur()"
                             @focus="($event.target as HTMLInputElement).select()"
-                            class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
+                            class="w-14 text-center text-xl md:text-2xl font-black text-ink-main bg-transparent border-b border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
                             :class="!props.amIHost ? 'cursor-not-allowed opacity-50' : ''"
                         />
-                        <button :disabled="!props.amIHost" @click="incrementCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-xl" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:bg-panel-input/80 active:scale-90'">+</button>
+                        <button :disabled="!props.amIHost" @click="incrementCategoryCount" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'hover:bg-panel-input/80 active:scale-90'">+</button>
                     </div>
-                    <p class="text-ink-muted text-[8px] font-bold mt-2 text-center">{{ t('lobby.settings.classic.randomCategoriesDesc') }}</p>
+                    <p class="text-ink-muted text-[8px] font-bold mt-1 text-center leading-none">{{ t('lobby.settings.classic.randomCategoriesDesc') }}</p>
                 </div>
 
                 <!-- Rounds -->
-                <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🔁 {{ t('lobby.settings.classic.rounds') }}</label>
+                <div class="bg-panel-input rounded-xl border border-white/10 shadow-inner p-2 px-2.5">
+                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-1.5">🔁 {{ t('lobby.settings.classic.rounds') }}</label>
                     <div class="flex items-center justify-between">
-                        <button :disabled="!props.amIHost" @click="decrementRounds" class="w-11 h-11 rounded-xl bg-panel-card border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-xl" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:bg-panel-input/80 active:scale-90'">-</button>
+                        <button :disabled="!props.amIHost" @click="decrementRounds" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'hover:bg-panel-input/80 active:scale-90'">-</button>
                         <input
                             type="number"
                             :disabled="!props.amIHost"
@@ -173,19 +175,19 @@ function decrementImpostorCategoryCount() {
                             @change="handleNumericInput('classic.rounds', ($event.target as HTMLInputElement).value, 1, 20)"
                             @keydown.enter="($event.target as HTMLInputElement).blur()"
                             @focus="($event.target as HTMLInputElement).select()"
-                            class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
+                            class="w-14 text-center text-xl md:text-2xl font-black text-ink-main bg-transparent border-b border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
                             :class="!props.amIHost ? 'cursor-not-allowed opacity-50' : ''"
                         />
-                        <button :disabled="!props.amIHost" @click="incrementRounds" class="w-11 h-11 rounded-xl bg-panel-card border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-xl" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:bg-panel-input/80 active:scale-90'">+</button>
+                        <button :disabled="!props.amIHost" @click="incrementRounds" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'hover:bg-panel-input/80 active:scale-90'">+</button>
                     </div>
                 </div>
 
                 <!-- Time Limit -->
-                <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">⏱️ {{ t('lobby.settings.classic.timeLimit') }}</label>
+                <div class="bg-panel-input rounded-xl border border-white/10 shadow-inner p-2 px-2.5">
+                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-1.5">⏱️ {{ t('lobby.settings.classic.timeLimit') }}</label>
                     <div class="flex items-center justify-between">
-                        <button :disabled="!props.amIHost" @click="decrementTimeLimit" class="w-11 h-11 rounded-xl bg-panel-card border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-xl" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:bg-panel-input/80 active:scale-90'">-</button>
-                        <div class="text-center">
+                        <button :disabled="!props.amIHost" @click="decrementTimeLimit" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'hover:bg-panel-input/80 active:scale-90'">-</button>
+                        <div class="text-center flex flex-col items-center">
                             <input
                                 type="number"
                                 :disabled="!props.amIHost"
@@ -194,21 +196,21 @@ function decrementImpostorCategoryCount() {
                                 @change="handleNumericInput('classic.timeLimit', ($event.target as HTMLInputElement).value, 30, 180, timeLimitOptions)"
                                 @keydown.enter="($event.target as HTMLInputElement).blur()"
                                 @focus="($event.target as HTMLInputElement).select()"
-                                class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
+                                class="w-14 text-center text-xl md:text-2xl font-black text-ink-main bg-transparent border-b border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
                                 :class="!props.amIHost ? 'cursor-not-allowed opacity-50' : ''"
                             />
-                            <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">{{ t('lobby.settings.classic.sec') }}</span>
+                            <span class="text-ink-muted text-[8px] font-black uppercase leading-none mt-1">{{ t('lobby.settings.classic.sec') }}</span>
                         </div>
-                        <button :disabled="!props.amIHost" @click="incrementTimeLimit" class="w-11 h-11 rounded-xl bg-panel-card border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-xl" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:bg-panel-input/80 active:scale-90'">+</button>
+                        <button :disabled="!props.amIHost" @click="incrementTimeLimit" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'hover:bg-panel-input/80 active:scale-90'">+</button>
                     </div>
                 </div>
 
                 <!-- Voting Duration -->
-                <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🗳️ {{ t('lobby.settings.classic.votingTime') }}</label>
+                <div class="bg-panel-input rounded-xl border border-white/10 shadow-inner p-2 px-2.5">
+                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-1.5">🗳️ {{ t('lobby.settings.classic.votingTime') }}</label>
                     <div class="flex items-center justify-between">
-                        <button :disabled="!props.amIHost" @click="decrementVotingDuration" class="w-11 h-11 rounded-xl bg-panel-card border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-xl" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:bg-panel-input/80 active:scale-90'">-</button>
-                        <div class="text-center">
+                        <button :disabled="!props.amIHost" @click="decrementVotingDuration" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'hover:bg-panel-input/80 active:scale-90'">-</button>
+                        <div class="text-center flex flex-col items-center">
                             <input
                                 type="number"
                                 :disabled="!props.amIHost"
@@ -217,65 +219,65 @@ function decrementImpostorCategoryCount() {
                                 @change="handleNumericInput('classic.votingDuration', ($event.target as HTMLInputElement).value, 10, 120, votingOptions)"
                                 @keydown.enter="($event.target as HTMLInputElement).blur()"
                                 @focus="($event.target as HTMLInputElement).select()"
-                                class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
+                                class="w-14 text-center text-xl md:text-2xl font-black text-ink-main bg-transparent border-b border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
                                 :class="!props.amIHost ? 'cursor-not-allowed opacity-50' : ''"
                             />
-                            <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">{{ t('lobby.settings.classic.sec') }}</span>
+                            <span class="text-ink-muted text-[8px] font-black uppercase leading-none mt-1">{{ t('lobby.settings.classic.sec') }}</span>
                         </div>
-                        <button :disabled="!props.amIHost" @click="incrementVotingDuration" class="w-11 h-11 rounded-xl bg-panel-card border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-xl" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:bg-panel-input/80 active:scale-90'">+</button>
+                        <button :disabled="!props.amIHost" @click="incrementVotingDuration" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'hover:bg-panel-input/80 active:scale-90'">+</button>
                     </div>
                 </div>
 
-                <hr class="border-t-[3px] border-white/10 rounded-full mt-4 mb-2" />
+                <hr class="border-t-2 border-white/10 rounded-full mt-3 mb-2" />
 
                 <!-- MUTATORS -->
                 <div>
-                    <p class="text-ink-main text-[9px] font-black uppercase tracking-widest mb-3">⚡ {{ t('lobby.settings.classic.mutators') }}</p>
+                    <p class="text-ink-main text-[9px] font-black uppercase tracking-widest mb-2">⚡ {{ t('lobby.settings.classic.mutators') }}</p>
 
                     <!-- Suicidal Stop -->
-                    <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3 mb-3">
+                    <div class="bg-panel-input rounded-xl border border-white/10 shadow-inner p-2.5 mb-2.5">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2.5">
-                                <span class="text-xl">💀</span>
-                                <span class="text-ink-main font-black text-sm">{{ t('lobby.settings.classic.suicidalStop') }}</span>
+                                <span class="text-lg">💀</span>
+                                <span class="text-ink-main font-black text-xs">{{ t('lobby.settings.classic.suicidalStop') }}</span>
                             </div>
                             <button
                                 :disabled="!props.amIHost"
                                 @click="emit('update-mutator', 'suicidalStop', !props.config.classic?.mutators?.suicidalStop)"
-                                class="relative w-[3.25rem] h-8 rounded-full transition-all duration-300 border-[3px] flex-none"
+                                class="relative w-11 h-6 rounded-full transition-all duration-300 border-[2px] flex-none cursor-pointer"
                                 :class="[
                                     props.config.classic?.mutators?.suicidalStop ? 'bg-action-error border-action-error' : 'bg-panel-input border-panel-card shadow-inner',
                                     !props.amIHost ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                                 ]"
                             >
-                                <span class="absolute top-0.5 w-5 h-5 rounded-full shadow-sm transition-all duration-300"
-                                      :class="props.config.classic?.mutators?.suicidalStop ? 'bg-white left-[calc(100%-1.4rem)]' : 'bg-panel-card left-1'"></span>
+                                <span class="absolute top-0.5 w-4 h-4 rounded-full shadow-sm transition-all duration-300"
+                                      :class="props.config.classic?.mutators?.suicidalStop ? 'bg-white left-[calc(100%-1.15rem)]' : 'bg-panel-card left-0.5'"></span>
                             </button>
                         </div>
-                        <p class="text-ink-muted text-[10px] font-bold mt-2 ml-9">{{ t('lobby.settings.classic.suicidalStopDesc') }}</p>
+                        <p class="text-ink-muted text-[9px] font-bold mt-1 ml-7 leading-tight">{{ t('lobby.settings.classic.suicidalStopDesc') }}</p>
                     </div>
 
                     <!-- Anonymous Voting -->
-                    <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-3">
+                    <div class="bg-panel-input rounded-xl border border-white/10 shadow-inner p-2.5">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2.5">
-                                <span class="text-xl">🎭</span>
-                                <span class="text-ink-main font-black text-sm">{{ t('lobby.settings.classic.anonymousVoting') }}</span>
+                                <span class="text-lg">🎭</span>
+                                <span class="text-ink-main font-black text-xs">{{ t('lobby.settings.classic.anonymousVoting') }}</span>
                             </div>
                             <button
                                 :disabled="!props.amIHost"
                                 @click="emit('update-mutator', 'anonymousVoting', !props.config.classic?.mutators?.anonymousVoting)"
-                                class="relative w-[3.25rem] h-8 rounded-full transition-all duration-300 border-[3px] flex-none"
+                                class="relative w-11 h-6 rounded-full transition-all duration-300 border-[2px] flex-none cursor-pointer"
                                 :class="[
                                     props.config.classic?.mutators?.anonymousVoting ? 'bg-action-blue border-action-blue' : 'bg-panel-input border-panel-card shadow-inner',
                                     !props.amIHost ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                                 ]"
                             >
-                                <span class="absolute top-0.5 w-5 h-5 rounded-full shadow-sm transition-all duration-300"
-                                      :class="props.config.classic?.mutators?.anonymousVoting ? 'bg-white left-[calc(100%-1.4rem)]' : 'bg-panel-card left-1'"></span>
+                                <span class="absolute top-0.5 w-4 h-4 rounded-full shadow-sm transition-all duration-300"
+                                      :class="props.config.classic?.mutators?.anonymousVoting ? 'bg-white left-[calc(100%-1.15rem)]' : 'bg-panel-card left-0.5'"></span>
                             </button>
                         </div>
-                        <p class="text-ink-muted text-[10px] font-bold mt-2 ml-9">{{ t('lobby.settings.classic.anonymousVotingDesc') }}</p>
+                        <p class="text-ink-muted text-[9px] font-bold mt-1 ml-7 leading-tight">{{ t('lobby.settings.classic.anonymousVotingDesc') }}</p>
                     </div>
                 </div>
             </template>
@@ -284,10 +286,10 @@ function decrementImpostorCategoryCount() {
             <template v-else-if="props.config.mode === 'IMPOSTOR'">
 
                 <!-- Category Count -->
-                <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">📦 {{ t('lobby.settings.impostor.categories') }}</label>
+                <div class="bg-panel-input rounded-xl border border-white/10 shadow-inner p-2 px-2.5">
+                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-1.5">📦 {{ t('lobby.settings.impostor.categories') }}</label>
                     <div class="flex items-center justify-between">
-                        <button :disabled="!props.amIHost" @click="decrementImpostorCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-xl" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:bg-panel-input/80 active:scale-90'">-</button>
+                        <button :disabled="!props.amIHost" @click="decrementImpostorCategoryCount" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'hover:bg-panel-input/80 active:scale-90'">-</button>
                         <input
                             type="number"
                             :disabled="!props.amIHost"
@@ -296,19 +298,19 @@ function decrementImpostorCategoryCount() {
                             @change="handleNumericInput('impostor.categoryCount', ($event.target as HTMLInputElement).value, 1, 8)"
                             @keydown.enter="($event.target as HTMLInputElement).blur()"
                             @focus="($event.target as HTMLInputElement).select()"
-                            class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
+                            class="w-14 text-center text-xl md:text-2xl font-black text-ink-main bg-transparent border-b border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
                             :class="!props.amIHost ? 'cursor-not-allowed opacity-50' : ''"
                         />
-                        <button :disabled="!props.amIHost" @click="incrementImpostorCategoryCount" class="w-11 h-11 rounded-xl bg-panel-card border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-xl" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:bg-panel-input/80 active:scale-90'">+</button>
+                        <button :disabled="!props.amIHost" @click="incrementImpostorCategoryCount" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'hover:bg-panel-input/80 active:scale-90'">+</button>
                     </div>
-                    <p class="text-ink-muted text-[8px] font-bold mt-2 text-center">{{ t('lobby.settings.impostor.categoriesDesc') }}</p>
+                    <p class="text-ink-muted text-[8px] font-bold mt-1 text-center leading-none">{{ t('lobby.settings.impostor.categoriesDesc') }}</p>
                 </div>
 
                 <!-- Rounds -->
-                <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🔁 {{ t('lobby.settings.impostor.rounds') }}</label>
+                <div class="bg-panel-input rounded-xl border border-white/10 shadow-inner p-2 px-2.5">
+                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-1.5">🔁 {{ t('lobby.settings.impostor.rounds') }}</label>
                     <div class="flex items-center justify-between">
-                        <button :disabled="!props.amIHost" @click="decrementImpostorRounds" class="w-11 h-11 rounded-xl bg-panel-card border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-xl" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:bg-panel-input/80 active:scale-90'">-</button>
+                        <button :disabled="!props.amIHost" @click="decrementImpostorRounds" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'hover:bg-panel-input/80 active:scale-90'">-</button>
                         <input
                             type="number"
                             :disabled="!props.amIHost"
@@ -317,19 +319,19 @@ function decrementImpostorCategoryCount() {
                             @change="handleNumericInput('impostor.rounds', ($event.target as HTMLInputElement).value, 1, 10)"
                             @keydown.enter="($event.target as HTMLInputElement).blur()"
                             @focus="($event.target as HTMLInputElement).select()"
-                            class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
+                            class="w-14 text-center text-xl md:text-2xl font-black text-ink-main bg-transparent border-b border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
                             :class="!props.amIHost ? 'cursor-not-allowed opacity-50' : ''"
                         />
-                        <button :disabled="!props.amIHost" @click="incrementImpostorRounds" class="w-11 h-11 rounded-xl bg-panel-card border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-xl" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:bg-panel-input/80 active:scale-90'">+</button>
+                        <button :disabled="!props.amIHost" @click="incrementImpostorRounds" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'hover:bg-panel-input/80 active:scale-90'">+</button>
                     </div>
                 </div>
 
                 <!-- Typing Time -->
-                <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">⏱️ {{ t('lobby.settings.impostor.typingTime') }}</label>
+                <div class="bg-panel-input rounded-xl border border-white/10 shadow-inner p-2 px-2.5">
+                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-1.5">⏱️ {{ t('lobby.settings.impostor.typingTime') }}</label>
                     <div class="flex items-center justify-between">
-                        <button :disabled="!props.amIHost" @click="decrementImpostorTypingTime" class="w-11 h-11 rounded-xl bg-panel-card border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-xl" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:bg-panel-input/80 active:scale-90'">-</button>
-                        <div class="text-center">
+                        <button :disabled="!props.amIHost" @click="decrementImpostorTypingTime" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'hover:bg-panel-input/80 active:scale-90'">-</button>
+                        <div class="text-center flex flex-col items-center">
                             <input
                                 type="number"
                                 :disabled="!props.amIHost"
@@ -338,21 +340,21 @@ function decrementImpostorCategoryCount() {
                                 @change="handleNumericInput('impostor.typingTime', ($event.target as HTMLInputElement).value, 10, 60, impostorTypingOptions)"
                                 @keydown.enter="($event.target as HTMLInputElement).blur()"
                                 @focus="($event.target as HTMLInputElement).select()"
-                                class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
+                                class="w-14 text-center text-xl md:text-2xl font-black text-ink-main bg-transparent border-b border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
                                 :class="!props.amIHost ? 'cursor-not-allowed opacity-50' : ''"
                             />
-                            <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">{{ t('lobby.settings.classic.sec') }}</span>
+                            <span class="text-ink-muted text-[8px] font-black uppercase leading-none mt-1">{{ t('lobby.settings.classic.sec') }}</span>
                         </div>
-                        <button :disabled="!props.amIHost" @click="incrementImpostorTypingTime" class="w-11 h-11 rounded-xl bg-panel-card border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-xl" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:bg-panel-input/80 active:scale-90'">+</button>
+                        <button :disabled="!props.amIHost" @click="incrementImpostorTypingTime" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'hover:bg-panel-input/80 active:scale-90'">+</button>
                     </div>
                 </div>
 
                 <!-- Voting Time -->
-                <div class="bg-panel-input rounded-xl border-2 border-panel-card shadow-inner p-2.5">
-                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2">🗳️ {{ t('lobby.settings.impostor.votingTime') }}</label>
+                <div class="bg-panel-input rounded-xl border border-white/10 shadow-inner p-2 px-2.5">
+                    <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-1.5">🗳️ {{ t('lobby.settings.impostor.votingTime') }}</label>
                     <div class="flex items-center justify-between">
-                        <button :disabled="!props.amIHost" @click="decrementImpostorVotingTime" class="w-11 h-11 rounded-xl bg-panel-card border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-xl" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:bg-panel-input/80 active:scale-90'">-</button>
-                        <div class="text-center">
+                        <button :disabled="!props.amIHost" @click="decrementImpostorVotingTime" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'hover:bg-panel-input/80 active:scale-90'">-</button>
+                        <div class="text-center flex flex-col items-center">
                             <input
                                 type="number"
                                 :disabled="!props.amIHost"
@@ -361,12 +363,12 @@ function decrementImpostorCategoryCount() {
                                 @change="handleNumericInput('impostor.votingTime', ($event.target as HTMLInputElement).value, 15, 120, impostorVotingOptions)"
                                 @keydown.enter="($event.target as HTMLInputElement).blur()"
                                 @focus="($event.target as HTMLInputElement).select()"
-                                class="w-16 text-center text-3xl md:text-4xl font-black text-ink-main bg-transparent border-b-2 border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
+                                class="w-14 text-center text-xl md:text-2xl font-black text-ink-main bg-transparent border-b border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden transition-colors"
                                 :class="!props.amIHost ? 'cursor-not-allowed opacity-50' : ''"
                             />
-                            <span class="text-ink-muted text-[10px] font-bold block -mt-1 uppercase">{{ t('lobby.settings.classic.sec') }}</span>
+                            <span class="text-ink-muted text-[8px] font-black uppercase leading-none mt-1">{{ t('lobby.settings.classic.sec') }}</span>
                         </div>
-                        <button :disabled="!props.amIHost" @click="incrementImpostorVotingTime" class="w-11 h-11 rounded-xl bg-panel-card border-2 border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-xl" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'cursor-pointer hover:bg-panel-input/80 active:scale-90'">+</button>
+                        <button :disabled="!props.amIHost" @click="incrementImpostorVotingTime" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer" :class="!props.amIHost ? 'cursor-not-allowed opacity-40' : 'hover:bg-panel-input/80 active:scale-90'">+</button>
                     </div>
                 </div>
 

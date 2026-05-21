@@ -62,14 +62,14 @@ function saveAndClose() {
 
 <template>
     <!-- Category Panel (inline chip list) -->
-    <div class="bg-panel-base border-2 border-white/5 rounded-3xl shadow-game-panel flex-1 flex flex-col overflow-hidden min-h-[120px] lg:min-h-0">
-        <div class="p-4 border-b-2 border-white/5 bg-panel-card/50 flex items-center justify-between flex-none">
+    <div class="bg-panel-base border-2 border-white/10 rounded-2xl shadow-game-panel flex-1 flex flex-col overflow-hidden min-h-[120px] lg:min-h-0">
+        <div class="p-3 border-b-2 border-white/5 bg-panel-card/50 flex items-center justify-between flex-none">
             <p class="text-ink-main text-[9px] font-black uppercase tracking-[0.2em]">
                 {{ t('lobby.categoriesSelector.title') }} <span class="text-ink-soft">({{ props.categories.length }})</span>
             </p>
             <TButton v-if="props.amIHost" variant="secondary" size="sm" @click="openModal">{{ t('lobby.categoriesSelector.edit') }}</TButton>
         </div>
-        <div class="flex-1 overflow-y-auto p-4 min-h-0">
+        <div class="flex-1 overflow-y-auto p-3 min-h-0">
             <div v-if="props.categories.length > 0" class="flex flex-wrap gap-2 content-start">
                 <TransitionGroup name="list">
                     <div v-for="cat in props.categories" :key="cat.id"
