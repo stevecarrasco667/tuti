@@ -57,48 +57,48 @@ const cardConfig = computed(() => {
     const size = cardSize.value;
     if (size === 'lg') {
         return {
-            rowClass: 'px-4 py-2 min-h-[44px] rounded-2xl gap-3',
-            avatarText: 'text-[clamp(1.2rem,2vw,1.75rem)]',
-            nameText: 'text-[clamp(0.85rem,1.5vw,1.25rem)]',
-            wordText: 'text-[clamp(0.85rem,1.5vw,1.25rem)] ml-2',
+            rowClass: 'px-6 py-3 min-h-[58px] rounded-2xl gap-4 border-white/15',
+            avatarText: 'text-[clamp(1.35rem,2.2vw,1.9rem)]',
+            nameText: 'text-[clamp(1rem,1.6vw,1.35rem)]',
+            wordText: 'ml-3 font-extrabold text-[clamp(1rem,1.6vw,1.35rem)]',
             reactionsCompact: false,
-            listMaxHeight: 'max-h-[30dvh] sm:max-h-[38dvh]',
-            titleClass: 'text-[clamp(2.2rem,6.5vw,5.5rem)] leading-[0.9]',
-            subtitleClass: 'text-[clamp(0.95rem,1.8vw,1.35rem)] mt-0.5 leading-tight',
-            playerNameClass: 'text-[clamp(1.8rem,5vw,3.5rem)] mt-1.5 leading-none',
-            detailsClass: 'text-[clamp(1.1rem,2.2vw,2rem)] tracking-[0.3em]',
-            gapClass: 'gap-[clamp(0.4rem,1.8dvh,1.5rem)] gap-y-[clamp(0.4rem,1.8dvh,1.5rem)]',
-            timerClass: 'text-[clamp(3.5rem,6vw,5rem)]'
+            listMaxHeight: 'max-h-[32dvh] sm:max-h-[44dvh]',
+            titleClass: 'text-[clamp(2.6rem,7.5vw,6rem)] leading-[0.9] tracking-tighter',
+            subtitleClass: 'text-[clamp(1.1rem,2vw,1.6rem)] mt-1.5 leading-tight tracking-[0.05em]',
+            playerNameClass: 'text-[clamp(2.2rem,6vw,4.5rem)] mt-2 leading-none font-black',
+            detailsClass: 'text-[clamp(1.35rem,2.8vw,2.6rem)] tracking-[0.35em] mt-1 font-black',
+            gapClass: 'gap-[clamp(0.6rem,2.5dvh,2rem)] gap-y-[clamp(0.6rem,2.5dvh,2rem)]',
+            timerClass: 'text-[clamp(4.2rem,7vw,6.5rem)]'
         };
     } else if (size === 'md') {
         return {
-            rowClass: 'px-3.5 py-1.5 min-h-[40px] rounded-xl gap-2.5',
-            avatarText: 'text-[clamp(1.1rem,1.8vw,1.5rem)]',
-            nameText: 'text-[clamp(0.8rem,1.3vw,1.1rem)]',
-            wordText: 'text-[clamp(0.8rem,1.3vw,1.1rem)] ml-1.5',
+            rowClass: 'px-5 py-2.5 min-h-[48px] rounded-xl gap-3.5 border-white/10',
+            avatarText: 'text-[clamp(1.2rem,1.9vw,1.6rem)]',
+            nameText: 'text-[clamp(0.85rem,1.4vw,1.15rem)]',
+            wordText: 'ml-2.5 font-extrabold text-[clamp(0.85rem,1.4vw,1.15rem)]',
             reactionsCompact: true,
-            listMaxHeight: 'max-h-[26dvh] sm:max-h-[34dvh]',
-            titleClass: 'text-[clamp(1.8rem,5vw,4.5rem)] leading-[0.95]',
-            subtitleClass: 'text-[clamp(0.85rem,1.5vw,1.15rem)] mt-0.5 leading-tight',
-            playerNameClass: 'text-[clamp(1.5rem,4vw,2.8rem)] mt-1 leading-none',
-            detailsClass: 'text-[clamp(0.95rem,1.8vw,1.6rem)] tracking-[0.25em]',
-            gapClass: 'gap-[clamp(0.3rem,1.4dvh,1.1rem)] gap-y-[clamp(0.3rem,1.4dvh,1.1rem)]',
-            timerClass: 'text-[clamp(3rem,5vw,4rem)]'
+            listMaxHeight: 'max-h-[28dvh] sm:max-h-[36dvh]',
+            titleClass: 'text-[clamp(2.2rem,6vw,5rem)] leading-[0.95] tracking-tighter',
+            subtitleClass: 'text-[clamp(0.95rem,1.8vw,1.35rem)] mt-1 leading-tight tracking-[0.03em]',
+            playerNameClass: 'text-[clamp(1.8rem,5vw,3.5rem)] mt-1.5 leading-none font-black',
+            detailsClass: 'text-[clamp(1.15rem,2.2vw,2rem)] tracking-[0.3em] mt-0.5 font-black',
+            gapClass: 'gap-[clamp(0.45rem,2dvh,1.5rem)] gap-y-[clamp(0.45rem,2dvh,1.5rem)]',
+            timerClass: 'text-[clamp(3.5rem,6vw,5rem)]'
         };
     } else { // 'sm'
         return {
-            rowClass: 'px-2.5 py-1 min-h-[34px] rounded-lg gap-2',
-            avatarText: 'text-[clamp(0.95rem,1.5vw,1.2rem)]',
-            nameText: 'text-[clamp(0.7rem,1.1vw,0.9rem)]',
-            wordText: 'text-[clamp(0.7rem,1.1vw,0.9rem)] ml-1',
+            rowClass: 'px-3.5 py-2 min-h-[40px] rounded-lg gap-2.5 border-white/10',
+            avatarText: 'text-[clamp(1.05rem,1.6vw,1.35rem)]',
+            nameText: 'text-[clamp(0.75rem,1.2vw,1rem)]',
+            wordText: 'ml-2 font-bold text-[clamp(0.75rem,1.2vw,1rem)]',
             reactionsCompact: true,
-            listMaxHeight: 'max-h-[20dvh] sm:max-h-[28dvh]',
-            titleClass: 'text-[clamp(1.5rem,4.5vw,3.2rem)] leading-none',
-            subtitleClass: 'text-[clamp(0.75rem,1.3vw,0.95rem)] mt-0.5 leading-tight',
-            playerNameClass: 'text-[clamp(1.2rem,3vw,2rem)] mt-0.5 leading-none',
-            detailsClass: 'text-[clamp(0.8rem,1.5vw,1.25rem)] tracking-[0.2em]',
-            gapClass: 'gap-[clamp(0.2rem,1dvh,0.8rem)] gap-y-[clamp(0.2rem,1dvh,0.8rem)]',
-            timerClass: 'text-[clamp(2.5rem,4vw,3.2rem)]'
+            listMaxHeight: 'max-h-[24dvh] sm:max-h-[32dvh]',
+            titleClass: 'text-[clamp(1.8rem,5vw,3.8rem)] leading-none tracking-tight',
+            subtitleClass: 'text-[clamp(0.8rem,1.4vw,1.1rem)] mt-0.5 leading-tight tracking-wider',
+            playerNameClass: 'text-[clamp(1.4rem,4vw,2.6rem)] mt-1 leading-none font-black',
+            detailsClass: 'text-[clamp(0.95rem,1.8vw,1.5rem)] tracking-[0.25em] mt-0.5 font-black',
+            gapClass: 'gap-[clamp(0.3rem,1.5dvh,1rem)] gap-y-[clamp(0.3rem,1.5dvh,1rem)]',
+            timerClass: 'text-[clamp(3rem,5vw,4rem)]'
         };
     }
 });
@@ -177,8 +177,10 @@ if (!matchOver.value && eliminatedPlayer.value) {
                             <div class="flex items-center min-w-0 flex-1">
                                 <span class="flex-shrink-0" :class="cardConfig.avatarText">{{ player.avatar || '👤' }}</span>
                                 <span class="font-black text-white/60 truncate uppercase tracking-wider" :class="cardConfig.nameText">{{ player.name }}</span>
-                                <span class="font-black text-white truncate" :class="cardConfig.wordText">
-                                    {{ impostorData.words ? impostorData.words[player.id] : '—' }}
+                                <span v-if="impostorData.words && impostorData.words[player.id]"
+                                      class="font-black text-tuti-teal bg-tuti-teal/10 px-2.5 py-0.5 rounded-lg border border-tuti-teal/20 truncate" 
+                                      :class="cardConfig.wordText">
+                                    {{ impostorData.words[player.id] }}
                                 </span>
                             </div>
                             
