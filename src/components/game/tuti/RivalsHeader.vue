@@ -23,7 +23,7 @@ defineProps<{
         <h3 class="hidden lg:block text-xs font-black text-white/40 w-full uppercase tracking-widest mb-2 px-1 flex-shrink-0">Rivales</h3>
         
         <!-- Scrollable list of rivals on PC, keeping standard display on mobile -->
-        <div class="flex flex-row flex-wrap items-center justify-center gap-6 lg:flex-col lg:flex-nowrap lg:overflow-y-auto lg:flex-1 lg:w-full lg:gap-3.5 pr-1 scrollbar-thin">
+        <div class="flex flex-row flex-wrap items-center justify-center gap-6 lg:flex-col lg:flex-nowrap lg:overflow-y-auto lg:flex-1 lg:w-full lg:gap-3.5 px-1 py-1 lg:px-2.5 lg:py-1.5 scrollbar-thin">
             <div v-for="rival in rivals" :key="rival.id" 
                  class="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 group transition-all duration-500 lg:w-full flex-shrink-0"
                  :class="{
