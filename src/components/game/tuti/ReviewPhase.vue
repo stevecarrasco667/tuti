@@ -46,7 +46,7 @@ const layoutConfig = computed(() => {
     // Siempre en MODO FILA HORIZONTAL, variando tamaño por cantidad de jugadores
     return {
         gridClass:    'grid-cols-1 gap-2 md:gap-2.5',
-        maxWidthClass: n <= 3 ? 'max-w-3xl mx-auto' : n <= 5 ? 'max-w-4xl mx-auto' : 'max-w-5xl mx-auto',
+        maxWidthClass: n <= 3 ? 'max-w-2xl mx-auto' : n <= 5 ? 'max-w-3xl mx-auto' : 'max-w-4xl mx-auto',
         cardSize:     (n <= 3 ? 'xl' : n <= 5 ? 'lg' : n <= 6 ? 'md' : 'sm') as CardSize,
         centerVertically: n <= 3,
         isHorizontal: true,

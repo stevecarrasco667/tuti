@@ -46,11 +46,11 @@ const sizeConfig = computed(() => {
                : s === 'md' ? 'p-3 md:p-3.5 gap-3'
                             : 'p-2 md:p-2.5 gap-2',
         
-        // Perfil ancho
-        profileWidth: s === 'xl' ? 'w-[250px]'
-                    : s === 'lg' ? 'w-[220px]'
-                    : s === 'md' ? 'w-[200px]'
-                                 : 'w-[170px]',
+        // Perfil ancho (solo en desktop >= 640px)
+        profileWidth: s === 'xl' ? 'sm:w-[250px]'
+                    : s === 'lg' ? 'sm:w-[220px]'
+                    : s === 'md' ? 'sm:w-[200px]'
+                                 : 'sm:w-[170px]',
         
         avatar:  s === 'xl' ? 'text-xl md:text-2xl'
                : s === 'lg' ? 'text-lg'
@@ -59,10 +59,10 @@ const sizeConfig = computed(() => {
         name:    s === 'xl' ? 'text-sm md:text-base'
                : s === 'lg' ? 'text-xs md:text-sm'
                             : 'text-[11px] md:text-xs',
-        word:    s === 'xl' ? 'text-sm md:text-base'
-               : s === 'lg' ? 'text-xs md:text-sm'
-               : s === 'md' ? 'text-xs md:text-sm'
-                            : 'text-[11px] md:text-xs',
+        word:    s === 'xl' ? 'text-lg md:text-2xl'
+               : s === 'lg' ? 'text-base md:text-xl'
+               : s === 'md' ? 'text-sm md:text-lg'
+                            : 'text-xs md:text-base',
         selfIcon: s === 'xl' ? 'w-10 h-10 text-xl'
                 : s === 'lg' ? 'w-8 h-8 text-lg'
                 : s === 'md' ? 'w-7 h-7 md:w-8 md:h-8 text-base md:text-lg'
@@ -92,9 +92,9 @@ const sizeConfig = computed(() => {
 </script>
 
 <template>
-    <!-- MODO FILA HORIZONTAL ÚNICO Y OPTIMIZADO (Para 2 a 8 Jugadores) -->
+    <!-- MODO ADAPTATIVO: Columna en Mobile (<640px), Fila en Desktop (>=640px) -->
     <div
-        class="backdrop-blur-md rounded-2xl w-full flex flex-row items-center justify-between border-2 transition-all duration-300 shadow-md hover:scale-[1.005] hover:shadow-lg"
+        class="backdrop-blur-md rounded-2xl w-full flex flex-col sm:flex-row sm:items-center justify-between border-2 transition-all duration-300 shadow-md hover:scale-[1.005] hover:shadow-lg"
         :class="[
             sizeConfig.padding,
             isAutoValidated
@@ -106,64 +106,116 @@ const sizeConfig = computed(() => {
                         : 'bg-panel-card border-white/5 hover:border-white/10'
         ]"
     >
-        <!-- Fila Izquierda: Perfil + Badge Votos -->
-        <div class="flex items-center gap-2 shrink-0 min-w-0" :class="sizeConfig.profileWidth">
-            <span class="leading-none drop-shadow-sm shrink-0" :class="sizeConfig.avatar">
-                {{ playerAvatar || '👤' }}
-            </span>
-            <span class="font-black text-ink-main drop-shadow-sm truncate tracking-wide" :class="sizeConfig.name" :title="playerName">
-                {{ playerName }}
-            </span>
-            <span v-if="isAutoValidated" class="text-xs shrink-0 select-none">🛡️</span>
-            
-            <!-- Badge de votos integrado directamente en el perfil del jugador -->
-            <span v-if="voteCount > 0 && !isAutoValidated"
-                  class="shrink-0 bg-game-red/20 text-game-red border border-game-red/30 px-1.5 py-0.5 rounded-full text-[9px] font-black shadow-inner flex items-center gap-0.5 select-none animate-pulse">
-                <span>{{ voteCount }}</span><span>👎</span>
-            </span>
-        </div>
+        <!-- CONTENEDOR 1: Perfil (Izquierda en Desktop) + Switch (Derecha en Mobile) -->
+        <div class="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto shrink-0 min-w-0" :class="sizeConfig.profileWidth">
+            <!-- Perfil del Jugador -->
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="leading-none drop-shadow-sm shrink-0" :class="sizeConfig.avatar">
+                    {{ playerAvatar || '👤' }}
+                </span>
+                <span class="font-black text-ink-main drop-shadow-sm truncate tracking-wide" :class="sizeConfig.name" :title="playerName">
+                    {{ playerName }}
+                </span>
+                <span v-if="isAutoValidated" class="text-xs shrink-0 select-none">🛡️</span>
+                
+                <!-- Badge de votos integrado directamente en el perfil del jugador -->
+                <span v-if="voteCount > 0 && !isAutoValidated"
+                      class="shrink-0 bg-game-red/20 text-game-red border border-game-red/30 px-1.5 py-0.5 rounded-full text-[9px] font-black shadow-inner flex items-center gap-0.5 select-none animate-pulse">
+                    <span>{{ voteCount }}</span><span>👎</span>
+                </span>
+            </div>
 
-        <!-- Fila Centro: La Palabra Héroe Horizontal -->
-        <div class="flex-1 min-w-0 relative flex items-center justify-center py-2 px-4 bg-panel-input/30 border border-white/5 rounded-xl min-h-[44px]">
-            <span
-                class="font-heading font-black text-center uppercase break-all truncate transition-all duration-300 leading-tight"
-                :class="[
-                    sizeConfig.word,
-                    isRejected || !isApproved
-                        ? 'line-through opacity-45 text-game-red'
-                        : isAutoValidated
-                            ? 'text-game-yellow drop-shadow-glow'
-                            : isDuplicate
-                                ? 'text-game-yellow'
-                                : 'text-ink-main'
-                ]"
-            >
-                {{ word || '—' }}
-            </span>
-
-            <span v-if="isDuplicate"
-                  class="ml-2 text-[7px] md:text-[8px] font-black bg-game-yellow/20 text-game-yellow px-2 py-0.5 rounded-full uppercase tracking-widest select-none shrink-0">
-                Repetida
-            </span>
-
-            <!-- Burst de animación flotante en la fila -->
-            <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
-                <TransitionGroup name="burst">
-                    <span
-                        v-for="b in reactionBursts"
-                        :key="b.id"
-                        class="absolute bottom-0 font-emoji"
-                        :class="sizeConfig.burst"
-                        :style="{ left: `${b.offsetX}%` }"
+            <!-- Switch de Acción (Solo visible aquí en Mobile, se oculta en sm: y se renderiza al final de la tarjeta en desktop) -->
+            <div class="flex sm:hidden items-center justify-end">
+                <template v-if="!isMe && !isAutoValidated">
+                    <button
+                        type="button"
+                        @click="!isSpectator && handleVote(!modelValue)"
+                        class="relative inline-flex items-center rounded-full transition-colors duration-200 border border-white/10 shrink-0 shadow-inner focus:outline-none"
+                        :class="[
+                            modelValue ? 'bg-game-green shadow-[0_0_10px_rgba(34,197,94,0.25)] border-game-green/30' : 'bg-game-red shadow-[0_0_10px_rgba(239,68,68,0.25)] border-game-red/30',
+                            sizeConfig.switchContainerClass,
+                            isSpectator ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                        ]"
+                        :disabled="isSpectator"
                     >
-                        {{ b.emoji }}
-                    </span>
-                </TransitionGroup>
+                        <span
+                            class="inline-block bg-white rounded-full transition-transform duration-200 ease-out shadow-md"
+                            :class="[
+                                modelValue ? sizeConfig.switchTranslateClass : 'translate-x-0',
+                                sizeConfig.switchCircleClass
+                            ]"
+                        />
+                    </button>
+                </template>
+                <span v-else
+                      class="drop-shadow-sm flex items-center justify-center bg-panel-input rounded-full border-2 border-white/10 select-none"
+                      :class="sizeConfig.selfIcon">
+                    {{ selfStatusIcon }}
+                </span>
             </div>
         </div>
 
-        <!-- Fila Derecha: Barra de Reacciones -->
-        <div class="flex items-center gap-1.5 shrink-0 min-h-[22px]" v-if="word">
+        <!-- CONTENEDOR 2: Palabra (Centro) + Reacciones (Derecha en Mobile) -->
+        <div class="flex items-center justify-between sm:justify-center gap-3 w-full sm:w-auto sm:flex-1 min-w-0 mt-2 sm:mt-0">
+            <!-- La Palabra Héroe Horizontal (sm:truncate para no recortar en mobile) -->
+            <div class="flex-1 min-w-0 relative flex items-center justify-center py-2 px-4 bg-panel-input/30 border border-white/5 rounded-xl min-h-[44px]">
+                <span
+                    class="font-heading font-black text-center uppercase break-all sm:truncate transition-all duration-300 leading-tight"
+                    :class="[
+                        sizeConfig.word,
+                        isRejected || !isApproved
+                            ? 'line-through opacity-45 text-game-red'
+                            : isAutoValidated
+                                ? 'text-game-yellow drop-shadow-glow'
+                                : isDuplicate
+                                    ? 'text-game-yellow'
+                                    : 'text-ink-main'
+                    ]"
+                >
+                    {{ word || '—' }}
+                </span>
+
+                <span v-if="isDuplicate"
+                      class="ml-2 text-[7px] md:text-[8px] font-black bg-game-yellow/20 text-game-yellow px-2 py-0.5 rounded-full uppercase tracking-widest select-none shrink-0">
+                    Repetida
+                </span>
+
+                <!-- Burst de animación flotante en la fila -->
+                <div class="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
+                    <TransitionGroup name="burst">
+                        <span
+                            v-for="b in reactionBursts"
+                            :key="b.id"
+                            class="absolute bottom-0 font-emoji"
+                            :class="sizeConfig.burst"
+                            :style="{ left: `${b.offsetX}%` }"
+                        >
+                            {{ b.emoji }}
+                        </span>
+                    </TransitionGroup>
+                </div>
+            </div>
+
+            <!-- Barra de Reacciones (Solo visible aquí en Mobile, se oculta en sm: y se renderiza en desktop) -->
+            <div class="flex sm:hidden items-center gap-1.5 shrink-0 min-h-[22px]" v-if="word">
+                <ReactionBar
+                    :counts="reactionCounts"
+                    :is-compact="true"
+                    class="max-w-[120px]"
+                />
+                <ReactionMenu
+                    v-if="!isMe"
+                    :target-player-id="playerId"
+                    :category-id="categoryId"
+                    :is-compact="true"
+                    @react="(emj, tid, cid) => emit('react', emj, tid, cid)"
+                />
+            </div>
+        </div>
+
+        <!-- REACCIONES (Versión Desktop, oculta en mobile) -->
+        <div class="hidden sm:flex items-center gap-1.5 shrink-0 min-h-[22px] ml-3" v-if="word">
             <ReactionBar
                 :counts="reactionCounts"
                 :is-compact="sizeConfig.isCompact"
@@ -178,8 +230,8 @@ const sizeConfig = computed(() => {
             />
         </div>
 
-        <!-- Fila Acción Votación: Switch Deslizable Deslizante Rojo/Verde (Sin emojis) -->
-        <div class="shrink-0 flex items-center justify-end" :style="{ width: sizeConfig.switchWidth }">
+        <!-- SWITCH DE ACCIÓN (Versión Desktop, oculta en mobile) -->
+        <div class="hidden sm:flex items-center justify-end shrink-0" :style="{ width: sizeConfig.switchWidth }">
             <template v-if="!isMe && !isAutoValidated">
                 <!-- Switch Deslizable Premium -->
                 <button

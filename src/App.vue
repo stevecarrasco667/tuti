@@ -130,9 +130,9 @@ CapacitorApp.addListener('backButton', ({ canGoBack }) => {
 
     <!-- MUTE BUTTON LAYER -->
     <button
+        v-if="!isGameView()"
         @click="toggleMute"
-        class="fixed z-modal w-12 h-12 flex items-center justify-center rounded-full bg-panel-card/80 border-[3px] border-white/10 text-white shadow-xl backdrop-blur-md transition-all hover:bg-white/20 active:scale-95"
-        :class="isGameView() ? 'bottom-[90px] left-4' : 'top-4 right-4'"
+        class="fixed z-modal w-12 h-12 flex items-center justify-center rounded-full bg-panel-card/80 border-[3px] border-white/10 text-white shadow-xl backdrop-blur-md transition-all hover:bg-white/20 active:scale-95 top-4 right-4"
         :title="isMuted ? t('app.unmuteSound') : t('app.muteSound')"
         :aria-label="isMuted ? t('app.unmuteSound') : t('app.muteSound')"
     >
