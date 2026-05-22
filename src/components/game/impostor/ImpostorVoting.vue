@@ -64,7 +64,7 @@ const gridClass = computed(() => {
     const n = suspects.value.length;
     if (n <= 2) return 'grid-cols-2 max-w-2xl mx-auto gap-6';
     if (n === 3) return 'grid-cols-3 max-w-4xl mx-auto gap-6';
-    if (n === 4) return 'grid-cols-2 max-w-3xl mx-auto gap-4';
+    if (n === 4) return 'grid-cols-2 lg:grid-cols-4 max-w-4xl mx-auto gap-4';
     if (n <= 6) return 'grid-cols-3 max-w-5xl mx-auto gap-4';
     return 'grid-cols-2 sm:grid-cols-4 max-w-5xl mx-auto gap-3'; // ≥7: compact mode
 });
@@ -72,8 +72,8 @@ const gridClass = computed(() => {
 // Card sizing calculation based on suspects count
 const cardSize = computed(() => {
     const n = suspects.value.length;
-    if (n <= 4) return 'lg';
-    if (n <= 6) return 'md';
+    if (n <= 3) return 'lg';
+    if (n === 4) return 'md';
     return 'sm';
 });
 
@@ -165,18 +165,18 @@ const votingProgress = computed(() =>
                         {{ t('impostorVoting.title') }}
                     </h2>
                     <!-- Only visible on desktop -->
-                    <p class="hidden md:block text-ink-muted text-[11px] font-black uppercase tracking-widest bg-white/40 border border-white/50 px-3 py-0.5 rounded-full w-fit mx-auto mt-1">
+                    <p class="hidden md:block text-tuti-teal text-[11px] font-black uppercase tracking-widest bg-white/5 border border-white/10 px-3 py-0.5 rounded-full w-fit mx-auto mt-1">
                         {{ t('impostorVoting.subtitle') }}
                     </p>
                 </div>
             </div>
 
             <!-- Identity Banner — compact on mobile -->
-            <div v-if="!isSpectator" class="w-full transition-opacity duration-500" :class="{ 'opacity-50 grayscale pointer-events-none': isDead }">
+            <div v-if="!isSpectator" class="w-full flex justify-center transition-opacity duration-500" :class="{ 'opacity-50 grayscale pointer-events-none': isDead }">
                 <div v-if="isImpostor"
-                     class="bg-action-error/10 border-[2px] border-action-error/30 rounded-2xl px-4 py-2 backdrop-blur-md flex items-center gap-2 shadow-sm">
-                    <span class="text-xl flex-none">⚠️</span>
-                    <div class="flex items-center gap-2 flex-wrap">
+                     class="w-fit mx-auto bg-action-error/10 border-[2px] border-action-error/30 rounded-2xl px-6 py-2 backdrop-blur-md flex items-center justify-center gap-2.5 shadow-sm">
+                    <span class="text-lg flex-none">⚠️</span>
+                    <div class="flex items-center justify-center gap-2 flex-wrap text-center">
                         <span class="text-action-error font-black text-xs uppercase tracking-widest">{{ t('impostorVoting.impostor') }}</span>
                         <span v-if="!isDead" class="text-ink-muted text-xs font-bold">·
                             {{ t('impostorTyping.categoryLabel') }} <strong class="text-action-error font-black">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</strong>
@@ -184,9 +184,9 @@ const votingProgress = computed(() =>
                     </div>
                 </div>
                 <div v-else
-                     class="bg-tuti-teal/10 border-[2px] border-tuti-teal/30 rounded-2xl px-4 py-2 backdrop-blur-md flex items-center gap-2 shadow-sm">
-                    <span class="text-xl flex-none">💡</span>
-                    <div class="flex items-center gap-2 flex-wrap">
+                     class="w-fit mx-auto bg-tuti-teal/10 border-[2px] border-tuti-teal/30 rounded-2xl px-6 py-2 backdrop-blur-md flex items-center justify-center gap-2.5 shadow-sm">
+                    <span class="text-lg flex-none">💡</span>
+                    <div class="flex items-center justify-center gap-2 flex-wrap text-center">
                         <span class="text-tuti-teal font-black text-xs uppercase tracking-widest">{{ t('impostorVoting.crew') }}</span>
                         <span v-if="!isDead" class="text-ink-muted text-xs font-bold">·
                             {{ t('impostorTyping.wordIs') }} <strong class="text-tuti-teal font-black">{{ secretWord }}</strong>
@@ -334,7 +334,7 @@ const votingProgress = computed(() =>
                                 :class="[
                                     cardConfig.buttonClass,
                                     s.isSelectedByMe
-                                        ? 'bg-game-green/10 border-game-green/45 shadow-[0_0_8px_rgba(52,211,153,0.15)]'
+                                        ? 'bg-action-error/10 border-action-error/45 shadow-[0_0_8px_rgba(251,113,133,0.2)]'
                                         : 'bg-panel-input border-white/10 hover:border-white/20',
                                     (!s.isMe && !s.isPlayerDead && !isDead && !isSpectator)
                                         ? 'cursor-pointer'
@@ -343,7 +343,7 @@ const votingProgress = computed(() =>
                         >
                             <span class="font-black tracking-widest uppercase text-left flex-shrink-0 mr-2"
                                   :class="[
-                                      s.isSelectedByMe ? 'text-game-green' : 'text-ink-soft',
+                                      s.isSelectedByMe ? 'text-action-error font-extrabold' : 'text-ink-soft',
                                       cardConfig.buttonText
                                   ]">
                                 {{ t('impostorVoting.accuse') }}
@@ -354,12 +354,12 @@ const votingProgress = computed(() =>
                                  :class="[
                                      cardConfig.switchContainer,
                                      s.isSelectedByMe 
-                                         ? 'bg-game-green shadow-[0_0_10px_rgba(34,197,94,0.25)] border-game-green/30' 
-                                         : 'bg-game-red shadow-[0_0_10px_rgba(239,68,68,0.25)] border-game-red/30',
+                                         ? 'bg-action-error shadow-[0_0_10px_rgba(251,113,133,0.35)] border-action-error/30' 
+                                         : 'bg-[#0f0e2d]/60 shadow-inner border-white/5',
                                      s.isMe ? 'opacity-40' : ''
                                  ]">
                                 <div v-if="!s.isMe"
-                                     class="inline-block bg-white rounded-full transition-transform duration-200 ease-out shadow-md"
+                                     class="inline-block bg-white rounded-full transform transition-transform duration-200 ease-out shadow-md"
                                      :class="[
                                          cardConfig.switchCircle,
                                          s.isSelectedByMe ? cardConfig.switchCircleTranslate : 'translate-x-0'
