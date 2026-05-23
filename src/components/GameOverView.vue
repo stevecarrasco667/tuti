@@ -189,6 +189,20 @@ onMounted(() => {
         <div class="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-yellow-500/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
         <div class="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-action-primary/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
 
+        <!-- [Sprint 8.3 - Proposal C] Subtle floating arcade background icons -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden z-0 select-none">
+            <!-- Pencil -->
+            <div class="absolute text-5xl sm:text-6xl opacity-[0.035] select-none animate-float-icon-1" style="top: 15%; left: 8%;">✍️</div>
+            <!-- Magnifier -->
+            <div class="absolute text-5xl sm:text-6xl opacity-[0.035] select-none animate-float-icon-2" style="top: 25%; right: 14%;">🔍</div>
+            <!-- Question mark -->
+            <div class="absolute text-5xl sm:text-6xl opacity-[0.035] select-none animate-float-icon-3" style="bottom: 22%; left: 16%;">❓</div>
+            <!-- Arcade Monster -->
+            <div class="absolute text-5xl sm:text-6xl opacity-[0.035] select-none animate-float-icon-4" style="bottom: 16%; right: 6%;">👾</div>
+            <!-- Glowing Star -->
+            <div class="absolute text-4xl sm:text-5xl opacity-[0.03] select-none animate-float-icon-5" style="top: 48%; left: 45%;">⭐</div>
+        </div>
+
         <!-- Install PWA Prompt (Sprint 4 P3) -->
         <InstallPrompt />
 

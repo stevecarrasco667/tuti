@@ -142,3 +142,41 @@
   pointer-events: none;
   z-index: 0;
 }
+
+/* 🌀 Slow Floating & Rotating Keyframes for Arcade Background Emojis */
+@keyframes float-icon-slow-1 {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(15px, -25px, 0) rotate(8deg); }
+  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+}
+@keyframes float-icon-slow-2 {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(-20px, 20px, 0) rotate(-12deg); }
+  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+}
+@keyframes float-icon-slow-3 {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(20px, 15px, 0) rotate(15deg); }
+  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+}
+@keyframes float-icon-slow-4 {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(-15px, -20px, 0) rotate(-6deg); }
+  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+}
+
+.animate-float-icon-1 {
+  animation: float-icon-slow-1 25s ease-in-out infinite;
+}
+.animate-float-icon-2 {
+  animation: float-icon-slow-2 28s ease-in-out infinite;
+}
+.animate-float-icon-3 {
+  animation: float-icon-slow-3 30s ease-in-out infinite;
+}
+.animate-float-icon-4 {
+  animation: float-icon-slow-4 22s ease-in-out infinite;
+}
+.animate-float-icon-5 {
+  animation: float-icon-slow-1 32s ease-in-out infinite;
+}

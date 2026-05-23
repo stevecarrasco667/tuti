@@ -99,8 +99,22 @@ const handleToast = (msg: string, style: 'join' | 'leave' | 'stop-warning', icon
 </script>
 
 <template>
-    <div class="h-full w-full flex flex-col game-bg-cosmic text-ink-main overflow-hidden font-sans">
+    <div class="h-full w-full flex flex-col game-bg-cosmic text-ink-main overflow-hidden font-sans relative">
         <ReloadPrompt />
+
+        <!-- [Sprint 8.3 - Proposal C] Subtle floating arcade background icons -->
+        <div class="absolute inset-0 pointer-events-none overflow-hidden z-0 select-none">
+            <!-- Pencil -->
+            <div class="absolute text-5xl sm:text-6xl opacity-[0.035] select-none animate-float-icon-1" style="top: 15%; left: 8%;">✍️</div>
+            <!-- Magnifier -->
+            <div class="absolute text-5xl sm:text-6xl opacity-[0.035] select-none animate-float-icon-2" style="top: 25%; right: 14%;">🔍</div>
+            <!-- Question mark -->
+            <div class="absolute text-5xl sm:text-6xl opacity-[0.035] select-none animate-float-icon-3" style="bottom: 22%; left: 16%;">❓</div>
+            <!-- Arcade Monster -->
+            <div class="absolute text-5xl sm:text-6xl opacity-[0.035] select-none animate-float-icon-4" style="bottom: 16%; right: 6%;">👾</div>
+            <!-- Glowing Star -->
+            <div class="absolute text-4xl sm:text-5xl opacity-[0.03] select-none animate-float-icon-5" style="top: 48%; left: 45%;">⭐</div>
+        </div>
 
         <!-- [Sprint 5 - Spectator Mode] BANNER ELEGANTE NO INTRUSIVO -->
         <div v-if="isSpectator" class="absolute top-[80px] left-1/2 -translate-x-1/2 z-modal flex items-center gap-2 bg-red-900 border-2 border-red-500 rounded-full px-6 py-2 shadow-[0_0_15px_rgba(239,68,68,0.5)] pointer-events-none w-max">
