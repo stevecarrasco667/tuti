@@ -121,3 +121,24 @@
   background-size: 200% auto;
   animation: border-glow 3s linear infinite;
 }
+
+/* 🎮 Cosmic Playroom - Premium Arcade Theme Background */
+.game-bg-cosmic {
+  background: radial-gradient(circle at center, #352575 0%, #130a2f 100%) !important;
+  position: relative;
+  z-index: 0;
+}
+
+/* Retro-Arcade Grid Pattern Overlay */
+.game-bg-cosmic::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center;
+  pointer-events: none;
+  z-index: 0;
+}

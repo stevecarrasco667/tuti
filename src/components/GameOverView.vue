@@ -184,7 +184,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="h-full w-full flex flex-col overflow-hidden relative bg-panel-base">
+    <div class="h-full w-full flex flex-col overflow-hidden relative game-bg-cosmic">
         <!-- Fondos radiales de ambiente: absolute al contenedor raíz (fuera del scroll) -->
         <div class="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-yellow-500/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
         <div class="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-action-primary/10 rounded-full blur-[100px] pointer-events-none z-0"></div>
@@ -237,7 +237,7 @@ onMounted(() => {
         </div>
 
         <!-- FOOTER MÓVIL (fuera del scroll — correcto, es una barra fija en la parte inferior) -->
-        <div class="lg:hidden flex-none bg-panel-base border-t border-white/10 z-40">
+        <div class="lg:hidden flex-none bg-[#130a2f] border-t border-white/10 z-40">
             <div class="max-w-sm mx-auto px-4 py-3">
                 <PostGameActions
                     :am-i-host="amIHost"
