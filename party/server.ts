@@ -169,7 +169,27 @@ export default class Server implements Party.Server {
         // Receives engine (for tick()) and a broadcast callback (for delta-sync).
         this.tickManager = new TickManager(
             this.engine,
-            () => this.broadcastStateDelta(this.engine.getState()),
+            () => {
+                // [Bot IQ] Emit RIVAL_UPDATE for bots — same proven channel as human players.
+                // PATCH_STATE (delta sync via fast-json-patch) is unreliable for deep array
+                // mutations + Vue Proxy reactivity. RIVAL_UPDATE bypasses this entirely.
+                const state = this.engine.getState();
+                if (state.status === 'PLAYING') {
+                    const bots = state.players.filter((p: any) => p.isBot);
+                    for (const bot of bots) {
+                        this.room.broadcast(JSON.stringify({
+                            type: EVENTS.RIVAL_UPDATE,
+                            payload: {
+                                playerId: bot.id,
+                                filledCount: bot.filledCount || 0,
+                                lastTypedAt: bot.lastTypedAt
+                            }
+                        }));
+                    }
+                }
+
+                this.broadcastStateDelta(this.engine.getState());
+            },
             room.id
         );
 
