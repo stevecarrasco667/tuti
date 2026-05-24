@@ -264,6 +264,109 @@ const FALLBACK_ES: Record<string, Record<string, string[]>> = {
         x: ["Xilógrafo"],
         y: ["Youtuber", "Yogui"],
         z: ["Zapatero", "Zoólogo", "Zinguero"]
+    },
+    deporte: {
+        a: ["Atletismo", "Ajedrez", "Automovilismo", "Arco", "Aeróbic", "Alpinismo"],
+        b: ["Baloncesto", "Boxeo", "Béisbol", "Bádminton", "Billar", "Bobsled"],
+        c: ["Ciclismo", "Cricket", "Canotaje", "Crossfit", "Curling", "Clavados"],
+        d: ["Danza", "Dominó", "Dardos", "Decatlón"],
+        e: ["Esgrima", "Equitación", "Escalada", "Esquí"],
+        f: ["Fútbol", "Fórmula 1", "Frontón", "Fitness"],
+        g: ["Golf", "Gimnasia", "Grappling"],
+        h: ["Hockey", "Halterofilia", "Handball", "Hípica"],
+        j: ["Judo", "Jai alai"],
+        k: ["Karate", "Kickboxing", "Kayak"],
+        l: ["Lucha", "Lacrosse", "Levantamiento de pesas"],
+        m: ["Motociclismo", "Maratón", "MMA"],
+        n: ["Natación", "Nado sincronizado"],
+        p: ["Polo", "Paddle", "Patinaje", "Pentatlón", "Parkour", "Pesca"],
+        r: ["Rugby", "Remo", "Rafting", "Rally"],
+        s: ["Surf", "Softbol", "Snowboard", "Squash", "Skateboarding"],
+        t: ["Tenis", "Taekwondo", "Tiro con arco", "Triatlón", "Trampolín"],
+        v: ["Voleibol", "Vela", "Velocidad"],
+        w: ["Waterpolo", "Windsurf", "Wrestling"],
+        y: ["Yoga"],
+        z: ["Zumba"]
+    },
+    marca: {
+        a: ["Adidas", "Apple", "Amazon", "Audi", "Asus", "Armani"],
+        b: ["BMW", "Burger King", "Bose", "Balenciaga", "Barbie"],
+        c: ["Coca-Cola", "Chanel", "Canon", "Calvin Klein", "Chevrolet", "Colgate"],
+        d: ["Disney", "Dell", "Dior", "Dolce", "Dove", "Durex"],
+        e: ["Epson", "Estée Lauder", "Ericsson"],
+        f: ["Ferrari", "Ford", "Fendi", "Fiat", "Facebook"],
+        g: ["Google", "Gucci", "Gap", "Gillette", "Gatorade"],
+        h: ["Honda", "Huawei", "Hermes", "H&M", "Hershey"],
+        i: ["Intel", "Ikea", "Instagram"],
+        j: ["Jeep", "Johnson", "Jaguar"],
+        k: ["Kellogg", "KFC", "Kodak", "Kia"],
+        l: ["Lego", "Louis Vuitton", "Lenovo", "Lacoste", "Lamborghini"],
+        m: ["McDonald's", "Mercedes", "Microsoft", "Motorola", "Mazda"],
+        n: ["Nike", "Nintendo", "Netflix", "Nestlé", "Nissan"],
+        o: ["Oracle", "Oreo", "Opel"],
+        p: ["Pepsi", "Puma", "Porsche", "Prada", "Philips", "PayPal"],
+        r: ["Rolex", "Reebok", "Ray-Ban", "Renault"],
+        s: ["Samsung", "Sony", "Starbucks", "Spotify", "Subway", "Suzuki"],
+        t: ["Toyota", "Tesla", "Twitter", "Toshiba", "TikTok"],
+        u: ["Uber", "Under Armour", "Unilever"],
+        v: ["Versace", "Visa", "Volkswagen", "Vans"],
+        w: ["WhatsApp", "Walmart", "Wrangler"],
+        x: ["Xbox", "Xerox", "Xiaomi"],
+        y: ["Yahoo", "YouTube", "Yamaha"],
+        z: ["Zara", "Zoom", "Zenith"]
+    },
+    pelicula: {
+        a: ["Avatar", "Avengers", "Aladino", "Alien", "Amadeus", "Annie"],
+        b: ["Batman", "Bambi", "Blade Runner", "Braveheart", "Big Fish"],
+        c: ["Coco", "Cars", "Cenicienta", "Casablanca", "Coraline", "Crash"],
+        d: ["Dune", "Dumbo", "Django", "Dragonball"],
+        e: ["E.T.", "Encanto", "El Padrino", "El Rey León", "Elf"],
+        f: ["Frozen", "Forrest Gump", "Furia de Titanes", "Fantasía"],
+        g: ["Gladiador", "Grease", "Gravity", "Ghost", "Godzilla"],
+        h: ["Harry Potter", "Hércules", "Hulk", "Hook"],
+        i: ["Inception", "Indiana Jones", "Iron Man", "Intocable", "It"],
+        j: ["Joker", "Jumanji", "Jaws", "Jurassic Park"],
+        k: ["Kill Bill", "Kung Fu Panda", "King Kong"],
+        l: ["La La Land", "Logan", "Lucy", "Luca"],
+        m: ["Matrix", "Mulan", "Moana", "Madagascar", "Memento"],
+        n: ["Narnia", "Nemo", "Notebook", "Noah"],
+        o: ["Oppenheimer", "Oliver"],
+        p: ["Pinocho", "Piratas del Caribe", "Psicosis", "Pocahontas"],
+        r: ["Rocky", "Ratatouille", "Rambo", "Rapunzel", "Robocop"],
+        s: ["Shrek", "Spider-Man", "Star Wars", "Soul", "Superman"],
+        t: ["Titanic", "Tarzán", "Toy Story", "Thor", "Top Gun", "Trolls"],
+        u: ["Up", "Underworld"],
+        v: ["Venom", "Vaiana", "Valiente"],
+        w: ["Wall-E", "Wonder Woman", "Willy Wonka"],
+        x: ["X-Men"],
+        y: ["Yesterday"],
+        z: ["Zootopia", "Zombieland"]
+    },
+    comida: {
+        a: ["Arroz", "Asado", "Arepa", "Albóndiga", "Alfajor", "Atún"],
+        b: ["Burrito", "Brownie", "Bocadillo", "Brocheta", "Bizcocho"],
+        c: ["Ceviche", "Churro", "Crêpe", "Curry", "Costilla", "Croissant", "Canelón"],
+        d: ["Donut", "Dumpling", "Dulce de leche"],
+        e: ["Empanada", "Ensalada", "Enchilada", "Estofado", "Espagueti"],
+        f: ["Flan", "Filete", "Focaccia", "Falafel", "Fondue"],
+        g: ["Guacamole", "Galleta", "Granola", "Goulash", "Gofre"],
+        h: ["Hamburguesa", "Hot dog", "Hummus", "Helado", "Huevo"],
+        j: ["Jamón", "Jugo"],
+        k: ["Kebab", "Kimchi"],
+        l: ["Lasaña", "Lomo", "Lentejas", "Limonada"],
+        m: ["Milanesa", "Mole", "Muffin", "Mousse", "Mermelada"],
+        n: ["Nachos", "Nuggets", "Nougat", "Ñoquis"],
+        o: ["Omelette", "Ostras"],
+        p: ["Pizza", "Paella", "Pasta", "Pan", "Pancake", "Poke", "Pudín"],
+        q: ["Quesadilla", "Queso", "Quinoa", "Quiche"],
+        r: ["Risotto", "Ravioli", "Ramen"],
+        s: ["Sushi", "Sopa", "Sándwich", "Salsa", "Steak", "Soufflé"],
+        t: ["Taco", "Tortilla", "Tiramisu", "Tostada", "Tempura"],
+        u: ["Udon"],
+        v: ["Vinagreta", "Vichyssoise"],
+        w: ["Waffle", "Wok", "Wrap"],
+        y: ["Yogur"],
+        z: ["Zabaglione", "Zuppa"]
     }
 };
 
@@ -284,6 +387,10 @@ export function getFallbackWords(lang: string, categoryName: string, letter: str
         else if (normCategory === "fruit vegetable" || normCategory === "fruit" || normCategory === "vegetable") key = "fruta verdura";
         else if (normCategory === "thing" || normCategory === "object") key = "cosa";
         else if (normCategory === "profession" || normCategory === "job") key = "profesion";
+        else if (normCategory === "sport") key = "deporte";
+        else if (normCategory === "brand") key = "marca";
+        else if (normCategory === "movie" || normCategory === "film") key = "pelicula";
+        else if (normCategory === "food" || normCategory === "dish") key = "comida";
     } else {
         // Spanish normalization mapping aliases
         if (normCategory.includes("nombre")) key = "nombre";
@@ -295,6 +402,10 @@ export function getFallbackWords(lang: string, categoryName: string, letter: str
         else if (normCategory.includes("fruta") || normCategory.includes("verdura")) key = "fruta verdura";
         else if (normCategory.includes("cosa") || normCategory.includes("objeto")) key = "cosa";
         else if (normCategory.includes("profesion") || normCategory.includes("trabajo") || normCategory.includes("empleo")) key = "profesion";
+        else if (normCategory.includes("deporte") || normCategory.includes("sport")) key = "deporte";
+        else if (normCategory.includes("marca") || normCategory.includes("brand")) key = "marca";
+        else if (normCategory.includes("pelicula") || normCategory.includes("cine") || normCategory.includes("film")) key = "pelicula";
+        else if (normCategory.includes("comida") || normCategory.includes("plato") || normCategory.includes("alimento")) key = "comida";
     }
 
     const dict = FALLBACK_ES[key];

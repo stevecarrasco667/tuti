@@ -777,7 +777,8 @@ export class TutiEngine extends BaseEngine {
             isConnected: true,
             isBot: true,
             lastSeenAt: Date.now(),
-            filledCount: 0
+            filledCount: 0,
+            botSpeed: 0.15 + Math.random() * 0.25  // [Bot IQ] Velocidad variable: 0.15-0.40 prob/segundo
         };
 
         this.state.players.push(botPlayer);
@@ -886,25 +887,40 @@ export class TutiEngine extends BaseEngine {
     public tick(newValue: number): void {
         this.state.remainingTime = Math.max(-1, newValue);
 
-        // Simular escritura de los bots en fase PLAYING
+        // [Bot IQ] Simular escritura de los bots en fase PLAYING
         if (this.state.status === 'PLAYING') {
             const bots = this.state.players.filter(p => p.isBot);
             const totalCategories = this.state.categories.length;
+            const totalTime = this.state.config.classic.timeLimit;
+            const elapsed = totalTime - Math.max(0, this.state.remainingTime);
 
             let botWantsToStop = null;
 
             for (const bot of bots) {
+                // [Bot IQ] Gracia inicial: simular "pensamiento" de 2-4s antes de empezar
+                const speed = (bot as any).botSpeed || 0.25;
+                const thinkTime = speed < 0.20 ? 4 : 2;
+                if (elapsed < thinkTime) continue;
+
                 if ((bot.filledCount || 0) < totalCategories) {
-                    if (Math.random() < 0.25) { // 25% de probabilidad por segundo de llenar una casilla
+                    if (Math.random() < speed) {
                         bot.filledCount = (bot.filledCount || 0) + 1;
+                        bot.lastTypedAt = Date.now(); // [Bot Fix] Evita que aparezcan como AFK
                     }
                 } else if ((bot.filledCount || 0) === totalCategories) {
-                    // Si ya llenó todo, tiene un 20% de probabilidad por segundo de decir "¡Basta!"
-                    // Pero hay que respetar el candado anti-troll (grace period)
+                    // [Bot IQ] Basta inteligente: esperar 5s después de llenar todo
                     const gracePeriodMs = calcGracePeriod(this.state.categories.length);
                     if (Date.now() - this._roundStartTime >= gracePeriodMs) {
-                        if (Math.random() < 0.20) {
-                            botWantsToStop = bot;
+                        const timeSinceLastFill = Date.now() - (bot.lastTypedAt || 0);
+                        if (timeSinceLastFill > 5000 && Math.random() < 0.15) {
+                            // Piedad: si algún humano tiene >60% de progreso, darle más tiempo
+                            const humanProgress = this.state.players
+                                .filter(p => !p.isBot && p.isConnected)
+                                .map(p => (p.filledCount || 0) / totalCategories);
+                            const maxHumanProgress = Math.max(0, ...humanProgress);
+                            if (maxHumanProgress > 0.6 || Math.random() < 0.5) {
+                                botWantsToStop = bot;
+                            }
                         }
                     }
                 }
@@ -977,30 +993,40 @@ export class TutiEngine extends BaseEngine {
             const botAnswers: Record<string, string> = {};
             const botStatuses: Record<string, AnswerStatus> = {};
 
+            // [Bot IQ] Recopilar palabras ya usadas por TODOS los jugadores para evitar duplicados
+            const usedWordsPerCategory: Record<string, Set<string>> = {};
+            for (const category of this.state.categories) {
+                const used = new Set<string>();
+                for (const playerId of Object.keys(this.state.answers)) {
+                    const answer = this.state.answers[playerId]?.[category.name];
+                    if (answer) used.add(answer.toLowerCase().trim());
+                }
+                usedWordsPerCategory[category.name] = used;
+            }
+
             for (const category of this.state.categories) {
                 const collection = this.validation.dictionary.getCollection(lang, category.id);
+                const usedWords = usedWordsPerCategory[category.name] || new Set();
                 let matchingWords = collection
-                    ? Array.from(collection).filter(w => w.startsWith(allowedLetter))
+                    ? Array.from(collection).filter(w => w.startsWith(allowedLetter) && !usedWords.has(w.toLowerCase()))
                     : [];
 
                 // Si no hay palabras en el diccionario global, buscar en el fallback
                 if (matchingWords.length === 0) {
-                    matchingWords = getFallbackWords(lang, category.name, allowedLetter);
+                    matchingWords = getFallbackWords(lang, category.name, allowedLetter)
+                        .filter(w => !usedWords.has(w.toLowerCase()));
                 }
 
-                if (matchingWords.length > 0 && Math.random() < 0.85) {
+                // [Bot IQ] Si hay palabras disponibles, siempre elegir una (sin fallo aleatorio)
+                if (matchingWords.length > 0) {
                     const word = matchingWords[Math.floor(Math.random() * matchingWords.length)];
                     const capitalized = word.charAt(0).toUpperCase() + word.slice(1);
                     botAnswers[category.name] = capitalized;
                     botStatuses[category.name] = 'VALID_AUTO';
                 } else {
-                    if (Math.random() < 0.5) {
-                        botAnswers[category.name] = "";
-                        botStatuses[category.name] = 'EMPTY';
-                    } else {
-                        botAnswers[category.name] = "¡No lo sé! 🧠";
-                        botStatuses[category.name] = 'INVALID';
-                    }
+                    // Sin palabras disponibles para esta letra/categoría → dejar vacío
+                    botAnswers[category.name] = "";
+                    botStatuses[category.name] = 'EMPTY';
                 }
             }
 
@@ -1032,7 +1058,8 @@ export class TutiEngine extends BaseEngine {
                             this.state.votes[player.id][category.name].push(bot.id);
                         }
                     } else if (valResult.status === 'PENDING') {
-                        if (Math.random() < 0.25) {
+                        // [Bot IQ] Reducido de 25% a 10% — PENDING suelen ser palabras válidas no-diccionario
+                        if (Math.random() < 0.10) {
                             if (!this.state.votes[player.id]) this.state.votes[player.id] = {};
                             if (!this.state.votes[player.id][category.name]) this.state.votes[player.id][category.name] = [];
                             if (!this.state.votes[player.id][category.name].includes(bot.id)) {

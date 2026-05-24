@@ -57,10 +57,9 @@ watch(lastMessage, (newMsg) => {
         if (parsed.type === EVENTS.UPDATE_STATE) {
             const newState = parsed.payload;
 
-            // Fix: Reset filledCount to 0 initially during round transitions
-            if (newState.status === 'PLAYING' && newState.players) {
-                newState.players.forEach((p: any) => { p.filledCount = 0; });
-            }
+            // [Bot Fix] filledCount reset removed — the server already resets it
+            // in round-manager.ts startRound(). Resetting here was destructive:
+            // it wiped bot progress on every reconnection or full-sync mid-round.
 
             state.gameState.value = newState;
 
