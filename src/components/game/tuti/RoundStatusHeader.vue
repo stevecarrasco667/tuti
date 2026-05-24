@@ -40,8 +40,8 @@ const timerClasses = computed(() => {
 </script>
 
 <template>
-    <div class="w-full lg:max-w-[1600px] lg:mx-auto lg:grid lg:gap-8 pointer-events-none z-40 relative mt-4"
-         :class="status === 'PLAYING' ? 'lg:grid-cols-[280px_1fr_200px]' : 'lg:grid-cols-[1fr_200px]'">
+    <div class="w-full lg:max-w-[1600px] lg:mx-auto lg:grid lg:gap-8 px-2 pointer-events-none z-40 relative mt-4"
+         :class="status === 'PLAYING' ? 'lg:grid-cols-[220px_1fr_200px]' : 'lg:grid-cols-[1fr_200px]'">
          
         <!-- Left Column: Exit + Round Badge (Desktop in PLAYING phase) -->
         <div v-if="status === 'PLAYING'" class="hidden lg:flex items-center w-full pointer-events-auto">

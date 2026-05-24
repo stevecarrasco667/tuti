@@ -19,11 +19,11 @@ defineProps<{
 </script>
 
 <template>
-    <div class="flex flex-wrap items-center justify-center gap-6 mb-6 w-full max-w-6xl mx-auto z-10 lg:flex-col lg:h-[calc(100dvh-200px)] lg:w-full lg:justify-start lg:gap-4 lg:bg-panel-base/30 lg:backdrop-blur-2xl lg:p-5 lg:rounded-[2.5rem] lg:mb-0 lg:border lg:border-white/10 lg:shadow-[0_8px_32px_0_rgba(15,14,45,0.47)]">
+    <div class="flex flex-wrap items-center justify-center gap-6 mb-6 w-full max-w-6xl mx-auto z-10 lg:flex-col lg:h-[calc(100dvh-200px)] lg:w-full lg:justify-start lg:gap-4 lg:bg-panel-base/30 lg:backdrop-blur-2xl lg:p-4 lg:rounded-[2.5rem] lg:mb-0 lg:border lg:border-white/10 lg:shadow-[0_8px_32px_0_rgba(15,14,45,0.47)]">
         <h3 class="hidden lg:block text-xs font-black text-white/40 w-full uppercase tracking-widest mb-2 px-1 flex-shrink-0">Rivales</h3>
         
         <!-- Scrollable list of rivals on PC, keeping standard display on mobile -->
-        <div class="flex flex-row flex-wrap items-center justify-center gap-6 lg:flex-col lg:flex-nowrap lg:overflow-y-auto lg:flex-1 lg:w-full lg:gap-3.5 px-1 py-1 lg:px-2.5 lg:py-1.5 scrollbar-thin">
+        <div class="flex flex-row flex-wrap items-center justify-center gap-6 lg:flex-col lg:flex-nowrap lg:overflow-y-auto lg:flex-1 lg:w-full lg:gap-3.5 px-1 py-1 lg:px-2 lg:py-1.5 scrollbar-thin">
             <div v-for="rival in rivals" :key="rival.id" 
                  class="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 group transition-all duration-500 lg:w-full flex-shrink-0"
                  :class="{

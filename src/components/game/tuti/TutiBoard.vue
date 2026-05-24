@@ -180,9 +180,9 @@ const rivalsActivity = computed(() => {
 
         <div class="flex-1 overflow-y-auto w-full scroll-smooth p-2 relative">
             <Transition name="fade" mode="out-in">
-                <!-- Grid dinámico: 3 columnas en PLAYING, 2 columnas en las demás fases -->
-                <div :key="gameState.status" class="w-full h-full flex flex-col items-center lg:grid lg:gap-8 lg:items-start lg:max-w-[1600px] lg:mx-auto" 
-                    :class="gameState.status === 'PLAYING' ? 'lg:grid-cols-[280px_1fr_200px]' : 'lg:grid-cols-[1fr_200px]'"> 
+                    <!-- Grid dinámico: 3 columnas en PLAYING, 2 columnas en las demás fases -->
+                    <div :key="gameState.status" class="w-full h-full flex flex-col items-center lg:grid lg:gap-8 lg:items-start lg:max-w-[1600px] lg:mx-auto" 
+                        :class="gameState.status === 'PLAYING' ? 'lg:grid-cols-[220px_1fr_200px]' : 'lg:grid-cols-[1fr_200px]'"> 
                     
                     <!-- COLUMN 1: RIVALS (SOLO EN PLAYING) -->
                     <div v-if="gameState.status === 'PLAYING'" class="w-full lg:h-full lg:overflow-y-auto order-1 lg:order-1">
