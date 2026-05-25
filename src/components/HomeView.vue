@@ -112,18 +112,17 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
 </script>
 
 <template>
-    <!-- Contenedor Wrapper relativo centrado para permitir posicionamiento absoluto de los banners laterales en Desktop -->
-    <div class="min-h-full w-full flex justify-center items-start relative overflow-x-hidden">
-        
-        <!-- Rascacielos a la izquierda en pantallas grandes (Desktop XL) - Absoluto, flota a la izquierda de la consola sin empujarla -->
-        <aside class="hidden xl:flex w-64 flex-col items-end justify-start pt-24 pr-4 select-none z-10 absolute left-[calc(50%-560px)] top-0">
+    <!-- main original con scroll y centrado perfectos (sin wrappers que alteren el flexbox) -->
+    <!-- Agregamos relative para servir de ancla al posicionamiento absoluto de banners -->
+    <main class="w-full flex flex-col items-center justify-start sm:justify-center p-4 min-h-full overflow-y-auto relative z-20"
+          aria-label="Página principal de TutiGame — Jugar Tutti Frutti Online Gratis">
+        <GlobalLanguageSelector />
+
+        <!-- Rascacielos izquierdo absoluto flotando de forma independiente en el espacio exterior -->
+        <!-- right-[calc(50%+530px)] lo alinea exactamente a la izquierda del contenido central de 1024px, sin importar la pantalla -->
+        <aside class="hidden xl:block w-72 select-none z-10 absolute right-[calc(50%+530px)] top-[15%]">
             <AdBanner position="desktop-left" />
         </aside>
-
-        <!-- main original centrado libre de empujones de layouts -->
-        <main class="max-w-5xl w-full flex flex-col items-center justify-start sm:justify-center p-4 min-h-full overflow-y-auto z-20"
-              aria-label="Página principal de TutiGame — Jugar Tutti Frutti Online Gratis">
-            <GlobalLanguageSelector />
 
         <div class="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-7 gap-6 lg:gap-8 min-h-0 mt-6 sm:mt-0">
 
@@ -367,8 +366,8 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
             </div>
         </div>
 
-        <!-- Banner inline en móviles con márgenes de seguridad para evitar clics accidentales -->
-        <div class="xl:hidden w-full flex justify-center mt-12 mb-6 z-10 select-none">
+        <!-- Banner inline en móviles - Oculto en tablets/desktop (md:hidden) para evitar clics accidentales y leaks visuales -->
+        <div class="block md:hidden w-full flex justify-center mt-12 mb-6 z-10 select-none">
             <AdBanner position="mobile-inline" />
         </div>
 
@@ -376,5 +375,4 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
             <PrivacyBanner />
         </div>
     </main>
-    </div>
 </template>
