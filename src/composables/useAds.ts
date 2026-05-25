@@ -144,7 +144,7 @@ export function useAds() {
         ins.className = 'adsbygoogle';
         ins.style.display = 'block';
         ins.style.width = '100%';
-        ins.style.minHeight = '250px';
+        ins.style.minHeight = '100px';
         ins.setAttribute('data-ad-client', config.value.adSenseClientId);
         ins.setAttribute('data-ad-slot', config.value.adSenseSlotBanner);
         ins.setAttribute('data-ad-format', 'auto');
