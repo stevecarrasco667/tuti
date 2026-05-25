@@ -114,7 +114,7 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
 <template>
     <!-- main original con scroll y centrado perfectos (sin wrappers que alteren el flexbox) -->
     <!-- Agregamos relative para servir de ancla al posicionamiento absoluto de banners -->
-    <main class="w-full flex flex-col items-center justify-start p-4 pb-32 min-h-full overflow-y-auto relative z-20"
+    <main class="w-full flex flex-col items-center justify-start p-4 min-h-full overflow-y-auto relative z-20"
           aria-label="Página principal de TutiGame — Jugar Tutti Frutti Online Gratis">
         <GlobalLanguageSelector />
 
@@ -366,11 +366,9 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
             </div>
         </div>
 
-        <!-- Banner anclado al fondo en móviles/tablets (Fixed Bottom) -->
-        <div class="fixed bottom-0 left-0 right-0 z-40 w-full flex justify-center pb-2 pointer-events-none xl:hidden">
-            <div class="pointer-events-auto w-full flex justify-center">
-                <AdBanner position="mobile-inline" />
-            </div>
+        <!-- Banner en línea al fondo del documento (Flujo normal) -->
+        <div class="w-full flex justify-center mt-12 mb-6 xl:hidden z-10 select-none">
+            <AdBanner position="mobile-inline" />
         </div>
 
         <div class="mt-8">
