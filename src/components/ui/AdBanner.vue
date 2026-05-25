@@ -30,7 +30,7 @@ const wrapperStyles = computed(() => {
     return {
       width: '100%',
       maxWidth: '340px',
-      minHeight: '250px',
+      minHeight: '100px',
     };
   }
 });
@@ -74,16 +74,15 @@ onUnmounted(async () => {
     <!-- Contenedor del Anuncio (Solo Web / AdSense) -->
     <div v-if="!isNative" 
          :id="containerId" 
-         class="w-full h-full flex items-center justify-center min-h-[250px]">
+         class="w-full h-full flex items-center justify-center min-h-[100px]">
       <!-- AdSense inyectará la etiqueta <ins> aquí en tiempo de ejecución -->
     </div>
 
     <!-- Espaciador Visual Seguro (Solo Móvil Capacitor / AdMob) -->
     <!-- Como AdMob nativo dibuja un banner flotante encima, evitamos el CLS o solapamiento mostrando una sutil tarjeta cósmica de soporte -->
-    <div v-else class="w-full p-6 text-center flex flex-col items-center justify-center gap-2 min-h-[250px] animate-fade-in">
-      <div class="text-3xl animate-bounce">🚀</div>
-      <h4 class="text-xs font-black text-white uppercase tracking-wider">{{ t('system.supportingTuti', 'Apoyando a TutiGames') }}</h4>
-      <p class="text-[10px] text-ink-muted leading-relaxed max-w-[220px]">
+    <div v-else class="w-full p-3 text-center flex flex-col items-center justify-center min-h-[100px] animate-fade-in">
+      <h4 class="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-2">🚀 {{ t('system.supportingTuti', 'Apoyando a TutiGames') }}</h4>
+      <p class="text-[9px] text-ink-muted leading-tight max-w-[260px] mt-1">
         {{ t('system.adSupportingText', 'Los anuncios nos permiten mantener los servidores multijugador online y gratis.') }}
       </p>
     </div>

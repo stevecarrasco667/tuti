@@ -120,11 +120,11 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
 
         <!-- Rascacielos izquierdo absoluto flotando de forma independiente en el espacio exterior -->
         <!-- right-[calc(50%+496px)] lo alinea exactamente a la izquierda del contenido central de 960px, sin importar la pantalla -->
-        <aside class="hidden xl:block w-40 select-none z-10 absolute right-[calc(50%+496px)] top-12">
+        <aside class="hidden xl:block w-40 select-none z-10 absolute right-[calc(50%+496px)] top-6">
             <AdBanner position="desktop-left" />
         </aside>
 
-        <div class="max-w-[960px] mx-auto my-auto w-full grid grid-cols-1 lg:grid-cols-7 gap-10 lg:gap-16 min-h-0 mt-6 sm:mt-0">
+        <div class="max-w-[960px] mx-auto w-full grid grid-cols-1 lg:grid-cols-7 gap-10 lg:gap-16 min-h-0 mt-6 sm:mt-8">
 
             <!-- LEFT: Consola -->
             <div class="lg:col-span-4 flex flex-col gap-5 justify-center">
