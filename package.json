@@ -13,6 +13,7 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@capacitor-community/admob": "^6.0.0",
     "@capacitor/android": "^8.3.3",
     "@capacitor/app": "^8.1.0",
     "@capacitor/core": "^8.3.3",

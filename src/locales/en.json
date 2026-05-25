@@ -145,7 +145,10 @@
         "spoilerBlocked": "[Message blocked for safety 🛡️]",
         "roomExpired": "The previous room expired. We prepared a new one with the same settings for you! 🎮",
         "roomPurged": "This room was removed due to prolonged inactivity.",
-        "connectionFailed": "Failed to connect. Check your internet connection."
+        "connectionFailed": "Failed to connect. Check your internet connection.",
+        "advertisement": "ADVERTISEMENT",
+        "supportingTuti": "Supporting TutiGames",
+        "adSupportingText": "Ads keep multiplayer servers online and free for everyone."
     },
     "gameHUD": {
         "exit": "Exit",

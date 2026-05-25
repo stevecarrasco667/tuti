@@ -145,7 +145,10 @@
         "spoilerBlocked": "[Mensagem bloqueada por segurança 🛡️]",
         "roomExpired": "A sala expirou. Criamos uma nova com as mesmas configurações para você! 🎮",
         "roomPurged": "Esta sala foi removida por inatividade.",
-        "connectionFailed": "Falha na conexão. Verifique sua internet."
+        "connectionFailed": "Falha na conexão. Verifique sua internet.",
+        "advertisement": "ANÚNCIO",
+        "supportingTuti": "Apoiando o TutiGames",
+        "adSupportingText": "Os anúncios nos permitem mantener os servidores multiplayer online e grátis para todos."
     },
     "gameHUD": {
         "exit": "Sair",

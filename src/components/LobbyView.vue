@@ -13,6 +13,7 @@ import PlayerList from './lobby/PlayerList.vue';
 import GameConfigPanel from './lobby/GameConfigPanel.vue';
 import CategorySelector from './lobby/CategorySelector.vue';
 import GameTutorialModal from './tutorials/GameTutorialModal.vue';
+import AdBanner from './ui/AdBanner.vue';
 
 const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer, leaveGame, addBot } = useGame();
 const { playClick, playJoin, playAlarm, playSuccess } = useSound();
@@ -196,6 +197,12 @@ const handleLeave = () => {
                     @add-bot="addBot"
                 />
 
+                <!-- Banner móvil adaptativo en el pie de página de la lista de jugadores, fluye con el scroll en mobile con separación segura -->
+                <div class="lg:hidden w-full flex justify-center mt-6 mb-4 px-2 select-none"
+                     :class="{ 'hidden': activeTab !== 'players' }">
+                    <AdBanner position="mobile-inline" />
+                </div>
+
                 <!-- Center + Right Panels: Settings -->
                 <div class="lg:col-span-9 lg:grid lg:grid-cols-9 lg:gap-2.5 flex flex-col gap-3 lg:h-full lg:overflow-hidden"
                      :class="{ 'hidden lg:grid': activeTab !== 'settings' }"
@@ -261,13 +268,20 @@ const handleLeave = () => {
                         />
                     </div>
 
-                    <!-- Right: Settings Panel -->
-                    <GameConfigPanel
-                        :config="localConfig"
-                        :am-i-host="amIHost"
-                        @update-config="handleConfigChange"
-                        @update-mutator="handleMutatorChange"
-                    />
+                    <!-- Right: Settings Panel & MPU ad tower in Desktop -->
+                    <div class="lg:col-span-4 flex flex-col gap-2.5 lg:h-full lg:min-h-0 lg:overflow-hidden">
+                        <GameConfigPanel
+                            :config="localConfig"
+                            :am-i-host="amIHost"
+                            @update-config="handleConfigChange"
+                            @update-mutator="handleMutatorChange"
+                        />
+                        
+                        <!-- MPU Banner (Solo Desktop) -->
+                        <div class="hidden lg:block w-full flex-none mt-1 select-none">
+                            <AdBanner position="lobby" />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

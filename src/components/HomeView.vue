@@ -14,6 +14,8 @@ import GlobalLanguageSelector from './ui/GlobalLanguageSelector.vue';
 import { useI18n } from 'vue-i18n';
 import { useMeta } from '../composables/useMeta';
 import { useAnalytics } from '../composables/useAnalytics';
+import AdBanner from './ui/AdBanner.vue';
+import { useAds } from '../composables/useAds';
 
 const { joinGame, myUserName, myUserAvatar } = useGame();
 const { filteredRooms, lobbyFilters, connect, refreshRooms } = useLobby();
@@ -22,6 +24,7 @@ const { addToast } = useToast();
 const { t } = useI18n();
 const { resetMeta } = useMeta();
 const { trackHomeView, trackRoomCreated, trackRoomJoined } = useAnalytics();
+const { initAds } = useAds();
 
 const showJoinInput = ref(false);
 const joinCode = ref('');
@@ -36,6 +39,7 @@ const playerName = computed({
 const selectedAvatar = myUserAvatar;
 
 onMounted(() => {
+    initAds(); // Inicializar el módulo publicitario y el Kill Switch
     connect();
     if (!myUserName.value.trim()) myUserName.value = generateRandomName();
     if (!myUserAvatar.value || myUserAvatar.value === '🦁') {
@@ -108,9 +112,18 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
 </script>
 
 <template>
-    <main class="w-full flex flex-col items-center justify-start sm:justify-center p-4 min-h-full overflow-y-auto"
-          aria-label="Página principal de TutiGame — Jugar Tutti Frutti Online Gratis">
-        <GlobalLanguageSelector />
+    <!-- Contenedor Wrapper para permitir los banners laterales en Desktop -->
+    <div class="min-h-full w-full flex justify-center items-stretch relative overflow-x-hidden">
+        
+        <!-- Rascacielos a la izquierda en pantallas grandes (Desktop XL) -->
+        <aside class="hidden xl:flex w-64 flex-col items-end justify-start pt-24 pr-4 shrink-0 select-none z-10">
+            <AdBanner position="desktop-left" />
+        </aside>
+
+        <!-- main original alineado en la flexbox central -->
+        <main class="max-w-5xl w-full flex flex-col items-center justify-start sm:justify-center p-4 min-h-full overflow-y-auto z-10"
+              aria-label="Página principal de TutiGame — Jugar Tutti Frutti Online Gratis">
+            <GlobalLanguageSelector />
 
         <div class="max-w-5xl mx-auto w-full grid grid-cols-1 lg:grid-cols-7 gap-6 lg:gap-8 min-h-0 mt-6 sm:mt-0">
 
@@ -354,8 +367,14 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
             </div>
         </div>
 
+        <!-- Banner inline en móviles con márgenes de seguridad para evitar clics accidentales -->
+        <div class="xl:hidden w-full flex justify-center mt-12 mb-6 z-10 select-none">
+            <AdBanner position="mobile-inline" />
+        </div>
+
         <div class="mt-8">
             <PrivacyBanner />
         </div>
     </main>
+    </div>
 </template>

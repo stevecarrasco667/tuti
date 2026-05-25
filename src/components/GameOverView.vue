@@ -13,6 +13,7 @@ import type { MatchHighlights } from '../composables/useMatchHighlights';
 import { useToast } from '../composables/useToast';
 import { useI18n } from 'vue-i18n';
 import { useAnalytics } from '../composables/useAnalytics';
+import { useAds } from '../composables/useAds';
 
 import ResultsHeader from './results/ResultsHeader.vue';
 import RankingBoard from './results/RankingBoard.vue';
@@ -51,6 +52,10 @@ const playerMap = computed(() => {
 
 // ── Impostor Reveal animation ────────────────────────────────────────────────
 const showImpostorReveal = ref(false);
+
+// ── Ads Integration State ───────────────────────────────────────────────────
+const { triggerInterstitial, preloadInterstitial } = useAds();
+const showResultsBoard = ref(false);
 
 // ── Viral Share: Match Summary Card ─────────────────────────────────────────
 const showSummaryCard = ref(false);
@@ -158,7 +163,19 @@ const shareMatchSummary = async () => {
     }
 };
 
-onMounted(() => {
+onMounted(async () => {
+    // 1. Asegurar precarga silenciosa y disparar anuncio intersticial nativo con Grace Timeout
+    try {
+        await preloadInterstitial();
+        await triggerInterstitial();
+    } catch (err) {
+        console.warn('[Ads] Error en trigger de GameOver intersticial:', err);
+    }
+
+    // 2. Activar la revelación visual del podio de resultados
+    showResultsBoard.value = true;
+
+    // 3. Iniciar pistas de sonido y animaciones ahora que el podio es visible
     if (gameState.value.config.mode === 'IMPOSTOR') {
         const factionWin = gameState.value.impostorData?.cycleResult?.winner === 'IMPOSTOR';
         const impostorIds = gameState.value.impostorData?.cycleResult?.revealedImpostorIds || [];
@@ -219,17 +236,26 @@ onMounted(() => {
 
                 <!-- COLUMNA IZQUIERDA -->
                 <div class="w-full lg:col-span-7 xl:col-span-8 flex flex-col gap-10">
-                    <!-- Modo Impostor: Gran Reveal -->
-                    <ImpostorResultsView
-                        v-if="gameState.config.mode === 'IMPOSTOR' && showImpostorReveal"
-                    />
-                    <!-- Modo Clásico: Podio + Tabla General -->
-                    <RankingBoard
-                        v-else-if="gameState.config.mode !== 'IMPOSTOR'"
-                        :top3="top3"
-                        :rest="rest"
-                        :title-map="titleMap"
-                    />
+                    <!-- Lógica secuencial: Mostrar podio solo tras completar el anuncio/timeout -->
+                    <div v-if="showResultsBoard" class="w-full flex flex-col gap-10 animate-fade-in">
+                        <!-- Modo Impostor: Gran Reveal -->
+                        <ImpostorResultsView
+                            v-if="gameState.config.mode === 'IMPOSTOR' && showImpostorReveal"
+                        />
+                        <!-- Modo Clásico: Podio + Tabla General -->
+                        <RankingBoard
+                            v-else-if="gameState.config.mode !== 'IMPOSTOR'"
+                            :top3="top3"
+                            :rest="rest"
+                            :title-map="titleMap"
+                        />
+                    </div>
+                    
+                    <!-- Sutil esqueleto/loader arcade de suspenso mientras se procesa el anuncio -->
+                    <div v-else class="w-full py-16 flex flex-col items-center justify-center gap-4 bg-panel-base/40 border-2 border-white/5 rounded-3xl p-6 min-h-[350px] shadow-inner">
+                        <div class="text-5xl animate-bounce">🏆</div>
+                        <span class="animate-pulse text-xs font-black uppercase tracking-widest text-ink-muted">Revelando el Podio...</span>
+                    </div>
                 </div>
 
                 <!-- COLUMNA DERECHA (sidebar desktop) -->
