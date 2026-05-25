@@ -363,13 +363,15 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                         <button @click="signOut" class="text-ink-muted hover:text-red-400 bg-white/5 hover:bg-red-400/10 px-2 py-2 rounded-lg font-bold text-[10px] transition-colors flex-none">{{ t('home.signOut') }}</button>
                     </div>
                 </div>
+
+                <!-- Banner publicitario: siempre al final, justo debajo del bloque de Iniciar Sesión -->
+                <div class="xl:hidden w-full flex justify-center mt-4 select-none">
+                    <AdBanner position="mobile-inline" />
+                </div>
             </div>
         </div>
 
-        <!-- Banner en línea al fondo del documento (Flujo normal) -->
-        <div class="w-full flex justify-center mt-12 mb-6 xl:hidden z-10 select-none">
-            <AdBanner position="mobile-inline" />
-        </div>
+        <!-- (Banner movido dentro de la columna derecha, justo debajo de Iniciar Sesión) -->
 
         <div class="mt-8">
             <PrivacyBanner />
