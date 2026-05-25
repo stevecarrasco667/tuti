@@ -112,16 +112,16 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
 </script>
 
 <template>
-    <!-- Contenedor Wrapper para permitir los banners laterales en Desktop -->
-    <div class="min-h-full w-full flex justify-center items-stretch relative overflow-x-hidden">
+    <!-- Contenedor Wrapper relativo centrado para permitir posicionamiento absoluto de los banners laterales en Desktop -->
+    <div class="min-h-full w-full flex justify-center items-start relative overflow-x-hidden">
         
-        <!-- Rascacielos a la izquierda en pantallas grandes (Desktop XL) -->
-        <aside class="hidden xl:flex w-64 flex-col items-end justify-start pt-24 pr-4 shrink-0 select-none z-10">
+        <!-- Rascacielos a la izquierda en pantallas grandes (Desktop XL) - Absoluto, flota a la izquierda de la consola sin empujarla -->
+        <aside class="hidden xl:flex w-64 flex-col items-end justify-start pt-24 pr-4 select-none z-10 absolute left-[calc(50%-560px)] top-0">
             <AdBanner position="desktop-left" />
         </aside>
 
-        <!-- main original alineado en la flexbox central -->
-        <main class="max-w-5xl w-full flex flex-col items-center justify-start sm:justify-center p-4 min-h-full overflow-y-auto z-10"
+        <!-- main original centrado libre de empujones de layouts -->
+        <main class="max-w-5xl w-full flex flex-col items-center justify-start sm:justify-center p-4 min-h-full overflow-y-auto z-20"
               aria-label="Página principal de TutiGame — Jugar Tutti Frutti Online Gratis">
             <GlobalLanguageSelector />
 
