@@ -17,7 +17,7 @@ const containerId = ref(`ad-slot-${props.position}-${Math.random().toString(36).
 const wrapperStyles = computed(() => {
   if (props.position === 'desktop-left') {
     return {
-      width: '300px',
+      width: '160px',
       minHeight: '600px',
     };
   } else if (props.position === 'lobby') {
