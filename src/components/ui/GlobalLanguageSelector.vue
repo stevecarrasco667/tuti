@@ -40,7 +40,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div ref="containerRef" class="fixed top-4 left-4 z-[100]">
+    <div ref="containerRef" class="fixed top-20 right-4 z-[100]">
         <!-- Botón Principal -->
         <button 
             @click="toggleDropdown"
@@ -63,7 +63,7 @@ onUnmounted(() => {
             leave-from-class="opacity-100 translate-y-0 scale-100"
             leave-to-class="opacity-0 -translate-y-2 scale-95"
         >
-            <div v-if="isOpen" class="absolute top-14 left-0 w-40 sm:w-48 mt-2 p-1.5 bg-panel-card/95 backdrop-blur-xl border-[3px] border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] origin-top-left flex flex-col gap-1">
+            <div v-if="isOpen" class="absolute top-14 right-0 w-40 sm:w-48 mt-2 p-1.5 bg-panel-card/95 backdrop-blur-xl border-[3px] border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] origin-top-right flex flex-col gap-1">
                 <button
                     v-for="lang in languages"
                     :key="lang.code"
