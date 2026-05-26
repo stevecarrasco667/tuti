@@ -7,28 +7,35 @@ const user = ref<User | null>(null);
 const isLoading = ref(true);
 const isAuthenticated = ref(false);
 
+// Reference to the active auth listener subscription to prevent memory leaks and duplicates on HMR
+let authSubscription: { unsubscribe: () => void } | null = null;
+
 // Initialize state and setup listener ONCE
-supabase.auth.getSession().then(({ data: { session }, error }) => {
-    if (error) {
-        console.error('Error al obtener la sesión inicial:', error);
-    } else {
+if (!authSubscription) {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+        if (error) {
+            console.error('Error al obtener la sesión inicial:', error);
+        } else {
+            user.value = session?.user || null;
+            isAuthenticated.value = !!session?.user;
+        }
+        isLoading.value = false;
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         user.value = session?.user || null;
         isAuthenticated.value = !!session?.user;
-    }
-    isLoading.value = false;
-});
+        isLoading.value = false;
+        
+        if (event === 'SIGNED_IN') {
+            console.log('User signed in:', session?.user.email);
+        } else if (event === 'SIGNED_OUT') {
+            console.log('User signed out.');
+        }
+    });
 
-supabase.auth.onAuthStateChange((event, session) => {
-    user.value = session?.user || null;
-    isAuthenticated.value = !!session?.user;
-    isLoading.value = false;
-    
-    if (event === 'SIGNED_IN') {
-        console.log('User signed in:', session?.user.email);
-    } else if (event === 'SIGNED_OUT') {
-        console.log('User signed out.');
-    }
-});
+    authSubscription = subscription;
+}
 
 export function useAuth() {
     // Iniciar sesión con Google OAuth
