@@ -131,7 +131,7 @@ const sizeConfig = computed(() => {
                     <button
                         type="button"
                         @click="!isSpectator && handleVote(!modelValue)"
-                        class="relative inline-flex items-center rounded-full transition-colors duration-200 border border-white/10 shrink-0 shadow-inner focus:outline-none"
+                        class="relative inline-flex items-center rounded-full transition-colors duration-200 border border-white/10 shrink-0 shadow-inner focus:outline-none before:absolute before:inset-[-12px] before:content-[''] before:z-10"
                         :class="[
                             modelValue ? 'bg-game-green shadow-[0_0_10px_rgba(34,197,94,0.25)] border-game-green/30' : 'bg-game-red shadow-[0_0_10px_rgba(239,68,68,0.25)] border-game-red/30',
                             sizeConfig.switchContainerClass,
@@ -237,7 +237,7 @@ const sizeConfig = computed(() => {
                 <button
                     type="button"
                     @click="!isSpectator && handleVote(!modelValue)"
-                    class="relative inline-flex items-center rounded-full transition-colors duration-200 border border-white/10 shrink-0 shadow-inner focus:outline-none"
+                    class="relative inline-flex items-center rounded-full transition-colors duration-200 border border-white/10 shrink-0 shadow-inner focus:outline-none before:absolute before:inset-[-12px] before:content-[''] before:z-10"
                     :class="[
                         modelValue ? 'bg-game-green shadow-[0_0_10px_rgba(34,197,94,0.25)] border-game-green/30' : 'bg-game-red shadow-[0_0_10px_rgba(239,68,68,0.25)] border-game-red/30',
                         sizeConfig.switchContainerClass,

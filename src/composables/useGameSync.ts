@@ -1,4 +1,4 @@
-import { watch } from 'vue';
+import { watch, toRaw } from 'vue';
 import { useSocket } from './useSocket';
 import { applyPatch } from 'fast-json-patch';
 import { ServerMessage, PrivateRolePayload } from '../../shared/types';
@@ -79,8 +79,25 @@ watch(lastMessage, (newMsg) => {
             const { stateVersion, patches } = parsed.payload;
 
             if (stateVersion === state.gameState.value.stateVersion + 1) {
-                applyPatch(state.gameState.value, patches);
-                state.gameState.value.stateVersion = stateVersion;
+                // 1. Obtener el estado plano desprovisto de proxies reactivos y clonarlo
+                const nextState = structuredClone(toRaw(state.gameState.value));
+
+                // 2. Aplicar el parche sobre el objeto plano crudo (0 triggers de Vue)
+                applyPatch(nextState, patches);
+                nextState.stateVersion = stateVersion;
+
+                // 3. Deduplicar jugadores en el objeto plano
+                if (nextState.players) {
+                    const seen = new Set<string>();
+                    nextState.players = nextState.players.filter(p => {
+                        if (seen.has(p.id)) return false;
+                        seen.add(p.id);
+                        return true;
+                    });
+                }
+
+                // 4. Asignar el nuevo estado de una sola vez, gatillando exactamente 1 ciclo de renderizado
+                state.gameState.value = nextState;
 
                 // También sincronizar URL en patches: el servidor puede cambiar
                 // activeView via un patch delta (ej. LOBBY→GAME al iniciar partida)
@@ -96,19 +113,6 @@ watch(lastMessage, (newMsg) => {
             } else {
                 console.debug(`[Red] Ignorando parche obsoleto: ${stateVersion}`);
             }
-
-            // Deduplicate players after patch
-            if (state.gameState.value.players) {
-                const seen = new Set<string>();
-                state.gameState.value.players = state.gameState.value.players.filter(p => {
-                    if (seen.has(p.id)) return false;
-                    seen.add(p.id);
-                    return true;
-                });
-            }
-
-            // Force Vue reactivity trigger for deep changes (like bot filledCount)
-            state.gameState.value = { ...state.gameState.value };
         } else if (parsed.type === EVENTS.AUTH_GRANTED) {
             // Update Session IDs (persisted automatically by watchers)
             const { userId, sessionToken } = parsed.payload;

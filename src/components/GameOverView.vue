@@ -3,7 +3,7 @@
 // Ha sido descompuesto en sub-componentes atómicos bajo src/components/results/.
 // Este archivo no debe superar ~100 líneas. Toda la lógica de display vive en los hijos.
 import { computed, onMounted, nextTick, ref } from 'vue';
-import { toPng } from 'html-to-image';
+
 import { useGame } from '../composables/useGame';
 import { useSound } from '../composables/useSound';
 import { useTitles } from '../composables/useTitles';
@@ -88,6 +88,9 @@ const shareMatchSummary = async () => {
     showSummaryCard.value = true;
 
     try {
+        // Carga dinámica de la biblioteca html-to-image únicamente cuando se solicita compartir
+        const { toPng } = await import('html-to-image');
+
         // ── PASO 1: Captura de imagen ────────────────────────────────────────
         await nextTick();
         await document.fonts.ready;
