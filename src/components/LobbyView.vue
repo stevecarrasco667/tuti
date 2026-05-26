@@ -139,7 +139,18 @@ const handleLeave = () => {
 </script>
 
 <template>
-    <div class="h-full w-full lg:max-w-[1240px] lg:max-h-[760px] lg:my-auto mx-auto flex flex-col overflow-hidden lg:bg-panel-base/20 lg:backdrop-blur-3xl lg:border-2 lg:border-white/10 lg:rounded-[3rem] lg:shadow-[0_25px_60px_rgba(0,0,0,0.55)]">
+    <!-- Full-screen dynamic galactic lobby background wrapper -->
+    <div class="h-full w-full flex flex-col items-center justify-center relative overflow-hidden bg-panel-base">
+        <!-- 🌌 Neon Aura Nebula background layer -->
+        <div class="lobby-bg-nebula">
+            <div class="aura-circle aura-1"></div>
+            <div class="aura-circle aura-2"></div>
+            <div class="aura-circle aura-3"></div>
+            <div class="lobby-stardust"></div>
+        </div>
+
+        <!-- Inner Grid Container (No longer enclosed in a big box frame on PC, but still centered and aligned) -->
+        <div class="h-full w-full lg:max-w-[1240px] lg:max-h-[760px] lg:my-auto mx-auto flex flex-col overflow-hidden relative z-10">
 
         <!-- Header: Room Code + Pub/Priv + Copy -->
         <LobbyHeader
@@ -295,6 +306,7 @@ const handleLeave = () => {
             v-model="showTutorial" 
             :mode="tutorialMode" 
         />
+        </div>
     </div>
 </template>
 

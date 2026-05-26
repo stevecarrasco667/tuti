@@ -103,6 +103,12 @@ watch(() => gameState.value.players.map(p => p.id).join(','), () => {
 // Detectar si la vista actual está en GAME (para posicionar el botón mute)
 const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
 
+// Detectar si la vista requiere pantalla completa absoluta (sin padding de borde)
+const isFullFrameView = () => {
+    const path = router.currentRoute.value.path;
+    return path.startsWith('/game/') || path.startsWith('/lobby/') || path.startsWith('/results/');
+};
+
 // ── [Capacitor] Hardware Back Button Interceptor ──────────────────────────────
 // Evita que el usuario salga del juego accidentalmente al usar el gesto de 
 // "Atrás" o el botón físico en Android.
@@ -125,7 +131,7 @@ CapacitorApp.addListener('backButton', ({ canGoBack }) => {
 
 <template>
   <div class="w-screen overflow-hidden bg-panel-base text-ink-main flex flex-col items-center relative transition-all duration-300 font-sans group"
-       :class="isGameView() ? 'p-0' : 'p-2'"
+       :class="isFullFrameView() ? 'p-0' : 'p-2'"
        :style="{ height: viewportHeight + 'px', maxHeight: viewportHeight + 'px' }">
 
     <!-- MUTE BUTTON LAYER -->
