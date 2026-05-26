@@ -124,7 +124,7 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
             <AdBanner position="desktop-left" />
         </aside>
 
-        <div class="max-w-[960px] mx-auto w-full grid grid-cols-1 lg:grid-cols-7 gap-10 lg:gap-16 min-h-0 mt-6 sm:mt-8">
+        <div class="max-w-[960px] mx-auto w-full grid grid-cols-1 lg:grid-cols-7 gap-10 lg:gap-16 min-h-0 mt-6 sm:mt-8 transform transition-transform duration-300 xl:translate-x-[88px]">
 
             <!-- LEFT: Consola -->
             <div class="lg:col-span-4 flex flex-col gap-5 justify-center">
