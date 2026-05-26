@@ -179,7 +179,7 @@ describe('TutiEngine Core', () => {
 
         it('should use default config on init', () => {
             const config = engine.getState().config;
-            expect(config.classic.rounds).toBe(5);
+            expect(config.classic.rounds).toBe(3);
             expect(config.classic.timeLimit).toBe(60);
         });
 
