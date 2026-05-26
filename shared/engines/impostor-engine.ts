@@ -179,6 +179,17 @@ export class ImpostorEngine extends BaseEngine {
         this.lastImpostorId = secret.lastImpostorId;
         // [Sprint P2 — Fase 3] Mark dirty: restored secrets must be confirmed written before next hibernate.
         this._secretsDirty = true;
+
+        // [Hotfix] Precarga en background asíncrona de las categorías de la partida activa
+        // para garantizar que la transición a la siguiente ronda tenga palabras listas en el caché de V8
+        if (this.activeCategoryIds.length > 0) {
+            Promise.all(
+                this.activeCategoryIds.map(catId =>
+                    this.wordProvider.loadCategory(this.state.config.lang || 'es', catId, this.supabase)
+                )
+            ).catch(err => console.error('[ImpostorEngine] Error pre-loading categories on hydration:', err));
+        }
+
         console.log(`[ImpostorEngine] 🔑 Secrets hydrated — impostors: [${secret.currentImpostorIds.join(', ')}], word: "${secret.secretWord}"`);
     }
 

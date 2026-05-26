@@ -46,7 +46,8 @@ async function seedImpostorData() {
         const wordsToInsert = categoryData.words.map((w: any) => ({
             category_id: categoryData.categoryId,
             word: w.word,
-            difficulty: w.difficulty || 1
+            difficulty: w.difficulty || 1,
+            language: 'es'
         }));
 
         const { error: wordsError } = await supabase.from('words').insert(wordsToInsert);

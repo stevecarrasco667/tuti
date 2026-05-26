@@ -66,7 +66,7 @@ export const GlobalImpostorCache = {
                 .from('words')
                 .select('id, word, difficulty')
                 .eq('category_id', categoryId)
-                .eq('language', lang);
+                .or(`language.eq.${lang},language.is.null`);
 
             if (wordsError || !wordsData) {
                 console.error(`[GlobalImpostorCache] Failed to fetch words for ${categoryId}:`, wordsError);

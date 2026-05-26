@@ -7,10 +7,10 @@ export class ConfigurationManager {
         maxPlayers: 8,
         lang: 'es',
         classic: {
-            rounds: 5,
+            rounds: 3,
             timeLimit: 60,
-            votingDuration: 30,
-            categoryCount: 5,
+            votingDuration: 20,
+            categoryCount: 4,
             categories: [],
             customCategories: [],
             mutators: {

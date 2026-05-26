@@ -139,7 +139,7 @@ const handleLeave = () => {
 </script>
 
 <template>
-    <div class="h-full w-full max-w-[1400px] mx-auto flex flex-col overflow-hidden">
+    <div class="h-full w-full lg:max-w-[1240px] lg:max-h-[760px] lg:my-auto mx-auto flex flex-col overflow-hidden lg:bg-panel-base/20 lg:backdrop-blur-3xl lg:border-2 lg:border-white/10 lg:rounded-[3rem] lg:shadow-[0_25px_60px_rgba(0,0,0,0.55)]">
 
         <!-- Header: Room Code + Pub/Priv + Copy -->
         <LobbyHeader
@@ -274,7 +274,7 @@ const handleLeave = () => {
 
         <!-- Sticky Footer: Start Button -->
         <div class="flex-none px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] md:pb-3 lg:px-4 lg:pt-1 lg:pb-3 bg-panel-base/90 lg:bg-transparent border-t-[3px] border-white/10 lg:border-0 shadow-none backdrop-blur-2xl lg:backdrop-blur-none">
-            <div class="max-w-[1400px] mx-auto">
+            <div class="max-w-[1400px] lg:max-w-md mx-auto lg:p-1.5 lg:rounded-2xl lg:bg-panel-card/45 lg:backdrop-blur-xl lg:border-2 lg:border-white/10 lg:shadow-[0_8px_32px_rgba(0,0,0,0.35)]">
                 <TButton v-if="amIHost"
                     :variant="players.length >= 2 ? 'primary' : 'secondary'" size="md"
                     class="w-full text-base md:text-xl transition-all"
