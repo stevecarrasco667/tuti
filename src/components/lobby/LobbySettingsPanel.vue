@@ -42,79 +42,6 @@ function handleNumericInput(field: string, rawValue: string, min: number, max: n
     val = Math.max(min, Math.min(max, val));
     emit('update-config', field, val);
 }
-
-// Classic Rules Steppers
-const incrementRounds = () => {
-    const val = props.config.classic?.rounds || 3;
-    if (val < 20) emit('update-config', 'classic.rounds', val + 1);
-};
-const decrementRounds = () => {
-    const val = props.config.classic?.rounds || 3;
-    if (val > 1) emit('update-config', 'classic.rounds', val - 1);
-};
-const incrementTimeLimit = () => {
-    const current = props.config.classic?.timeLimit || 60;
-    const idx = timeLimitOptions.indexOf(current);
-    if (idx < timeLimitOptions.length - 1) emit('update-config', 'classic.timeLimit', timeLimitOptions[idx + 1]);
-};
-const decrementTimeLimit = () => {
-    const current = props.config.classic?.timeLimit || 60;
-    const idx = timeLimitOptions.indexOf(current);
-    if (idx > 0) emit('update-config', 'classic.timeLimit', timeLimitOptions[idx - 1]);
-};
-const incrementVotingDuration = () => {
-    const current = props.config.classic?.votingDuration || 20;
-    const idx = votingOptions.indexOf(current);
-    if (idx < votingOptions.length - 1) emit('update-config', 'classic.votingDuration', votingOptions[idx + 1]);
-};
-const decrementVotingDuration = () => {
-    const current = props.config.classic?.votingDuration || 20;
-    const idx = votingOptions.indexOf(current);
-    if (idx > 0) emit('update-config', 'classic.votingDuration', votingOptions[idx - 1]);
-};
-const incrementCategoryCount = () => {
-    const val = props.config.classic?.categoryCount ?? 4;
-    if (val < 10) emit('update-config', 'classic.categoryCount', val + 1);
-};
-const decrementCategoryCount = () => {
-    const val = props.config.classic?.categoryCount ?? 4;
-    if (val > 1) emit('update-config', 'classic.categoryCount', val - 1);
-};
-
-// Impostor Rules Steppers
-const incrementImpostorRounds = () => {
-    const val = props.config.impostor?.rounds || 3;
-    if (val < 10) emit('update-config', 'impostor.rounds', val + 1);
-};
-const decrementImpostorRounds = () => {
-    const val = props.config.impostor?.rounds || 3;
-    if (val > 1) emit('update-config', 'impostor.rounds', val - 1);
-};
-const incrementImpostorTypingTime = () => {
-    const val = props.config.impostor?.typingTime || 30;
-    if (val < 60) emit('update-config', 'impostor.typingTime', val + 5);
-};
-const decrementImpostorTypingTime = () => {
-    const val = props.config.impostor?.typingTime || 30;
-    if (val > 10) emit('update-config', 'impostor.typingTime', val - 5);
-};
-const incrementImpostorVotingTime = () => {
-    const val = props.config.impostor?.votingTime || 40;
-    if (val < 120) emit('update-config', 'impostor.votingTime', val + 5);
-};
-const decrementImpostorVotingTime = () => {
-    const val = props.config.impostor?.votingTime || 40;
-    if (val > 15) emit('update-config', 'impostor.votingTime', val - 5);
-};
-const incrementImpostorCategoryCount = () => {
-    const val = props.config.impostor?.categoryCount || 3;
-    if (val < 8) emit('update-config', 'impostor.categoryCount', val + 1);
-};
-const decrementImpostorCategoryCount = () => {
-    const val = props.config.impostor?.categoryCount || 3;
-    if (val > 1) emit('update-config', 'impostor.categoryCount', val - 1);
-};
-
 // ── Presets Configuration ──────────────────────────────────────────────────
 const PRESETS = {
     CLASSIC: {
@@ -496,134 +423,150 @@ const tSpec = computed(() => {
 
                 <!-- ── CLASSIC MODE SETTINGS PANEL ── -->
                 <template v-if="props.config.mode === 'CLASSIC'">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 bg-panel-card/15 p-3 rounded-2xl border border-white/5">
+                    <div class="flex flex-col gap-2 bg-panel-card/15 p-2 rounded-2xl border border-white/5">
                         
                         <!-- Category Count (only when no manual categories selected) -->
-                        <div v-if="!(props.config.classic?.categories?.length > 0)" class="bg-panel-input/35 rounded-2xl border border-white/10 p-3 md:col-span-2">
-                            <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2 text-center">🎲 {{ t('lobby.settings.classic.randomCategories') }}</label>
-                            <div class="flex items-center justify-between max-w-xs mx-auto">
-                                <button :disabled="!props.amIHost" @click="decrementCategoryCount" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer hover:bg-panel-input active:scale-90">-</button>
-                                <input
-                                    type="number"
+                        <div v-if="!(props.config.classic?.categories?.length > 0)" class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                            <div class="flex items-start gap-3 min-w-0">
+                                <span class="text-xl flex-none leading-none mt-0.5">🎲</span>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.classic.randomCategories') }}</span>
+                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
+                                        {{ locale === 'en' ? 'Amount of random categories' : locale === 'pt' ? 'Quantidade de categorias aleatórias' : 'Cantidad de categorías que se elegirán al azar' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="relative w-36 sm:w-40 flex-none">
+                                <select
                                     :disabled="!props.amIHost"
                                     :value="props.config.classic?.categoryCount ?? 4"
-                                    :min="1" :max="10"
-                                    @change="handleNumericInput('classic.categoryCount', ($event.target as HTMLInputElement).value, 1, 10)"
-                                    @keydown.enter="($event.target as HTMLInputElement).blur()"
-                                    @focus="($event.target as HTMLInputElement).select()"
-                                    class="w-14 text-center text-xl font-black text-ink-main bg-transparent border-b border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-                                />
-                                <button :disabled="!props.amIHost" @click="incrementCategoryCount" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer hover:bg-panel-input active:scale-90">+</button>
+                                    @change="handleNumericInput('classic.categoryCount', ($event.target as HTMLSelectElement).value, 1, 10)"
+                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
+                                >
+                                    <option v-for="n in 10" :key="n" :value="n" class="bg-panel-card">{{ n }} {{ n === 1 ? 'Categoría' : 'Categorías' }}</option>
+                                </select>
+                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
                             </div>
-                            <p class="text-ink-muted text-[8px] font-bold mt-1.5 text-center leading-none">{{ t('lobby.settings.classic.randomCategoriesDesc') }}</p>
                         </div>
 
                         <!-- Rounds stepper -->
-                        <div class="bg-panel-input/35 rounded-2xl border border-white/10 p-3">
-                            <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2 text-center">🔁 {{ t('lobby.settings.classic.rounds') }}</label>
-                            <div class="flex items-center justify-between">
-                                <button :disabled="!props.amIHost" @click="decrementRounds" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer hover:bg-panel-input active:scale-90">-</button>
-                                <input
-                                    type="number"
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                            <div class="flex items-start gap-3 min-w-0">
+                                <span class="text-xl flex-none leading-none mt-0.5">🔁</span>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.classic.rounds') }}</span>
+                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
+                                        {{ locale === 'en' ? 'Number of game rounds' : locale === 'pt' ? 'Número de rodadas do jogo' : 'Número de rondas de la partida' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="relative w-36 sm:w-40 flex-none">
+                                <select
                                     :disabled="!props.amIHost"
                                     :value="props.config.classic?.rounds || 3"
-                                    :min="1" :max="20"
-                                    @change="handleNumericInput('classic.rounds', ($event.target as HTMLInputElement).value, 1, 20)"
-                                    @keydown.enter="($event.target as HTMLInputElement).blur()"
-                                    @focus="($event.target as HTMLInputElement).select()"
-                                    class="w-14 text-center text-xl font-black text-ink-main bg-transparent border-b border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-                                />
-                                <button :disabled="!props.amIHost" @click="incrementRounds" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer hover:bg-panel-input active:scale-90">+</button>
+                                    @change="handleNumericInput('classic.rounds', ($event.target as HTMLSelectElement).value, 1, 20)"
+                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
+                                >
+                                    <option v-for="n in 10" :key="n" :value="n" class="bg-panel-card">{{ n }} {{ n === 1 ? 'Ronda' : 'Rondas' }}</option>
+                                    <option :value="12" class="bg-panel-card">12 Rondas</option>
+                                    <option :value="15" class="bg-panel-card">15 Rondas</option>
+                                    <option :value="20" class="bg-panel-card">20 Rondas</option>
+                                </select>
+                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
                             </div>
                         </div>
 
                         <!-- Time limit stepper -->
-                        <div class="bg-panel-input/35 rounded-2xl border border-white/10 p-3">
-                            <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2 text-center">⏱️ {{ t('lobby.settings.classic.timeLimit') }}</label>
-                            <div class="flex items-center justify-between">
-                                <button :disabled="!props.amIHost" @click="decrementTimeLimit" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer hover:bg-panel-input active:scale-90">-</button>
-                                <div class="text-center flex flex-col items-center">
-                                    <input
-                                        type="number"
-                                        :disabled="!props.amIHost"
-                                        :value="props.config.classic?.timeLimit || 60"
-                                        :min="30" :max="180"
-                                        @change="handleNumericInput('classic.timeLimit', ($event.target as HTMLInputElement).value, 30, 180, timeLimitOptions)"
-                                        @keydown.enter="($event.target as HTMLInputElement).blur()"
-                                        @focus="($event.target as HTMLInputElement).select()"
-                                        class="w-14 text-center text-xl font-black text-ink-main bg-transparent border-b border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-                                    />
-                                    <span class="text-ink-muted text-[8px] font-black uppercase leading-none mt-1">{{ t('lobby.settings.classic.sec') }}</span>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                            <div class="flex items-start gap-3 min-w-0">
+                                <span class="text-xl flex-none leading-none mt-0.5">⏱️</span>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.classic.timeLimit') }}</span>
+                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
+                                        {{ locale === 'en' ? 'Time limit to write words per round' : locale === 'pt' ? 'Tempo para escrever palavras por rodada' : 'Tiempo para escribir palabras en cada ronda' }}
+                                    </span>
                                 </div>
-                                <button :disabled="!props.amIHost" @click="incrementTimeLimit" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer hover:bg-panel-input active:scale-90">+</button>
+                            </div>
+                            <div class="relative w-36 sm:w-40 flex-none">
+                                <select
+                                    :disabled="!props.amIHost"
+                                    :value="props.config.classic?.timeLimit || 60"
+                                    @change="handleNumericInput('classic.timeLimit', ($event.target as HTMLSelectElement).value, 30, 180, timeLimitOptions)"
+                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
+                                >
+                                    <option v-for="opt in timeLimitOptions" :key="opt" :value="opt" class="bg-panel-card">{{ opt }} Segundos</option>
+                                </select>
+                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
                             </div>
                         </div>
 
                         <!-- Voting duration stepper -->
-                        <div class="bg-panel-input/35 rounded-2xl border border-white/10 p-3 md:col-span-2">
-                            <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2 text-center">🗳️ {{ t('lobby.settings.classic.votingTime') }}</label>
-                            <div class="flex items-center justify-between max-w-xs mx-auto">
-                                <button :disabled="!props.amIHost" @click="decrementVotingDuration" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer hover:bg-panel-input active:scale-90">-</button>
-                                <div class="text-center flex flex-col items-center">
-                                    <input
-                                        type="number"
-                                        :disabled="!props.amIHost"
-                                        :value="props.config.classic?.votingDuration || 20"
-                                        :min="10" :max="120"
-                                        @change="handleNumericInput('classic.votingDuration', ($event.target as HTMLInputElement).value, 10, 120, votingOptions)"
-                                        @keydown.enter="($event.target as HTMLInputElement).blur()"
-                                        @focus="($event.target as HTMLInputElement).select()"
-                                        class="w-14 text-center text-xl font-black text-ink-main bg-transparent border-b border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-                                    />
-                                    <span class="text-ink-muted text-[8px] font-black uppercase leading-none mt-1">{{ t('lobby.settings.classic.sec') }}</span>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                            <div class="flex items-start gap-3 min-w-0">
+                                <span class="text-xl flex-none leading-none mt-0.5">🗳️</span>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.classic.votingTime') }}</span>
+                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
+                                        {{ locale === 'en' ? 'Time to vote and validate answers' : locale === 'pt' ? 'Tempo para votar e qualificar respostas' : 'Tiempo para calificar y votar las respuestas' }}
+                                    </span>
                                 </div>
-                                <button :disabled="!props.amIHost" @click="incrementVotingDuration" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer hover:bg-panel-input active:scale-90">+</button>
+                            </div>
+                            <div class="relative w-36 sm:w-40 flex-none">
+                                <select
+                                    :disabled="!props.amIHost"
+                                    :value="props.config.classic?.votingDuration || 20"
+                                    @change="handleNumericInput('classic.votingDuration', ($event.target as HTMLSelectElement).value, 10, 120, votingOptions)"
+                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
+                                >
+                                    <option v-for="opt in votingOptions" :key="opt" :value="opt" class="bg-panel-card">{{ opt }} Segundos</option>
+                                </select>
+                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
                             </div>
                         </div>
 
-                        <!-- Mutators block -->
-                        <div class="md:col-span-2 space-y-2 mt-1">
-                            <p class="text-ink-main text-[8px] font-black uppercase tracking-[0.2em] mb-1.5">⚡ {{ t('lobby.settings.classic.mutators') }}</p>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                                <!-- Suicidal Stop -->
-                                <div class="bg-panel-input/30 rounded-xl border border-white/10 p-2.5 flex items-center justify-between">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-base">💀</span>
-                                        <div class="flex flex-col">
-                                            <span class="text-ink-main font-black text-[10px] uppercase leading-none">{{ t('lobby.settings.classic.suicidalStop') }}</span>
-                                            <span class="text-ink-muted text-[8px] font-bold leading-tight mt-1 max-w-[140px]">{{ t('lobby.settings.classic.suicidalStopDesc') }}</span>
-                                        </div>
-                                    </div>
-                                    <button
-                                        :disabled="!props.amIHost"
-                                        @click="emit('update-mutator', 'suicidalStop', !props.config.classic?.mutators?.suicidalStop)"
-                                        class="relative w-10 h-5.5 rounded-full transition-all duration-300 border-[2px] flex-none cursor-pointer"
-                                        :class="props.config.classic?.mutators?.suicidalStop ? 'bg-action-error border-action-error' : 'bg-panel-input border-panel-card shadow-inner'"
-                                    >
-                                        <span class="absolute top-0.5 w-3.5 h-3.5 rounded-full shadow-sm transition-all duration-300"
-                                              :class="props.config.classic?.mutators?.suicidalStop ? 'bg-white left-[calc(100%-1.05rem)]' : 'bg-panel-card left-0.5'"></span>
-                                    </button>
+                        <!-- Suicidal Stop -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                            <div class="flex items-start gap-3 min-w-0">
+                                <span class="text-xl flex-none leading-none mt-0.5">💀</span>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.classic.suicidalStop') }}</span>
+                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">{{ t('lobby.settings.classic.suicidalStopDesc') }}</span>
                                 </div>
+                            </div>
+                            <div class="relative w-36 sm:w-40 flex-none">
+                                <select
+                                    :disabled="!props.amIHost"
+                                    :value="props.config.classic?.mutators?.suicidalStop ? 'true' : 'false'"
+                                    @change="emit('update-mutator', 'suicidalStop', ($event.target as HTMLSelectElement).value === 'true')"
+                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
+                                >
+                                    <option value="false" class="bg-panel-card">DESACTIVADO</option>
+                                    <option value="true" class="bg-panel-card text-action-error font-black">ACTIVADO 💀</option>
+                                </select>
+                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
+                            </div>
+                        </div>
 
-                                <!-- Anonymous Voting -->
-                                <div class="bg-panel-input/30 rounded-xl border border-white/10 p-2.5 flex items-center justify-between">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-base">🎭</span>
-                                        <div class="flex flex-col">
-                                            <span class="text-ink-main font-black text-[10px] uppercase leading-none">{{ t('lobby.settings.classic.anonymousVoting') }}</span>
-                                            <span class="text-ink-muted text-[8px] font-bold leading-tight mt-1 max-w-[140px]">{{ t('lobby.settings.classic.anonymousVotingDesc') }}</span>
-                                        </div>
-                                    </div>
-                                    <button
-                                        :disabled="!props.amIHost"
-                                        @click="emit('update-mutator', 'anonymousVoting', !props.config.classic?.mutators?.anonymousVoting)"
-                                        class="relative w-10 h-5.5 rounded-full transition-all duration-300 border-[2px] flex-none cursor-pointer"
-                                        :class="props.config.classic?.mutators?.anonymousVoting ? 'bg-action-blue border-action-blue' : 'bg-panel-input border-panel-card shadow-inner'"
-                                    >
-                                        <span class="absolute top-0.5 w-3.5 h-3.5 rounded-full shadow-sm transition-all duration-300"
-                                              :class="props.config.classic?.mutators?.anonymousVoting ? 'bg-white left-[calc(100%-1.05rem)]' : 'bg-panel-card left-0.5'"></span>
-                                    </button>
+                        <!-- Anonymous Voting -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                            <div class="flex items-start gap-3 min-w-0">
+                                <span class="text-xl flex-none leading-none mt-0.5">🎭</span>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.classic.anonymousVoting') }}</span>
+                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">{{ t('lobby.settings.classic.anonymousVotingDesc') }}</span>
                                 </div>
+                            </div>
+                            <div class="relative w-36 sm:w-40 flex-none">
+                                <select
+                                    :disabled="!props.amIHost"
+                                    :value="props.config.classic?.mutators?.anonymousVoting ? 'true' : 'false'"
+                                    @change="emit('update-mutator', 'anonymousVoting', ($event.target as HTMLSelectElement).value === 'true')"
+                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
+                                >
+                                    <option value="false" class="bg-panel-card">DESACTIVADO</option>
+                                    <option value="true" class="bg-panel-card text-action-blue font-black">ACTIVADO 🎭</option>
+                                </select>
+                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
                             </div>
                         </div>
                     </div>
@@ -631,88 +574,101 @@ const tSpec = computed(() => {
 
                 <!-- ── IMPOSTOR MODE SETTINGS PANEL ── -->
                 <template v-else-if="props.config.mode === 'IMPOSTOR'">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 bg-panel-card/15 p-3 rounded-2xl border border-white/5">
+                    <div class="flex flex-col gap-2 bg-panel-card/15 p-2 rounded-2xl border border-white/5">
                         
                         <!-- Category Count stepper -->
-                        <div class="bg-panel-input/35 rounded-2xl border border-white/10 p-3 md:col-span-2">
-                            <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2 text-center">📦 {{ t('lobby.settings.impostor.categories') }}</label>
-                            <div class="flex items-center justify-between max-w-xs mx-auto">
-                                <button :disabled="!props.amIHost" @click="decrementImpostorCategoryCount" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer hover:bg-panel-input active:scale-90">-</button>
-                                <input
-                                    type="number"
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                            <div class="flex items-start gap-3 min-w-0">
+                                <span class="text-xl flex-none leading-none mt-0.5">📦</span>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.impostor.categories') }}</span>
+                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
+                                        {{ locale === 'en' ? 'Number of secret categories' : locale === 'pt' ? 'Número de temas secretos' : 'Número de temas secretos por ronda' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="relative w-36 sm:w-40 flex-none">
+                                <select
                                     :disabled="!props.amIHost"
                                     :value="props.config.impostor?.categoryCount ?? 3"
-                                    :min="1" :max="8"
-                                    @change="handleNumericInput('impostor.categoryCount', ($event.target as HTMLInputElement).value, 1, 8)"
-                                    @keydown.enter="($event.target as HTMLInputElement).blur()"
-                                    @focus="($event.target as HTMLInputElement).select()"
-                                    class="w-14 text-center text-xl font-black text-ink-main bg-transparent border-b border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-                                />
-                                <button :disabled="!props.amIHost" @click="incrementImpostorCategoryCount" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer hover:bg-panel-input active:scale-90">+</button>
+                                    @change="handleNumericInput('impostor.categoryCount', ($event.target as HTMLSelectElement).value, 1, 8)"
+                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
+                                >
+                                    <option v-for="n in 8" :key="n" :value="n" class="bg-panel-card">{{ n }} {{ n === 1 ? 'Categoría' : 'Categorías' }}</option>
+                                </select>
+                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
                             </div>
-                            <p class="text-ink-muted text-[8px] font-bold mt-1.5 text-center leading-none">{{ t('lobby.settings.impostor.categoriesDesc') }}</p>
                         </div>
 
                         <!-- Rounds stepper -->
-                        <div class="bg-panel-input/35 rounded-2xl border border-white/10 p-3">
-                            <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2 text-center">🔁 {{ t('lobby.settings.impostor.rounds') }}</label>
-                            <div class="flex items-center justify-between">
-                                <button :disabled="!props.amIHost" @click="decrementImpostorRounds" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer hover:bg-panel-input active:scale-90">-</button>
-                                <input
-                                    type="number"
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                            <div class="flex items-start gap-3 min-w-0">
+                                <span class="text-xl flex-none leading-none mt-0.5">🔁</span>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.impostor.rounds') }}</span>
+                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
+                                        {{ locale === 'en' ? 'Number of impostor rounds' : locale === 'pt' ? 'Número de rodadas de impostor' : 'Número de rondas de la partida' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="relative w-36 sm:w-40 flex-none">
+                                <select
                                     :disabled="!props.amIHost"
                                     :value="props.config.impostor?.rounds || 3"
-                                    :min="1" :max="10"
-                                    @change="handleNumericInput('impostor.rounds', ($event.target as HTMLInputElement).value, 1, 10)"
-                                    @keydown.enter="($event.target as HTMLInputElement).blur()"
-                                    @focus="($event.target as HTMLInputElement).select()"
-                                    class="w-14 text-center text-xl font-black text-ink-main bg-transparent border-b border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-                                />
-                                <button :disabled="!props.amIHost" @click="incrementImpostorRounds" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer hover:bg-panel-input active:scale-90">+</button>
+                                    @change="handleNumericInput('impostor.rounds', ($event.target as HTMLSelectElement).value, 1, 10)"
+                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
+                                >
+                                    <option v-for="n in 10" :key="n" :value="n" class="bg-panel-card">{{ n }} {{ n === 1 ? 'Ronda' : 'Rondas' }}</option>
+                                </select>
+                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
                             </div>
                         </div>
 
                         <!-- Typing time stepper -->
-                        <div class="bg-panel-input/35 rounded-2xl border border-white/10 p-3">
-                            <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2 text-center">⏱️ {{ t('lobby.settings.impostor.typingTime') }}</label>
-                            <div class="flex items-center justify-between">
-                                <button :disabled="!props.amIHost" @click="decrementImpostorTypingTime" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer hover:bg-panel-input active:scale-90">-</button>
-                                <div class="text-center flex flex-col items-center">
-                                    <input
-                                        type="number"
-                                        :disabled="!props.amIHost"
-                                        :value="props.config.impostor?.typingTime || 30"
-                                        :min="10" :max="60"
-                                        @change="handleNumericInput('impostor.typingTime', ($event.target as HTMLInputElement).value, 10, 60, impostorTypingOptions)"
-                                        @keydown.enter="($event.target as HTMLInputElement).blur()"
-                                        @focus="($event.target as HTMLInputElement).select()"
-                                        class="w-14 text-center text-xl font-black text-ink-main bg-transparent border-b border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-                                    />
-                                    <span class="text-ink-muted text-[8px] font-black uppercase leading-none mt-1">{{ t('lobby.settings.classic.sec') }}</span>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                            <div class="flex items-start gap-3 min-w-0">
+                                <span class="text-xl flex-none leading-none mt-0.5">⏱️</span>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.impostor.typingTime') }}</span>
+                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
+                                        {{ locale === 'en' ? 'Time limit to write your word' : locale === 'pt' ? 'Tempo para escrever sua palavra' : 'Tiempo para escribir tu palabra' }}
+                                    </span>
                                 </div>
-                                <button :disabled="!props.amIHost" @click="incrementImpostorTypingTime" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer hover:bg-panel-input active:scale-90">+</button>
+                            </div>
+                            <div class="relative w-36 sm:w-40 flex-none">
+                                <select
+                                    :disabled="!props.amIHost"
+                                    :value="props.config.impostor?.typingTime || 30"
+                                    @change="handleNumericInput('impostor.typingTime', ($event.target as HTMLSelectElement).value, 10, 60, impostorTypingOptions)"
+                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
+                                >
+                                    <option v-for="opt in impostorTypingOptions" :key="opt" :value="opt" class="bg-panel-card">{{ opt }} Segundos</option>
+                                </select>
+                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
                             </div>
                         </div>
 
                         <!-- Voting time stepper -->
-                        <div class="bg-panel-input/35 rounded-2xl border border-white/10 p-3 md:col-span-2">
-                            <label class="text-ink-main text-[8px] font-black uppercase tracking-widest block mb-2 text-center">🗳️ {{ t('lobby.settings.impostor.votingTime') }}</label>
-                            <div class="flex items-center justify-between max-w-xs mx-auto">
-                                <button :disabled="!props.amIHost" @click="decrementImpostorVotingTime" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer hover:bg-panel-input active:scale-90">-</button>
-                                <div class="text-center flex flex-col items-center">
-                                    <input
-                                        type="number"
-                                        :disabled="!props.amIHost"
-                                        :value="props.config.impostor?.votingTime || 40"
-                                        :min="15" :max="120"
-                                        @change="handleNumericInput('impostor.votingTime', ($event.target as HTMLInputElement).value, 15, 120, impostorVotingOptions)"
-                                        @keydown.enter="($event.target as HTMLInputElement).blur()"
-                                        @focus="($event.target as HTMLInputElement).select()"
-                                        class="w-14 text-center text-xl font-black text-ink-main bg-transparent border-b border-white/20 focus:border-action-primary outline-none appearance-none [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-                                    />
-                                    <span class="text-ink-muted text-[8px] font-black uppercase leading-none mt-1">{{ t('lobby.settings.classic.sec') }}</span>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                            <div class="flex items-start gap-3 min-w-0">
+                                <span class="text-xl flex-none leading-none mt-0.5">🗳️</span>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.impostor.votingTime') }}</span>
+                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
+                                        {{ locale === 'en' ? 'Time limit for discussion and voting' : locale === 'pt' ? 'Tempo para debate e votação' : 'Tiempo para debate y votación en el tribunal' }}
+                                    </span>
                                 </div>
-                                <button :disabled="!props.amIHost" @click="incrementImpostorVotingTime" class="w-9 h-9 rounded-xl bg-panel-card border border-white/10 text-ink-main flex items-center justify-center font-black shadow-sm transition-all text-lg cursor-pointer hover:bg-panel-input active:scale-90">+</button>
+                            </div>
+                            <div class="relative w-36 sm:w-40 flex-none">
+                                <select
+                                    :disabled="!props.amIHost"
+                                    :value="props.config.impostor?.votingTime || 40"
+                                    @change="handleNumericInput('impostor.votingTime', ($event.target as HTMLSelectElement).value, 15, 120, impostorVotingOptions)"
+                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
+                                >
+                                    <option v-for="opt in impostorVotingOptions" :key="opt" :value="opt" class="bg-panel-card">{{ opt }} Segundos</option>
+                                </select>
+                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
                             </div>
                         </div>
                     </div>
