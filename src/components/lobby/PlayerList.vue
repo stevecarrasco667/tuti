@@ -27,7 +27,7 @@ const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.l
 <template>
     <div class="lg:col-span-3 bg-panel-base border-2 border-white/10 rounded-2xl shadow-game-panel flex flex-col lg:overflow-hidden lg:min-h-0 lg:h-full">
         <!-- Header: Title + Capacity Selector + Privacy Toggle -->
-        <div class="p-3 border-b-2 border-white/10 bg-panel-card/50 flex flex-col gap-2 flex-none">
+        <div class="py-2 px-3 border-b-2 border-white/10 bg-panel-card/50 flex flex-col gap-2 flex-none">
             <div class="flex items-center justify-between">
                 <h3 class="text-ink-main text-xs font-black uppercase tracking-widest flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -115,8 +115,8 @@ const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.l
             >
                 <div class="flex items-center gap-2.5 min-w-0">
                     <template v-if="props.players.length === 1 && i === 1">
-                        <span class="text-lg flex-none">🔗</span>
-                        <span class="text-action-blue font-black text-xs uppercase tracking-wider whitespace-pre-line text-left leading-tight">{{ t('lobby.players.invite') }}</span>
+                        <div class="w-8 h-8 rounded-lg bg-panel-base flex items-center justify-center text-lg opacity-80 flex-none shadow-inner">🔗</div>
+                        <span class="text-action-blue font-black text-[10px] sm:text-xs uppercase tracking-wider truncate text-left leading-none">{{ t('lobby.players.inviteShort', '¡Invita a tus amigos!') }}</span>
                     </template>
                     <template v-else>
                         <div class="w-8 h-8 rounded-lg bg-panel-base flex items-center justify-center text-lg opacity-30 flex-none shadow-inner">👤</div>

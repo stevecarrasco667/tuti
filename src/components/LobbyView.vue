@@ -13,7 +13,7 @@ import LobbySettingsPanel from './lobby/LobbySettingsPanel.vue';
 import GameTutorialModal from './tutorials/GameTutorialModal.vue';
 
 const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer, leaveGame, addBot } = useGame();
-const { playClick, playJoin, playAlarm, playSuccess, isMuted, toggleMute } = useSound();
+const { playClick, playJoin, playAlarm, playSuccess } = useSound();
 const { t } = useI18n();
 const route = useRoute();
 const { setMeta } = useMeta();
@@ -166,10 +166,10 @@ const handleLeave = () => {
         </div>
 
         <!-- Inner Grid Container (Narrower for better density, shifted to the right to leave space for a future left banner) -->
-        <div class="h-full w-full lg:max-w-[1040px] lg:max-h-[760px] lg:my-auto mx-auto lg:ml-auto lg:mr-8 xl:mr-16 flex flex-col overflow-hidden relative z-10">
+        <div class="h-full w-full lg:max-w-[1040px] lg:max-h-[730px] lg:my-auto mx-auto lg:ml-auto lg:mr-8 xl:mr-16 flex flex-col overflow-hidden relative z-10">
 
-        <!-- Floating Canvas Controls: Volver, TUTIGAME Logo, Audio -->
-        <div class="flex-none w-full px-4 py-3 flex items-center justify-between gap-4 select-none">
+        <!-- Floating Canvas Controls: Volver, TUTI GAMES Logo -->
+        <div class="flex-none w-full px-4 py-2 flex items-center justify-between gap-4 select-none">
             <!-- Left: Back button (◀ VOLVER) -->
             <button
                 @click="handleLeave"
@@ -181,30 +181,19 @@ const handleLeave = () => {
                 <span>{{ t('lobby.header.back', 'Volver') }}</span>
             </button>
 
-            <!-- Center: Stylized TUTIGAME Title + Room Code Badge -->
+            <!-- Center: Stylized TUTI GAMES Title + Room Code Badge -->
             <div class="flex flex-col items-center text-center">
-                <h1 class="font-display tracking-[0.15em] text-3xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-game-yellow via-tuti-teal to-game-blue font-black drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] leading-none">
-                    TUTIGAME
+                <h1 class="animate-float text-3xl sm:text-4xl lg:text-[2.75rem] font-display text-center mb-1.5 tracking-wider uppercase leading-none">
+                    <span class="text-transparent bg-clip-text bg-gradient-to-br from-game-yellow via-game-red to-action-info drop-shadow-md">TUTI GAMES</span>
                 </h1>
-                <div class="mt-1.5 flex items-center gap-1 bg-panel-card/80 border-[2px] border-white/10 text-action-info px-3 py-1 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest shadow-inner select-all font-mono">
-                    <span class="text-ink-muted opacity-80">SALA:</span>
-                    <span class="tracking-[0.1em] text-action-info">{{ gameState.roomId ?? '' }}</span>
+                <div class="flex items-center gap-1.5 bg-panel-card/80 border-[2px] border-white/10 text-action-info px-3 py-0.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest shadow-inner select-all font-mono">
+                    <span class="text-ink-muted opacity-80 text-[8px] md:text-[10px]">SALA:</span>
+                    <span class="tracking-[0.1em] text-action-info text-[9px] md:text-[11px]">{{ gameState.roomId ?? '' }}</span>
                 </div>
             </div>
 
-            <!-- Right: Speaker volume mute/unmute control -->
-            <button
-                @click="toggleMute"
-                class="w-10 h-10 bg-panel-card/70 hover:bg-panel-input border-2 border-white/10 hover:border-white/20 rounded-xl text-ink-soft hover:text-ink-main flex items-center justify-center transition-all duration-75 active:scale-95 cursor-pointer shadow-md select-none"
-                :title="isMuted ? 'Desactivar Silencio' : 'Silenciar'"
-            >
-                <svg v-if="isMuted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6L4.5 9H1.5v6h3l4.5 3.75V5.25z" />
-                </svg>
-                <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
-                </svg>
-            </button>
+            <!-- Right: Spacer to balance the Volver button and keep title perfectly centered -->
+            <div class="w-[94px] sm:w-[108px] flex-none"></div>
         </div>
 
         <!-- Tab Bar (Mobile only) -->
