@@ -8,13 +8,12 @@ import { useMeta } from '../composables/useMeta';
 import { useAnalytics } from '../composables/useAnalytics';
 import type { CategoryRef } from '../../shared/types';
 import TButton from './ui/TButton.vue';
-import LobbyHeader from './lobby/LobbyHeader.vue';
 import PlayerList from './lobby/PlayerList.vue';
 import LobbySettingsPanel from './lobby/LobbySettingsPanel.vue';
 import GameTutorialModal from './tutorials/GameTutorialModal.vue';
 
 const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer, leaveGame, addBot } = useGame();
-const { playClick, playJoin, playAlarm, playSuccess } = useSound();
+const { playClick, playJoin, playAlarm, playSuccess, isMuted, toggleMute } = useSound();
 const { t } = useI18n();
 const route = useRoute();
 const { setMeta } = useMeta();
@@ -169,16 +168,44 @@ const handleLeave = () => {
         <!-- Inner Grid Container (No longer enclosed in a big box frame on PC, but still centered and aligned) -->
         <div class="h-full w-full lg:max-w-[1240px] lg:max-h-[760px] lg:my-auto mx-auto flex flex-col overflow-hidden relative z-10">
 
-        <!-- Header: Room Code + Pub/Priv + Copy -->
-        <LobbyHeader
-            :room-id="gameState.roomId ?? ''"
-            :is-public="localConfig.isPublic"
-            :am-i-host="amIHost"
-            :copied="copied"
-            @toggle-privacy="handleTogglePrivacy"
-            @copy-link="copyRoomLink"
-            @leave="handleLeave"
-        />
+        <!-- Floating Canvas Controls: Volver, TUTIGAME Logo, Audio -->
+        <div class="flex-none w-full px-4 py-3 flex items-center justify-between gap-4 select-none">
+            <!-- Left: Back button (◀ VOLVER) -->
+            <button
+                @click="handleLeave"
+                class="flex items-center gap-1.5 px-4 py-2 bg-panel-card/70 hover:bg-panel-input border-2 border-white/10 hover:border-white/20 rounded-xl text-ink-soft hover:text-ink-main font-heading font-black text-xs md:text-sm uppercase tracking-wider transition-all duration-75 active:scale-95 cursor-pointer shadow-md select-none"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+                <span>{{ t('lobby.header.back', 'Volver') }}</span>
+            </button>
+
+            <!-- Center: Stylized TUTIGAME Title + Room Code Badge -->
+            <div class="flex flex-col items-center text-center">
+                <h1 class="font-display tracking-[0.15em] text-3xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-game-yellow via-tuti-teal to-game-blue font-black drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] leading-none">
+                    TUTIGAME
+                </h1>
+                <div class="mt-1.5 flex items-center gap-1 bg-panel-card/80 border-[2px] border-white/10 text-action-info px-3 py-1 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest shadow-inner select-all font-mono">
+                    <span class="text-ink-muted opacity-80">SALA:</span>
+                    <span class="tracking-[0.1em] text-action-info">{{ gameState.roomId ?? '' }}</span>
+                </div>
+            </div>
+
+            <!-- Right: Speaker volume mute/unmute control -->
+            <button
+                @click="toggleMute"
+                class="w-10 h-10 bg-panel-card/70 hover:bg-panel-input border-2 border-white/10 hover:border-white/20 rounded-xl text-ink-soft hover:text-ink-main flex items-center justify-center transition-all duration-75 active:scale-95 cursor-pointer shadow-md select-none"
+                :title="isMuted ? 'Desactivar Silencio' : 'Silenciar'"
+            >
+                <svg v-if="isMuted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6L4.5 9H1.5v6h3l4.5 3.75V5.25z" />
+                </svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+                </svg>
+            </button>
+        </div>
 
         <!-- Tab Bar (Mobile only) -->
         <div class="flex-none px-3 lg:hidden">
@@ -219,9 +246,11 @@ const handleLeave = () => {
                     :max-players="localConfig.maxPlayers"
                     :am-i-host="amIHost"
                     :my-user-id="myUserId"
+                    :is-public="localConfig.isPublic"
                     @kick-player="handleKick"
                     @update-max-players="(max) => handleConfigChange('maxPlayers', max)"
                     @add-bot="addBot"
+                    @toggle-privacy="handleTogglePrivacy"
                 />
 
                 <!-- Unified Settings Console: LobbySettingsPanel -->
@@ -238,21 +267,39 @@ const handleLeave = () => {
             </div>
         </div>
 
-        <!-- Sticky Footer: Start Button -->
-        <div class="flex-none px-3 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] md:pb-3 lg:px-4 lg:pt-1 lg:pb-3 bg-panel-base/90 lg:bg-transparent border-t-[3px] border-white/10 lg:border-0 shadow-none backdrop-blur-2xl lg:backdrop-blur-none">
-            <div class="max-w-[1400px] lg:max-w-md mx-auto lg:p-1.5 lg:rounded-2xl lg:bg-panel-card/45 lg:backdrop-blur-xl lg:border-2 lg:border-white/10 lg:shadow-[0_8px_32px_rgba(0,0,0,0.35)]">
-                <TButton v-if="amIHost"
-                    :variant="players.length >= 2 ? 'primary' : 'secondary'" size="md"
-                    class="w-full text-base md:text-xl transition-all"
-                    :disabled="!canStart"
-                    @click="handleStart"
+        <!-- Sticky Footer: Centered Gartic-Style Invite & Start Pill Bar -->
+        <div class="flex-none px-4 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] lg:pb-5 bg-panel-base/90 lg:bg-transparent lg:border-0 shadow-none backdrop-blur-2xl lg:backdrop-blur-none relative z-20">
+            <div class="w-full max-w-xl mx-auto flex items-center justify-center gap-3 p-1.5 rounded-2xl bg-panel-card/45 lg:backdrop-blur-xl border-2 border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.35)]">
+                <!-- Invite Button (Visible for all, host and guest) -->
+                <button
+                    @click="copyRoomLink"
+                    class="flex-1 py-3 px-5 rounded-xl text-ink-main font-heading font-black text-xs md:text-sm uppercase tracking-wider transition-all duration-75 active:scale-95 hover:brightness-110 active:translate-y-[2px] cursor-pointer flex items-center justify-center gap-2 border-2 border-white/10"
+                    :class="copied 
+                        ? 'bg-action-success/20 border-action-success text-action-success shadow-[0_0_12px_rgba(52,211,153,0.2)]'
+                        : 'bg-action-secondary hover:bg-action-secondary-hover shadow-[0_4px_0_0_#2e2978] active:shadow-none'"
                 >
-                    <span v-if="players.length >= 2" class="text-lg md:text-2xl">⚡</span> 
-                    {{ players.length >= 2 ? t('lobby.actions.start') : t('lobby.actions.waitingPlayers', { current: players.length, max: 2 }) }}
-                </TButton>
-                <div v-else class="w-full py-2.5 md:py-3.5 text-center bg-panel-card rounded-2xl border-[3px] border-white/10 text-ink-main text-sm font-black uppercase shadow-sm flex flex-col items-center justify-center">
-                    <span class="animate-pulse flex items-center gap-2">⏳ {{ t('lobby.actions.waitingHost') }}</span>
-                </div>
+                    <span class="text-base">{{ copied ? '✓' : '🔗' }}</span>
+                    <span>{{ copied ? t('lobby.header.copy') : t('lobby.header.invite') }}</span>
+                </button>
+
+                <!-- Start Action (Host) / Waiting Status (Guest) -->
+                <template v-if="amIHost">
+                    <TButton
+                        :variant="players.length >= 2 ? 'primary' : 'secondary'"
+                        size="md"
+                        class="flex-1 text-xs md:text-sm uppercase tracking-wider transition-all duration-75 h-[48px] border-2 border-white/5"
+                        :disabled="!canStart"
+                        @click="handleStart"
+                    >
+                        <span v-if="players.length >= 2" class="text-base">⚡</span>
+                        {{ players.length >= 2 ? t('lobby.actions.start') : t('lobby.actions.waitingPlayers', { current: players.length, max: 2 }) }}
+                    </TButton>
+                </template>
+                <template v-else>
+                    <div class="flex-1 h-[48px] px-5 flex items-center justify-center gap-2 bg-panel-input border-2 border-white/5 text-ink-muted text-xs font-black uppercase tracking-wider rounded-xl shadow-inner select-none">
+                        <span class="animate-pulse flex items-center gap-1.5">⏳ {{ t('lobby.actions.waitingHost') }}</span>
+                    </div>
+                </template>
             </div>
         </div>
 

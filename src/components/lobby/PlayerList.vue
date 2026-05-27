@@ -10,12 +10,14 @@ const props = defineProps<{
     maxPlayers: number;
     amIHost: boolean;
     myUserId: string;
+    isPublic: boolean;
 }>();
 
 const emit = defineEmits<{
     (e: 'kick-player', userId: string, name: string): void;
     (e: 'update-max-players', max: number): void;
     (e: 'add-bot'): void;
+    (e: 'toggle-privacy'): void;
 }>();
 
 const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.length));
@@ -24,26 +26,49 @@ const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.l
 
 <template>
     <div class="lg:col-span-3 bg-panel-base border-2 border-white/10 rounded-2xl shadow-game-panel flex flex-col lg:overflow-hidden lg:min-h-0 lg:h-full">
-        <!-- Header: Title + MaxPlayers -->
-        <div class="p-3 border-b-2 border-white/10 bg-panel-card/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-none">
-            <div class="flex items-center justify-between sm:justify-start gap-2">
+        <!-- Header: Title + Capacity Selector + Privacy Toggle -->
+        <div class="p-3 border-b-2 border-white/10 bg-panel-card/50 flex flex-col gap-2 flex-none">
+            <div class="flex items-center justify-between">
                 <h3 class="text-ink-main text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    {{ t('lobby.players.players', { count: props.players.length, max: props.maxPlayers }, `${props.players.length}/${props.maxPlayers}`) }}
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    {{ t('lobby.players.players', { count: props.players.length, max: props.maxPlayers }, `JUGADORES ${props.players.length}/${props.maxPlayers}`) }}
                 </h3>
             </div>
-            <div v-if="props.amIHost" class="relative">
-                <select
-                    :value="props.maxPlayers"
-                    @change="emit('update-max-players', Number(($event.target as HTMLSelectElement).value))"
-                    class="w-full sm:w-auto bg-panel-input border-2 border-panel-card text-ink-main text-xs font-black uppercase tracking-wider px-3 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner sm:shadow-none"
+            
+            <!-- Controls Sub-grid -->
+            <div class="grid grid-cols-2 gap-2 mt-0.5">
+                <!-- Max Players Dropdown -->
+                <div v-if="props.amIHost" class="relative">
+                    <select
+                        :value="props.maxPlayers"
+                        @change="emit('update-max-players', Number(($event.target as HTMLSelectElement).value))"
+                        class="w-full bg-panel-input border-[2px] border-panel-card text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input/80 transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9"
+                    >
+                        <option v-for="n in 9" :key="n+1" :value="n+1" class="bg-panel-input">{{ n + 1 }} Max</option>
+                    </select>
+                    <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
+                </div>
+                <div v-else class="bg-panel-input border-[2px] border-panel-card text-ink-muted text-[10px] font-black uppercase tracking-wider px-3.5 py-2 rounded-xl shadow-inner text-center leading-5 h-9 select-none">
+                    {{ props.maxPlayers }} Max
+                </div>
+
+                <!-- Public/Private Toggle -->
+                <button v-if="props.amIHost"
+                    @click="emit('toggle-privacy')"
+                    class="w-full border-[2px] flex items-center justify-center gap-1 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all duration-200 active:scale-95 cursor-pointer h-9 shadow-sm"
+                    :class="props.isPublic 
+                        ? 'bg-action-primary/20 border-action-primary text-action-primary shadow-[0_0_12px_rgba(245,158,11,0.25)]' 
+                        : 'bg-panel-input border-panel-card text-ink-soft hover:text-ink-main hover:border-white/20'"
                 >
-                    <option v-for="n in 9" :key="n+1" :value="n+1" class="bg-panel-input">{{ n + 1 }} {{ t('lobby.players.maxPlayers') }}</option>
-                </select>
-                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[10px]">▼</span>
-            </div>
-            <div v-else class="bg-panel-input border-2 border-panel-card text-ink-muted text-xs font-black uppercase tracking-wider px-3 py-2 rounded-xl shadow-inner text-center">
-                {{ props.maxPlayers }} {{ t('lobby.players.maxPlayers') }}
+                    <span>{{ props.isPublic ? '🌐' : '🔒' }}</span>
+                    <span>{{ props.isPublic ? 'Pública' : 'Privada' }}</span>
+                </button>
+                <div v-else 
+                    class="w-full border-[2px] border-panel-card bg-panel-input/50 text-ink-muted text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 rounded-xl h-9 select-none opacity-75"
+                >
+                    <span>{{ props.isPublic ? '🌐' : '🔒' }}</span>
+                    <span>{{ props.isPublic ? 'Pública' : 'Privada' }}</span>
+                </div>
             </div>
         </div>
 
