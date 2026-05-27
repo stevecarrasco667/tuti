@@ -165,8 +165,8 @@ const handleLeave = () => {
             <div class="lobby-stardust"></div>
         </div>
 
-        <!-- Inner Grid Container (No longer enclosed in a big box frame on PC, but still centered and aligned) -->
-        <div class="h-full w-full lg:max-w-[1240px] lg:max-h-[760px] lg:my-auto mx-auto flex flex-col overflow-hidden relative z-10">
+        <!-- Inner Grid Container (Narrower for better density, shifted to the right to leave space for a future left banner) -->
+        <div class="h-full w-full lg:max-w-[1040px] lg:max-h-[760px] lg:my-auto mx-auto lg:ml-auto lg:mr-8 xl:mr-16 flex flex-col overflow-hidden relative z-10">
 
         <!-- Floating Canvas Controls: Volver, TUTIGAME Logo, Audio -->
         <div class="flex-none w-full px-4 py-3 flex items-center justify-between gap-4 select-none">
