@@ -263,6 +263,7 @@ const handleLeave = () => {
                     @update-mutator="handleMutatorChange"
                     @update-categories="handleUpdateCategories"
                     @remove-category="handleRemoveCategory"
+                    @open-tutorial="(mode) => tutorialMode = mode"
                 />
             </div>
         </div>

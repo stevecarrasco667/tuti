@@ -19,6 +19,7 @@ const emit = defineEmits<{
     (e: 'update-mutator', mutator: string, value: boolean): void;
     (e: 'update-categories', categories: CategoryRef[]): void;
     (e: 'remove-category', name: string): void;
+    (e: 'open-tutorial', mode: 'CLASSIC' | 'IMPOSTOR'): void;
 }>();
 
 // ── Tab Management ────────────────────────────────────────────────────────────
@@ -251,12 +252,12 @@ const tSpec = computed(() => {
             <!-- ───── TAB 1: MODOS DE JUEGO (Preestablecidos) ───── -->
             <div v-if="activeTab === 'modes'" class="space-y-4 animate-in fade-in duration-300">
                 
-                <!-- Gartic Phone Grid of 2 active games -->
+                <!-- Gartic Phone style 2x2 grid of games -->
                 <div class="grid grid-cols-2 gap-3.5">
                     <!-- Classic Card -->
                     <div
                         @click="props.amIHost && emit('update-config', 'mode', 'CLASSIC')"
-                        class="relative p-3.5 rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[105px] flex flex-col items-center justify-center select-none"
+                        class="relative p-4 rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[110px] flex flex-col items-center justify-center select-none"
                         :class="[
                             props.config.mode === 'CLASSIC'
                                 ? 'border-action-primary bg-action-primary/10 shadow-[0_4px_16px_rgba(245,158,11,0.15)] scale-[1.01]'
@@ -264,16 +265,40 @@ const tSpec = computed(() => {
                             !props.amIHost ? 'cursor-not-allowed opacity-60 hover:scale-100' : 'cursor-pointer'
                         ]"
                     >
-                        <div class="text-3xl mb-1.5 group-hover:scale-110 transition-transform drop-shadow-[0_4px_8px_rgba(0,0,0,0.35)]">🎯</div>
+                        <!-- Top-Left Pencil/Edit button (Host-only, selected only) -->
+                        <button v-if="props.amIHost && props.config.mode === 'CLASSIC'"
+                            @click.stop="openModal"
+                            class="absolute top-2 left-2 w-8 h-8 rounded-xl bg-panel-card/90 border border-white/10 hover:border-action-primary text-action-primary hover:bg-panel-input flex items-center justify-center shadow-md active:scale-90 transition-all cursor-pointer z-20"
+                            title="Editar Categorías"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                            </svg>
+                        </button>
+
+                        <!-- Top-Right Help/Tutorial button (selected only) -->
+                        <button v-if="props.config.mode === 'CLASSIC'"
+                            @click.stop="emit('open-tutorial', 'CLASSIC')"
+                            class="absolute top-2 right-2 w-8 h-8 rounded-xl bg-panel-card/90 border border-white/10 hover:border-action-info text-action-info hover:bg-panel-input flex items-center justify-center shadow-md active:scale-90 transition-all cursor-pointer z-20"
+                            title="Cómo Jugar"
+                        >
+                            <span class="text-xs font-black">❓</span>
+                        </button>
+
+                        <div class="text-3xl mb-1 group-hover:scale-110 transition-transform drop-shadow-[0_4px_8px_rgba(0,0,0,0.35)]">🎯</div>
                         <h4 class="text-ink-main font-black text-xs tracking-wider leading-none uppercase">{{ tSpec.classic.title }}</h4>
                         <p class="text-ink-soft text-[9px] font-bold mt-1.5 leading-none opacity-85">{{ tSpec.classic.subtitle }}</p>
-                        <div v-if="props.config.mode === 'CLASSIC'" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-action-primary text-panel-base flex items-center justify-center text-[10px] font-black shadow-md border border-white/20">✓</div>
+                        
+                        <!-- Compact category count status -->
+                        <div class="mt-2.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/5 text-[8px] font-black uppercase tracking-wider text-ink-soft select-none leading-none">
+                            {{ props.categories.length > 0 ? `${props.categories.length} Categorías` : '4 Categorías (Al Azar)' }}
+                        </div>
                     </div>
                     
                     <!-- Impostor Card -->
                     <div
                         @click="props.amIHost && emit('update-config', 'mode', 'IMPOSTOR')"
-                        class="relative p-3.5 rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[105px] flex flex-col items-center justify-center select-none"
+                        class="relative p-4 rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[110px] flex flex-col items-center justify-center select-none"
                         :class="[
                             props.config.mode === 'IMPOSTOR'
                                 ? 'border-action-error bg-action-error/10 shadow-[0_4px_16px_rgba(239,68,68,0.15)] scale-[1.01]'
@@ -281,92 +306,52 @@ const tSpec = computed(() => {
                             !props.amIHost ? 'cursor-not-allowed opacity-60 hover:scale-100' : 'cursor-pointer'
                         ]"
                     >
-                        <div class="text-3xl mb-1.5 group-hover:scale-110 transition-transform drop-shadow-[0_4px_8px_rgba(0,0,0,0.35)]">🕵️</div>
+                        <!-- Top-Left Pencil/Edit button (Host-only, selected only) -->
+                        <button v-if="props.amIHost && props.config.mode === 'IMPOSTOR'"
+                            @click.stop="openModal"
+                            class="absolute top-2 left-2 w-8 h-8 rounded-xl bg-panel-card/90 border border-white/10 hover:border-action-primary text-action-primary hover:bg-panel-input flex items-center justify-center shadow-md active:scale-90 transition-all cursor-pointer z-20"
+                            title="Editar Categorías"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                            </svg>
+                        </button>
+
+                        <!-- Top-Right Help/Tutorial button (selected only) -->
+                        <button v-if="props.config.mode === 'IMPOSTOR'"
+                            @click.stop="emit('open-tutorial', 'IMPOSTOR')"
+                            class="absolute top-2 right-2 w-8 h-8 rounded-xl bg-panel-card/90 border border-white/10 hover:border-action-info text-action-info hover:bg-panel-input flex items-center justify-center shadow-md active:scale-90 transition-all cursor-pointer z-20"
+                            title="Cómo Jugar"
+                        >
+                            <span class="text-xs font-black">❓</span>
+                        </button>
+
+                        <div class="text-3xl mb-1 group-hover:scale-110 transition-transform drop-shadow-[0_4px_8px_rgba(0,0,0,0.35)]">🕵️</div>
                         <h4 class="text-ink-main font-black text-xs tracking-wider leading-none uppercase">{{ tSpec.impostor.title }}</h4>
                         <p class="text-ink-soft text-[9px] font-bold mt-1.5 leading-none opacity-85">{{ tSpec.impostor.subtitle }}</p>
-                        <div v-if="props.config.mode === 'IMPOSTOR'" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-action-error text-white flex items-center justify-center text-[10px] font-black shadow-md border border-white/20">✓</div>
-                    </div>
-                </div>
-
-                <!-- Specs Sheet & Category Previews -->
-                <div class="bg-panel-input/30 border border-white/10 rounded-2xl shadow-inner flex flex-col overflow-hidden min-h-[240px]">
-                    <!-- Card Header -->
-                    <div class="p-3 border-b border-white/5 bg-panel-card/40 flex items-center justify-between">
-                        <p class="text-ink-main text-[9px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 select-none">
-                            <span class="text-action-primary animate-pulse">📋</span> 
-                            <span>Ficha de Juego — {{ props.config.mode === 'CLASSIC' ? tSpec.classic.title : tSpec.impostor.title }}</span>
-                        </p>
-                        <span class="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-ink-muted">
-                            {{ props.config.mode }} Mode
-                        </span>
-                    </div>
-
-                    <!-- 3 Core Mechanics Badges -->
-                    <div class="grid grid-cols-3 gap-2.5 p-3 bg-panel-card/15 border-b border-white/5 select-none">
-                        <template v-if="props.config.mode === 'CLASSIC'">
-                            <div class="bg-panel-input/40 border border-white/5 rounded-xl p-2.5 text-center group cursor-help" :title="tSpec.classic.badge1Desc">
-                                <span class="text-xl block mb-1 transition-transform group-hover:scale-125 duration-300">✍️</span>
-                                <span class="text-ink-main text-[8px] font-black uppercase tracking-wider block">{{ tSpec.classic.badge1 }}</span>
-                            </div>
-                            <div class="bg-panel-input/40 border border-white/5 rounded-xl p-2.5 text-center group cursor-help" :title="tSpec.classic.badge2Desc">
-                                <span class="text-xl block mb-1 transition-transform group-hover:scale-125 duration-300">🗳️</span>
-                                <span class="text-ink-main text-[8px] font-black uppercase tracking-wider block">{{ tSpec.classic.badge2 }}</span>
-                            </div>
-                            <div class="bg-panel-input/40 border border-white/5 rounded-xl p-2.5 text-center group cursor-help" :title="tSpec.classic.badge3Desc">
-                                <span class="text-xl block mb-1 transition-transform group-hover:scale-125 duration-300">🏆</span>
-                                <span class="text-ink-main text-[8px] font-black uppercase tracking-wider block">{{ tSpec.classic.badge3 }}</span>
-                            </div>
-                        </template>
-                        <template v-else-if="props.config.mode === 'IMPOSTOR'">
-                            <div class="bg-panel-input/40 border border-white/5 rounded-xl p-2.5 text-center group cursor-help" :title="tSpec.impostor.badge1Desc">
-                                <span class="text-xl block mb-1 transition-transform group-hover:scale-125 duration-300">🕵️‍♂️</span>
-                                <span class="text-ink-main text-[8px] font-black uppercase tracking-wider block">{{ tSpec.impostor.badge1 }}</span>
-                            </div>
-                            <div class="bg-panel-input/40 border border-white/5 rounded-xl p-2.5 text-center group cursor-help" :title="tSpec.impostor.badge2Desc">
-                                <span class="text-xl block mb-1 transition-transform group-hover:scale-125 duration-300">🤫</span>
-                                <span class="text-ink-main text-[8px] font-black uppercase tracking-wider block">{{ tSpec.impostor.badge2 }}</span>
-                            </div>
-                            <div class="bg-panel-input/40 border border-white/5 rounded-xl p-2.5 text-center group cursor-help" :title="tSpec.impostor.badge3Desc">
-                                <span class="text-xl block mb-1 transition-transform group-hover:scale-125 duration-300">🗳️</span>
-                                <span class="text-ink-main text-[8px] font-black uppercase tracking-wider block">{{ tSpec.impostor.badge3 }}</span>
-                            </div>
-                        </template>
-                    </div>
-
-                    <!-- Category Previews Block -->
-                    <div class="p-3 flex-1">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-ink-soft text-[9px] font-black uppercase tracking-widest">{{ tSpec.categories }} ({{ props.categories.length }})</span>
-                            <TButton v-if="props.amIHost" variant="secondary" size="sm" class="!px-3 !py-1 !min-h-0" @click="openModal">
-                                {{ tSpec.edit }}
-                            </TButton>
-                        </div>
                         
-                        <!-- List of Custom Tags -->
-                        <div v-if="props.categories.length > 0" class="flex flex-wrap gap-1.5 content-start max-h-[140px] overflow-y-auto pr-1">
-                            <div v-for="cat in props.categories" :key="cat.id"
-                                 class="group flex items-center pl-2.5 pr-1.5 py-1 bg-panel-card hover:bg-panel-input rounded-lg text-[10px] font-black text-ink-main border border-white/10 transition-all shadow-sm uppercase tracking-wide">
-                                <span>{{ cat.name }}</span>
-                                <button v-if="props.amIHost" @click.stop="emit('remove-category', cat.name)"
-                                    class="ml-1.5 w-4 h-4 flex items-center justify-center rounded bg-panel-input border border-panel-card text-ink-muted hover:text-white hover:bg-action-error transition-colors text-[9px] font-black">
-                                    &times;
-                                </button>
-                            </div>
+                        <!-- Compact category status -->
+                        <div class="mt-2.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/5 text-[8px] font-black uppercase tracking-wider text-ink-soft select-none leading-none">
+                            {{ props.categories.length > 0 ? `${props.categories.length} Temas` : 'Catálogo Aleatorio' }}
                         </div>
+                    </div>
 
-                        <!-- Fallback illustrations if empty selection -->
-                        <div v-else class="py-6 flex flex-col items-center justify-center text-center gap-1">
-                            <template v-if="props.config.mode === 'CLASSIC'">
-                                <span class="text-3xl mb-1 opacity-45 animate-bounce select-none">🎲</span>
-                                <p class="text-ink-main font-black text-[10px] uppercase tracking-wider">{{ tSpec.randomSelection }}</p>
-                                <p class="text-ink-muted text-[8px] font-bold px-4 leading-normal max-w-sm">{{ tSpec.randomSelectionDesc }}</p>
-                            </template>
-                            <template v-else-if="props.config.mode === 'IMPOSTOR'">
-                                <span class="text-3xl mb-1 opacity-45 animate-bounce select-none">🕵️</span>
-                                <p class="text-ink-main font-black text-[10px] uppercase tracking-wider">{{ tSpec.randomSelection }} ({{ tSpec.impostorDesc }})</p>
-                                <p class="text-ink-muted text-[8px] font-bold px-4 leading-normal max-w-sm">{{ tSpec.impostorDescSub }}</p>
-                            </template>
-                        </div>
+                    <!-- Locked/Mystery Card 1 -->
+                    <div
+                        class="relative p-3.5 rounded-2xl border-2 border-dashed border-white/5 bg-panel-card/5 opacity-45 saturate-50 select-none flex flex-col items-center justify-center min-h-[110px] group transition-all duration-300 hover:opacity-60"
+                    >
+                        <div class="text-2xl mb-1 drop-shadow-sm group-hover:animate-bounce">🔒</div>
+                        <h4 class="text-ink-muted font-heading font-black text-[10px] tracking-widest leading-none uppercase">PRÓXIMAMENTE</h4>
+                        <p class="text-ink-muted text-[8px] font-bold mt-1 leading-none">Nuevo Juego 🤫</p>
+                    </div>
+
+                    <!-- Locked/Mystery Card 2 -->
+                    <div
+                        class="relative p-3.5 rounded-2xl border-2 border-dashed border-white/5 bg-panel-card/5 opacity-45 saturate-50 select-none flex flex-col items-center justify-center min-h-[110px] group transition-all duration-300 hover:opacity-60"
+                    >
+                        <div class="text-2xl mb-1 drop-shadow-sm group-hover:animate-bounce">🤫</div>
+                        <h4 class="text-ink-muted font-heading font-black text-[10px] tracking-widest leading-none uppercase">PRÓXIMAMENTE</h4>
+                        <p class="text-ink-muted text-[8px] font-bold mt-1 leading-none">¿Qué se vendrá? 👀</p>
                     </div>
                 </div>
             </div>
