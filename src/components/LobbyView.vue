@@ -156,7 +156,7 @@ const handleLeave = () => {
 
 <template>
     <!-- Full-screen dynamic galactic lobby background wrapper -->
-    <div class="h-full w-full flex flex-col items-center justify-center relative overflow-hidden bg-panel-base">
+    <div class="h-full w-full flex flex-col items-center justify-center lg:justify-start relative overflow-hidden bg-panel-base">
         <!-- 🌌 Neon Aura Nebula background layer -->
         <div class="lobby-bg-nebula">
             <div class="aura-circle aura-1"></div>
@@ -166,7 +166,7 @@ const handleLeave = () => {
         </div>
 
         <!-- Inner Grid Container (Narrower for better density, shifted to the right to leave space for a future left banner) -->
-        <div class="h-full w-full lg:max-w-[1040px] lg:max-h-[730px] lg:my-auto mx-auto lg:ml-auto lg:mr-8 xl:mr-16 flex flex-col overflow-hidden relative z-10">
+        <div class="h-full w-full lg:max-w-[1040px] lg:max-h-[660px] lg:mt-10 lg:mb-auto mx-auto lg:ml-auto lg:mr-8 xl:mr-16 flex flex-col overflow-hidden relative z-10">
 
         <!-- Floating Canvas Controls: Volver, TUTI GAMES Logo -->
         <div class="flex-none w-full px-4 py-2 flex items-center justify-between gap-4 select-none">

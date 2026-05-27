@@ -247,7 +247,7 @@ const tSpec = computed(() => {
         </div>
 
         <!-- Tab Body Container -->
-        <div class="flex-1 overflow-y-auto p-4 space-y-4 lg:scrollbar-thin min-h-0 relative z-10">
+        <div class="flex-1 overflow-y-auto p-4 space-y-2.5 lg:scrollbar-thin min-h-0 relative z-10">
 
             <!-- ───── TAB 1: MODOS DE JUEGO (Preestablecidos) ───── -->
             <div v-if="activeTab === 'modes'" class="space-y-4 animate-in fade-in duration-300">
@@ -411,7 +411,7 @@ const tSpec = computed(() => {
                     <div class="flex flex-col gap-2 bg-panel-card/15 p-2 rounded-2xl border border-white/5">
                         
                         <!-- Category Count (only when no manual categories selected) -->
-                        <div v-if="!(props.config.classic?.categories?.length > 0)" class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                        <div v-if="!(props.config.classic?.categories?.length > 0)" class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
                             <div class="flex items-start gap-3 min-w-0">
                                 <span class="text-xl flex-none leading-none mt-0.5">🎲</span>
                                 <div class="flex flex-col min-w-0">
@@ -435,7 +435,7 @@ const tSpec = computed(() => {
                         </div>
 
                         <!-- Rounds stepper -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
                             <div class="flex items-start gap-3 min-w-0">
                                 <span class="text-xl flex-none leading-none mt-0.5">🔁</span>
                                 <div class="flex flex-col min-w-0">
@@ -462,7 +462,7 @@ const tSpec = computed(() => {
                         </div>
 
                         <!-- Time limit stepper -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
                             <div class="flex items-start gap-3 min-w-0">
                                 <span class="text-xl flex-none leading-none mt-0.5">⏱️</span>
                                 <div class="flex flex-col min-w-0">
@@ -486,7 +486,7 @@ const tSpec = computed(() => {
                         </div>
 
                         <!-- Voting duration stepper -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
                             <div class="flex items-start gap-3 min-w-0">
                                 <span class="text-xl flex-none leading-none mt-0.5">🗳️</span>
                                 <div class="flex flex-col min-w-0">
@@ -510,7 +510,7 @@ const tSpec = computed(() => {
                         </div>
 
                         <!-- Suicidal Stop -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
                             <div class="flex items-start gap-3 min-w-0">
                                 <span class="text-xl flex-none leading-none mt-0.5">💀</span>
                                 <div class="flex flex-col min-w-0">
@@ -533,7 +533,7 @@ const tSpec = computed(() => {
                         </div>
 
                         <!-- Anonymous Voting -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
                             <div class="flex items-start gap-3 min-w-0">
                                 <span class="text-xl flex-none leading-none mt-0.5">🎭</span>
                                 <div class="flex flex-col min-w-0">
@@ -562,7 +562,7 @@ const tSpec = computed(() => {
                     <div class="flex flex-col gap-2 bg-panel-card/15 p-2 rounded-2xl border border-white/5">
                         
                         <!-- Category Count stepper -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
                             <div class="flex items-start gap-3 min-w-0">
                                 <span class="text-xl flex-none leading-none mt-0.5">📦</span>
                                 <div class="flex flex-col min-w-0">
@@ -586,7 +586,7 @@ const tSpec = computed(() => {
                         </div>
 
                         <!-- Rounds stepper -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
                             <div class="flex items-start gap-3 min-w-0">
                                 <span class="text-xl flex-none leading-none mt-0.5">🔁</span>
                                 <div class="flex flex-col min-w-0">
@@ -610,7 +610,7 @@ const tSpec = computed(() => {
                         </div>
 
                         <!-- Typing time stepper -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
                             <div class="flex items-start gap-3 min-w-0">
                                 <span class="text-xl flex-none leading-none mt-0.5">⏱️</span>
                                 <div class="flex flex-col min-w-0">
@@ -634,7 +634,7 @@ const tSpec = computed(() => {
                         </div>
 
                         <!-- Voting time stepper -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
                             <div class="flex items-start gap-3 min-w-0">
                                 <span class="text-xl flex-none leading-none mt-0.5">🗳️</span>
                                 <div class="flex flex-col min-w-0">

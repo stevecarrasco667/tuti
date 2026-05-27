@@ -73,7 +73,7 @@ const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.l
         </div>
 
         <!-- Player List + Spectators + Empty Slots -->
-        <div class="lg:flex-1 lg:overflow-y-auto lg:min-h-0 p-3 space-y-2 lg:scrollbar-thin">
+        <div class="lg:flex-1 lg:overflow-y-auto lg:min-h-0 py-2.5 px-3 space-y-2 lg:scrollbar-thin">
             <!-- Active Players -->
             <div v-for="player in props.players" :key="player.id"
                  class="flex items-center gap-2.5 p-2.5 bg-panel-card rounded-xl border border-white/10 hover:border-action-primary transition-colors group shadow-sm animate-in fade-in duration-200"
