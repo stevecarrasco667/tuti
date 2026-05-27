@@ -451,14 +451,21 @@ export class ImpostorEngine extends BaseEngine {
 
             // Sprint 2.1: Async Random Category Selection
             const count = this.state.config.impostor?.categoryCount || 3;
+            let allCatIds: string[] = [];
 
-            // [Sprint P2 — Fase 4B] Use wordProvider abstraction instead of raw Supabase query.
-            // Consistent with GlobalCache layer and enables proper mocking in tests.
-            const allCategories = await this.wordProvider.getAllCategories(this.supabase);
-            const allCatIds = allCategories.map(c => c.id);
+            const customCategories = this.state.config.impostor?.categories || [];
+            if (customCategories.length > 0) {
+                allCatIds = customCategories.map(c => c.id);
+            } else {
+                // [Sprint P2 — Fase 4B] Use wordProvider abstraction instead of raw Supabase query.
+                // Consistent with GlobalCache layer and enables proper mocking in tests.
+                const allCategories = await this.wordProvider.getAllCategories(this.supabase);
+                allCatIds = allCategories.map(c => c.id);
+            }
+
             // [Sprint P6 — BUG-3] Fisher-Yates native shuffle resolves V8 TimSort bias
             const shuffled = shuffle([...allCatIds]);
-            this.activeCategoryIds = shuffled.slice(0, count);
+            this.activeCategoryIds = shuffled.slice(0, Math.min(count, shuffled.length));
 
             this.usedWords.clear();
             console.log(`[ImpostorEngine] Selected ${this.activeCategoryIds.length} categories for match: `, this.activeCategoryIds);

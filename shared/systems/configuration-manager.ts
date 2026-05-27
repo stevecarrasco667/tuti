@@ -22,7 +22,8 @@ export class ConfigurationManager {
             rounds: 3,
             typingTime: 30,
             votingTime: 40,
-            categoryCount: 3
+            categoryCount: 3,
+            categories: []
         }
     };
 
@@ -89,7 +90,10 @@ export class ConfigurationManager {
                 customCategories: [],
                 mutators: { ...ConfigurationManager.DEFAULT_CONFIG.classic.mutators }
             },
-            impostor: { ...ConfigurationManager.DEFAULT_CONFIG.impostor }
+            impostor: { 
+                ...ConfigurationManager.DEFAULT_CONFIG.impostor,
+                categories: []
+            }
         };
     }
 }

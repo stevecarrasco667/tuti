@@ -208,7 +208,8 @@ export function createDefaultRoomState(roomId: string | null = null): RoomState 
                 rounds: 3,
                 typingTime: 30,
                 votingTime: 40,
-                categoryCount: 3
+                categoryCount: 3,
+                categories: []
             }
         },
         timers: {
