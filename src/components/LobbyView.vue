@@ -51,7 +51,6 @@ onMounted(() => {
 const localConfig = computed(() => gameState.value.config);
 const players = computed(() => gameState.value.players);
 const copied = ref(false);
-const activeTab = ref<'players' | 'settings'>('players');
 
 // Tutorial State
 const tutorialMode = ref<'CLASSIC' | 'IMPOSTOR' | null>(null);
@@ -144,6 +143,8 @@ const copyRoomLink = async () => {
 };
 
 const canStart = computed(() => amIHost.value && players.value.length >= 2);
+const emptySlots = computed(() => Math.max(0, localConfig.value.maxPlayers - players.value.length));
+
 const handleStart = () => {
     if (!canStart.value) return;
     playAlarm();
@@ -202,27 +203,39 @@ const handleLeave = () => {
             <div class="w-[94px] sm:w-[108px] flex-none"></div>
         </div>
 
-        <!-- Tab Bar (Mobile only) -->
-        <div class="flex-none px-3 lg:hidden">
-            <div class="flex bg-panel-input rounded-xl border-2 border-panel-card p-1 gap-1 shadow-inner">
-                <button
-                    @click="activeTab = 'players'"
-                    class="flex-1 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2"
-                    :class="activeTab === 'players'
-                        ? 'bg-panel-base text-action-info shadow-sm border border-white/10'
-                        : 'text-ink-muted hover:text-ink-soft'"
-                >
-                    👥 {{ t('lobby.tabs.players') }}
-                    <span class="text-[9px] font-bold text-ink-soft opacity-80">{{ players.length }}/{{ localConfig.maxPlayers }}</span>
-                </button>
-                <button
-                    @click="activeTab = 'settings'"
-                    class="flex-1 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2"
-                    :class="activeTab === 'settings'
-                        ? 'bg-panel-base text-action-info shadow-sm border border-white/10'
-                        : 'text-ink-muted hover:text-ink-soft'"
-                >
-                    ⚙️ {{ t('lobby.tabs.settings') }}
+        <!-- Fila Horizontal de Jugadores (Estilo Gartic Phone - Solo Móvil) -->
+        <div class="lg:hidden flex-none w-full px-4 py-3 bg-panel-card/30 border-b border-white/5 backdrop-blur-md relative z-10 overflow-hidden select-none">
+            <div class="flex items-center gap-4 overflow-x-auto pb-1 scrollbar-none justify-start select-none">
+                <div v-for="player in players" :key="player.id" class="flex flex-col items-center flex-none relative animate-in fade-in duration-200">
+                    <div class="w-12 h-12 bg-panel-input border-2 border-white/10 rounded-full flex items-center justify-center text-2xl shadow-sm relative" :class="{ 'opacity-60 grayscale border-red-500/30': !player.isConnected }">
+                        {{ player.avatar || '👤' }}
+                        <span v-if="player.isHost" class="absolute -top-1.5 -right-1.5 text-xs bg-panel-card/90 rounded-full p-0.5 shadow-sm">👑</span>
+                        <!-- Botón de kickear en la fila horizontal móvil si somos Host y el jugador no es Host -->
+                        <button v-if="amIHost && !player.isHost" @click="handleKick(player.id, player.name)" 
+                                class="absolute -top-1.5 -left-1.5 w-5 h-5 flex items-center justify-center rounded-full bg-action-error text-white border border-white/20 font-bold text-[9px] cursor-pointer shadow-md active:scale-90 transition-transform">
+                            ✕
+                        </button>
+                    </div>
+                    <span class="text-[9px] text-ink-soft font-black uppercase tracking-wider max-w-[68px] truncate mt-1 bg-panel-input/50 px-1.5 py-0.5 rounded-full border border-white/5 flex items-center gap-0.5">
+                        <span v-if="player.id === myUserId" class="text-action-blue font-extrabold text-[8px] bg-action-blue/10 px-1 rounded">{{ t('lobby.players.you', 'Tú') }}</span>
+                        <span v-else>{{ player.name }}</span>
+                    </span>
+                </div>
+                <!-- Slots vacíos horizontales -->
+                <div v-for="n in emptySlots" :key="'empty-' + n" class="flex flex-col items-center flex-none relative opacity-35">
+                    <div class="w-12 h-12 bg-panel-input/30 border-2 border-dashed border-white/10 rounded-full flex items-center justify-center text-xl shadow-inner text-ink-muted">
+                        👤
+                    </div>
+                    <span class="text-[8px] text-ink-muted font-bold uppercase tracking-widest mt-1">
+                        {{ t('lobby.players.empty', 'Vacío') }}
+                    </span>
+                </div>
+                <!-- Botón de añadir bot (Solo Host) en la fila horizontal -->
+                <button v-if="amIHost && emptySlots > 0" @click="addBot" class="flex flex-col items-center flex-none group active:scale-95 transition-all cursor-pointer">
+                    <div class="w-12 h-12 bg-action-primary/10 border-2 border-dashed border-action-primary/30 hover:border-action-primary/60 rounded-full flex items-center justify-center text-xl text-action-primary hover:bg-action-primary/20 transition-all shadow-sm">
+                        🤖
+                    </div>
+                    <span class="text-[8px] text-action-primary font-black uppercase tracking-wider mt-1">+ Bot</span>
                 </button>
             </div>
         </div>
@@ -233,9 +246,9 @@ const handleLeave = () => {
                  h-full en desktop mantiene el layout de 2 columnas a altura fija. -->
             <div class="min-h-full lg:h-full grid grid-cols-1 lg:grid-cols-12 gap-2.5">
 
-                <!-- Left Panel: Player List -->
+                <!-- Left Panel: Player List (Solo visible en Desktop) -->
                 <PlayerList
-                    :class="{ 'hidden lg:flex': activeTab !== 'players' }"
+                    class="hidden lg:flex"
                     :players="players"
                     :spectators="gameState.spectators"
                     :max-players="localConfig.maxPlayers"
@@ -248,9 +261,9 @@ const handleLeave = () => {
                     @toggle-privacy="handleTogglePrivacy"
                 />
 
-                <!-- Unified Settings Console: LobbySettingsPanel -->
+                <!-- Unified Settings Console: LobbySettingsPanel (Ocupa todo el ancho en móvil y 8/12 o 9/12 en escritorio) -->
                 <LobbySettingsPanel
-                    :class="{ 'hidden lg:flex': activeTab !== 'settings' }"
+                    class="w-full lg:col-span-9"
                     :config="localConfig"
                     :categories="currentCategories"
                     :am-i-host="amIHost"
@@ -260,6 +273,11 @@ const handleLeave = () => {
                     @remove-category="handleRemoveCategory"
                     @open-tutorial="(mode) => tutorialMode = mode"
                 />
+
+                <!-- Banner móvil inline para la Web (dentro de la grilla con scroll) -->
+                <div class="lg:hidden flex-none w-full max-w-[340px] mx-auto mt-4 pb-4">
+                    <AdBanner position="mobile-inline" />
+                </div>
             </div>
         </div>
 
@@ -299,11 +317,6 @@ const handleLeave = () => {
             </div>
         </div>
 
-        <!-- Banner móvil inline para la Web (visible solo en pantallas pequeñas) -->
-        <div class="lg:hidden flex-none w-full max-w-[340px] mx-auto mt-4 px-3 pb-4">
-            <AdBanner position="mobile-inline" />
-        </div>
-
         <!-- Tutorial Modal -->
         <GameTutorialModal 
             v-model="showTutorial" 
@@ -318,4 +331,13 @@ const handleLeave = () => {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.2); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.4); }
+
+/* Ocultar barra de scroll horizontal en la fila de avatares estilo Gartic */
+.scrollbar-none::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-none {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
 </style>
