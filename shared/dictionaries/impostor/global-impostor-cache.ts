@@ -61,12 +61,13 @@ export const GlobalImpostorCache = {
                 return null;
             }
 
-            // 2. Fetch words
+            // 2. Fetch words for this category
+            // Note: The words table does NOT have a 'language' column —
+            // all words are universal. Do NOT add a language filter here.
             const { data: wordsData, error: wordsError } = await supabase
                 .from('words')
                 .select('id, word, difficulty')
-                .eq('category_id', categoryId)
-                .or(`language.eq.${lang},language.is.null`);
+                .eq('category_id', categoryId);
 
             if (wordsError || !wordsData) {
                 console.error(`[GlobalImpostorCache] Failed to fetch words for ${categoryId}:`, wordsError);
