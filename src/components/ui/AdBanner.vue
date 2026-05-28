@@ -24,6 +24,8 @@ const wrapperStyles = computed(() => {
     return {
       width: '100%',
       minHeight: '60px',
+      maxHeight: '90px',   // Evita que AdSense expanda el contenedor en móvil real
+      overflow: 'hidden',
     };
   } else {
     // mobile-inline
@@ -31,6 +33,8 @@ const wrapperStyles = computed(() => {
       width: '100%',
       maxWidth: '340px',
       minHeight: '60px',
+      maxHeight: '90px',   // Evita que AdSense expanda el contenedor en móvil real
+      overflow: 'hidden',
     };
   }
 });
@@ -63,7 +67,7 @@ onUnmounted(async () => {
        class="relative rounded-3xl p-px overflow-hidden select-none transition-all duration-300 border border-white/5 bg-gradient-to-br from-panel-card/80 to-panel-input/50 backdrop-blur-md shadow-lg flex flex-col items-center justify-center"
        :style="wrapperStyles"
        :class="[
-         position === 'desktop-left' ? 'my-4 mr-2' : 'my-6 mx-auto',
+         position === 'desktop-left' ? 'my-4 mr-2' : 'my-2 mx-auto',
        ]">
     
     <!-- Sutil etiqueta de publicidad de bajo impacto visual -->

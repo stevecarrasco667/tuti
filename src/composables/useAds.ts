@@ -143,12 +143,13 @@ export function useAds() {
         const ins = document.createElement('ins');
         ins.className = 'adsbygoogle';
         ins.style.display = 'block';
-        ins.style.width = '100%';
-        ins.style.minHeight = '100px';
+        ins.style.width = '320px';          // Ancho fijo estándar de banner
+        ins.style.height = '50px';           // Alto fijo estándar banner (como el nativo 320x50)
+        ins.style.maxWidth = '100%';
         ins.setAttribute('data-ad-client', config.value.adSenseClientId);
         ins.setAttribute('data-ad-slot', config.value.adSenseSlotBanner);
-        ins.setAttribute('data-ad-format', 'auto');
-        ins.setAttribute('data-full-width-responsive', 'true');
+        // NO usar data-ad-format:auto ni data-full-width-responsive — en móvil real
+        // Google elige anuncios enormes (250px+). Usamos tamaño fijo 320x50.
         
         container.appendChild(ins);
 
