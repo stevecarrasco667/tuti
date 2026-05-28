@@ -49,61 +49,33 @@ const { t } = useI18n();
 const _now = ref(Date.now());
 let _graceTicker: ReturnType<typeof setInterval> | null = null;
 
-// Detección de foco en inputs para optimizar layout móvil (teclado abierto)
-const isInputFocused = ref(false);
-const isDesktop = ref(false);
-let mediaQuery: MediaQueryList | null = null;
-let focusTimeout: ReturnType<typeof setTimeout> | null = null;
+// ── Adaptación de altura al Visual Viewport ──────────────────────────────────
+// En navegadores móviles (Android/Chrome), cuando el teclado virtual se abre,
+// el layout container (h-full del body con h-screen/100vh) NO se reduce.
+// Resultado: queda un espacio en blanco entre el contenido y el teclado.
+// Solución: escuchar window.visualViewport.resize y forzar la altura del
+// contenedor del tablero a la altura visible real.
+const containerHeight = ref<string>('100%');
 
-const handleFocusIn = (e: FocusEvent) => {
-    const target = e.target as HTMLElement;
-    if (target && target.tagName === 'INPUT') {
-        if (focusTimeout) {
-            clearTimeout(focusTimeout);
-            focusTimeout = null;
-        }
-        isInputFocused.value = true;
+const updateContainerHeight = () => {
+    if (window.visualViewport) {
+        containerHeight.value = `${window.visualViewport.height}px`;
     }
-};
-
-const handleFocusOut = (e: FocusEvent) => {
-    const target = e.target as HTMLElement;
-    if (target && target.tagName === 'INPUT') {
-        // Retraso de seguridad para evitar parpadeos visuales al navegar entre inputs consecutivos
-        focusTimeout = setTimeout(() => {
-            if (document.activeElement?.tagName !== 'INPUT') {
-                isInputFocused.value = false;
-            }
-        }, 100);
-    }
-};
-
-const handleMediaChange = (e: MediaQueryListEvent | MediaQueryList) => {
-    isDesktop.value = e.matches;
 };
 
 onMounted(() => {
     _graceTicker = setInterval(() => { _now.value = Date.now(); }, 500);
-    
-    // Listeners para foco
-    window.addEventListener('focusin', handleFocusIn);
-    window.addEventListener('focusout', handleFocusOut);
-    
-    // Media query para escritorio responsivo (>= 1024px)
-    mediaQuery = window.matchMedia('(min-width: 1024px)');
-    isDesktop.value = mediaQuery.matches;
-    mediaQuery.addEventListener('change', handleMediaChange);
+
+    if (window.visualViewport) {
+        updateContainerHeight();
+        window.visualViewport.addEventListener('resize', updateContainerHeight);
+    }
 });
 
 onUnmounted(() => {
     if (_graceTicker) clearInterval(_graceTicker);
-    if (focusTimeout) clearTimeout(focusTimeout);
-    
-    window.removeEventListener('focusin', handleFocusIn);
-    window.removeEventListener('focusout', handleFocusOut);
-    
-    if (mediaQuery) {
-        mediaQuery.removeEventListener('change', handleMediaChange);
+    if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', updateContainerHeight);
     }
 });
 
@@ -222,7 +194,7 @@ const rivalsActivity = computed(() => {
 </script>
 
 <template>
-    <div class="flex flex-col h-full w-full">
+    <div class="flex flex-col w-full" :style="{ height: containerHeight }">
         <RoundStatusHeader 
             :round="gameState.roundsPlayed + 1"
             :total-rounds="gameState.config?.classic?.rounds || 5"
@@ -298,7 +270,6 @@ const rivalsActivity = computed(() => {
         </div>
 
         <GameFooter 
-            v-show="!isInputFocused || isDesktop"
             :status="gameState.status"
             :am-i-host="amIHost"
             :can-stop="canStopRound"
