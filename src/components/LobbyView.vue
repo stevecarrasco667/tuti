@@ -274,15 +274,11 @@ const handleLeave = () => {
                     @open-tutorial="(mode) => tutorialMode = mode"
                 />
 
-                <!-- Banner móvil inline para la Web (dentro de la grilla con scroll) -->
-                <div class="lg:hidden flex-none w-full max-w-[340px] mx-auto mt-4 pb-4">
-                    <AdBanner position="mobile-inline" />
-                </div>
             </div>
         </div>
 
         <!-- Sticky Footer: Centered Gartic-Style Invite & Start Pill Bar -->
-        <div class="flex-none px-4 pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] lg:pb-5 bg-panel-base/90 lg:bg-transparent lg:border-0 shadow-none backdrop-blur-2xl lg:backdrop-blur-none relative z-20">
+        <div class="flex-none px-4 pt-2 pb-[calc(max(0.75rem,env(safe-area-inset-bottom,0.75rem))+50px)] lg:pb-5 bg-panel-base/90 lg:bg-transparent lg:border-0 shadow-none backdrop-blur-2xl lg:backdrop-blur-none relative z-20">
             <div class="w-full max-w-xl mx-auto flex items-center justify-center gap-3 p-1.5 rounded-2xl bg-panel-card/45 lg:backdrop-blur-xl border-2 border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.35)]">
                 <!-- Invite Button (Visible for all, host and guest) -->
                 <button
@@ -322,6 +318,13 @@ const handleLeave = () => {
             v-model="showTutorial" 
             :mode="tutorialMode" 
         />
+        </div>
+
+        <!-- Contenedor Sticky Bottom para el Anuncio Móvil (Fijo abajo, transparente, solo en móvil) -->
+        <div class="lg:hidden fixed bottom-0 left-0 right-0 h-[calc(50px+env(safe-area-inset-bottom,0px))] z-50 flex items-center justify-center select-none pb-[env(safe-area-inset-bottom,0px)] pointer-events-none">
+            <div class="pointer-events-auto">
+                <AdBanner position="mobile-sticky" />
+            </div>
         </div>
     </div>
 </template>

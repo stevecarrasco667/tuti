@@ -114,7 +114,7 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
 <template>
     <!-- main original con scroll y centrado perfectos (sin wrappers que alteren el flexbox) -->
     <!-- Agregamos relative para servir de ancla al posicionamiento absoluto de banners -->
-    <main class="w-full flex flex-col items-center justify-start p-4 min-h-full overflow-y-auto relative z-20"
+    <main class="w-full flex flex-col items-center justify-start pt-4 px-4 pb-[calc(1rem+50px+env(safe-area-inset-bottom,0px))] min-h-full overflow-y-auto relative z-20"
           aria-label="Página principal de TutiGame — Jugar Tutti Frutti Online Gratis">
         <GlobalLanguageSelector />
 
@@ -364,17 +364,18 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                     </div>
                 </div>
 
-                <!-- Banner publicitario: siempre al final, justo debajo del bloque de Iniciar Sesión -->
-                <div class="xl:hidden w-full flex justify-center mt-4 select-none">
-                    <AdBanner position="mobile-inline" />
-                </div>
             </div>
         </div>
 
-        <!-- (Banner movido dentro de la columna derecha, justo debajo de Iniciar Sesión) -->
-
         <div class="mt-8">
             <PrivacyBanner />
+        </div>
+
+        <!-- Contenedor Sticky Bottom para el Anuncio Móvil (Fijo abajo, transparente, solo en móvil) -->
+        <div class="lg:hidden fixed bottom-0 left-0 right-0 h-[calc(50px+env(safe-area-inset-bottom,0px))] z-50 flex items-center justify-center select-none pb-[env(safe-area-inset-bottom,0px)] pointer-events-none">
+            <div class="pointer-events-auto">
+                <AdBanner position="mobile-sticky" />
+            </div>
         </div>
     </main>
 </template>
