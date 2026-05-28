@@ -319,12 +319,12 @@ const handleLeave = () => {
             :mode="tutorialMode" 
         />
         </div>
+    </div>
 
-        <!-- Contenedor Sticky Bottom para el Anuncio Móvil (Fijo abajo, transparente, solo en móvil) -->
-        <div class="lg:hidden fixed bottom-0 left-0 right-0 h-[calc(50px+env(safe-area-inset-bottom,0px))] z-50 flex items-center justify-center select-none pb-[env(safe-area-inset-bottom,0px)] pointer-events-none">
-            <div class="pointer-events-auto">
-                <AdBanner position="mobile-sticky" />
-            </div>
+    <!-- Contenedor Sticky Bottom para el Anuncio Móvil (Fijo abajo en la base de la pantalla, transparente) -->
+    <div class="lg:hidden fixed bottom-0 left-0 right-0 h-[calc(50px+env(safe-area-inset-bottom,0px))] z-50 flex items-center justify-center select-none pb-[env(safe-area-inset-bottom,0px)] pointer-events-none">
+        <div class="pointer-events-auto">
+            <AdBanner position="mobile-sticky" />
         </div>
     </div>
 </template>
