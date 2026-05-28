@@ -48,11 +48,11 @@ onMounted(async () => {
   if (isNative.value) {
     // Para Capacitor AdMob, disparamos el banner nativo flotante global
     if (props.position === 'mobile-inline' || props.position === 'lobby' || props.position === 'mobile-sticky') {
-      await showBanner(containerId.value);
+      await showBanner(containerId.value, props.position);
     }
   } else {
     // Para la Web, inyectamos AdSense en el contenedor DOM con ID único
-    await showBanner(containerId.value);
+    await showBanner(containerId.value, props.position);
   }
 });
 

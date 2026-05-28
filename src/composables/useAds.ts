@@ -120,18 +120,23 @@ export function useAds() {
    * Inyecta de forma segura un banner publicitario en un contenedor específico
    * @param containerId ID del elemento DOM donde se insertará el banner web
    */
-  const showBanner = async (containerId: string) => {
+  const showBanner = async (containerId: string, position?: string) => {
     if (!adsEnabled.value) return;
 
     try {
       if (isNative.value) {
         const { AdMob, BannerAdSize, BannerAdPosition } = await import('@capacitor-community/admob');
         
+        // Para mobile-sticky usamos un tamaño fijo estrictamente no invasivo
+        const adSize = position === 'mobile-sticky'
+          ? BannerAdSize.BANNER
+          : BannerAdSize.ADAPTIVE_BANNER;
+
         await AdMob.showBanner({
           adId: config.value.adMobBannerId,
-          adSize: BannerAdSize.ADAPTIVE_BANNER,
+          adSize: adSize,
           position: BannerAdPosition.BOTTOM_CENTER,
-          margin: 60, // Respeta safe area para notches o barras de navegación móviles
+          margin: position === 'mobile-sticky' ? 0 : 60, // En mobile-sticky flotamos directamente abajo
           isTesting: import.meta.env.DEV
         });
       } else {
@@ -142,19 +147,30 @@ export function useAds() {
         
         const ins = document.createElement('ins');
         ins.className = 'adsbygoogle';
-        ins.style.display = 'block';
-        ins.style.width = '100%';
-        ins.style.minHeight = '100px';
-        ins.setAttribute('data-ad-client', config.value.adSenseClientId);
-        ins.setAttribute('data-ad-slot', config.value.adSenseSlotBanner);
-        ins.setAttribute('data-ad-format', 'auto');
-        ins.setAttribute('data-full-width-responsive', 'true');
+        
+        if (position === 'mobile-sticky') {
+          ins.style.display = 'inline-block';
+          ins.style.width = '320px';
+          ins.style.height = '50px';
+          ins.style.minHeight = '50px';
+          ins.setAttribute('data-ad-client', config.value.adSenseClientId);
+          ins.setAttribute('data-ad-slot', config.value.adSenseSlotBanner);
+          // OMITIMOS data-ad-format y data-full-width-responsive para bloques de tamaño fijo
+        } else {
+          ins.style.display = 'block';
+          ins.style.width = '100%';
+          ins.style.minHeight = '100px';
+          ins.setAttribute('data-ad-client', config.value.adSenseClientId);
+          ins.setAttribute('data-ad-slot', config.value.adSenseSlotBanner);
+          ins.setAttribute('data-ad-format', 'auto');
+          ins.setAttribute('data-full-width-responsive', 'true');
+        }
         
         container.appendChild(ins);
 
         // Disparar push de anuncios
         ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
-        console.log('[Ads] Banner de AdSense cargado.');
+        console.log(`[Ads] Banner de AdSense cargado para posición: ${position || 'default'}`);
       }
     } catch (err) {
       console.warn('[Ads] ⚠️ Error al mostrar el banner publicitario:', err);
