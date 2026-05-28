@@ -129,9 +129,9 @@ export function useAds() {
         
         await AdMob.showBanner({
           adId: config.value.adMobBannerId,
-          adSize: BannerAdSize.ADAPTIVE_BANNER,
+          adSize: BannerAdSize.BANNER,           // Tamaño estándar pequeño (320×50) — no ocupa toda la pantalla
           position: BannerAdPosition.BOTTOM_CENTER,
-          margin: 60, // Respeta safe area para notches o barras de navegación móviles
+          margin: 0,                             // Sin margen extra para que el banner quede pegado al borde inferior
           isTesting: import.meta.env.DEV
         });
       } else {

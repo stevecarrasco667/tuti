@@ -23,14 +23,14 @@ const wrapperStyles = computed(() => {
   } else if (props.position === 'lobby') {
     return {
       width: '100%',
-      minHeight: '250px',
+      minHeight: '60px',
     };
   } else {
     // mobile-inline
     return {
       width: '100%',
       maxWidth: '340px',
-      minHeight: '100px',
+      minHeight: '60px',
     };
   }
 });
@@ -74,13 +74,13 @@ onUnmounted(async () => {
     <!-- Contenedor del Anuncio (Solo Web / AdSense) -->
     <div v-if="!isNative" 
          :id="containerId" 
-         class="w-full h-full flex items-center justify-center min-h-[100px]">
+         class="w-full h-full flex items-center justify-center min-h-[60px]">
       <!-- AdSense inyectará la etiqueta <ins> aquí en tiempo de ejecución -->
     </div>
 
     <!-- Espaciador Visual Seguro (Solo Móvil Capacitor / AdMob) -->
     <!-- Como AdMob nativo dibuja un banner flotante encima, evitamos el CLS o solapamiento mostrando una sutil tarjeta cósmica de soporte -->
-    <div v-else class="w-full p-3 text-center flex flex-col items-center justify-center min-h-[100px] animate-fade-in">
+    <div v-else class="w-full p-2 text-center flex flex-col items-center justify-center min-h-[60px] animate-fade-in">
       <h4 class="text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-2">🚀 {{ t('system.supportingTuti', 'Apoyando a TutiGames') }}</h4>
       <p class="text-[9px] text-ink-muted leading-tight max-w-[260px] mt-1">
         {{ t('system.adSupportingText', 'Los anuncios nos permiten mantener los servidores multijugador online y gratis.') }}
