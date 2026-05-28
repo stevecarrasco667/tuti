@@ -146,7 +146,7 @@ export class GameHandler extends BaseHandler {
     ) {
         // [Sprint H1 — BE-5] Guard: Impostor-only method — reject silently in Classic mode
         if (!(this.engine instanceof ImpostorEngine)) return;
-        this.engine.submitLastWish(sender.id, payload.guess ?? '');
+        await this.engine.submitLastWish(sender.id, payload.guess ?? '');
     }
 
     // [P12] EJE A: Live Draft — debounce autoguardado

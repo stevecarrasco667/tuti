@@ -52,8 +52,10 @@ export abstract class BaseEngine {
     abstract markAsPublic(): void;
 
     /** Rescues the engine from Worker Hibernation if a phase timer expired while sleeping.
-     *  Returns `true` if the state was mutated by forcing a timeout transition. */
-    abstract handleTimeUp(): boolean;
+     *  Returns `true` if the state was mutated by forcing a timeout transition.
+     *  ImpostorEngine returns Promise<boolean> because it may need to reload
+     *  the word cache from Supabase after hibernation evicts the in-memory GlobalImpostorCache. */
+    abstract handleTimeUp(): boolean | Promise<boolean>;
 
     /** Called every second by the server Tick Loop.
      *  Updates the server-canonical remaining time and broadcasts it to clients. */

@@ -834,7 +834,7 @@ export default class Server implements Party.Server {
         logger.info('WATCHDOG_TRIGGERED', { roomId: this.room.id });
 
         const zombiesPurged = this.engine.checkInactivePlayers();
-        const stateMutatedByTimer = this.engine.handleTimeUp(); // Anti-Freeze: Execute late timeouts
+        const stateMutatedByTimer = await this.engine.handleTimeUp(); // Anti-Freeze: Execute late timeouts
 
         if (zombiesPurged || stateMutatedByTimer) {
             logger.info('WATCHDOG_MUTATION', { roomId: this.room.id, zombiesPurged, stateMutatedByTimer });

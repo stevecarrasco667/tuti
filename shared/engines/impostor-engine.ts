@@ -46,6 +46,10 @@ export class ImpostorEngine extends BaseEngine {
     private secretWord: string | null = null;
     private currentImpostorIds: string[] = [];
 
+    // [BUG-FIX Misterio] Stores the in-flight hydration promise so startNewRound() can await it
+    // before reading from the GlobalImpostorCache (which may be empty after Worker hibernation).
+    private _hydrationPromise: Promise<void> | null = null;
+
     // [Sprint P2 — Fase 1] Grace Period timers: userId → timer handle
     // Map keyed by userId (not connectionId) to survive mobile reconnections with a new connectionId.
     private _gracePeriodTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -180,14 +184,21 @@ export class ImpostorEngine extends BaseEngine {
         // [Sprint P2 — Fase 3] Mark dirty: restored secrets must be confirmed written before next hibernate.
         this._secretsDirty = true;
 
-        // [Hotfix] Precarga en background asíncrona de las categorías de la partida activa
-        // para garantizar que la transición a la siguiente ronda tenga palabras listas en el caché de V8
+        // [BUG-FIX Misterio] Store the hydration promise so startNewRound() can await it.
+        // The GlobalImpostorCache (in-memory Map) is destroyed on Worker hibernation.
+        // Without awaiting this promise, getRandomWord() returns null → 'Misterio' fallback.
         if (this.activeCategoryIds.length > 0) {
-            Promise.all(
+            this._hydrationPromise = Promise.all(
                 this.activeCategoryIds.map(catId =>
                     this.wordProvider.loadCategory(this.state.config.lang || 'es', catId, this.supabase)
                 )
-            ).catch(err => console.error('[ImpostorEngine] Error pre-loading categories on hydration:', err));
+            ).then(() => {
+                this._hydrationPromise = null;
+                console.log('[ImpostorEngine] ✅ Hydration cache reload complete.');
+            }).catch(err => {
+                console.error('[ImpostorEngine] Error pre-loading categories on hydration:', err);
+                this._hydrationPromise = null;
+            });
         }
 
         console.log(`[ImpostorEngine] 🔑 Secrets hydrated — impostors: [${secret.currentImpostorIds.join(', ')}], word: "${secret.secretWord}"`);
@@ -497,7 +508,15 @@ export class ImpostorEngine extends BaseEngine {
      * Initializes a new round: picks impostor, word, cleans words/votes, transitions to ROLE_REVEAL.
      * Called by startGame() and handleResultsTimeUp() for multi-round support.
      */
-    private startNewRound() {
+    private async startNewRound() {
+        // [BUG-FIX Misterio] Wait for any in-flight hydration to complete before reading the cache.
+        // After Worker hibernation, the GlobalImpostorCache (in-memory Map) is empty.
+        // hydrateSecrets() starts an async reload, and we MUST await it here.
+        if (this._hydrationPromise) {
+            console.log('[ImpostorEngine] ⏳ Waiting for hydration cache reload before starting round...');
+            await this._hydrationPromise;
+        }
+
         const activePlayers = this.state.players.filter(p => p.isConnected);
         const playerCount = activePlayers.length;
 
@@ -510,17 +529,30 @@ export class ImpostorEngine extends BaseEngine {
             ? this.state.roundsPlayed % this.activeCategoryIds.length
             : 0;
         const currentCategoryId = this.activeCategoryIds[catIndex] || this.activeCategoryIds[0];
-        const catData = currentCategoryId ? this.wordProvider.getCategory(this.state.config.lang || 'es', currentCategoryId) : undefined; // Replaced impostorWords.
+
+        // [BUG-FIX Misterio] Verify cache hit BEFORE reading. If the category is not in the
+        // GlobalImpostorCache (e.g. evicted by Worker hibernation), reload it synchronously.
+        const lang = this.state.config.lang || 'es';
+        if (currentCategoryId && !this.wordProvider.getCategory(lang, currentCategoryId)) {
+            console.warn(`[ImpostorEngine] Cache miss for category "${currentCategoryId}" — reloading from Supabase`);
+            await this.wordProvider.loadCategory(lang, currentCategoryId, this.supabase);
+        }
+
+        const catData = currentCategoryId ? this.wordProvider.getCategory(lang, currentCategoryId) : undefined;
         const secretCategory = catData?.name || 'Desconocida';
 
         // Get random word, excluding already used ones
         let wordData = currentCategoryId
-            ? this.wordProvider.getRandomWord(this.state.config.lang || 'es', currentCategoryId, this.usedWords) // Replaced impostorWords.
+            ? this.wordProvider.getRandomWord(lang, currentCategoryId, this.usedWords)
             : null;
         if (!wordData && currentCategoryId) {
             console.warn('[ImpostorEngine] All words exhausted for category, clearing memory');
             this.usedWords.clear();
-            wordData = this.wordProvider.getRandomWord(this.state.config.lang || 'es', currentCategoryId, this.usedWords); // Replaced impostorWords.
+            wordData = this.wordProvider.getRandomWord(lang, currentCategoryId, this.usedWords);
+        }
+        // [BUG-FIX Misterio] Explicit error logging when word selection fails
+        if (!wordData) {
+            console.error(`[ImpostorEngine] CRITICAL: No word found for category "${currentCategoryId}" (lang=${lang}) even after cache reload. Falling back to 'Misterio'.`);
         }
         const secretWord = wordData?.word || 'Misterio';
         if (wordData) this.usedWords.add(wordData.id);
@@ -577,7 +609,7 @@ export class ImpostorEngine extends BaseEngine {
         }
 
         this.clearTimer();
-        this.currentTimer = setTimeout(() => this.handleTypingTimeUp(), typingMs);
+        this.currentTimer = setTimeout(() => void this.handleTypingTimeUp(), typingMs);
     }
 
     private handleTypingTimeUp() {
@@ -593,7 +625,7 @@ export class ImpostorEngine extends BaseEngine {
         }
 
         this.clearTimer();
-        this.currentTimer = setTimeout(() => this.handleVotingTimeUp(), votingMs);
+        this.currentTimer = setTimeout(() => void this.handleVotingTimeUp(), votingMs);
     }
 
     private handleVotingTimeUp() {
@@ -612,7 +644,7 @@ export class ImpostorEngine extends BaseEngine {
             if (this.onGameStateChange) this.onGameStateChange(this.state);
 
             this.clearTimer();
-            this.currentTimer = setTimeout(() => this.handleLastWishTimeUp(), lastWishMs);
+            this.currentTimer = setTimeout(() => void this.handleLastWishTimeUp(), lastWishMs);
             return;
         }
 
@@ -626,17 +658,17 @@ export class ImpostorEngine extends BaseEngine {
         }
 
         this.clearTimer();
-        this.currentTimer = setTimeout(() => this.handleResultsTimeUp(), 7000);
+        this.currentTimer = setTimeout(() => void this.handleResultsTimeUp(), 7000);
     }
 
     // [P10] El tiempo del Último Deseo agotó — la tripulación gana
-    private handleLastWishTimeUp() {
+    private async handleLastWishTimeUp() {
         if (this.state.status !== 'LAST_WISH') return;
-        this._resolveLastWish(false, null);
+        await this._resolveLastWish(false, null);
     }
 
     // [P10] Lógica compartida para resolver el Último Deseo (timeout o guess)
-    private _resolveLastWish(impostorWon: boolean, guess: string | null) {
+    private async _resolveLastWish(impostorWon: boolean, guess: string | null) {
         if (!this.state.impostorData?.cycleResult) return;
         this.clearTimer();
 
@@ -671,10 +703,10 @@ export class ImpostorEngine extends BaseEngine {
         this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.resultsEndsAt };
 
         if (this.onGameStateChange) this.onGameStateChange(this.state);
-        this.currentTimer = setTimeout(() => this.handleResultsTimeUp(), 7000);
+        this.currentTimer = setTimeout(() => void this.handleResultsTimeUp(), 7000);
     }
 
-    private handleResultsTimeUp() {
+    private async handleResultsTimeUp() {
         if (this.state.status !== 'RESULTS') return;
         this.clearTimer();
 
@@ -688,7 +720,8 @@ export class ImpostorEngine extends BaseEngine {
 
             if (this.state.roundsPlayed < this.state.config.impostor.rounds) {
                 // More rounds to play — start next round
-                this.startNewRound();
+                // [BUG-FIX Misterio] await ensures the word cache is loaded before picking a word
+                await this.startNewRound();
             } else {
                 // Game Over — DO NOT delete impostorData (Vue needs it for final screen)
                 this._triggerGameOver('NORMAL');
@@ -706,7 +739,7 @@ export class ImpostorEngine extends BaseEngine {
             const typingMs = this.state.config.impostor.typingTime * 1000;
             this.state.timers.roundEndsAt = Date.now() + typingMs;
             this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
-            this.currentTimer = setTimeout(() => this.handleTypingTimeUp(), typingMs);
+            this.currentTimer = setTimeout(() => void this.handleTypingTimeUp(), typingMs);
         }
 
         if (this.onGameStateChange) {
@@ -803,7 +836,7 @@ export class ImpostorEngine extends BaseEngine {
     // (NO la categoría — la categoría era públicamente visible durante toda la ronda)
     // Si acierta → IMPOSTOR gana (+300 pts). Si falla → CREW gana INMEDIATAMENTE.
     // [Patch 1.6] Alineado con backend: comparación contra secretWord (la palabra), no contra categoryName.
-    public submitLastWish(connectionId: string, guess: string): RoomState {
+    public async submitLastWish(connectionId: string, guess: string): Promise<RoomState> {
         if (this.state.status !== 'LAST_WISH') return this.state;
 
         const userId = this._players.getPlayerId(connectionId);
@@ -817,7 +850,7 @@ export class ImpostorEngine extends BaseEngine {
             : false;
 
         // Regla One-Shot: acierta o pierde instantáneamente (sin intentos extra)
-        this._resolveLastWish(impostorWon, guess);
+        await this._resolveLastWish(impostorWon, guess);
 
         return this.state;
     }
@@ -1093,7 +1126,7 @@ export class ImpostorEngine extends BaseEngine {
         return changed;
     }
 
-    public handleTimeUp(): boolean {
+    public async handleTimeUp(): Promise<boolean> {
         const now = Date.now();
         let changed = false;
 
@@ -1108,13 +1141,15 @@ export class ImpostorEngine extends BaseEngine {
             this.handleVotingTimeUp();
             changed = true;
         } else if (this.state.status === 'RESULTS' && this.state.timers.resultsEndsAt && now >= this.state.timers.resultsEndsAt) {
-            this.handleResultsTimeUp();
+            // [BUG-FIX Misterio] await is critical here — handleResultsTimeUp may call
+            // startNewRound() which needs to reload the word cache from Supabase.
+            await this.handleResultsTimeUp();
             changed = true;
         // [Patch 1.4c] Anti-Freeze for last_wish — if Worker wakes from hibernation during Last Wish,
         // resolve it as CREW victory (Impostor failed to answer in time).
         } else if (this.state.status === 'LAST_WISH' && this.state.timers.resultsEndsAt && now >= this.state.timers.resultsEndsAt) {
             console.log("[ImpostorEngine] Anti-Freeze: last_wish expired during hibernation — resolving as CREW victory");
-            this.handleLastWishTimeUp();
+            await this.handleLastWishTimeUp();
             changed = true;
         }
 
