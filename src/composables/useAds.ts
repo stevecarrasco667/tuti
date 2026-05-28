@@ -119,8 +119,9 @@ export function useAds() {
   /**
    * Inyecta de forma segura un banner publicitario en un contenedor específico
    * @param containerId ID del elemento DOM donde se insertará el banner web
+   * @param adType 'desktop' para banner lateral grande | 'mobile' para banner pequeño fijo
    */
-  const showBanner = async (containerId: string) => {
+  const showBanner = async (containerId: string, adType: 'desktop' | 'mobile' = 'mobile') => {
     if (!adsEnabled.value) return;
 
     try {
@@ -143,19 +144,29 @@ export function useAds() {
         const ins = document.createElement('ins');
         ins.className = 'adsbygoogle';
         ins.style.display = 'block';
-        ins.style.width = '320px';          // Ancho fijo estándar de banner
-        ins.style.height = '50px';           // Alto fijo estándar banner (como el nativo 320x50)
-        ins.style.maxWidth = '100%';
         ins.setAttribute('data-ad-client', config.value.adSenseClientId);
         ins.setAttribute('data-ad-slot', config.value.adSenseSlotBanner);
-        // NO usar data-ad-format:auto ni data-full-width-responsive — en móvil real
-        // Google elige anuncios enormes (250px+). Usamos tamaño fijo 320x50.
+
+        if (adType === 'desktop') {
+          // Desktop lateral: banner vertical grande (skyscraper 160x600)
+          // Usamos format:auto sin responsive para que AdSense elija el mejor vertical
+          ins.style.width = '160px';
+          ins.style.minHeight = '600px';
+          ins.setAttribute('data-ad-format', 'auto');
+        } else {
+          // Mobile / lobby: banner horizontal fijo pequeño (320×50)
+          // SIN data-ad-format:auto ni data-full-width-responsive — evita que en móvil
+          // real Google elija anuncios enormes (250px+)
+          ins.style.width = '320px';
+          ins.style.height = '50px';
+          ins.style.maxWidth = '100%';
+        }
         
         container.appendChild(ins);
 
         // Disparar push de anuncios
         ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
-        console.log('[Ads] Banner de AdSense cargado.');
+        console.log(`[Ads] Banner de AdSense cargado (tipo: ${adType}).`);
       }
     } catch (err) {
       console.warn('[Ads] ⚠️ Error al mostrar el banner publicitario:', err);

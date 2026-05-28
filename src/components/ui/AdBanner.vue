@@ -47,11 +47,12 @@ onMounted(async () => {
     // Para Capacitor AdMob, disparamos el banner nativo flotante global
     // Solo lo activamos en el Home (mobile-inline) o en el Lobby
     if (props.position === 'mobile-inline' || props.position === 'lobby') {
-      await showBanner(containerId.value);
+      await showBanner(containerId.value, 'mobile');
     }
   } else {
     // Para la Web, inyectamos AdSense en el contenedor DOM con ID único
-    await showBanner(containerId.value);
+    const adType = props.position === 'desktop-left' ? 'desktop' : 'mobile';
+    await showBanner(containerId.value, adType);
   }
 });
 
@@ -78,7 +79,8 @@ onUnmounted(async () => {
     <!-- Contenedor del Anuncio (Solo Web / AdSense) -->
     <div v-if="!isNative" 
          :id="containerId" 
-         class="w-full h-full flex items-center justify-center min-h-[60px]">
+         class="w-full h-full flex items-center justify-center"
+         :class="position === 'desktop-left' ? 'min-h-[600px]' : 'min-h-[60px]'">
       <!-- AdSense inyectará la etiqueta <ins> aquí en tiempo de ejecución -->
     </div>
 
