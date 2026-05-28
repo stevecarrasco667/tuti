@@ -11,6 +11,7 @@ import TButton from './ui/TButton.vue';
 import PlayerList from './lobby/PlayerList.vue';
 import LobbySettingsPanel from './lobby/LobbySettingsPanel.vue';
 import GameTutorialModal from './tutorials/GameTutorialModal.vue';
+import AdBanner from './ui/AdBanner.vue';
 
 const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer, leaveGame, addBot } = useGame();
 const { playClick, playJoin, playAlarm, playSuccess } = useSound();
@@ -165,6 +166,11 @@ const handleLeave = () => {
             <div class="lobby-stardust"></div>
         </div>
 
+        <!-- Rascacielos izquierdo absoluto flotando en el espacio exterior (Escritorio) -->
+        <aside class="hidden xl:block w-40 select-none z-10 absolute left-8 xl:left-16 top-10">
+            <AdBanner position="desktop-left" />
+        </aside>
+
         <!-- Inner Grid Container (Narrower for better density, shifted to the right to leave space for a future left banner) -->
         <div class="h-full w-full lg:max-w-[1040px] lg:max-h-[660px] lg:mt-10 lg:mb-auto mx-auto lg:ml-auto lg:mr-8 xl:mr-16 flex flex-col overflow-hidden relative z-10">
 
@@ -291,6 +297,11 @@ const handleLeave = () => {
                     </div>
                 </template>
             </div>
+        </div>
+
+        <!-- Banner móvil inline para la Web (visible solo en pantallas pequeñas) -->
+        <div class="lg:hidden flex-none w-full max-w-[340px] mx-auto mt-4 px-3 pb-4">
+            <AdBanner position="mobile-inline" />
         </div>
 
         <!-- Tutorial Modal -->
