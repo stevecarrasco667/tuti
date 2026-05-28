@@ -39,10 +39,10 @@ const gridClass = computed(() => {
     const n = props.categories.length;
     if (n <= 2) return 'grid-cols-1 sm:grid-cols-2';
     if (n === 3) return 'grid-cols-1 sm:grid-cols-3';
-    if (n === 4) return 'grid-cols-1 xs:grid-cols-2 sm:grid-cols-4';
+    if (n === 4) return 'grid-cols-1 xs:grid-cols-2 sm:grid-cols-2'; // 2 columns, 2 rows for wider columns
     if (n <= 6)  return 'grid-cols-1 xs:grid-cols-2 sm:grid-cols-3';
-    if (n <= 8)  return 'grid-cols-1 xs:grid-cols-2 sm:grid-cols-4';
-    return             'grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 xl:grid-cols-5'; // 9-10
+    if (n <= 8)  return 'grid-cols-1 xs:grid-cols-2 sm:grid-cols-3'; // 3 columns max to give more width
+    return             'grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 xl:grid-cols-4'; // 4 columns max
 });
 
 // Altura de cada input: adaptativa y responsiva
@@ -50,8 +50,8 @@ const inputHeightClass = computed(() => {
     const n = props.categories.length;
     if (n <= 2) return 'h-24 lg:h-32';   // 2 cat
     if (n === 3) return 'h-20 lg:h-28';  // 3 cat
-    if (n === 4) return 'h-16 lg:h-24';  // 4 cat
-    if (n <= 6)  return 'h-14 lg:h-22';  // 5-6 cat — 88px en escritorio
+    if (n === 4) return 'h-14 lg:h-20';  // 4 cat - compact vertical height for 2x2 grid
+    if (n <= 6)  return 'h-14 lg:h-20';  // 5-6 cat
     if (n <= 8)  return 'h-12 lg:h-18';  // 7-8 cat
     return              'h-11 lg:h-14';  // 9-10 cat
 });
@@ -59,12 +59,12 @@ const inputHeightClass = computed(() => {
 // Fuente del input: adaptativa y responsiva
 const inputTextClass = computed(() => {
     const n = props.categories.length;
-    if (n <= 2) return 'text-3xl lg:text-5xl';
-    if (n === 3) return 'text-2xl lg:text-4xl';
-    if (n === 4) return 'text-2xl lg:text-4xl';
-    if (n <= 6)  return 'text-xl lg:text-3xl';  // 5-6 categorías: 30px en escritorio
-    if (n <= 8)  return 'text-base lg:text-2xl';
-    return              'text-sm lg:text-xl';
+    if (n <= 2) return 'text-3xl lg:text-4xl';
+    if (n === 3) return 'text-2xl lg:text-3xl';
+    if (n === 4) return 'text-2xl lg:text-3xl';
+    if (n <= 6)  return 'text-xl lg:text-2xl';  // 5-6 categorías
+    if (n <= 8)  return 'text-base lg:text-xl'; // 7-8 categorías
+    return              'text-sm lg:text-lg';
 });
 
 // --- KEYBOARD NAVIGATION ---
@@ -115,7 +115,7 @@ const handleNextFocus = (currentIndex: number) => {
                                 :ref="(el) => setInputRef(el, index)"
                                 type="text"
                                 autocomplete="off"
-                                class="w-full pl-3 pr-8 xs:pl-5 xs:pr-12 lg:pl-7 lg:pr-20 py-2.5 rounded-2xl bg-[#2dd4bf]/10 text-ink-main placeholder-ink-muted/30 font-heading font-black border-2 border-[#2dd4bf]/25 outline-none transition-all duration-300 focus:border-tuti-teal focus:shadow-[0_0_15px_rgba(45,212,191,0.35),_inset_0_2px_8px_rgba(0,0,0,0.5)] disabled:cursor-not-allowed"
+                                class="w-full pl-3 pr-6 xs:pl-5 xs:pr-8 lg:pl-7 lg:pr-12 py-2.5 rounded-2xl bg-[#2dd4bf]/10 text-ink-main placeholder-ink-muted/30 font-heading font-black border-2 border-[#2dd4bf]/25 outline-none transition-all duration-300 focus:border-tuti-teal focus:shadow-[0_0_15px_rgba(45,212,191,0.35),_inset_0_2px_8px_rgba(0,0,0,0.5)] disabled:cursor-not-allowed"
                                 :class="[
                                     inputHeightClass, 
                                     inputTextClass,
@@ -125,12 +125,12 @@ const handleNextFocus = (currentIndex: number) => {
                                 :disabled="isBlocked || isSpectator"
                                 :tabindex="isSpectator ? -1 : 0"
                             >
-                            <!-- Indicador de completado — checkmark verde con animación de rebote y neon glow -->
+                            <!-- Indicador de completado — checkmark verde compacto, estático y estético con brillo sutil -->
                             <div v-if="modelValue[category.name]?.trim().length > 0"
-                                 class="absolute right-4 lg:right-6 top-1/2 -translate-y-1/2
-                                        flex items-center justify-center w-6 h-6 lg:w-8 lg:h-8 rounded-full 
-                                        bg-[#34d399] text-[#0f0e2d] text-xs lg:text-sm font-black shadow-[0_0_12px_rgba(52,211,153,0.6)]
-                                        pointer-events-none transition-all duration-300 animate-bounce">
+                                 class="absolute right-2.5 lg:right-3.5 top-1/2 -translate-y-1/2
+                                        flex items-center justify-center w-4 h-4 lg:w-5 lg:h-5 rounded-full 
+                                        bg-[#34d399] text-[#0f0e2d] text-[10px] lg:text-xs font-black shadow-[0_0_8px_rgba(52,211,153,0.5)]
+                                        pointer-events-none transition-all duration-300">
                                  ✓
                             </div>
                         </div>
