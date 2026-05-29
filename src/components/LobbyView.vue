@@ -176,7 +176,7 @@ const handleLeave = () => {
         <div class="h-full w-full lg:max-w-[1040px] lg:max-h-[660px] lg:mt-10 lg:mb-auto mx-auto lg:ml-auto lg:mr-8 xl:mr-16 flex flex-col overflow-hidden relative z-10">
 
         <!-- Floating Canvas Controls: Volver, TUTI GAMES Logo -->
-        <div class="flex-none w-full px-4 py-2 flex items-center justify-between gap-4 select-none">
+        <div class="flex-none w-full px-4 pt-[max(1.25rem,env(safe-area-inset-top,1.25rem))] pb-2 flex items-center justify-between gap-4 select-none">
             <!-- Left: Back button (◀ VOLVER) -->
             <button
                 @click="handleLeave"
@@ -221,22 +221,28 @@ const handleLeave = () => {
                         <span v-else>{{ player.name }}</span>
                     </span>
                 </div>
-                <!-- Slots vacíos horizontales -->
-                <div v-for="n in emptySlots" :key="'empty-' + n" class="flex flex-col items-center flex-none relative opacity-35">
-                    <div class="w-12 h-12 bg-panel-input/30 border-2 border-dashed border-white/10 rounded-full flex items-center justify-center text-xl shadow-inner text-ink-muted">
-                        👤
+                
+                <!-- Slots vacíos en móvil -->
+                <template v-if="amIHost">
+                    <!-- Slots vacíos interactivos para agregar Bot (Solo Host) -->
+                    <button v-for="n in emptySlots" :key="'empty-bot-' + n" @click="addBot" class="flex flex-col items-center flex-none group active:scale-95 transition-all cursor-pointer">
+                        <div class="w-12 h-12 bg-action-primary/10 border-2 border-dashed border-action-primary/30 hover:border-action-primary/60 rounded-full flex items-center justify-center text-xl text-action-primary hover:bg-action-primary/20 transition-all shadow-sm">
+                            🤖
+                        </div>
+                        <span class="text-[8px] text-action-primary font-black uppercase tracking-wider mt-1">+ Bot</span>
+                    </button>
+                </template>
+                <template v-else>
+                    <!-- Slots vacíos normales (Solo vista para invitados) -->
+                    <div v-for="n in emptySlots" :key="'empty-view-' + n" class="flex flex-col items-center flex-none relative opacity-35">
+                        <div class="w-12 h-12 bg-panel-input/30 border-2 border-dashed border-white/10 rounded-full flex items-center justify-center text-xl shadow-inner text-ink-muted">
+                            👤
+                        </div>
+                        <span class="text-[8px] text-ink-muted font-bold uppercase tracking-widest mt-1">
+                            {{ t('lobby.players.empty', 'Vacío') }}
+                        </span>
                     </div>
-                    <span class="text-[8px] text-ink-muted font-bold uppercase tracking-widest mt-1">
-                        {{ t('lobby.players.empty', 'Vacío') }}
-                    </span>
-                </div>
-                <!-- Botón de añadir bot (Solo Host) en la fila horizontal -->
-                <button v-if="amIHost && emptySlots > 0" @click="addBot" class="flex flex-col items-center flex-none group active:scale-95 transition-all cursor-pointer">
-                    <div class="w-12 h-12 bg-action-primary/10 border-2 border-dashed border-action-primary/30 hover:border-action-primary/60 rounded-full flex items-center justify-center text-xl text-action-primary hover:bg-action-primary/20 transition-all shadow-sm">
-                        🤖
-                    </div>
-                    <span class="text-[8px] text-action-primary font-black uppercase tracking-wider mt-1">+ Bot</span>
-                </button>
+                </template>
             </div>
         </div>
 
