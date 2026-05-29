@@ -11,6 +11,7 @@ import ResultsRanking from './ResultsRanking.vue';
 import GameFooter from './GameFooter.vue';
 import ChatWidget from '../../chat/ChatWidget.vue';
 import { useI18n } from 'vue-i18n';
+import { useKeyboard } from '../../../composables/useKeyboard';
 
 // --- CLEAN PROP DRILLING ---
 // The Board only receives global context, it calculates everything internal relative to its game phase.
@@ -42,6 +43,7 @@ const hasConfirmed = ref(false);
 const validationCooldown = ref(false);
 
 const { t } = useI18n();
+const { keyboardHeight } = useKeyboard();
 
 // [Sync] Ticker reactivo de baja frecuencia para evaluar el Grace Period contra el timestamp del servidor.
 // _now se actualiza cada 500ms, haciendo que los computed de grace period se re-evalúen automáticamente.
@@ -183,7 +185,7 @@ const rivalsActivity = computed(() => {
             @exit="emit('exit')"
         />
 
-        <div class="flex-1 overflow-y-auto w-full scroll-smooth p-2 relative">
+        <div class="flex-1 overflow-y-auto w-full scroll-smooth p-2 relative" :style="{ paddingBottom: keyboardHeight + 'px' }">
             <Transition name="fade" mode="out-in">
                     <!-- Grid dinámico: 3 columnas en PLAYING, 2 columnas en las demás fases -->
                     <div :key="gameState.status" class="w-full min-h-full flex flex-col items-center lg:grid lg:gap-8 lg:items-start lg:max-w-[1600px] lg:mx-auto" 

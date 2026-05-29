@@ -47,23 +47,14 @@ const handleInput = (category: string, event: Event) => {
 const handleInputFocus = (event: Event) => {
     playClick(); // Audio Unlock
     
-    // SMART SCROLL: Only if keyboard covers input
-    if (window.visualViewport) {
-        const target = event.target as HTMLElement;
-        const rect = target.getBoundingClientRect();
-        const viewportHeight = window.visualViewport.height;
-
-        // If bottom of input is outside visible viewport
-        if (rect.bottom > viewportHeight) {
-             setTimeout(() => { 
-                target.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); 
-            }, 300);
-        }
-    } else {
-         // Fallback for non-compliant browsers (old behavior)
-        const target = event.target as HTMLElement;
-        setTimeout(() => { target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
-    }
+    // Con interactive-widget=overlays-content, el viewport NO se achica al abrir
+    // el teclado — el teclado se superpone como overlay. Por eso debemos SIEMPRE
+    // hacer scroll al input enfocado para garantizar que quede visible por encima
+    // del teclado. Usamos un delay de 300ms para dar tiempo al teclado a abrirse.
+    const target = event.target as HTMLElement;
+    setTimeout(() => {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
 };
 </script>
 
