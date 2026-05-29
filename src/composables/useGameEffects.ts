@@ -10,7 +10,7 @@ export function useGameEffects(
     _myUserId: import('vue').Ref<string>,
     amIHost: import('vue').Ref<boolean>
 ) {
-    const { playClick, playJoin, playTick, playAlarm, playSuccess, playUrgency } = useSound();
+    const { playClick, playJoin, playTick, playAlarm, playUrgency } = useSound();
     const { clearReactions } = useReactions();
 
     // --- TIMERS ---
@@ -107,7 +107,7 @@ export function useGameEffects(
                 showStopAlert.value = false;
             }, 3000);
         } else if (newStatus === 'RESULTS') {
-            playSuccess();
+            // Se elimina el playSuccess global redundante. Cada vista de resultados específica (como ResultsRanking y GameOverView) ya maneja su propio sonido de victoria/derrota en el momento visual idóneo, evitando doble reproducción.
         } else if (['LOADING_ROUND', 'PLAYING', 'ROLE_REVEAL', 'LOBBY'].includes(newStatus)) {
             clearReactions();
         } else if (newStatus !== 'REVIEW') {

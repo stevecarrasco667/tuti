@@ -66,7 +66,7 @@ export function useSound() {
     const playClick = () => play(SFX.click, 0.12);
     const playStop = () => play(SFX.stop, 0.45);
     const playError = () => play(SFX.error, 0.35);
-    const playWin = () => play(SFX.win, 0.40);
+    const playWin = () => play(SFX.win, 0.22);
     const playTally = () => play(SFX.tally, 0.08);
     const playUrgency = () => play(SFX.stop, 0.45);  // Tensión controlada para ENDING_COUNTDOWN
 
@@ -74,7 +74,7 @@ export function useSound() {
     const playJoin = () => play(SFX.click, 0.12);
     const playTick = () => play(SFX.tally, 0.08);
     const playAlarm = () => play(SFX.error, 0.35);
-    const playSuccess = () => play(SFX.win, 0.40);
+    const playSuccess = () => play(SFX.win, 0.22);
 
     const toggleMute = () => {
         isMuted.value = !isMuted.value;
