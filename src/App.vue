@@ -11,7 +11,7 @@ import ErrorBoundary from './components/ui/ErrorBoundary.vue';
 import { useKeyboard } from './composables/useKeyboard';
 import { App as CapacitorApp } from '@capacitor/app';
 
-const { viewportHeight } = useKeyboard();
+useKeyboard();
 const { gameState, myUserId, leaveGame, isConnected } = useGame();
 const { isMuted, toggleMute } = useSound();
 const { toasts, addToast } = useToast();
@@ -130,9 +130,8 @@ CapacitorApp.addListener('backButton', ({ canGoBack }) => {
 </script>
 
 <template>
-  <div class="w-screen overflow-hidden bg-panel-base text-ink-main flex flex-col items-center relative transition-all duration-300 font-sans group"
-       :class="isFullFrameView() ? 'p-0' : 'p-2'"
-       :style="{ height: viewportHeight + 'px', maxHeight: viewportHeight + 'px' }">
+  <div class="w-screen h-[100dvh] overflow-hidden bg-panel-base text-ink-main flex flex-col items-center relative transition-all duration-300 font-sans group"
+       :class="isFullFrameView() ? 'p-0' : 'p-2'">
 
     <!-- MUTE BUTTON LAYER -->
     <button

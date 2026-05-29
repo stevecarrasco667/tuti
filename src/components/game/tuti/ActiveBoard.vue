@@ -88,10 +88,10 @@ const handleNextFocus = (currentIndex: number) => {
 </script>
 
 <template>
-    <!-- FASE 1: flex-col justify-center min-h-full para centrado vertical real -->
-    <div class="w-full max-w-[95%] xl:max-w-7xl mx-auto flex flex-col justify-center min-h-full transition-all duration-500 ease-out">
+    <!-- FASE 1: flex-col min-h-full para centrado vertical real seguro vía my-auto -->
+    <div class="w-full max-w-[95%] xl:max-w-7xl mx-auto flex flex-col min-h-full transition-all duration-500 ease-out">
         
-        <div class="bg-panel-base/30 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-[0_8px_32px_0_rgba(15,14,45,0.47)] overflow-hidden relative transition-all duration-300">
+        <div class="bg-panel-base/30 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-[0_8px_32px_0_rgba(15,14,45,0.47)] overflow-hidden relative transition-all duration-300 my-auto">
             
             <!-- FASE 2: padding reducido, grid adaptativo por gridClass computed -->
             <div class="p-4 md:p-5">

@@ -49,34 +49,12 @@ const { t } = useI18n();
 const _now = ref(Date.now());
 let _graceTicker: ReturnType<typeof setInterval> | null = null;
 
-// ── Adaptación de altura al Visual Viewport ──────────────────────────────────
-// En navegadores móviles (Android/Chrome), cuando el teclado virtual se abre,
-// el layout container (h-full del body con h-screen/100vh) NO se reduce.
-// Resultado: queda un espacio en blanco entre el contenido y el teclado.
-// Solución: escuchar window.visualViewport.resize y forzar la altura del
-// contenedor del tablero a la altura visible real.
-const containerHeight = ref<string>('100%');
-
-const updateContainerHeight = () => {
-    if (window.visualViewport) {
-        containerHeight.value = `${window.visualViewport.height}px`;
-    }
-};
-
 onMounted(() => {
     _graceTicker = setInterval(() => { _now.value = Date.now(); }, 500);
-
-    if (window.visualViewport) {
-        updateContainerHeight();
-        window.visualViewport.addEventListener('resize', updateContainerHeight);
-    }
 });
 
 onUnmounted(() => {
     if (_graceTicker) clearInterval(_graceTicker);
-    if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', updateContainerHeight);
-    }
 });
 
 const isGracePeriodActive = computed(() => {
@@ -192,9 +170,8 @@ const rivalsActivity = computed(() => {
         });
 });
 </script>
-
 <template>
-    <div class="flex flex-col w-full" :style="{ height: containerHeight }">
+    <div class="flex flex-col w-full h-full">
         <RoundStatusHeader 
             :round="gameState.roundsPlayed + 1"
             :total-rounds="gameState.config?.classic?.rounds || 5"
@@ -209,7 +186,7 @@ const rivalsActivity = computed(() => {
         <div class="flex-1 overflow-y-auto w-full scroll-smooth p-2 relative">
             <Transition name="fade" mode="out-in">
                     <!-- Grid dinámico: 3 columnas en PLAYING, 2 columnas en las demás fases -->
-                    <div :key="gameState.status" class="w-full h-full flex flex-col items-center lg:grid lg:gap-8 lg:items-start lg:max-w-[1600px] lg:mx-auto" 
+                    <div :key="gameState.status" class="w-full min-h-full flex flex-col items-center lg:grid lg:gap-8 lg:items-start lg:max-w-[1600px] lg:mx-auto" 
                         :class="gameState.status === 'PLAYING' ? 'lg:grid-cols-[220px_1fr_200px]' : 'lg:grid-cols-[1fr_200px]'"> 
                     
                     <!-- COLUMN 1: RIVALS (SOLO EN PLAYING) -->
@@ -221,8 +198,8 @@ const rivalsActivity = computed(() => {
                     </div>
 
                     <!-- COLUMN 2: GAME CENTER -->
-                    <div class="w-full flex order-2 lg:order-2 lg:h-full lg:overflow-y-auto h-full"
-                         :class="gameState.status === 'PLAYING' ? 'flex-col justify-center items-center' : 'flex-col'"
+                    <div class="w-full flex order-2 lg:order-2 lg:h-full lg:overflow-y-auto min-h-full"
+                         :class="gameState.status === 'PLAYING' ? 'flex-col items-center' : 'flex-col'"
                     >
                         <ActiveRound 
                             v-if="gameState.status === 'PLAYING'"
