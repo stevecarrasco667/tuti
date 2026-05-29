@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import type { ImpostorData, Player } from '../../../../shared/types';
 import { useGame } from '../../../composables/useGame';
 import { useSound } from '../../../composables/useSound';
@@ -24,6 +24,21 @@ const { playClick } = useSound();
 const { getCountsForTarget, getBurstsForTarget } = useReactions();
 const { socket } = useSocket();
 const { t } = useI18n();
+
+// Detección reactiva de pantalla móvil (sm breakpoint = 640px)
+const isMobile = ref(false);
+const checkMobile = () => {
+    isMobile.value = window.innerWidth < 640;
+};
+
+onMounted(() => {
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('resize', checkMobile);
+});
 
 const sendReaction = (targetPlayerId: string, categoryId: string, emoji: string) => {
     // NO predicción optimista: el servidor brodcastea de vuelta al emisor,
@@ -62,15 +77,20 @@ const suspects = computed(() => {
 // Phase 1: Adaptive grid strategy by player count
 const gridClass = computed(() => {
     const n = suspects.value.length;
-    if (n <= 2) return 'grid-cols-2 max-w-2xl mx-auto gap-6';
-    if (n === 3) return 'grid-cols-3 max-w-4xl mx-auto gap-6';
-    if (n === 4) return 'grid-cols-2 lg:grid-cols-4 max-w-4xl mx-auto gap-4';
-    if (n <= 6) return 'grid-cols-3 max-w-5xl mx-auto gap-4';
+    if (n <= 2) return 'grid-cols-2 max-w-2xl mx-auto gap-4 md:gap-6';
+    if (n === 3) return 'grid-cols-2 sm:grid-cols-3 max-w-4xl mx-auto gap-3 md:gap-6';
+    if (n === 4) return 'grid-cols-2 sm:grid-cols-4 max-w-4xl mx-auto gap-3 md:gap-4';
+    if (n <= 6) return 'grid-cols-2 sm:grid-cols-3 max-w-5xl mx-auto gap-3 md:gap-4';
     return 'grid-cols-2 sm:grid-cols-4 max-w-5xl mx-auto gap-3'; // ≥7: compact mode
 });
 
 // Card sizing calculation based on suspects count
 const cardSize = computed(() => {
+    if (isMobile.value) {
+        // En móviles evitamos 'lg' porque es muy grande y se desborda en 2 columnas
+        const n = suspects.value.length;
+        return n <= 4 ? 'md' : 'sm';
+    }
     const n = suspects.value.length;
     if (n <= 3) return 'lg';
     if (n === 4) return 'md';
