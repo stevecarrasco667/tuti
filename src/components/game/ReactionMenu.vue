@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onUnmounted } from 'vue';
 
 const props = defineProps<{
     targetPlayerId: string;
@@ -33,6 +33,13 @@ const cancelClose = () => {
         closeTimer = null;
     }
 };
+
+onUnmounted(() => {
+    if (closeTimer) {
+        clearTimeout(closeTimer);
+        closeTimer = null;
+    }
+});
 </script>
 
 <template>

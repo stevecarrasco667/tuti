@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import { useGame } from '../../../composables/useGame';
-import { useGameEffects } from '../../../composables/useGameEffects';
+
 import ActiveBoard from './ActiveBoard.vue';
 import type { CategoryRef } from '../../../../shared/types';
 
@@ -18,8 +18,8 @@ const emit = defineEmits<{
     (e: 'update:modelValue', value: Record<string, string>): void;
 }>();
 
-const { debouncedUpdateAnswers, gameState, myUserId, amIHost } = useGame();
-useGameEffects(gameState, myUserId, amIHost);
+const { debouncedUpdateAnswers } = useGame();
+
 
 const handleInput = (category: string, event: Event) => {
     const input = event.target as HTMLInputElement;

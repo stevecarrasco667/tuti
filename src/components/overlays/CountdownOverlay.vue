@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 
 const props = defineProps<{
     round?: number;
@@ -11,20 +11,28 @@ const emit = defineEmits(['finished']);
 const count = ref(3);
 const showGo = ref(false);
 
+let countdownInterval: ReturnType<typeof setInterval> | null = null;
+let finishedTimeout: ReturnType<typeof setTimeout> | null = null;
+
 onMounted(() => {
-    const interval = setInterval(() => {
+    countdownInterval = setInterval(() => {
         if (count.value > 1) {
             count.value--;
             // Play bloop sound?
         } else {
-            clearInterval(interval);
+            if (countdownInterval) clearInterval(countdownInterval);
             showGo.value = true;
             // Play Go sound?
-            setTimeout(() => {
+            finishedTimeout = setTimeout(() => {
                 emit('finished');
             }, 800);
         }
     }, 1000);
+});
+
+onUnmounted(() => {
+    if (countdownInterval) clearInterval(countdownInterval);
+    if (finishedTimeout) clearTimeout(finishedTimeout);
 });
 </script>
 

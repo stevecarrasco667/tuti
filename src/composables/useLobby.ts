@@ -49,7 +49,8 @@ export function useLobby() {
         refCount++;
         if (lobbySocket) return;
 
-        const lobbyUrl = `wss://${PARTYKIT_HOST}/parties/lobby/global`;
+        const isDev = import.meta.env.DEV;
+        const lobbyUrl = `${isDev ? 'ws' : 'wss'}://${PARTYKIT_HOST}/parties/lobby/global`;
         console.log('[TUTI] Lobby connecting to:', lobbyUrl);
         lobbySocket = new WebSocket(lobbyUrl) as any;
 

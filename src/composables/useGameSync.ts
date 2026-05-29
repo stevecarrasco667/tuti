@@ -1,7 +1,7 @@
 import { watch, toRaw } from 'vue';
 import { useSocket } from './useSocket';
 import { applyPatch } from 'fast-json-patch';
-import { ServerMessage, PrivateRolePayload } from '../../shared/types';
+import { ServerMessage, PrivateRolePayload, RoomState } from '../../shared/types';
 import { useGameState } from './useGameState';
 import { EVENTS, APP_VERSION } from '../../shared/consts';
 import { useToast } from './useToast';
@@ -80,7 +80,7 @@ watch(lastMessage, (newMsg) => {
 
             if (stateVersion === state.gameState.value.stateVersion + 1) {
                 // 1. Obtener el estado plano desprovisto de proxies reactivos y clonarlo
-                const nextState = structuredClone(toRaw(state.gameState.value));
+                const nextState = JSON.parse(JSON.stringify(toRaw(state.gameState.value))) as RoomState;
 
                 // 2. Aplicar el parche sobre el objeto plano crudo (0 triggers de Vue)
                 applyPatch(nextState, patches);

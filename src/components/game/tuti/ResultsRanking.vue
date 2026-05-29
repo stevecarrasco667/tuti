@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { Player, CategoryRef } from '../../../../shared/types';
 import { useSound } from '../../../composables/useSound';
 import { useI18n } from 'vue-i18n';
@@ -21,6 +21,10 @@ const { t } = useI18n();
 const displayScores = ref<Record<string, number>>({});
 const barWidths = ref<Record<string, number>>({});
 
+let outerTimeout: ReturnType<typeof setTimeout> | null = null;
+let tallyInterval: ReturnType<typeof setInterval> | null = null;
+let winTimeout: ReturnType<typeof setTimeout> | null = null;
+
 const maxScore = computed(() => Math.max(1, ...props.players.map(p => p.score)));
 
 const statusIcon = (category: string) => {
@@ -37,14 +41,14 @@ onMounted(() => {
         barWidths.value[p.id] = 0;
     });
 
-    setTimeout(() => {
+    outerTimeout = setTimeout(() => {
         props.players.forEach(p => {
             const pct = (p.score / maxScore.value) * 100;
             barWidths.value[p.id] = Math.max(3, pct);
         });
 
         const frames = 30;
-        const interval = setInterval(() => {
+        tallyInterval = setInterval(() => {
             let finishedCount = 0;
             let soundPlayedInFrame = false;
             props.players.forEach(p => {
@@ -56,11 +60,17 @@ onMounted(() => {
                 } else { finishedCount++; }
             });
             if (finishedCount === props.players.length) {
-                clearInterval(interval);
-                setTimeout(() => playWin(), 200);
+                if (tallyInterval) clearInterval(tallyInterval);
+                winTimeout = setTimeout(() => playWin(), 200);
             }
         }, 1500 / frames);
     }, 300);
+});
+
+onUnmounted(() => {
+    if (outerTimeout) clearTimeout(outerTimeout);
+    if (tallyInterval) clearInterval(tallyInterval);
+    if (winTimeout) clearTimeout(winTimeout);
 });
 </script>
 

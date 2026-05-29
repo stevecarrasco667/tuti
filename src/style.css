@@ -238,7 +238,10 @@
 /* Sparkles Stardust Particles for Lobby Background */
 .lobby-stardust {
   position: absolute;
-  inset: 0;
+  width: calc(100% + 550px);
+  height: calc(100% + 550px);
+  top: -550px;
+  left: -550px;
   background-image: 
     radial-gradient(1px 1px at 10% 20%, #ffffff 100%, transparent),
     radial-gradient(1.5px 1.5px at 25% 45%, rgba(255,255,255,0.8) 100%, transparent),
@@ -251,6 +254,7 @@
   opacity: 0.22;
   animation: stardust-slow-pan 90s linear infinite;
   z-index: 1;
+  will-change: transform;
 }
 
 @keyframes aura-float-1 {
@@ -272,6 +276,18 @@
 }
 
 @keyframes stardust-slow-pan {
-  from { background-position: 0 0; }
-  to { background-position: 550px 1100px; }
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(550px, 550px, 0); }
+}
+
+/* 📱 Mobile Performance Optimization: Disable heavy backdrop-filters on smaller viewports to maximize FPS */
+@media (max-width: 1023px) {
+  .backdrop-blur-sm,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl,
+  .backdrop-blur {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
 }
