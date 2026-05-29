@@ -14,7 +14,7 @@ import GameTutorialModal from './tutorials/GameTutorialModal.vue';
 import AdBanner from './ui/AdBanner.vue';
 
 const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer, leaveGame, addBot } = useGame();
-const { playClick, playJoin, playAlarm, playSuccess } = useSound();
+const { playJoin, playAlarm, playSuccess } = useSound();
 const { t } = useI18n();
 const route = useRoute();
 const { setMeta } = useMeta();
@@ -72,12 +72,10 @@ const handleConfigChange = (field: string, value: any) => {
     } else {
         updateConfig({ [field]: value });
     }
-    playClick();
 };
 
 const handleMutatorChange = (mutator: string, value: boolean) => {
     updateConfig({ classic: { mutators: { [mutator]: value } } } as any);
-    playClick();
 };
 
 const handleKick = (targetUserId: string, name: string) => {

@@ -19,7 +19,7 @@ const emit = defineEmits<{
 }>();
 
 const { debouncedUpdateAnswers, gameState, myUserId, amIHost } = useGame();
-const { playClick } = useGameEffects(gameState, myUserId, amIHost);
+useGameEffects(gameState, myUserId, amIHost);
 
 const handleInput = (category: string, event: Event) => {
     const input = event.target as HTMLInputElement;
@@ -40,13 +40,9 @@ const handleInput = (category: string, event: Event) => {
     const newAnswers = { ...props.modelValue, [category]: val };
     emit('update:modelValue', newAnswers);
     debouncedUpdateAnswers(newAnswers);
-    
-    playClick(); // Feedback
 };
 
 const handleInputFocus = (event: Event) => {
-    playClick(); // Audio Unlock
-    
     // Con interactive-widget=resizes-visual, el visual viewport se reduce al abrir
     // el teclado. scrollIntoView respeta el visual viewport, así que al usar
     // block:'center' el input queda centrado en el espacio visible sobre el teclado.

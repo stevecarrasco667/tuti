@@ -10,7 +10,16 @@ const SFX = {
     tally: '/sounds/tally.mp3'
 };
 
-const audioCache: Record<string, HTMLAudioElement> = {};
+// Fixed pool limit of HTMLAudioElement per track to prevent GC performance issues on Capacitor/Browsers
+const AUDIO_POOL_LIMITS: Record<string, number> = {
+    [SFX.click]: 3,
+    [SFX.stop]: 1,
+    [SFX.error]: 2,
+    [SFX.win]: 1,
+    [SFX.tally]: 3
+};
+
+const audioPools: Record<string, HTMLAudioElement[]> = {};
 
 export function useSound() {
 
@@ -18,13 +27,29 @@ export function useSound() {
         if (isMuted.value) return;
 
         try {
-            // Simple cache to avoid re-fetching, but allow overlapping sounds (cloneNode)
-            if (!audioCache[url]) {
-                audioCache[url] = new Audio(url);
+            if (!audioPools[url]) {
+                audioPools[url] = [];
             }
 
-            // Clone to allow overlapping instances of the same sound
-            const sound = audioCache[url].cloneNode() as HTMLAudioElement;
+            const pool = audioPools[url];
+            const limit = AUDIO_POOL_LIMITS[url] || 2;
+
+            // Find an inactive audio element in the pool
+            let sound = pool.find(audio => audio.paused || audio.ended);
+
+            if (!sound) {
+                if (pool.length < limit) {
+                    // Create new instance and add to pool
+                    sound = new Audio(url);
+                    pool.push(sound);
+                } else {
+                    // Pool is full, reuse the oldest/first element in the pool
+                    sound = pool[0];
+                    sound.pause();
+                    sound.currentTime = 0;
+                }
+            }
+
             sound.volume = volume;
 
             const promise = sound.play();
@@ -38,18 +63,18 @@ export function useSound() {
         }
     };
 
-    const playClick = () => play(SFX.click, 0.4);
-    const playStop = () => play(SFX.stop, 0.6);
-    const playError = () => play(SFX.error, 0.4);
-    const playWin = () => play(SFX.win, 0.5);
-    const playTally = () => play(SFX.tally, 0.3);
-    const playUrgency = () => play(SFX.stop, 0.85);  // [P11] Sonido de pánico para ENDING_COUNTDOWN
+    const playClick = () => play(SFX.click, 0.12);
+    const playStop = () => play(SFX.stop, 0.45);
+    const playError = () => play(SFX.error, 0.35);
+    const playWin = () => play(SFX.win, 0.40);
+    const playTally = () => play(SFX.tally, 0.08);
+    const playUrgency = () => play(SFX.stop, 0.45);  // Tensión controlada para ENDING_COUNTDOWN
 
     // Aliases for Backward Compatibility
-    const playJoin = () => play(SFX.click, 0.4);
-    const playTick = () => play(SFX.tally, 0.3);
-    const playAlarm = () => play(SFX.error, 0.4);
-    const playSuccess = () => play(SFX.win, 0.5);
+    const playJoin = () => play(SFX.click, 0.12);
+    const playTick = () => play(SFX.tally, 0.08);
+    const playAlarm = () => play(SFX.error, 0.35);
+    const playSuccess = () => play(SFX.win, 0.40);
 
     const toggleMute = () => {
         isMuted.value = !isMuted.value;
@@ -63,7 +88,7 @@ export function useSound() {
         playError,
         playWin,
         playTally,
-        playUrgency,   // [P11]
+        playUrgency,
         // Compat
         playJoin,
         playTick,

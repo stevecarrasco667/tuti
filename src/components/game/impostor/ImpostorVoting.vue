@@ -47,7 +47,6 @@ const sendReaction = (targetPlayerId: string, categoryId: string, emoji: string)
         type: EVENTS.WORD_REACT,
         payload: { targetPlayerId, categoryId, emoji }
     }));
-    playClick();
 };
 
 const myVote = computed(() => props.impostorData.votes?.[props.myUserId] || null);
