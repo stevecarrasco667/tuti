@@ -95,8 +95,14 @@ const activeFilterTag = ref<string | null>(null);
 const tempSelectedCategories = ref<CategoryRef[]>([]);
 
 // Remote Categories State (Impostor Mode)
-const dbCategories = ref<{ id: string; name: string }[]>([]);
+const dbCategories = ref<{ id: string; name: string; normalizedName: string }[]>([]);
 const isLoadingDb = ref(false);
+
+// Pre-normalizar categorías estáticas una sola vez al cargar el componente
+const NORMALIZED_MASTER_CATEGORIES = MASTER_CATEGORIES.map(cat => ({
+    ...cat,
+    normalizedName: cat.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+}));
 
 async function fetchImpostorCategories() {
     if (props.config.mode !== 'IMPOSTOR') return;
@@ -107,13 +113,16 @@ async function fetchImpostorCategories() {
             .select('id, name')
             .eq('game_mode', 'impostor');
         if (!error && data) {
-            dbCategories.value = data;
+            dbCategories.value = data.map(d => ({
+                ...d,
+                normalizedName: d.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            }));
         } else {
             throw error;
         }
     } catch (err) {
         console.warn('[ImpostorCategories] Failed to load remote categories, using local fallback.', err);
-        dbCategories.value = [
+        const fallback = [
             { id: '1', name: 'Animales' },
             { id: '2', name: 'Comida' },
             { id: '3', name: 'Profesiones' },
@@ -123,6 +132,10 @@ async function fetchImpostorCategories() {
             { id: '7', name: 'Superhéroes' },
             { id: '8', name: 'Instrumentos Musicales' }
         ];
+        dbCategories.value = fallback.map(d => ({
+            ...d,
+            normalizedName: d.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        }));
     } finally {
         isLoadingDb.value = false;
     }
@@ -148,16 +161,12 @@ const filteredCategories = computed(() => {
     const query = searchQuery.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     
     if (props.config.mode === 'IMPOSTOR') {
-        return dbCategories.value.filter(cat => {
-            const normalized = cat.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            return normalized.includes(query);
-        });
+        return dbCategories.value.filter(cat => cat.normalizedName.includes(query));
     }
 
-    return MASTER_CATEGORIES.filter(cat => {
+    return NORMALIZED_MASTER_CATEGORIES.filter(cat => {
         if (activeFilterTag.value && !cat.tags.includes(activeFilterTag.value)) return false;
-        const normalized = cat.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        return normalized.includes(query);
+        return cat.normalizedName.includes(query);
     });
 });
 

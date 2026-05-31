@@ -25,19 +25,32 @@ const { getCountsForTarget, getBurstsForTarget } = useReactions();
 const { socket } = useSocket();
 const { t } = useI18n();
 
-// Detección reactiva de pantalla móvil (sm breakpoint = 640px)
+// Detección reactiva de pantalla móvil (sm breakpoint = 640px) optimizada por hardware
 const isMobile = ref(false);
-const checkMobile = () => {
-    isMobile.value = window.innerWidth < 640;
+let mediaQuery: MediaQueryList | null = null;
+
+const handleMediaChange = (e: MediaQueryListEvent | MediaQueryList) => {
+    isMobile.value = e.matches;
 };
 
 onMounted(() => {
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
+    mediaQuery = window.matchMedia('(max-width: 639px)');
+    handleMediaChange(mediaQuery);
+    if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener('change', handleMediaChange);
+    } else {
+        mediaQuery.addListener(handleMediaChange);
+    }
 });
 
 onUnmounted(() => {
-    window.removeEventListener('resize', checkMobile);
+    if (mediaQuery) {
+        if (mediaQuery.removeEventListener) {
+            mediaQuery.removeEventListener('change', handleMediaChange);
+        } else {
+            mediaQuery.removeListener(handleMediaChange);
+        }
+    }
 });
 
 const sendReaction = (targetPlayerId: string, categoryId: string, emoji: string) => {

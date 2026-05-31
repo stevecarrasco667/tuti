@@ -227,20 +227,20 @@ onMounted(async () => {
         <InstallPrompt />
 
         <!-- BODY scrollable: TODO el contenido fluye aquí, nada lo tapa desde arriba -->
-        <div class="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 lg:p-10 scrollbar-thin scrollbar-thumb-white/20 relative z-10">
+        <div class="flex-1 overflow-y-auto min-h-0 p-4 sm:p-5 lg:p-6 scrollbar-thin scrollbar-thumb-white/20 relative z-10">
 
             <!-- Título (VICTORIA / GAME OVER) — en flujo normal dentro del scroll -->
-            <div class="mb-16 lg:mb-20">
+            <div class="mb-8 lg:mb-10">
                 <ResultsHeader :i-won="iWon" :am-i-host="amIHost" />
             </div>
 
             <!-- Contenido principal: podio + sidebar -->
-            <div class="w-full max-w-[1200px] mx-auto flex flex-col lg:grid lg:grid-cols-12 gap-10 lg:gap-16 items-start pb-8">
+            <div class="w-full max-w-[1100px] mx-auto flex flex-col lg:grid lg:grid-cols-12 gap-6 lg:gap-8 items-start pb-6">
 
                 <!-- COLUMNA IZQUIERDA -->
-                <div class="w-full lg:col-span-7 xl:col-span-8 flex flex-col gap-10">
+                <div class="w-full lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
                     <!-- Lógica secuencial: Mostrar podio solo tras completar el anuncio/timeout -->
-                    <div v-if="showResultsBoard" class="w-full flex flex-col gap-10 animate-fade-in">
+                    <div v-if="showResultsBoard" class="w-full flex flex-col gap-6 animate-fade-in">
                         <!-- Modo Impostor: Gran Reveal -->
                         <ImpostorResultsView
                             v-if="gameState.config.mode === 'IMPOSTOR' && showImpostorReveal"
@@ -255,14 +255,14 @@ onMounted(async () => {
                     </div>
                     
                     <!-- Sutil esqueleto/loader arcade de suspenso mientras se procesa el anuncio -->
-                    <div v-else class="w-full py-16 flex flex-col items-center justify-center gap-4 bg-panel-base/40 border-2 border-white/5 rounded-3xl p-6 min-h-[350px] shadow-inner">
+                    <div v-else class="w-full py-10 flex flex-col items-center justify-center gap-4 bg-panel-base/40 border-2 border-white/5 rounded-3xl p-6 min-h-[250px] shadow-inner">
                         <div class="text-5xl animate-bounce">🏆</div>
                         <span class="animate-pulse text-xs font-black uppercase tracking-widest text-ink-muted">Revelando el Podio...</span>
                     </div>
                 </div>
 
                 <!-- COLUMNA DERECHA (sidebar desktop) -->
-                <div class="w-full lg:col-span-5 xl:col-span-4 flex flex-col gap-6 sm:gap-8 mt-12 lg:mt-0">
+                <div class="w-full lg:col-span-5 xl:col-span-4 flex flex-col gap-4 sm:gap-6 mt-6 lg:mt-0">
                     <!-- Premios de la Partida -->
                     <MatchHighlightsPanel :titles="titles" :player-map="playerMap" />
                     <!-- Acciones (Desktop) -->

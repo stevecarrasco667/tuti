@@ -50,10 +50,10 @@ const scrollToBottom = async () => {
     }
 };
 
-// Auto-scroll on new messages
-watch(messages, () => {
+// Auto-scroll on new messages (Optimized - No deep traversal)
+watch(() => messages.value.length, () => {
     scrollToBottom();
-}, { deep: true });
+});
 
 // Scroll on mount
 onMounted(() => {
