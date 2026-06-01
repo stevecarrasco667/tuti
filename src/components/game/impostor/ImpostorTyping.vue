@@ -95,7 +95,7 @@ const handleInputFocus = (event: Event) => {
     <div class="h-full w-full flex flex-col items-center p-4 overflow-y-auto scrollbar-thin">
         
         <!-- HEADER: Timer & Info -->
-        <div class="w-full flex justify-between items-stretch gap-3 mb-3 md:mb-6 max-w-4xl flex-none">
+        <div class="w-full flex justify-between items-stretch gap-3 mb-3 md:mb-6 max-w-2xl flex-none">
             <div class="flex-1 bg-panel-card border border-white/10 px-4 py-2 md:px-6 md:py-3 rounded-2xl md:rounded-3xl backdrop-blur-md shadow-sm flex flex-col justify-center min-w-0">
                 <span class="text-[8px] md:text-[10px] text-ink-muted uppercase tracking-widest block font-black mb-0.5 md:mb-1">{{ t('impostorTyping.category') }}</span>
                 <span class="text-sm md:text-xl text-ink-main font-black truncate">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</span>
@@ -108,7 +108,7 @@ const handleInputFocus = (event: Event) => {
         </div>
 
         <!-- BANNER DE FANTASMA -->
-        <div v-if="isDead && !isSpectator" class="w-full max-w-4xl mb-4 md:mb-6 bg-panel-input/60 border border-white/10 rounded-2xl md:rounded-3xl px-4 py-2.5 md:px-6 md:py-4 backdrop-blur-md flex items-center justify-center gap-2.5 md:gap-3 shadow-inner flex-none animate-in fade-in duration-300">
+        <div v-if="isDead && !isSpectator" class="w-full max-w-2xl mb-4 md:mb-6 bg-panel-input/60 border border-white/10 rounded-2xl md:rounded-3xl px-4 py-2.5 md:px-6 md:py-4 backdrop-blur-md flex items-center justify-center gap-2.5 md:gap-3 shadow-inner flex-none animate-in fade-in duration-300">
             <span class="text-2xl md:text-4xl animate-bounce drop-shadow-sm flex-none">💀</span>
             <div class="text-center md:text-left min-w-0">
                 <span class="text-ink-muted font-black text-xs md:text-sm uppercase tracking-widest block">{{ t('impostorTyping.ghostTitle') }}</span>
@@ -117,7 +117,7 @@ const handleInputFocus = (event: Event) => {
         </div>
 
         <!-- HUD DE IDENTIDAD -->
-        <div class="w-full max-w-4xl mb-4 md:mb-8 px-1 transition-opacity duration-500 flex-none" :class="{ 'opacity-50 grayscale pointer-events-none': isDead }">
+        <div class="w-full max-w-2xl mb-4 md:mb-8 px-1 transition-opacity duration-500 flex-none" :class="{ 'opacity-50 grayscale pointer-events-none': isDead }">
             <div v-if="isImpostor"
                  class="bg-action-error/10 border border-action-error/30 rounded-2xl md:rounded-3xl px-4 py-2.5 md:px-6 md:py-3 backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-2 md:gap-3 shadow-sm">
                 <div class="flex items-center gap-2.5 md:gap-3 w-full md:w-auto">
@@ -204,7 +204,7 @@ const handleInputFocus = (event: Event) => {
         </div>
 
         <!-- BOTTOM: Social Grid (Feedback visual) -->
-        <div class="w-full max-w-4xl mt-auto pb-2 pt-4 md:pt-12 flex-none">
+        <div class="w-full max-w-2xl mt-auto pb-2 pt-4 md:pt-12 flex-none">
             <h3 class="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-ink-muted font-black text-center mb-3 md:mb-6">
                 {{ t('impostorTyping.crewStatus') }}
             </h3>
