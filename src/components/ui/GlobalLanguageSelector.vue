@@ -41,22 +41,17 @@ onUnmounted(() => {
 
 <template>
     <div ref="containerRef" class="fixed top-20 right-4 z-[100]">
-        <!-- Botón Principal -->
         <button 
             @click="toggleDropdown"
             class="w-12 h-12 flex items-center justify-center rounded-2xl bg-panel-card/80 backdrop-blur-md border-[3px] border-white/10 shadow-xl transition-all hover:bg-white/10 active:scale-95 group"
             :class="isOpen ? 'border-action-primary bg-panel-card' : ''"
             title="Seleccionar Idioma / Select Language"
         >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="w-5.5 h-5.5 text-ink-main group-hover:text-white transition-colors">
-                <!-- Speech bubble outline with bottom-right tail -->
-                <path d="M3 11.5c0-4.694 3.806-8.5 8.5-8.5 4.694 0 8.5 3.806 8.5 8.5 0 1.637-.463 3.167-1.265 4.464L20.5 21l-5.036-1.765A8.455 8.455 0 0111.5 20c-4.694 0-8.5-3.806-8.5-8.5z" />
-                <!-- Grid globe lines representing translate/languages -->
-                <circle cx="11.5" cy="11.5" r="5" />
-                <line x1="11.5" y1="6.5" x2="11.5" y2="16.5" />
-                <line x1="6.5" y1="11.5" x2="16.5" y2="11.5" />
-                <path d="M11.5 6.5c1.8 1.2 2.8 2.8 2.8 5s-1 3.8-2.8 5c-1.8-1.2-2.8-2.8-2.8-5s1-3.8 2.8-5z" />
-            </svg>
+            <img 
+                src="/languages.png" 
+                alt="Idiomas" 
+                class="w-7 h-7 object-contain transition-transform duration-200 group-hover:scale-110 rounded-full select-none"
+            />
             <span class="absolute -bottom-1.5 -right-1.5 text-[10px] w-6 h-6 flex items-center justify-center bg-panel-base border-[2px] border-white/10 rounded-full drop-shadow-md z-10">{{ languages.find(l => l.code === currentLang)?.flag }}</span>
         </button>
 
