@@ -48,8 +48,14 @@ onUnmounted(() => {
             :class="isOpen ? 'border-action-primary bg-panel-card' : ''"
             title="Seleccionar Idioma / Select Language"
         >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-ink-main group-hover:text-white transition-colors">
-                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm14.024-.983a1.5 1.5 0 01-1.402-1.047l-1.033-2.924a1.5 1.5 0 00-1.258-1.002 9.062 9.062 0 00-4.34.408 1.5 1.5 0 00-1.01 1.282l-.46 3.125a1.5 1.5 0 01-1.054 1.229l-2.072.637A8.966 8.966 0 005.158 15h1.192c.574 0 1.096.326 1.353.842l.86 1.72a1.5 1.5 0 001.341.838h2.192c.677 0 1.272-.456 1.442-1.111l1.196-4.582a1.5 1.5 0 011.455-1.121h2.035z" clip-rule="evenodd" />
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" class="w-5.5 h-5.5 text-ink-main group-hover:text-white transition-colors">
+                <!-- Speech bubble outline with bottom-right tail -->
+                <path d="M3 11.5c0-4.694 3.806-8.5 8.5-8.5 4.694 0 8.5 3.806 8.5 8.5 0 1.637-.463 3.167-1.265 4.464L20.5 21l-5.036-1.765A8.455 8.455 0 0111.5 20c-4.694 0-8.5-3.806-8.5-8.5z" />
+                <!-- Grid globe lines representing translate/languages -->
+                <circle cx="11.5" cy="11.5" r="5" />
+                <line x1="11.5" y1="6.5" x2="11.5" y2="16.5" />
+                <line x1="6.5" y1="11.5" x2="16.5" y2="11.5" />
+                <path d="M11.5 6.5c1.8 1.2 2.8 2.8 2.8 5s-1 3.8-2.8 5c-1.8-1.2-2.8-2.8-2.8-5s1-3.8 2.8-5z" />
             </svg>
             <span class="absolute -bottom-1.5 -right-1.5 text-[10px] w-6 h-6 flex items-center justify-center bg-panel-base border-[2px] border-white/10 rounded-full drop-shadow-md z-10">{{ languages.find(l => l.code === currentLang)?.flag }}</span>
         </button>
