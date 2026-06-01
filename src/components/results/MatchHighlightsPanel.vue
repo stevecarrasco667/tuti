@@ -44,7 +44,7 @@ const { t } = useI18n();
                 <!-- Ganador (Derecha) -->
                 <div class="flex items-center gap-2 flex-none pl-2.5 sm:pl-3 border-l border-white/10">
                     <div class="flex flex-col items-end">
-                        <span class="text-white/30 font-bold text-[8px] uppercase tracking-widest mb-0.5">GANADOR</span>
+                        <span class="text-white/30 font-bold text-[8px] uppercase tracking-widest mb-0.5">{{ t('common.winner') }}</span>
                         <!-- Aumentado el max-w para que nombres largos como ESTEBAN CARRASCO entren mejor -->
                         <span class="text-yellow-400/90 font-bold text-[10px] sm:text-xs uppercase max-w-[80px] sm:max-w-[120px] truncate text-right">{{ playerMap[award.playerId]?.name }}</span>
                     </div>

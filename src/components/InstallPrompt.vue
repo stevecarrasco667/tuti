@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // Referencia al evento nátivo de Chrome para la instalación
 const deferredPrompt = ref<any>(null);
@@ -74,8 +77,8 @@ const dismissPrompt = () => {
                         T
                     </div>
                     <div>
-                        <h3 class="text-white font-bold text-base leading-tight">Instala TutiGame</h3>
-                        <p class="text-white/70 text-xs mt-1 leading-snug">Juega a pantalla completa, más rápido y sin abrir el navegador.</p>
+                        <h3 class="text-white font-bold text-base leading-tight">{{ t('pwa.title') }}</h3>
+                        <p class="text-white/70 text-xs mt-1 leading-snug">{{ t('pwa.desc') }}</p>
                     </div>
                 </div>
 
@@ -84,13 +87,13 @@ const dismissPrompt = () => {
                         @click="installPWA"
                         class="flex-1 bg-white hover:bg-gray-100 text-purple-900 font-bold py-2 rounded-xl text-sm transition-transform active:scale-95 shadow-md"
                     >
-                        Instalar Gratis
+                        {{ t('pwa.install') }}
                     </button>
                     <button 
                         @click="dismissPrompt"
                         class="px-4 bg-white/5 hover:bg-white/10 text-white/50 font-semibold py-2 rounded-xl text-sm transition-colors border border-white/5 hover:border-white/10"
                     >
-                        Ahora no
+                        {{ t('pwa.dismiss') }}
                     </button>
                 </div>
             </div>

@@ -51,7 +51,8 @@
             "en": "Inglês",
             "pt": "Português"
         },
-        "closeModal": "Fechar modal"
+        "closeModal": "Fechar modal",
+        "winner": "Vencedor"
     },
     "lobby": {
         "tabs": {
@@ -86,6 +87,12 @@
             "title": "Configurações da Sala",
             "readOnly": "Somente Leitura",
             "language": "Idioma do Jogo",
+            "presets": {
+                "title": "Ajustes Rápidos",
+                "fast": "⚡ Rápido",
+                "party": "🎉 Festa",
+                "pro": "🧠 Pro"
+            },
             "classic": {
                 "randomCategories": "Categorias Aleatórias",
                 "randomCategoriesDesc": "Escolhidas ao acaso no início",
@@ -115,13 +122,17 @@
             "spectator": "Espectador",
             "invite": "Desafie seus amigos:\nCompartilhe o link para convidar",
             "empty": "Vazio",
-            "maxPlayers": "JOGADORES"
+            "maxPlayers": "JOGADORES",
+            "inviteShort": "Convide seus amigos!",
+            "public": "Pública",
+            "private": "Privada"
         },
         "header": {
             "publicRoom": "Sala Pública",
             "privateRoom": "Sala Privada",
             "copy": "Copiado",
-            "invite": "Convidar"
+            "invite": "Convidar",
+            "back": "Voltar"
         },
         "categoriesSelector": {
             "title": "Categorias",
@@ -148,7 +159,8 @@
         "connectionFailed": "Falha na conexão. Verifique sua internet.",
         "advertisement": "ANÚNCIO",
         "supportingTuti": "Apoiando o TutiGames",
-        "adSupportingText": "Os anúncios nos permitem mantener os servidores multiplayer online e grátis para todos."
+        "adSupportingText": "Os anúncios nos permitem mantener os servidores multiplayer online e grátis para todos.",
+        "actionDisabled": "Ação desativada durante a partida 🙅"
     },
     "gameHUD": {
         "exit": "Sair",
@@ -182,7 +194,9 @@
         "discoveredImpostors": "Os Impostores descobertos eram:",
         "impostorsWere": "🦇 Os Impostores eram:",
         "secretWordWas": "A palavra secreta da nave era:",
-        "guessedWord": "Eles sobreviveram adivinhando a palavra!"
+        "guessedWord": "Eles sobreviveram adivinhando a palavra!",
+        "impostorWin": "Os Impostores Venceram!",
+        "crewWin": "A Tripulação Venceu!"
     },
     "impostorTyping": {
         "category": "Categoria",
@@ -202,7 +216,7 @@
         "timeUp": "O tempo acabou!",
         "crewStatus": "Status da Tripulação",
         "you": "Você",
-        "unknown": "Desconhecido"
+        "unknown": "Desconocido"
     },
     "impostorVoting": {
         "title": "🔎 O Tribunal",
@@ -248,7 +262,7 @@
     },
     "privacyBanner": {
         "title": "Sua Privacidade",
-        "text": "Usamos o armazenamento local (LocalStorage) exclusivamente para manter sua sessão ativa e salvar temporariamente seu avatar/nome. <strong>Não usamos cookies de rastreamento ou publicidade de terceiros.</strong>",
+        "text": "Usamos o armazenamento local (LocalStorage) exclusivamente para manter sua sessão activa e salvar temporariamente seu avatar/nome. <strong>Não usamos cookies de rastreamento ou publicidade de terceiros.</strong>",
         "close": "Fechar"
     },
     "chat": {
@@ -407,10 +421,10 @@
     },
     "impostorLastWish": {
         "title": "Último Desejo",
-        "theImpostor": "O Impostor",
+        "theImpostor": "El Impostor",
         "wasCaught": "foi capturado",
         "whatWasSecret": "Qual era a",
-        "secretWord": "PALAVRA SECRETA",
+        "secretWord": "PALABRA SECRETA",
         "oneChance": "Uma chance. Erre e perde.",
         "inputPlaceholder": "Digite a palavra...",
         "waiting": "⏳ Aguardando...",
@@ -425,5 +439,22 @@
         "preparingGame": "Preparando partida...",
         "muteSound": "Silenciar",
         "unmuteSound": "Ativar Som"
+    },
+    "pwa": {
+        "title": "Instalar TutiGame",
+        "desc": "Jogue em tela cheia, mais rápido e sem abrir o navegador.",
+        "install": "Instalar Grátis",
+        "dismiss": "Agora não"
+    },
+    "update": {
+        "title": "Atualização Disponível!",
+        "desc": "Nós melhoramos o jogo. Você precisa recarregar para continuar sem erros.",
+        "action": "ATUALIZAR AGORA"
+    },
+    "countdown": {
+        "round": "Rodada",
+        "doublePoints": "Pontuação Dupla!",
+        "go": "JÁ!",
+        "stop": "STOP!"
     }
 }

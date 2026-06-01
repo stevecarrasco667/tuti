@@ -61,13 +61,13 @@ const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.l
                         : 'bg-panel-input border-panel-card text-ink-soft hover:text-ink-main hover:border-white/20'"
                 >
                     <span>{{ props.isPublic ? '🌐' : '🔒' }}</span>
-                    <span>{{ props.isPublic ? 'Pública' : 'Privada' }}</span>
+                    <span>{{ props.isPublic ? $t('lobby.players.public') : $t('lobby.players.private') }}</span>
                 </button>
                 <div v-else 
                     class="w-full border-[2px] border-panel-card bg-panel-input/50 text-ink-muted text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 rounded-xl h-9 select-none opacity-75"
                 >
                     <span>{{ props.isPublic ? '🌐' : '🔒' }}</span>
-                    <span>{{ props.isPublic ? 'Pública' : 'Privada' }}</span>
+                    <span>{{ props.isPublic ? $t('lobby.players.public') : $t('lobby.players.private') }}</span>
                 </div>
             </div>
         </div>

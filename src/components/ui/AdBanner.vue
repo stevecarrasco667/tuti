@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, computed } from 'vue';
+import { onMounted, onUnmounted, ref, computed, nextTick } from 'vue';
 import { useAds } from '../../composables/useAds';
 import { useI18n } from 'vue-i18n';
 
@@ -24,7 +24,7 @@ const wrapperStyles = computed(() => {
     return {
       width: '100%',
       minHeight: '60px',
-      maxHeight: '90px',   // Evita que AdSense expanda el contenedor en móvil real
+      maxHeight: '95px',   // Evita que AdSense expanda el contenedor en móvil real
       overflow: 'hidden',
     };
   } else {
@@ -33,14 +33,39 @@ const wrapperStyles = computed(() => {
       width: '100%',
       maxWidth: '340px',
       minHeight: '60px',
-      maxHeight: '90px',   // Evita que AdSense expanda el contenedor en móvil real
+      maxHeight: '95px',   // Evita que AdSense expanda el contenedor en móvil real
       overflow: 'hidden',
     };
   }
 });
 
+// Inicializar el estado isMobile de inmediato basándonos en el ancho real de la ventana si estamos en el navegador
+const isMobile = ref(typeof window !== 'undefined' ? window.innerWidth < 1024 : false);
+
+const updateSize = () => {
+  if (typeof window !== 'undefined') {
+    isMobile.value = window.innerWidth < 1024;
+  }
+};
+
 onMounted(async () => {
+  updateSize();
+  if (typeof window !== 'undefined') {
+    window.addEventListener('resize', updateSize);
+  }
+
   if (!adsEnabled.value) return;
+
+  // Esperar al siguiente tick de microtarea para garantizar que Vue haya renderizado el DOM con el isMobile correcto
+  await nextTick();
+
+  // Validar si corresponde renderizar según la resolución activa
+  const shouldRender = 
+    (props.position === 'desktop-left' && !isMobile.value) ||
+    (props.position === 'mobile-inline' && isMobile.value) ||
+    (props.position === 'lobby');
+
+  if (!shouldRender) return;
 
   // Inyectar o disparar el banner de forma correspondiente al entorno
   if (isNative.value) {
@@ -57,6 +82,9 @@ onMounted(async () => {
 });
 
 onUnmounted(async () => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', updateSize);
+  }
   if (isNative.value) {
     await hideBanner();
   }
@@ -64,7 +92,7 @@ onUnmounted(async () => {
 </script>
 
 <template>
-  <div v-if="adsEnabled" 
+  <div v-if="adsEnabled && ((position === 'desktop-left' && !isMobile) || (position === 'mobile-inline' && isMobile) || position === 'lobby')" 
        class="relative rounded-3xl p-px overflow-hidden select-none transition-all duration-300 border border-white/5 bg-gradient-to-br from-panel-card/80 to-panel-input/50 backdrop-blur-md shadow-lg flex flex-col items-center justify-center"
        :style="wrapperStyles"
        :class="[

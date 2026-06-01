@@ -41,7 +41,6 @@ export function useAds() {
     // 1. Detección de entorno Nativo vs Web
     isNative.value = !!(window as any).Capacitor?.isNativePlatform?.();
 
-    // 2. Consulta de Kill Switch Remoto en Supabase (Resistente a fallos de red)
     try {
       const { data, error } = await supabase
         .from('global_config')
@@ -49,7 +48,9 @@ export function useAds() {
         .eq('key', 'ads_disabled')
         .single();
 
-      if (!error && data) {
+      if (error) {
+        console.info('[Ads] Nota: No se pudo leer el Kill Switch en Supabase (puede ser debido a que la tabla global_config no existe aún en este entorno). Usando fallback local activo.', error.message);
+      } else if (data) {
         // data.value puede ser un booleano directo o venir encapsulado en JSON
         const disabledVal = typeof data.value === 'object' && data.value !== null 
           ? (data.value as any).disabled 
@@ -62,9 +63,9 @@ export function useAds() {
           return;
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       // Fallback seguro: si Supabase no responde o la tabla no existe, los anuncios se mantienen activos por defecto
-      console.warn('[Ads] ⚠️ Supabase no disponible para Kill Switch, utilizando configuración local activa.', e);
+      console.warn('[Ads] ⚠️ Supabase no disponible para Kill Switch, utilizando configuración local activa.', e?.message || e);
     }
 
     // 3. Cargar credenciales desde variables de entorno si están configuradas
@@ -138,6 +139,15 @@ export function useAds() {
       } else {
         const container = document.getElementById(containerId);
         if (!container) return;
+
+        // Salvaguarda indestructible contra 'availableWidth=0':
+        // Si el contenedor mide 0px de ancho físico (oculto por CSS responsivo o aún no maquetado),
+        // abortamos la inyección para evitar que el script de AdSense falle en consola.
+        const width = container.offsetWidth;
+        if (width === 0) {
+          console.info(`[Ads] Contenedor '${containerId}' mide 0px (oculto por CSS). Omitiendo inyección.`);
+          return;
+        }
 
         container.innerHTML = ''; // Limpiar contenedor
         

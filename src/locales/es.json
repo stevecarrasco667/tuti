@@ -51,7 +51,8 @@
             "en": "Inglés",
             "pt": "Portugués"
         },
-        "closeModal": "Cerrar modal"
+        "closeModal": "Cerrar modal",
+        "winner": "Ganador"
     },
     "lobby": {
         "tabs": {
@@ -86,6 +87,12 @@
             "title": "Ajustes de la Sala",
             "readOnly": "Solo Lectura",
             "language": "Idioma de la partida",
+            "presets": {
+                "title": "Ajustes Rápidos",
+                "fast": "⚡ Rápido",
+                "party": "🎉 Fiesta",
+                "pro": "🧠 Pro"
+            },
             "classic": {
                 "randomCategories": "Categorías Aleatorias",
                 "randomCategoriesDesc": "Se elegirán al azar al iniciar",
@@ -115,13 +122,17 @@
             "players": "{count}/{max}",
             "you": "TÚ",
             "connected": "Conectado",
-            "reconnecting": "Reconectando..."
+            "reconnecting": "Reconectando...",
+            "inviteShort": "¡Invita a tus amigos!",
+            "public": "Pública",
+            "private": "Privada"
         },
         "header": {
             "publicRoom": "Sala Pública",
             "privateRoom": "Sala Privada",
             "copy": "Copiado",
-            "invite": "Invitar"
+            "invite": "Invitar",
+            "back": "Volver"
         },
         "categoriesSelector": {
             "title": "Categorías",
@@ -148,7 +159,8 @@
         "connectionFailed": "No se pudo conectar a la sala. Verifica tu conexión a internet.",
         "advertisement": "ANUNCIO",
         "supportingTuti": "Apoyando a TutiGames",
-        "adSupportingText": "Los anuncios nos permiten mantener los servidores multijugador online y gratis para todos."
+        "adSupportingText": "Los anuncios nos permiten mantener los servidores multijugador online y gratis para todos.",
+        "actionDisabled": "Acción no permitida durante la partida 🙅"
     },
     "gameHUD": {
         "exit": "Salir",
@@ -182,7 +194,9 @@
         "discoveredImpostors": "Los Impostores descubiertos eran:",
         "impostorsWere": "🦇 Los Impostores eran:",
         "secretWordWas": "La palabra secreta de la nave era:",
-        "guessedWord": "¡Sobrevivieron adivinando la palabra!"
+        "guessedWord": "¡Sobrevivieron adivinando la palabra!",
+        "impostorWin": "¡Victoria Impostora!",
+        "crewWin": "¡Victoria Tripulante!"
     },
     "impostorTyping": {
         "category": "Categoría",
@@ -425,5 +439,22 @@
         "preparingGame": "Preparando partida...",
         "muteSound": "Silenciar Sonido",
         "unmuteSound": "Activar Sonido"
+    },
+    "pwa": {
+        "title": "Instala TutiGame",
+        "desc": "Juega a pantalla completa, más rápido y sin abrir el navegador.",
+        "install": "Instalar Gratis",
+        "dismiss": "Ahora no"
+    },
+    "update": {
+        "title": "¡Actualización Disponible!",
+        "desc": "Hemos mejorado el juego. Necesitas recargar para continuar sin errores.",
+        "action": "ACTUALIZAR AHORA"
+    },
+    "countdown": {
+        "round": "Ronda",
+        "doublePoints": "¡Puntaje Doble!",
+        "go": "¡YA!",
+        "stop": "¡BASTA!"
     }
 }

@@ -51,7 +51,8 @@
             "en": "English",
             "pt": "Portuguese"
         },
-        "closeModal": "Close modal"
+        "closeModal": "Close modal",
+        "winner": "Winner"
     },
     "lobby": {
         "tabs": {
@@ -86,6 +87,12 @@
             "title": "Room Settings",
             "readOnly": "Read Only",
             "language": "Game Language",
+            "presets": {
+                "title": "Quick Presets",
+                "fast": "⚡ Fast",
+                "party": "🎉 Party",
+                "pro": "🧠 Pro"
+            },
             "classic": {
                 "randomCategories": "Random Categories",
                 "randomCategoriesDesc": "Picked randomly at start",
@@ -115,13 +122,17 @@
             "spectator": "Spectator",
             "invite": "Challenge your friends:\nShare the link to invite",
             "empty": "Empty",
-            "maxPlayers": "PLAYERS"
+            "maxPlayers": "PLAYERS",
+            "inviteShort": "Invite your friends!",
+            "public": "Public",
+            "private": "Private"
         },
         "header": {
             "publicRoom": "Public Room",
             "privateRoom": "Private Room",
             "copy": "Copied",
-            "invite": "Invite"
+            "invite": "Invite",
+            "back": "Back"
         },
         "categoriesSelector": {
             "title": "Categories",
@@ -148,7 +159,8 @@
         "connectionFailed": "Failed to connect. Check your internet connection.",
         "advertisement": "ADVERTISEMENT",
         "supportingTuti": "Supporting TutiGames",
-        "adSupportingText": "Ads keep multiplayer servers online and free for everyone."
+        "adSupportingText": "Ads keep multiplayer servers online and free for everyone.",
+        "actionDisabled": "Action disabled during game 🙅"
     },
     "gameHUD": {
         "exit": "Exit",
@@ -182,7 +194,9 @@
         "discoveredImpostors": "The discovered Impostors were:",
         "impostorsWere": "🦇 The Impostors were:",
         "secretWordWas": "The ship's secret word was:",
-        "guessedWord": "They survived by guessing the word!"
+        "guessedWord": "They survived by guessing the word!",
+        "impostorWin": "Impostors Win!",
+        "crewWin": "Crewmates Win!"
     },
     "impostorTyping": {
         "category": "Category",
@@ -425,5 +439,22 @@
         "preparingGame": "Preparing match...",
         "muteSound": "Mute Sound",
         "unmuteSound": "Unmute Sound"
+    },
+    "pwa": {
+        "title": "Install TutiGame",
+        "desc": "Play in full screen, faster, and without opening the browser.",
+        "install": "Install Free",
+        "dismiss": "Not now"
+    },
+    "update": {
+        "title": "Update Available!",
+        "desc": "We have improved the game. You need to reload to continue without errors.",
+        "action": "UPDATE NOW"
+    },
+    "countdown": {
+        "round": "Round",
+        "doublePoints": "Double Points!",
+        "go": "GO!",
+        "stop": "STOP!"
     }
 }

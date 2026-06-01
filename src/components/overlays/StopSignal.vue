@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { useSound } from '../../composables/useSound';
+import { useI18n } from 'vue-i18n';
 
 const emit = defineEmits(['finished']);
 const { playStop } = useSound();
+const { t } = useI18n();
 
 onMounted(() => {
     // 1. Audio & Haptics
@@ -25,7 +27,7 @@ onMounted(() => {
         <!-- Stamp -->
         <div class="relative transform rotate-[-12deg] border-8 border-action-error text-action-error p-8 rounded-3xl bg-panel-card/95 shadow-game-panel backdrop-blur-sm animate-stamp">
             <h1 class="text-8xl md:text-9xl font-black tracking-tighter uppercase drop-shadow-sm">
-                ¡BASTA!
+                {{ t('countdown.stop') }}
             </h1>
             <div class="absolute -bottom-4 -right-4 text-6xl drop-shadow-md">✋</div>
         </div>
