@@ -101,11 +101,10 @@ const cardSize = computed(() => {
     if (isMobile.value) {
         // En móviles evitamos 'lg' porque es muy grande y se desborda en 2 columnas
         const n = suspects.value.length;
-        return n <= 4 ? 'md' : 'sm';
+        return n <= 3 ? 'md' : 'sm';
     }
     const n = suspects.value.length;
     if (n <= 3) return 'lg';
-    if (n === 4) return 'md';
     return 'sm';
 });
 
@@ -251,7 +250,7 @@ const votingProgress = computed(() =>
         </div>
 
         <!-- SUSPECT CARDS GRID -->
-        <div class="flex-1 overflow-y-auto px-3 pb-4 scrollbar-thin">
+        <div class="flex-1 overflow-y-auto px-3 pb-6 md:pb-12 scrollbar-thin">
             <div class="grid w-full" :class="gridClass">
 
                 <div v-for="s in suspects" :key="s.id"
