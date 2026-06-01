@@ -91,7 +91,7 @@ const gridClass = computed(() => {
     const n = suspects.value.length;
     if (n <= 2) return 'grid-cols-2 max-w-2xl mx-auto gap-4 md:gap-6';
     if (n === 3) return 'grid-cols-2 sm:grid-cols-3 max-w-4xl mx-auto gap-3 md:gap-6';
-    if (n === 4) return 'grid-cols-2 sm:grid-cols-4 max-w-4xl mx-auto gap-3 md:gap-4';
+    if (n === 4) return 'grid-cols-2 max-w-2xl mx-auto gap-3 md:gap-6';
     if (n <= 6) return 'grid-cols-2 sm:grid-cols-3 max-w-5xl mx-auto gap-3 md:gap-4';
     return 'grid-cols-2 sm:grid-cols-4 max-w-5xl mx-auto gap-3'; // ≥7: compact mode
 });
