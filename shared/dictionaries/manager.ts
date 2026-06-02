@@ -56,9 +56,28 @@ export class DictionaryManager {
         // Reset disposed flag if re-used (e.g., new round after GAME_OVER)
         this.disposed = false;
 
-        await GlobalWordCache.acquire(lang, categoryId, supabase);
-        this.activeCategories.push({ lang, id: categoryId });
-        console.log(`[DictionaryManager] Proxy acquired "${lang}_${categoryId}". Active count: ${this.activeCategories.length}`);
+        const maxRetries = 4;
+        const delays = [1000, 2000, 4000, 8000]; // 1s, 2s, 4s, 8s
+        let attempt = 0;
+
+        while (attempt <= maxRetries) {
+            try {
+                await GlobalWordCache.acquire(lang, categoryId, supabase);
+                this.activeCategories.push({ lang, id: categoryId });
+                console.log(`[DictionaryManager] Proxy acquired "${lang}_${categoryId}" on attempt ${attempt + 1}. Active count: ${this.activeCategories.length}`);
+                return;
+            } catch (error) {
+                attempt++;
+                if (attempt > maxRetries) {
+                    console.error(`[DictionaryManager] Failed to load category ${lang}_${categoryId} after ${maxRetries} retries:`, error);
+                    // Dejar que falle inocuamente para que use el fallback de palabras locales en vez de bloquear la sala
+                    return;
+                }
+                const delay = delays[attempt - 1] ?? 1000;
+                console.warn(`[DictionaryManager] Retry ${attempt}/${maxRetries} for category ${lang}_${categoryId} in ${delay}ms due to:`, error);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
     }
 
     /**

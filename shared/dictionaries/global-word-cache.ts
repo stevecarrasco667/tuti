@@ -64,13 +64,16 @@ export const GlobalWordCache = {
                 .eq('category_id', categoryId)
                 .eq('language', lang);
 
+            if (error) {
+                throw new Error(`[GlobalWordCache] Supabase query failed: ${error.message}`);
+            }
+            if (!rows) {
+                throw new Error(`[GlobalWordCache] No data returned from Supabase`);
+            }
+
             const set = new Set<string>();
-            if (!error && rows) {
-                for (const row of rows) {
-                    set.add(normalize(row.word));
-                }
-            } else {
-                console.error(`[GlobalWordCache] Failed to fetch words for ${cacheKey}:`, error);
+            for (const row of rows) {
+                set.add(normalize(row.word));
             }
             return set;
         })();

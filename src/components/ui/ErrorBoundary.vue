@@ -4,21 +4,28 @@ import * as Sentry from '@sentry/vue';
 import { useRouter } from 'vue-router';
 import { useGame } from '../../composables/useGame';
 import { useI18n } from 'vue-i18n';
+import { useAnalytics } from '../../composables/useAnalytics';
 
 const hasError = ref(false);
 const errorDetails = ref<string>('');
 const router = useRouter();
 const { leaveGame } = useGame();
 const { t } = useI18n();
+const { trackException } = useAnalytics();
 
 // Capture any error from descendant components
 onErrorCaptured((err: unknown, _instance: any, _info: string) => {
     // 1. Log to our telemetry system
     Sentry.captureException(err);
     
+    // Inyectar telemetría en background en PostHog
+    const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    trackException(message, stack);
+    
     // 2. Set local error state for fallback UI
     hasError.value = true;
-    errorDetails.value = err instanceof Error ? err.message : String(err);
+    errorDetails.value = message;
 
     // 3. Stop error propagation to prevent global app crash
     return false; 

@@ -103,6 +103,10 @@ export function useAnalytics() {
     const trackVoteSubmitted = (props: VoteSubmittedProps) =>
         track('vote_submitted', props);
 
+    /** Capturar excepción no controlada **/
+    const trackException = (message: string, stack?: string) =>
+        track('exception_captured', { message, stack });
+
     return {
         identify,
         page,
@@ -115,5 +119,6 @@ export function useAnalytics() {
         trackGameOver,
         trackShareInitiated,
         trackVoteSubmitted,
+        trackException,
     };
 }
