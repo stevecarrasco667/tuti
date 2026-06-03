@@ -108,7 +108,6 @@ const getStatusInfo = (room: any) => {
     return { label: t('home.available'), color: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30' };
 };
 
-const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPlayers) * 100);
 </script>
 
 <template>
@@ -262,34 +261,45 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                         <div
                             v-for="room in filteredRooms" :key="room.id"
                             class="relative rounded-2xl p-px transition-all overflow-hidden"
-                            :class="room.joinable ? `shadow-3d-panel hover:scale-[1.01] group ${room.mode === 'CLASSIC' ? 'bg-action-info/40' : 'bg-game-red/40'}` : 'bg-panel-card/30 opacity-75'"
+                            :class="room.joinable ? `shadow-3d-panel hover:scale-[1.01] ${room.mode === 'CLASSIC' ? 'bg-action-info/40' : 'bg-game-red/40'}` : 'bg-panel-card/30 opacity-75'"
                         >
                             <!-- Inner Content -->
                             <div class="bg-panel-card rounded-xl p-3 flex flex-col gap-2.5 relative overflow-hidden">
                                 
-                                <!-- Row 1: Header (Avatar, Name, Players) -->
+                                <!-- Row 1: Header (Avatar, Name + Players, Enter Button / Closed Badge) -->
                                 <div class="flex items-center gap-2.5 w-full">
                                     <!-- Avatar -->
                                     <div class="w-9 h-9 rounded-xl bg-panel-input flex items-center justify-center text-xl shadow-inner flex-none">
                                         {{ room.hostAvatar || '👑' }}
                                     </div>
                                     
-                                    <!-- Host Name -->
-                                    <h4 class="text-white font-black text-sm tracking-tight truncate flex-1">
-                                        {{ room.hostName }}
-                                    </h4>
+                                    <!-- Host Name & Player count -->
+                                    <div class="flex items-baseline gap-2 flex-1 min-w-0">
+                                        <h4 class="text-white font-black text-sm tracking-tight truncate">
+                                            {{ room.hostName }}
+                                        </h4>
+                                        <span class="text-ink-muted text-xs font-bold flex-none">
+                                            {{ room.currentPlayers }}/{{ room.maxPlayers }}
+                                        </span>
+                                    </div>
 
-                                    <!-- Player count / Capacity -->
-                                    <div class="px-2 py-1 rounded-lg text-[10px] font-black border flex items-center gap-1 bg-panel-input/50 flex-none"
-                                        :class="fillPercent(room) >= 100 ? 'text-game-red border-game-red/20' : fillPercent(room) >= 75 ? 'text-game-yellow border-game-yellow/20' : 'text-game-green border-game-green/20'">
-                                        {{ room.currentPlayers }}/{{ room.maxPlayers }} 👥
+                                    <!-- Action Button / Unjoinable Badge on the Right -->
+                                    <div class="flex-none">
+                                        <button v-if="room.joinable" @click="handleJoinPublicRoom(room.id)" class="px-4 py-1.5 bg-action-primary text-panel-base rounded-xl font-black uppercase tracking-wider text-[10px] sm:text-xs shadow-glow-primary active:scale-95 hover:scale-105 transition-transform flex items-center justify-center gap-1">
+                                            <span>{{ t('home.enter') }}</span>
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                                        </button>
+                                        <span v-else class="px-3 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-widest block text-center"
+                                            :class="room.currentPlayers >= room.maxPlayers ? 'text-game-red border-game-red/20 bg-game-red/10' : 'text-amber-400 border-amber-400/20 bg-amber-400/10'">
+                                            {{ room.currentPlayers >= room.maxPlayers ? t('home.full') : t('home.inGame') }}
+                                        </span>
                                     </div>
                                 </div>
 
-                                <!-- Row 2: Badges (Status, Mode, Region, Lang) -->
+                                <!-- Row 2: Badges (Status [if not lobby], Mode, Region, Lang) -->
                                 <div class="flex flex-wrap gap-1.5 w-full items-center">
-                                    <!-- Status Badge -->
-                                    <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-md border"
+                                    <!-- Round Status Badge (only if game is in progress) -->
+                                    <span v-if="room.status !== 'LOBBY'" class="text-[9px] font-black uppercase px-2 py-0.5 rounded-md border"
                                         :class="getStatusInfo(room).color">
                                         {{ getStatusInfo(room).label }}
                                     </span>
@@ -309,21 +319,6 @@ const fillPercent = (room: any) => Math.round((room.currentPlayers / room.maxPla
                                     <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-md text-action-warning bg-action-warning/10 border border-action-warning/20">
                                         {{ LANG_LABELS[room.lang] || room.lang }}
                                     </span>
-                                </div>
-
-                                <!-- Action Hover Overlay (covers the entire card) -->
-                                <div v-if="room.joinable" class="absolute inset-0 bg-panel-card/95 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 z-10 p-2">
-                                    <button @click="handleJoinPublicRoom(room.id)" class="px-5 py-2 bg-action-primary text-panel-base rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-glow-primary active:scale-95 hover:scale-105 transition-transform flex items-center justify-center gap-2">
-                                        <span>{{ t('home.enter') }}</span>
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
-                                    </button>
-                                </div>
-
-                                <!-- Unjoinable Overlay (covers the entire card) -->
-                                <div v-if="!room.joinable" class="absolute inset-0 bg-panel-base/60 backdrop-blur-[1px] z-10 flex items-center justify-center pointer-events-none overflow-hidden">
-                                    <div class="border-2 border-red-500/50 text-red-500/80 font-black text-[10px] sm:text-xs uppercase tracking-widest px-3 py-1 rounded-lg transform -rotate-6 bg-panel-base/90 shadow-lg">
-                                        {{ room.currentPlayers >= room.maxPlayers ? t('home.full') : t('home.inGame') }}
-                                    </div>
                                 </div>
 
                             </div>
