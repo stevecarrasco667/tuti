@@ -45,6 +45,27 @@ export class TutiEngine extends BaseEngine {
     // [P11] ENDING_COUNTDOWN: timer del pánico de 3 segundos
     private _endingTimer: ReturnType<typeof setTimeout> | null = null;
 
+    // [Sprint 4.1] Performance Optimization: Caché y Carga Background
+    private _categoriesCache: CategoryRef[] | null = null;
+    private _dictionaryLoadPromise: Promise<void[]> | null = null;
+
+    private _preloadCategories(): void {
+        this._getCategories().catch(err => console.error('[TutiEngine] Preload failed:', err));
+    }
+
+    private async _getCategories(): Promise<CategoryRef[]> {
+        if (this._categoriesCache) return this._categoriesCache;
+        const { data: catData, error } = await this.supabase.from('categories').select('id, name').eq('game_mode', 'classic');
+        if (error || !catData) {
+            console.error('[TutiEngine] Failed to load categories, using master fallback');
+        }
+        const allCats: CategoryRef[] = (catData && catData.length > 0)
+            ? catData.map(c => ({ id: c.id, name: c.name }))
+            : MASTER_CATEGORIES.map(c => ({ id: c.id, name: c.name }));
+        this._categoriesCache = allCats;
+        return allCats;
+    }
+
     // [Auto-Advance] Primary setTimeout timers for phase transitions.
     // The alarm system (onAlarm → handleTimeUp) is a BACKUP for Worker hibernation.
     // These setTimeouts are the PRIMARY mechanism — same pattern as round-manager.timer for PLAYING.
@@ -65,6 +86,9 @@ export class TutiEngine extends BaseEngine {
         this.supabase = supabase;
         // [Deuda P2] Usar factory centralizada — elimina duplicación con ImpostorEngine
         this.state = createDefaultRoomState(roomId);
+
+        // [Sprint 4.1] Pre-load categories in background
+        this._preloadCategories();
     }
 
     // --- SUB-SYSTEMS ---
@@ -367,10 +391,7 @@ export class TutiEngine extends BaseEngine {
             const count = this.state.config.classic.categoryCount ?? 5;
 
             if (manualCategories.length === 0) {
-                const { data: catData } = await this.supabase.from('categories').select('id, name').eq('game_mode', 'classic');
-                const allCats: CategoryRef[] = (catData && catData.length > 0)
-                    ? catData.map(c => ({ id: c.id, name: c.name }))
-                    : MASTER_CATEGORIES.map(c => ({ id: c.id, name: c.name }));
+                const allCats = await this._getCategories();
                 const shuffled = [...allCats].sort(() => 0.5 - Math.random());
                 this.state.categories = shuffled.slice(0, count) as CategoryRef[];
                 console.log(`[TutiEngine] startGame manual: rotated categories to: ${this.state.categories.map(c => c.id).join(', ')}`);
@@ -378,12 +399,15 @@ export class TutiEngine extends BaseEngine {
 
             const continueGame = this.rounds.nextRound(this.state, this.state.config);
             if (continueGame) {
-                // Ensure temporal cache is loaded for categories (Parallel)
-                await Promise.all(
+                // Ensure temporal cache is loaded for categories (Background/Fire-and-forget)
+                this._dictionaryLoadPromise = Promise.all(
                     this.state.categories.map(cat =>
                         this.validation.getDictionaryManager().loadCategory(this.state.config.lang || 'es', cat.id, this.supabase)
                     )
-                );
+                ).catch(err => {
+                    console.error('[TutiEngine] Background dictionary load failed:', err);
+                    return [];
+                });
 
                 this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
                 // [Sprint 4 — S4-T3] Reset Anti-Troll start time for every new round.
@@ -421,20 +445,20 @@ export class TutiEngine extends BaseEngine {
                 this.state.categories = [...manualCategories];
             } else {
                 // No manual selection → pick `count` random categories
-                const { data: catData } = await this.supabase.from('categories').select('id, name').eq('game_mode', 'classic');
-                const allCats: CategoryRef[] = (catData && catData.length > 0)
-                    ? catData.map(c => ({ id: c.id, name: c.name }))
-                    : MASTER_CATEGORIES.map(c => ({ id: c.id, name: c.name }));
+                const allCats = await this._getCategories();
                 const shuffled = [...allCats].sort(() => 0.5 - Math.random());
                 this.state.categories = shuffled.slice(0, count) as CategoryRef[];
             }
 
-            // Hydrate temporal cache BEFORE starting the timer (Parallel)
-            await Promise.all(
+            // Hydrate temporal cache BEFORE starting the timer (Background/Fire-and-forget)
+            this._dictionaryLoadPromise = Promise.all(
                 this.state.categories.map(cat =>
                     this.validation.getDictionaryManager().loadCategory(this.state.config.lang || 'es', cat.id, this.supabase)
                 )
-            );
+            ).catch(err => {
+                console.error('[TutiEngine] Background dictionary load failed:', err);
+                return [];
+            });
 
             this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
             this._roundStartTime = Date.now(); // [P11] Registrar inicio de ronda para grace period (server-side check)
@@ -518,6 +542,16 @@ export class TutiEngine extends BaseEngine {
 
         this._endingTimer = null;
         this.rounds.cancelTimer(); // Cancelar el timer natural original
+        
+        // Execute asynchronously to await dictionary loading
+        this._executeForceReviewAsync().catch(err => console.error(err));
+    }
+
+    private async _executeForceReviewAsync() {
+        if (this._dictionaryLoadPromise) {
+            await this._dictionaryLoadPromise;
+        }
+
         this.generateBotAnswers();
         this.rounds.stopRound(this.state, this.state.config);
 
@@ -588,16 +622,23 @@ export class TutiEngine extends BaseEngine {
             const count = this.state.config.classic.categoryCount ?? 5;
 
             if (manualCategories.length === 0) {
-                const { data: catData } = await this.supabase.from('categories').select('id, name').eq('game_mode', 'classic');
-                const allCats: CategoryRef[] = (catData && catData.length > 0)
-                    ? catData.map(c => ({ id: c.id, name: c.name }))
-                    : MASTER_CATEGORIES.map(c => ({ id: c.id, name: c.name }));
+                const allCats = await this._getCategories();
                 const shuffled = [...allCats].sort(() => 0.5 - Math.random());
                 this.state.categories = shuffled.slice(0, count) as CategoryRef[];
                 console.log(`[TutiEngine] Results timer: rotated categories to: ${this.state.categories.map(c => c.id).join(', ')}`);
             }
 
             if (this.rounds.nextRound(this.state, this.state.config)) {
+                // Background dictionary load for auto-advance
+                this._dictionaryLoadPromise = Promise.all(
+                    this.state.categories.map(cat =>
+                        this.validation.getDictionaryManager().loadCategory(this.state.config.lang || 'es', cat.id, this.supabase)
+                    )
+                ).catch(err => {
+                    console.error('[TutiEngine] Background dictionary load failed:', err);
+                    return [];
+                });
+
                 this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
                 // [Sprint 4 — S4-T3] Reset Anti-Troll start time on auto-advance.
                 // Without this, _roundStartTime stayed at round-1's value, so the grace period
@@ -882,6 +923,15 @@ export class TutiEngine extends BaseEngine {
         } else if (this.state.status === 'RESULTS' && this.state.timers.resultsEndsAt && now >= this.state.timers.resultsEndsAt) {
             console.log("[TutiEngine] Anti-Freeze: Forcing next round");
             if (this.rounds.nextRound(this.state, this.state.config)) {
+                // Background dictionary load for auto-advance anti-freeze
+                this._dictionaryLoadPromise = Promise.all(
+                    this.state.categories.map(cat =>
+                        this.validation.getDictionaryManager().loadCategory(this.state.config.lang || 'es', cat.id, this.supabase)
+                    )
+                ).catch(err => {
+                    console.error('[TutiEngine] Background dictionary load failed:', err);
+                    return [];
+                });
                 this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
                 // [Sprint 4 — S4-T3] Reset Anti-Troll start time in the alarm-watchdog path.
                 // Without this, the grace period check in stopRound() always passed instantly

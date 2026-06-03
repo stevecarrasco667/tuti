@@ -57,7 +57,7 @@ export class DictionaryManager {
         this.disposed = false;
 
         const maxRetries = 4;
-        const delays = [1000, 2000, 4000, 8000]; // 1s, 2s, 4s, 8s
+        const delays = [200, 500, 1000, 2000]; // 200ms, 500ms, 1s, 2s
         let attempt = 0;
 
         while (attempt <= maxRetries) {
