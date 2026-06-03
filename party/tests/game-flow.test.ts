@@ -93,7 +93,7 @@ describe('Server Integration - Game Flow', () => {
             expect(getState().status).toBe('ENDING_COUNTDOWN');
 
             // 4. Avanzar los 3s del pánico → _forceReview() → REVIEW
-            vi.advanceTimersByTime(3000);
+            await vi.advanceTimersByTimeAsync(3000);
             expect(getState().status).toBe('REVIEW');
         } finally {
             vi.clearAllTimers();
