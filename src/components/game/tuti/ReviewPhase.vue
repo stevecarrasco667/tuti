@@ -106,7 +106,7 @@ const selfStatusIcon = (playerId: string, category: string) => {
         </div>
 
         <!-- ARENA — Adaptive Row List por número de jugadores (Siempre Fila) -->
-        <div class="flex-1 min-h-0 w-full overflow-y-auto flex flex-col px-1" :class="layoutConfig.maxWidthClass">
+        <div class="flex-1 min-h-0 w-full overflow-y-auto flex flex-col px-1 pb-2" :class="layoutConfig.maxWidthClass">
             <div class="grid w-full transition-all duration-500 ease-in-out"
                  :class="[layoutConfig.gridClass, layoutConfig.centerVertically ? 'my-auto pb-4' : 'content-start']">
                 <VotingCard

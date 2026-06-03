@@ -193,11 +193,16 @@ const rivalsActivity = computed(() => {
             @exit="emit('exit')"
         />
 
-        <div class="flex-1 overflow-y-auto w-full scroll-smooth p-2 relative" :style="{ paddingBottom: keyboardHeight + 'px' }">
+        <div :class="[
+            'flex-1 w-full scroll-smooth p-2 relative',
+            ['REVIEW', 'RESULTS'].includes(gameState.status) ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'
+        ]" :style="{ paddingBottom: keyboardHeight + 'px' }">
             <Transition name="fade" mode="out-in">
                     <!-- Grid dinámico: 3 columnas en PLAYING, 2 columnas en las demás fases -->
-                    <div :key="gameState.status" class="w-full min-h-full flex flex-col items-center lg:grid lg:gap-8 lg:items-start lg:max-w-[1600px] lg:mx-auto" 
-                        :class="gameState.status === 'PLAYING' ? 'lg:grid-cols-[220px_1fr_200px]' : 'lg:grid-cols-[1fr_200px]'"> 
+                    <div :key="gameState.status" class="w-full flex flex-col items-center lg:grid lg:gap-8 lg:max-w-[1600px] lg:mx-auto" 
+                        :class="[
+                            gameState.status === 'PLAYING' ? 'lg:grid-cols-[220px_1fr_200px] min-h-full' : 'lg:grid-cols-[1fr_200px] h-full min-h-0 flex-1 lg:items-stretch'
+                        ]"> 
                     
                     <!-- COLUMN 1: RIVALS (SOLO EN PLAYING) -->
                     <div v-if="gameState.status === 'PLAYING'" class="w-full lg:h-full lg:overflow-y-auto order-1 lg:order-1">
@@ -208,8 +213,11 @@ const rivalsActivity = computed(() => {
                     </div>
 
                     <!-- COLUMN 2: GAME CENTER -->
-                    <div class="w-full flex order-2 lg:order-2 lg:h-full lg:overflow-y-auto min-h-full"
-                         :class="gameState.status === 'PLAYING' ? 'flex-col items-center' : 'flex-col'"
+                    <div class="w-full flex order-2 lg:order-2"
+                         :class="[
+                             ['REVIEW', 'RESULTS'].includes(gameState.status) ? 'h-full min-h-0 overflow-hidden flex-col' : 'min-h-full lg:h-full lg:overflow-y-auto flex-col',
+                             gameState.status === 'PLAYING' ? 'items-center' : ''
+                         ]"
                     >
                         <ActiveRound 
                             v-if="gameState.status === 'PLAYING'"
@@ -234,7 +242,7 @@ const rivalsActivity = computed(() => {
                             :is-spectator="isSpectator"
                             @vote="(pid: string, cat: string) => emit('toggle-vote', pid, cat)"
                             @submit-votes="handleConfirmVotes"
-                            class="my-auto"
+                            class="h-full min-h-0 w-full flex flex-col"
                         />
                         
                         <ResultsRanking
