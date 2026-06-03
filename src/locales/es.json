@@ -175,6 +175,7 @@
         "next": "Siguiente →",
         "viewing": "VIENDO...",
         "sent": "¡Enviado! ✅",
+        "sentCount": "¡Enviado! ({ready}/{total})",
         "completed": "¡Completado!"
     },
     "impostorBoard": {

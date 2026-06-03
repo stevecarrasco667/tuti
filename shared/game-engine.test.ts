@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TutiEngine } from './engines/tuti-engine';
 import { SupabaseClient } from '@supabase/supabase-js';
 
@@ -469,61 +469,6 @@ describe('TutiEngine Core', () => {
 
             expect(loadSpy).toHaveBeenCalledWith('es', '1', expect.any(Object));
             loadSpy.mockRestore();
-        });
-    });
-
-    // E. Consenso de Resultados y Rotación Dinámica de Categorías
-    describe('Results Consensus & Dynamic Category Rotation', () => {
-        let engine: TutiEngine;
-        let loadSpy: any;
-
-        beforeEach(() => {
-            engine = new TutiEngine(mockSupabase, 'test-room');
-            loadSpy = vi.spyOn(engine.validation.getDictionaryManager(), 'loadCategory').mockResolvedValue();
-            engine.joinPlayer('p1', 'Player 1', 'av', 'c1');
-            engine.joinPlayer('p2', 'Player 2', 'av', 'c2');
-            const state = engine.getState();
-            state.status = 'RESULTS';
-            state.players[0].isConnected = true;
-            state.players[1].isConnected = true;
-            state.config.classic.rounds = 3;
-            state.roundsPlayed = 0;
-        });
-
-        afterEach(() => {
-            loadSpy.mockRestore();
-        });
-
-        it('should accumulate ready players and advance only when all active connected players are ready', async () => {
-            const state = engine.getState();
-            expect(state.whoFinishedResults).toHaveLength(0);
-
-            // P1 confirms results
-            await engine.confirmResults('c1');
-            expect(state.whoFinishedResults).toContain('p1');
-            expect(state.status).toBe('RESULTS'); // Still RESULTS because P2 hasn't confirmed
-
-            // P2 confirms results -> Consensus reached -> next round starts (PLAYING)
-            await engine.confirmResults('c2');
-            expect(state.status).toBe('PLAYING');
-            expect(state.roundsPlayed).toBe(1);
-            expect(state.whoFinishedResults).toHaveLength(0); // Reset for new round
-        });
-
-        it('should rotate categories dynamically when classic.categories config is empty/unset', async () => {
-            const state = engine.getState();
-            state.config.classic.categories = []; // Enable random dynamic categories
-            state.categories = [{ id: 'old-cat', name: 'Old Category' }];
-
-            // Trigger early results consensus to start next round
-            await engine.confirmResults('c1');
-            await engine.confirmResults('c2');
-
-            expect(state.status).toBe('PLAYING');
-            expect(state.categories).toBeDefined();
-            // Since we mocked categories to return id: '1' and '2', categories must be those
-            expect(state.categories.some(c => c.id === 'old-cat')).toBe(false);
-            expect(state.categories.map(c => c.id)).toContain('1');
         });
     });
 });

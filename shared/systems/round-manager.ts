@@ -17,7 +17,6 @@ export class RoundManager {
         state.votes = {};
         state.roundScores = {};
         state.whoFinishedVoting = [];
-        state.whoFinishedResults = [];
         state.stoppedBy = null;
         state.status = 'PLAYING';
 

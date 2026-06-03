@@ -31,7 +31,6 @@ const emit = defineEmits<{
     (e: 'exit'): void;
     (e: 'stop', answers: Record<string, string>): void;
     (e: 'confirm-votes'): void;
-    (e: 'confirm-results'): void;
     (e: 'next-round'): void;
     (e: 'submit-answers', answers: Record<string, string>): void;
     (e: 'toggle-vote', playerId: string, category: string): void;
@@ -101,10 +100,6 @@ const handleConfirmVotes = () => {
     hasConfirmed.value = true;
 };
 
-const handleConfirmResults = () => {
-    hasConfirmed.value = true;
-    emit('confirm-results');
-};
 
 // Auto state transitions resets
 // [P11 BUG FIX] immediate:true → arranca el tracking aunque el componente monte con PLAYING ya activo
@@ -240,6 +235,8 @@ const rivalsActivity = computed(() => {
                             :stopper-player="stopperPlayer || undefined"
                             :has-confirmed="hasConfirmed"
                             :is-spectator="isSpectator"
+                            :ready-count="gameState.whoFinishedVoting?.length || 0"
+                            :total-count="gameState.players?.filter(p => p.isConnected && !p.isBot).length || 0"
                             @vote="(pid: string, cat: string) => emit('toggle-vote', pid, cat)"
                             @submit-votes="handleConfirmVotes"
                             class="h-full min-h-0 w-full flex flex-col"
@@ -276,11 +273,9 @@ const rivalsActivity = computed(() => {
             :ending-countdown-by="gameState.endingCountdownBy ?? null"
             :is-stopping="isStopping"
             :is-spectator="isSpectator"
-            :ready-results-count="gameState.whoFinishedResults?.length || 0"
             :active-players-count="gameState.players?.filter(p => p.isConnected).length || 0"
             @stop="handleStop"
             @confirm-votes="handleConfirmVotes"
-            @confirm-results="handleConfirmResults"
             @next-round="emit('next-round')"
         />
 

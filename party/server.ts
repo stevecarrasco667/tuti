@@ -635,10 +635,6 @@ export default class Server implements Party.Server {
                     await this.votingHandler.handleConfirmVotes(sender);
                     break;
 
-                case EVENTS.CONFIRM_RESULTS:
-                    await this.gameHandler.handleConfirmResults(sender);
-                    break;
-
                 // --- Admin Logic ---
                 case EVENTS.UPDATE_CONFIG: {
                     const oldMode = this.engine.getState().config.mode;

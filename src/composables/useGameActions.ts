@@ -82,13 +82,6 @@ export function useGameActions(
         }));
     };
 
-    const confirmResults = () => {
-        if (!socket.value) return;
-        socket.value.send(JSON.stringify({
-            type: EVENTS.CONFIRM_RESULTS
-        }));
-    };
-
     const updateConfig = (config: DeepPartial<GameConfig>) => {
         if (!socket.value) return;
         socket.value.send(JSON.stringify({
@@ -189,7 +182,6 @@ export function useGameActions(
         shouldSubmit,
         toggleVote,
         confirmVotes,
-        confirmResults,
         updateConfig,
         resetGame,
         kickPlayer,

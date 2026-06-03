@@ -91,7 +91,6 @@ export interface RoomState {
     // Voting System
     votes: Record<string, Record<string, string[]>>; // targetPlayerId -> category -> voterIds[]
     whoFinishedVoting: string[];
-    whoFinishedResults: string[];
     roundScores: Record<string, number>;
     impostorData?: ImpostorData;
     // Time Controls
@@ -136,7 +135,6 @@ export type ClientMessage =
     | { type: typeof EVENTS.UPDATE_ANSWERS; payload: { answers: RoundAnswers } }
     | { type: typeof EVENTS.TOGGLE_VOTE; payload: { targetUserId: string; category: string } }
     | { type: typeof EVENTS.CONFIRM_VOTES }
-    | { type: typeof EVENTS.CONFIRM_RESULTS }
     | { type: typeof EVENTS.UPDATE_CONFIG; payload: Partial<GameConfig> }
     | { type: typeof EVENTS.RESTART_GAME }
     | { type: typeof EVENTS.KICK_PLAYER; payload: { targetUserId: string } }
@@ -188,7 +186,6 @@ export function createDefaultRoomState(roomId: string | null = null): RoomState 
         roundsPlayed: 0,
         votes: {},
         whoFinishedVoting: [],
-        whoFinishedResults: [],
         roundScores: {},
         config: {
             mode: 'CLASSIC',

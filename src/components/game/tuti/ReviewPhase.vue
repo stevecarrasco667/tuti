@@ -19,6 +19,8 @@ const props = defineProps<{
     stopperPlayer: Player | undefined;
     hasConfirmed: boolean;
     isSpectator?: boolean;
+    readyCount?: number;
+    totalCount?: number;
 }>();
 
 const emit = defineEmits<{
@@ -157,7 +159,7 @@ const selfStatusIcon = (playerId: string, category: string) => {
                 {{ t('review.next') }}
             </TButton>
             <TButton v-else variant="primary" size="sm" :disabled="hasConfirmed || isSpectator" @click="!isSpectator && emit('submit-votes')" class="shrink-0">
-                {{ isSpectator ? t('review.viewing') : (hasConfirmed ? t('review.sent') : t('review.completed')) }}
+                {{ isSpectator ? t('review.viewing') : (hasConfirmed ? t('review.sentCount', { ready: readyCount || 0, total: totalCount || 0 }) : t('review.completed')) }}
             </TButton>
         </div>
     </div>

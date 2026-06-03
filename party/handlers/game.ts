@@ -104,14 +104,6 @@ export class GameHandler extends BaseHandler {
         }
     }
 
-    async handleConfirmResults(sender: Party.Connection) {
-        try {
-            await this.engine.confirmResults(sender.id);
-        } catch (err) {
-            sendError(sender, (err as Error).message);
-        }
-    }
-
     async handleWordReact(
         payload: { targetPlayerId: string; categoryId: string; emoji: string },
         sender: Party.Connection,

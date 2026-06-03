@@ -67,7 +67,6 @@ export function useGame() {
         shouldSubmit: actions.shouldSubmit,
         toggleVote: actions.toggleVote,
         confirmVotes: actions.confirmVotes,
-        confirmResults: actions.confirmResults,
         updateConfig: actions.updateConfig,
         resetGame: actions.resetGame,
         kickPlayer: actions.kickPlayer,
