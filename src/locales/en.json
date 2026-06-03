@@ -240,7 +240,9 @@
         "stop": "✋ STOP FOR ME!",
         "playersTyping": "Players are typing...",
         "nextRound": "Next Round",
-        "waitingHost": "Waiting for host..."
+        "waitingHost": "Waiting for host...",
+        "waitingPlayersCount": "Waiting for players... ({ready}/{total})",
+        "waitingPlayers": "Waiting for players..."
     },
     "matchSummaryCard": {
         "summaryTitle": "MATCH<br>SUMMARY",

@@ -16,11 +16,14 @@ const props = defineProps<{
     isGraceActive?: boolean;
     endingCountdownBy?: string | null;
     isSpectator?: boolean;
+    readyResultsCount?: number;
+    activePlayersCount?: number;
 }>();
 
 defineEmits<{
     (e: 'stop'): void;
     (e: 'confirm-votes'): void;
+    (e: 'confirm-results'): void;
     (e: 'next-round'): void;
 }>();
 
@@ -105,25 +108,27 @@ const buttonLabel = computed(() => {
                 </button>
             </template>
 
-            <!-- RESULTS: Siguiente Ronda / Esperando -->
-            <button
-                v-if="status === 'RESULTS' && amIHost"
-                @click="$emit('next-round')"
-                class="w-full font-heading font-black text-xl py-5 rounded-[2rem]
-                       bg-game-green text-panel-base shadow-3d-green
-                       hover:bg-game-green/90
-                       active:shadow-none active:translate-y-[6px]
-                       transition-all duration-75 uppercase tracking-widest
-                       flex items-center justify-center gap-2"
-            >
-                {{ t('gameFooter.nextRound') }} <span class="text-2xl">⚡</span>
-            </button>
-            <div
-                v-else-if="status === 'RESULTS'"
-                class="w-full text-center text-game-yellow bg-game-yellow/10 border-2 border-game-yellow/30 rounded-full text-sm font-heading font-black uppercase tracking-widest animate-pulse py-3.5 flex items-center justify-center gap-2"
-            >
-                <span class="text-lg">⏳</span> {{ t('gameFooter.waitingHost') }}
-            </div>
+            <!-- RESULTS: Consenso de Siguiente Ronda -->
+            <template v-if="status === 'RESULTS'">
+                <button
+                    v-if="!hasConfirmed && !isSpectator"
+                    @click="$emit('confirm-results')"
+                    class="w-full font-heading font-black text-xl py-5 rounded-[2rem]
+                           bg-game-green text-panel-base shadow-3d-green
+                           hover:bg-game-green/90
+                           active:shadow-none active:translate-y-[6px]
+                           transition-all duration-75 uppercase tracking-widest
+                           flex items-center justify-center gap-2"
+                >
+                    {{ t('gameFooter.nextRound') }} <span class="text-2xl">⚡</span>
+                </button>
+                <div
+                    v-else
+                    class="w-full text-center text-game-yellow bg-game-yellow/10 border-2 border-game-yellow/30 rounded-full text-sm font-heading font-black uppercase tracking-widest animate-pulse py-3.5 flex items-center justify-center gap-2"
+                >
+                    <span class="text-lg">⏳</span> {{ isSpectator ? t('gameFooter.waitingPlayers') : t('gameFooter.waitingPlayersCount', { ready: readyResultsCount || 0, total: activePlayersCount || 0 }) }}
+                </div>
+            </template>
 
         </div>
     </div>

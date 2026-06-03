@@ -240,7 +240,9 @@
         "stop": "✋ ¡BASTA PARA MÍ!",
         "playersTyping": "Los jugadores están escribiendo...",
         "nextRound": "Siguiente Ronda",
-        "waitingHost": "Esperando al anfitrión..."
+        "waitingHost": "Esperando al anfitrión...",
+        "waitingPlayersCount": "Esperando jugadores... ({ready}/{total})",
+        "waitingPlayers": "Esperando jugadores..."
     },
     "matchSummaryCard": {
         "summaryTitle": "RESUMEN<br>DE LA PARTIDA",

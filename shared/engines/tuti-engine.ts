@@ -363,6 +363,19 @@ export class TutiEngine extends BaseEngine {
                 this.state.spectators = [];
             }
 
+            const manualCategories = this.state.config.classic.categories || [];
+            const count = this.state.config.classic.categoryCount ?? 5;
+
+            if (manualCategories.length === 0) {
+                const { data: catData } = await this.supabase.from('categories').select('id, name').eq('game_mode', 'classic');
+                const allCats: CategoryRef[] = (catData && catData.length > 0)
+                    ? catData.map(c => ({ id: c.id, name: c.name }))
+                    : MASTER_CATEGORIES.map(c => ({ id: c.id, name: c.name }));
+                const shuffled = [...allCats].sort(() => 0.5 - Math.random());
+                this.state.categories = shuffled.slice(0, count) as CategoryRef[];
+                console.log(`[TutiEngine] startGame manual: rotated categories to: ${this.state.categories.map(c => c.id).join(', ')}`);
+            }
+
             const continueGame = this.rounds.nextRound(this.state, this.state.config);
             if (continueGame) {
                 // Ensure temporal cache is loaded for categories (Parallel)
@@ -571,6 +584,19 @@ export class TutiEngine extends BaseEngine {
             if (this.state.status !== 'RESULTS') return; // Guard: host already advanced
             console.log('[TutiEngine] Results timer expired — auto-advancing to next round');
 
+            const manualCategories = this.state.config.classic.categories || [];
+            const count = this.state.config.classic.categoryCount ?? 5;
+
+            if (manualCategories.length === 0) {
+                const { data: catData } = await this.supabase.from('categories').select('id, name').eq('game_mode', 'classic');
+                const allCats: CategoryRef[] = (catData && catData.length > 0)
+                    ? catData.map(c => ({ id: c.id, name: c.name }))
+                    : MASTER_CATEGORIES.map(c => ({ id: c.id, name: c.name }));
+                const shuffled = [...allCats].sort(() => 0.5 - Math.random());
+                this.state.categories = shuffled.slice(0, count) as CategoryRef[];
+                console.log(`[TutiEngine] Results timer: rotated categories to: ${this.state.categories.map(c => c.id).join(', ')}`);
+            }
+
             if (this.rounds.nextRound(this.state, this.state.config)) {
                 this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
                 // [Sprint 4 — S4-T3] Reset Anti-Troll start time on auto-advance.
@@ -606,6 +632,7 @@ export class TutiEngine extends BaseEngine {
         this.state.answerStatuses = {};
         this.state.votes = {};
         this.state.whoFinishedVoting = [];
+        this.state.whoFinishedResults = [];
         this.state.roundScores = {};
 
         this.state.players.forEach(p => {
@@ -721,6 +748,63 @@ export class TutiEngine extends BaseEngine {
         return this.state;
     }
 
+    public async confirmResults(connectionId: string): Promise<RoomState> {
+        const userId = this._players.getPlayerId(connectionId);
+        if (!userId) return this.state;
+
+        if (this.state.status !== 'RESULTS') return this.state;
+
+        if (!this.state.whoFinishedResults.includes(userId)) {
+            this.state.whoFinishedResults.push(userId);
+        }
+
+        const activePlayers = this.state.players.filter(p => p.isConnected);
+        const confirmedActivePlayers = activePlayers.filter(p => this.state.whoFinishedResults.includes(p.id));
+
+        if (confirmedActivePlayers.length === activePlayers.length && activePlayers.length > 0) {
+            console.log('[TutiEngine] Consensus reached on results — advancing to next round early');
+            if (this._resultsTimer) { clearTimeout(this._resultsTimer); this._resultsTimer = null; }
+
+            this.state.status = 'LOADING_ROUND';
+
+            const manualCategories = this.state.config.classic.categories || [];
+            const count = this.state.config.classic.categoryCount ?? 5;
+
+            if (manualCategories.length === 0) {
+                const { data: catData } = await this.supabase.from('categories').select('id, name').eq('game_mode', 'classic');
+                const allCats: CategoryRef[] = (catData && catData.length > 0)
+                    ? catData.map(c => ({ id: c.id, name: c.name }))
+                    : MASTER_CATEGORIES.map(c => ({ id: c.id, name: c.name }));
+                const shuffled = [...allCats].sort(() => 0.5 - Math.random());
+                this.state.categories = shuffled.slice(0, count) as CategoryRef[];
+                console.log(`[TutiEngine] confirmResults: rotated categories to: ${this.state.categories.map(c => c.id).join(', ')}`);
+            }
+
+            if (this.rounds.nextRound(this.state, this.state.config)) {
+                // Ensure temporal cache is loaded for categories (Parallel)
+                await Promise.all(
+                    this.state.categories.map(cat =>
+                        this.validation.getDictionaryManager().loadCategory(this.state.config.lang || 'es', cat.id, this.supabase)
+                    )
+                );
+
+                this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
+                this._roundStartTime = Date.now();
+                const gracePeriodMs = calcGracePeriod(this.state.categories.length);
+                this.state.timers.graceEndsAt = this._roundStartTime + gracePeriodMs;
+                this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
+            } else {
+                this._triggerGameOver('NORMAL');
+            }
+        }
+
+        if (this.onGameStateChange) {
+            this.onGameStateChange(this.state);
+        }
+
+        return this.state;
+    }
+
     public kickPlayer(hostConnectionId: string, targetUserId: string): RoomState {
         const success = this._players.kick(this.state, hostConnectionId, targetUserId);
 
@@ -793,6 +877,7 @@ export class TutiEngine extends BaseEngine {
     // --- SYSTEMS DELEGATION ---
 
     private calculateResults() {
+        this.state.whoFinishedResults = [];
         this.scoreSystem.calculate(this.state);
         if (this.state.status === 'GAME_OVER') {
             this.state.uiMetadata = { activeView: 'GAME_OVER', showTimer: false, targetTime: null };

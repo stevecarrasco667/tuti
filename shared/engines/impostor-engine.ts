@@ -1013,6 +1013,10 @@ export class ImpostorEngine extends BaseEngine {
         return this.state;
     }
 
+    public async confirmResults(_connectionId: string): Promise<RoomState> {
+        return this.state;
+    }
+
     public kickPlayer(hostConnectionId: string, targetUserId: string): RoomState {
         // [Sprint P5 — BUG-4] Use _players.kick() which performs the connectionId reverse-lookup
         // internally. Passing targetUserId directly to remove() would corrupt the connectionMap

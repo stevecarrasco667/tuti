@@ -18,7 +18,7 @@ const ImpostorBoard = defineAsyncComponent(() => import('./game/impostor/Imposto
 // Use the activeBoard reference to expose internals
 const boardRef = ref<any>(null);
 
-const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVotes, myUserId, amIHost, startGame, leaveGame, isStopping } = useGame();
+const { gameState, stopRound, submitAnswers, shouldSubmit, toggleVote, confirmVotes, confirmResults, myUserId, amIHost, startGame, leaveGame, isStopping } = useGame();
 const { trackGameStarted, trackRoundStopped, trackGameOver } = useAnalytics();
 
 const showCountdown = ref(false);
@@ -93,6 +93,11 @@ const handleBoardConfirm = () => {
     playClick();
 };
 
+const handleBoardConfirmResults = () => {
+    confirmResults();
+    playClick();
+};
+
 const handleToast = (msg: string, style: 'join' | 'leave' | 'stop-warning', iconId: string) => {
     addToast(msg, style, iconId);
 };
@@ -148,6 +153,7 @@ const handleToast = (msg: string, style: 'join' | 'leave' | 'stop-warning', icon
             @exit="showExitModal = true"
             @stop="handleBoardStop"
             @confirm-votes="handleBoardConfirm"
+            @confirm-results="handleBoardConfirmResults"
             @next-round="startGame"
             @submit-answers="(ans : Record<string, string>) => submitAnswers(ans)"
             @toggle-vote="handleBoardVote"

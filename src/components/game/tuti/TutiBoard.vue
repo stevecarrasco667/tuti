@@ -31,6 +31,7 @@ const emit = defineEmits<{
     (e: 'exit'): void;
     (e: 'stop', answers: Record<string, string>): void;
     (e: 'confirm-votes'): void;
+    (e: 'confirm-results'): void;
     (e: 'next-round'): void;
     (e: 'submit-answers', answers: Record<string, string>): void;
     (e: 'toggle-vote', playerId: string, category: string): void;
@@ -100,6 +101,11 @@ const handleConfirmVotes = () => {
     hasConfirmed.value = true;
 };
 
+const handleConfirmResults = () => {
+    hasConfirmed.value = true;
+    emit('confirm-results');
+};
+
 // Auto state transitions resets
 // [P11 BUG FIX] immediate:true → arranca el tracking aunque el componente monte con PLAYING ya activo
 watch(() => props.gameState.status, (newStatus, oldStatus) => {
@@ -110,6 +116,8 @@ watch(() => props.gameState.status, (newStatus, oldStatus) => {
             hasConfirmed.value = false;
         }
         // [Sync] Grace period ya no necesita startGraceTracking() — lo controla el servidor vía graceEndsAt
+    } else if (newStatus === 'RESULTS') {
+        hasConfirmed.value = false;
     } else if (newStatus !== 'ENDING_COUNTDOWN') {
         // Nada que limpiar localmente — el servidor pone graceEndsAt = null al pasar a ENDING_COUNTDOWN
     }
@@ -260,8 +268,11 @@ const rivalsActivity = computed(() => {
             :ending-countdown-by="gameState.endingCountdownBy ?? null"
             :is-stopping="isStopping"
             :is-spectator="isSpectator"
+            :ready-results-count="gameState.whoFinishedResults?.length || 0"
+            :active-players-count="gameState.players?.filter(p => p.isConnected).length || 0"
             @stop="handleStop"
             @confirm-votes="handleConfirmVotes"
+            @confirm-results="handleConfirmResults"
             @next-round="emit('next-round')"
         />
 

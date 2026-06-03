@@ -41,6 +41,7 @@ export abstract class BaseEngine {
     abstract updateAnswers(connectionId: string, answers: Record<string, string>): RoomState;
     abstract toggleVote(connectionId: string, targetUserId: string, category: string): RoomState;
     abstract confirmVotes(connectionId: string): RoomState;
+    abstract confirmResults(connectionId: string): Promise<RoomState>;
 
     // --- ADMIN ---
     abstract kickPlayer(hostConnectionId: string, targetUserId: string): RoomState;

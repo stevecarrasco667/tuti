@@ -88,6 +88,7 @@ export const RoomStateSchema = z.object({
     roundsPlayed: z.number(),
     votes: z.record(z.string(), z.record(z.string(), z.array(z.string()))),
     whoFinishedVoting: z.array(z.string()),
+    whoFinishedResults: z.array(z.string()),
     roundScores: z.record(z.string(), z.number()),
     impostorData: ImpostorDataSchema.optional(),
     config: GameConfigSchema,
@@ -182,6 +183,10 @@ export const ConfirmVotesSchema = z.object({
     type: z.literal(EVENTS.CONFIRM_VOTES)
 });
 
+export const ConfirmResultsSchema = z.object({
+    type: z.literal(EVENTS.CONFIRM_RESULTS)
+});
+
 export const UpdateConfigSchema = z.object({
     type: z.literal(EVENTS.UPDATE_CONFIG),
     payload: GameConfigSchema.deepPartial()
@@ -263,6 +268,7 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
     UpdateAnswersSchema,
     ToggleVoteSchema,
     ConfirmVotesSchema,
+    ConfirmResultsSchema,
     UpdateConfigSchema,
     RestartGameSchema,
     KickPlayerSchema,
