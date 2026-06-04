@@ -97,16 +97,16 @@ const handleInputFocus = (event: Event) => {
         <!-- HEADER UNIFICADO: Categoría + Identidad + Tiempo -->
         <div class="w-full flex justify-between items-stretch bg-panel-card border border-white/10 p-2 md:p-3 rounded-2xl backdrop-blur-md shadow-sm max-w-xl flex-none mb-3 md:mb-4 relative overflow-hidden group gap-2 md:gap-3">
             <!-- 1. Categoría (Izquierda) -->
-            <div class="flex-1 min-w-0 flex flex-col justify-center pl-1 md:pl-2">
+            <div class="flex-[1.4] min-w-0 flex flex-col justify-center pl-1 md:pl-2">
                 <span class="text-[7px] md:text-[9px] text-ink-muted uppercase tracking-widest block font-black mb-0.5">{{ t('impostorTyping.category') }}</span>
-                <span class="text-xs md:text-base text-ink-main font-black truncate">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</span>
+                <span class="text-[10px] xs:text-xs md:text-base text-ink-main font-black truncate">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</span>
             </div>
             
             <!-- Divisor Vertical -->
             <div class="h-8 md:h-10 w-px bg-white/10 flex-none self-center"></div>
             
             <!-- 2. Identidad y Rol (Centro) -->
-            <div class="flex-[2] min-w-0 flex items-center px-2 md:px-3 py-1 rounded-xl transition-all duration-300"
+            <div class="flex-[2.6] min-w-0 flex items-center px-2 md:px-3 py-1 rounded-xl transition-all duration-300"
                  :class="[
                      isDead ? 'bg-panel-input/40 border border-white/5 opacity-50' :
                      isImpostor ? 'bg-action-error/10 border border-action-error/25' : 'bg-tuti-teal/10 border border-tuti-teal/25'
@@ -124,7 +124,7 @@ const handleInputFocus = (event: Event) => {
                           ]">
                         {{ isDead ? t('impostorTyping.ghostTitle') : isImpostor ? t('impostorTyping.impostorTitle') : t('impostorTyping.crewTitle') }}
                     </span>
-                    <span class="text-[10px] md:text-sm text-ink-main font-bold truncate leading-tight">
+                    <span class="text-[9px] xs:text-xs md:text-sm text-ink-main font-bold truncate leading-tight">
                         <template v-if="isDead">
                             {{ t('impostorTyping.ghostDesc') }}
                         </template>
@@ -132,8 +132,8 @@ const handleInputFocus = (event: Event) => {
                             <span v-if="impostorAllies.length > 0" class="text-ink-muted font-normal text-[8px] md:text-xs">
                                 {{ t('impostorTyping.allies') }}: <strong class="text-action-error font-black">{{ impostorAllies.join(', ') }}</strong>
                             </span>
-                            <span v-else class="text-ink-muted font-normal text-[8px] md:text-xs">
-                                {{ t('impostorTyping.categoryLabel') }} <strong class="text-action-error font-black">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</strong>
+                            <span v-else class="text-ink-muted font-normal text-[8px] md:text-xs italic">
+                                {{ t('impostorTyping.impostorTip') }}
                             </span>
                         </template>
                         <template v-else>
