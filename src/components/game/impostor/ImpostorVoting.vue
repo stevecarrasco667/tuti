@@ -361,7 +361,7 @@ const votingProgress = computed(() =>
 
                         <button @click="handleVote(s.id)"
                                 :disabled="s.isMe || s.isPlayerDead || isDead || isSpectator"
-                                class="flex items-center justify-between w-full rounded-full transition-all duration-300 border-2 active:scale-95"
+                                class="flex flex-col xs:flex-row items-center justify-center xs:justify-between w-full rounded-[1.25rem] xs:rounded-full py-1.5 xs:py-0 transition-all duration-300 border-2 active:scale-95 gap-1"
                                 :class="[
                                     cardConfig.buttonClass,
                                     s.isSelectedByMe
@@ -372,14 +372,14 @@ const votingProgress = computed(() =>
                                         : 'cursor-not-allowed opacity-60 grayscale'
                                 ]"
                         >
-                            <span class="font-black tracking-widest uppercase text-left flex-shrink-0 mr-2"
+                            <span class="font-black tracking-widest uppercase text-center xs:text-left flex-shrink-0 xs:mr-2"
                                   :class="[
                                       s.isSelectedByMe ? 'text-action-error font-extrabold' : 'text-ink-soft',
                                       cardConfig.buttonText
                                   ]">
                                 {{ t('impostorVoting.accuse') }}
                             </span>
-
+ 
                             <!-- Toggle visual — flex-shrink-0 so it never compresses -->
                             <div class="relative inline-flex items-center rounded-full border transition-colors duration-300 border-white/10 shrink-0 shadow-inner focus:outline-none"
                                  :class="[

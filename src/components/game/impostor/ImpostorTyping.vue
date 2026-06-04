@@ -95,9 +95,9 @@ const handleInputFocus = (event: Event) => {
     <div class="h-full w-full flex flex-col items-center p-3 md:p-6 overflow-y-auto scrollbar-thin">
         
         <!-- HEADER UNIFICADO: Categoría + Identidad + Tiempo -->
-        <div class="w-full flex justify-between items-stretch bg-panel-card border border-white/10 p-2 md:p-3 rounded-2xl backdrop-blur-md shadow-sm max-w-xl flex-none mb-3 md:mb-4 relative overflow-hidden group gap-2 md:gap-3">
+        <div class="w-full flex justify-between items-stretch bg-panel-card border border-white/10 pl-12 pr-2 py-2 md:px-3 md:py-3 rounded-2xl backdrop-blur-md shadow-sm max-w-xl flex-none mb-3 md:mb-4 relative overflow-hidden group gap-2 md:gap-3">
             <!-- 1. Categoría (Izquierda) -->
-            <div class="flex-[1.2] min-w-0 flex flex-col justify-center pl-1 md:pl-2">
+            <div class="flex-[1.2] min-w-0 flex flex-col justify-center pl-0 md:pl-2">
                 <span class="text-[7px] md:text-[9px] text-ink-muted uppercase tracking-widest block font-black mb-0.5">{{ t('impostorTyping.category') }}</span>
                 <span class="text-[10px] xs:text-xs md:text-base text-ink-main font-black truncate">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</span>
             </div>
@@ -121,7 +121,7 @@ const handleInputFocus = (event: Event) => {
                           ]">
                         {{ isDead ? t('impostorTyping.ghostTitle') : isImpostor ? t('impostorTyping.impostorTitle') : t('impostorTyping.crewTitle') }}
                     </span>
-                    <span class="text-xs xs:text-sm md:text-xl lg:text-2xl text-ink-main font-black leading-tight truncate">
+                    <span class="text-xs xs:text-sm md:text-xl lg:text-2xl text-ink-main font-black leading-tight flex flex-wrap items-baseline gap-x-1">
                         <template v-if="isDead">
                             <span class="text-ink-muted font-bold text-[9px] xs:text-[10px] md:text-sm">{{ t('impostorTyping.ghostDesc') }}</span>
                         </template>
@@ -165,7 +165,7 @@ const handleInputFocus = (event: Event) => {
                     v-model="inputWord"
                     :disabled="isLocked"
                     :placeholder="t('impostorTyping.placeholder')"
-                    class="w-full bg-panel-input border-[3px] md:border-[4px] text-center text-xl md:text-4xl py-3.5 md:py-6 px-12 md:px-16 rounded-2xl md:rounded-[2.5rem] backdrop-blur-xl focus:outline-none transition-all font-black shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="w-full bg-panel-input border-[3px] md:border-[4px] text-center text-xl md:text-4xl py-3 md:py-6 pl-4 pr-12 md:px-16 rounded-2xl md:rounded-[2.5rem] backdrop-blur-xl focus:outline-none transition-all font-black shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
                     :class="[
                         spoilerDetected 
                             ? 'border-action-error text-action-error placeholder:text-action-error/40 focus:border-action-error focus:bg-action-error/10 focus:shadow-glow-panic' 
@@ -217,8 +217,8 @@ const handleInputFocus = (event: Event) => {
             </h3>
             
             <!-- Mobile Swipeable Horizontal List / Desktop Flex Wrap -->
-            <div class="w-full overflow-x-auto md:overflow-x-visible px-4 md:px-0 pb-3 md:pb-0 scrollbar-none">
-                <div class="flex flex-row md:flex-wrap justify-start md:justify-center gap-3.5 md:gap-6 min-w-max md:min-w-0 mx-auto w-fit">
+            <div class="w-full overflow-x-auto md:overflow-x-visible px-5 md:px-0 pb-4 md:pb-0 scrollbar-none">
+                <div class="flex flex-row md:flex-wrap justify-start md:justify-center gap-4 md:gap-6 min-w-max md:min-w-0 mx-auto w-fit">
                     <div v-for="player in activePlayers" :key="player.id" 
                          class="flex flex-col items-center relative transition-all duration-300 flex-none"
                          :class="{ 'opacity-50 grayscale pointer-events-none': isPlayerDead(player.id) }">

@@ -45,9 +45,9 @@ const handleSubmit = (word: string) => {
         
         <!-- JUEGO (Columna Izquierda 1fr) -->
         <div class="h-full w-full flex flex-col items-center justify-center relative rounded-3xl overflow-hidden shadow-inner">
-            <!-- TOP-LEFT: Botón de salida, igual que GameHUD, sin solapamiento -->
-            <button @click="emit('exit')" class="absolute top-3 left-3 z-[90] text-white/60 hover:text-white transition-colors p-1" :title="t('gameHUD.exit')">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
+            <!-- TOP-LEFT: Botón de salida, estilizado como tarjeta flotante compacta y translúcida -->
+            <button @click="emit('exit')" class="absolute top-2.5 left-2.5 md:top-3.5 md:left-3.5 z-[90] w-9 h-9 flex items-center justify-center rounded-xl bg-panel-card/75 border border-white/10 hover:bg-panel-card hover:text-white transition-all duration-200 shadow-sm active:scale-95 cursor-pointer text-white/70" :title="t('gameHUD.exit')">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
                 </svg>
             </button>
