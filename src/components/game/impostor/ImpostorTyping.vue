@@ -92,69 +92,71 @@ const handleInputFocus = (event: Event) => {
 </script>
 
 <template>
-    <div class="h-full w-full flex flex-col items-center p-4 overflow-y-auto scrollbar-thin">
+    <div class="h-full w-full flex flex-col items-center p-3 md:p-6 overflow-y-auto scrollbar-thin">
         
-        <!-- HEADER: Single Unified Status Bar -->
-        <div class="w-full flex justify-between items-center bg-panel-card border border-white/10 px-5 py-3 rounded-2xl backdrop-blur-md shadow-sm max-w-xl flex-none mb-3 md:mb-4 relative overflow-hidden group">
-            <!-- Left: Category info -->
-            <div class="flex flex-col min-w-0">
-                <span class="text-[8px] md:text-[9px] text-ink-muted uppercase tracking-widest block font-black mb-0.5 md:mb-1">{{ t('impostorTyping.category') }}</span>
-                <span class="text-sm md:text-base text-ink-main font-black truncate">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</span>
+        <!-- HEADER UNIFICADO: Categoría + Identidad + Tiempo -->
+        <div class="w-full flex justify-between items-stretch bg-panel-card border border-white/10 p-2 md:p-3 rounded-2xl backdrop-blur-md shadow-sm max-w-xl flex-none mb-3 md:mb-4 relative overflow-hidden group gap-2 md:gap-3">
+            <!-- 1. Categoría (Izquierda) -->
+            <div class="flex-1 min-w-0 flex flex-col justify-center pl-1 md:pl-2">
+                <span class="text-[7px] md:text-[9px] text-ink-muted uppercase tracking-widest block font-black mb-0.5">{{ t('impostorTyping.category') }}</span>
+                <span class="text-xs md:text-base text-ink-main font-black truncate">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</span>
             </div>
             
-            <!-- Vertical divider -->
-            <div class="h-8 w-px bg-white/10 mx-4 flex-none"></div>
+            <!-- Divisor Vertical -->
+            <div class="h-8 md:h-10 w-px bg-white/10 flex-none self-center"></div>
             
-            <!-- Right: Timer info -->
-            <div class="flex items-center gap-3 flex-none">
-                <span class="text-[8px] md:text-[9px] text-ink-muted uppercase tracking-widest font-black hidden sm:inline">{{ t('impostorTyping.time') }}</span>
-                <span class="text-lg md:text-xl font-mono font-black border bg-panel-input px-2.5 py-0.5 rounded-lg leading-none shadow-inner" :class="timerColor">
+            <!-- 2. Identidad y Rol (Centro) -->
+            <div class="flex-[2] min-w-0 flex items-center px-2 md:px-3 py-1 rounded-xl transition-all duration-300"
+                 :class="[
+                     isDead ? 'bg-panel-input/40 border border-white/5 opacity-50' :
+                     isImpostor ? 'bg-action-error/10 border border-action-error/25' : 'bg-tuti-teal/10 border border-tuti-teal/25'
+                 ]">
+                
+                <span class="text-lg md:text-2xl mr-1.5 md:mr-2 flex-none animate-pulse">
+                    {{ isDead ? '💀' : isImpostor ? '🤫' : '💡' }}
+                </span>
+                
+                <div class="min-w-0 flex flex-col justify-center">
+                    <span class="text-[7px] md:text-[9px] uppercase tracking-wider font-black truncate"
+                          :class="[
+                              isDead ? 'text-ink-muted' :
+                              isImpostor ? 'text-action-error' : 'text-tuti-teal'
+                          ]">
+                        {{ isDead ? t('impostorTyping.ghostTitle') : isImpostor ? t('impostorTyping.impostorTitle') : t('impostorTyping.crewTitle') }}
+                    </span>
+                    <span class="text-[10px] md:text-sm text-ink-main font-bold truncate leading-tight">
+                        <template v-if="isDead">
+                            {{ t('impostorTyping.ghostDesc') }}
+                        </template>
+                        <template v-else-if="isImpostor">
+                            <span v-if="impostorAllies.length > 0" class="text-ink-muted font-normal text-[8px] md:text-xs">
+                                {{ t('impostorTyping.allies') }}: <strong class="text-action-error font-black">{{ impostorAllies.join(', ') }}</strong>
+                            </span>
+                            <span v-else class="text-ink-muted font-normal text-[8px] md:text-xs">
+                                {{ t('impostorTyping.categoryLabel') }} <strong class="text-action-error font-black">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</strong>
+                            </span>
+                        </template>
+                        <template v-else>
+                            {{ t('impostorTyping.wordIs') }} <strong class="text-tuti-teal font-black">{{ secretWord }}</strong>
+                        </template>
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Divisor Vertical -->
+            <div class="h-8 md:h-10 w-px bg-white/10 flex-none self-center"></div>
+            
+            <!-- 3. Tiempo (Derecha) -->
+            <div class="flex items-center gap-1 md:gap-2 flex-none justify-center pr-1 md:pr-2">
+                <span class="text-[7px] md:text-[9px] text-ink-muted uppercase tracking-widest font-black hidden xs:inline">{{ t('impostorTyping.time') }}</span>
+                <span class="text-sm md:text-xl font-mono font-black border bg-panel-input px-2 md:px-2.5 py-0.5 md:py-1 rounded-lg leading-none shadow-inner" :class="timerColor">
                     {{ Math.max(0, timeRemaining) }}
                 </span>
             </div>
         </div>
 
-        <!-- BANNER DE FANTASMA -->
-        <div v-if="isDead && !isSpectator" class="w-full max-w-xl mb-4 md:mb-4 bg-panel-input/60 border border-white/10 rounded-2xl md:rounded-3xl px-4 py-2.5 md:px-6 md:py-3.5 backdrop-blur-md flex items-center justify-center gap-2.5 md:gap-3 shadow-inner flex-none animate-in fade-in duration-300">
-            <span class="text-2xl md:text-4xl animate-bounce drop-shadow-sm flex-none">💀</span>
-            <div class="text-center md:text-left min-w-0">
-                <span class="text-ink-muted font-black text-xs md:text-sm uppercase tracking-widest block">{{ t('impostorTyping.ghostTitle') }}</span>
-                <span class="text-ink-muted/70 text-[10px] md:text-xs font-medium block md:inline">{{ t('impostorTyping.ghostDesc') }}</span>
-            </div>
-        </div>
-
-        <!-- HUD DE IDENTIDAD -->
-        <div class="w-full max-w-xl mb-4 md:mb-4 px-1 transition-opacity duration-500 flex-none" :class="{ 'opacity-50 grayscale pointer-events-none': isDead }">
-            <div v-if="isImpostor"
-                 class="bg-action-error/10 border border-action-error/30 rounded-2xl md:rounded-3xl px-4 py-2.5 md:px-6 md:py-3 backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-2 md:gap-3 shadow-sm">
-                <div class="flex items-center gap-2.5 md:gap-3 w-full md:w-auto">
-                    <span class="text-2xl md:text-3xl drop-shadow-sm flex-none">🤫</span>
-                    <div class="min-w-0">
-                        <span class="text-action-error font-black text-xs md:text-base uppercase tracking-widest block text-left truncate">{{ t('impostorTyping.impostorTitle') }}</span>
-                        <span class="text-ink-muted text-xs md:text-sm font-bold block md:inline text-left truncate" v-if="!isDead">
-                            {{ t('impostorTyping.categoryLabel') }} <strong class="text-action-error font-black">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</strong>
-                        </span>
-                    </div>
-                </div>
-                <div v-if="impostorAllies.length > 0" class="flex flex-row md:flex-col justify-between md:justify-center items-center md:items-end w-full md:w-auto pt-1.5 md:pt-0 border-t border-action-error/10 md:border-t-0 flex-none">
-                    <span class="text-[8px] md:text-[10px] font-black text-ink-muted uppercase tracking-widest">{{ t('impostorTyping.allies') }}</span>
-                    <span class="text-action-error font-black text-xs md:text-sm ml-1 md:ml-0">{{ impostorAllies.join(', ') }}</span>
-                </div>
-            </div>
-            <div v-else
-                 class="bg-tuti-teal/10 border border-tuti-teal/30 rounded-2xl md:rounded-3xl px-4 py-2.5 md:px-6 md:py-3 backdrop-blur-md flex items-center gap-2.5 md:gap-3 shadow-sm w-full">
-                <span class="text-2xl md:text-3xl drop-shadow-sm flex-none">💡</span>
-                <div class="min-w-0">
-                    <span class="text-tuti-teal font-black text-xs md:text-base uppercase tracking-widest text-left block truncate">{{ t('impostorTyping.crewTitle') }}</span>
-                    <span class="text-ink-muted text-xs md:text-sm font-bold text-left block md:inline truncate" v-if="!isDead">
-                        {{ t('impostorTyping.wordIs') }} <strong class="text-tuti-teal font-black">{{ secretWord }}</strong>
-                    </span>
-                </div>
-            </div>
-        </div>
-
         <!-- CENTER: Main Input Area -->
-        <div class="w-full flex flex-col justify-center items-center max-w-xl px-4 my-auto py-4">
+        <div class="w-full flex flex-col justify-center items-center max-w-xl px-4 my-auto py-2 md:py-4">
             <h2 class="text-lg md:text-3xl text-ink-main font-black uppercase tracking-widest text-center mb-4 md:mb-4 drop-shadow-sm">
                 {{ t('impostorTyping.typeWord') }}
             </h2>
@@ -211,8 +213,8 @@ const handleInputFocus = (event: Event) => {
         </div>
 
         <!-- BOTTOM: Social Grid (Feedback visual) -->
-        <div class="w-full max-w-xl mt-auto md:mt-8 pb-2 pt-4 md:pt-4 flex-none">
-            <h3 class="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-ink-muted font-black text-center mb-3 md:mb-6">
+        <div class="w-full max-w-xl mt-auto pb-2 pt-2 md:pt-4 flex-none">
+            <h3 class="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-ink-muted font-black text-center mb-2 md:mb-4">
                 {{ t('impostorTyping.crewStatus') }}
             </h3>
             
