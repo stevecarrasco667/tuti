@@ -97,7 +97,7 @@ const handleInputFocus = (event: Event) => {
         <!-- HEADER UNIFICADO: Categoría + Identidad + Tiempo -->
         <div class="w-full flex justify-between items-stretch bg-panel-card border border-white/10 p-2 md:p-3 rounded-2xl backdrop-blur-md shadow-sm max-w-xl flex-none mb-3 md:mb-4 relative overflow-hidden group gap-2 md:gap-3">
             <!-- 1. Categoría (Izquierda) -->
-            <div class="flex-[1.4] min-w-0 flex flex-col justify-center pl-1 md:pl-2">
+            <div class="flex-[1.2] min-w-0 flex flex-col justify-center pl-1 md:pl-2">
                 <span class="text-[7px] md:text-[9px] text-ink-muted uppercase tracking-widest block font-black mb-0.5">{{ t('impostorTyping.category') }}</span>
                 <span class="text-[10px] xs:text-xs md:text-base text-ink-main font-black truncate">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</span>
             </div>
@@ -106,38 +106,36 @@ const handleInputFocus = (event: Event) => {
             <div class="h-8 md:h-10 w-px bg-white/10 flex-none self-center"></div>
             
             <!-- 2. Identidad y Rol (Centro) -->
-            <div class="flex-[2.6] min-w-0 flex items-center px-2 md:px-3 py-1 rounded-xl transition-all duration-300"
-                 :class="[
-                     isDead ? 'bg-panel-input/40 border border-white/5 opacity-50' :
-                     isImpostor ? 'bg-action-error/10 border border-action-error/25' : 'bg-tuti-teal/10 border border-tuti-teal/25'
-                 ]">
+            <div class="flex-[2.8] min-w-0 flex items-center px-1 md:px-2 gap-2 md:gap-3 transition-opacity duration-300"
+                 :class="{ 'opacity-50': isDead }">
                 
-                <span class="text-lg md:text-2xl mr-1.5 md:mr-2 flex-none animate-pulse">
+                <span class="text-2xl md:text-4xl flex-none drop-shadow-sm animate-pulse">
                     {{ isDead ? '💀' : isImpostor ? '🤫' : '💡' }}
                 </span>
                 
-                <div class="min-w-0 flex flex-col justify-center">
-                    <span class="text-[7px] md:text-[9px] uppercase tracking-wider font-black truncate"
+                <div class="min-w-0 flex flex-col justify-center text-left">
+                    <span class="text-[8px] md:text-xs uppercase tracking-widest font-black block mb-0.5 md:mb-1"
                           :class="[
                               isDead ? 'text-ink-muted' :
                               isImpostor ? 'text-action-error' : 'text-tuti-teal'
                           ]">
                         {{ isDead ? t('impostorTyping.ghostTitle') : isImpostor ? t('impostorTyping.impostorTitle') : t('impostorTyping.crewTitle') }}
                     </span>
-                    <span class="text-[9px] xs:text-xs md:text-sm text-ink-main font-bold truncate leading-tight">
+                    <span class="text-xs xs:text-sm md:text-xl lg:text-2xl text-ink-main font-black leading-tight truncate">
                         <template v-if="isDead">
-                            {{ t('impostorTyping.ghostDesc') }}
+                            <span class="text-ink-muted font-bold text-[9px] xs:text-[10px] md:text-sm">{{ t('impostorTyping.ghostDesc') }}</span>
                         </template>
                         <template v-else-if="isImpostor">
-                            <span v-if="impostorAllies.length > 0" class="text-ink-muted font-normal text-[8px] md:text-xs">
+                            <span v-if="impostorAllies.length > 0" class="text-ink-muted font-normal text-[9px] xs:text-xs md:text-base">
                                 {{ t('impostorTyping.allies') }}: <strong class="text-action-error font-black">{{ impostorAllies.join(', ') }}</strong>
                             </span>
-                            <span v-else class="text-ink-muted font-normal text-[8px] md:text-xs italic">
+                            <span v-else class="text-action-error font-black italic text-xs xs:text-sm md:text-xl">
                                 {{ t('impostorTyping.impostorTip') }}
                             </span>
                         </template>
                         <template v-else>
-                            {{ t('impostorTyping.wordIs') }} <strong class="text-tuti-teal font-black">{{ secretWord }}</strong>
+                            <span class="text-ink-muted font-normal text-[10px] xs:text-xs md:text-lg mr-1">{{ t('impostorTyping.wordIs') }}</span>
+                            <span class="text-tuti-teal font-black text-xs xs:text-sm md:text-xl lg:text-2xl animate-pulse">{{ secretWord }}</span>
                         </template>
                     </span>
                 </div>
