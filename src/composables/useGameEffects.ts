@@ -22,11 +22,22 @@ export function useGameEffects(
         const targetTime = gameState.value?.uiMetadata?.targetTime;
 
         if (gameState.value?.uiMetadata?.showTimer && targetTime) {
-            const remaining = Math.max(0, Math.ceil((targetTime - now) / 1000));
+            const rawRemaining = Math.max(0, Math.ceil((targetTime - now) / 1000));
+            let remaining = rawRemaining;
+
+            if (gameState.value.status === 'ENDING_COUNTDOWN') {
+                remaining = Math.min(3, rawRemaining);
+            }
+
             timeRemaining.value = remaining;
 
             // Tick Sound [GD-2] — Regla del Silencio: Solo suena en los últimos 5 segundos, una vez por segundo.
-            if (remaining <= 5 && remaining > 0) {
+            // Para ENDING_COUNTDOWN, evitamos sonar los ticks en los primeros 2 segundos (cuando está la alarma de Basta activa)
+            const shouldPlayTick = gameState.value.status === 'ENDING_COUNTDOWN'
+                ? (rawRemaining <= 3 && rawRemaining > 0)
+                : (remaining <= 5 && remaining > 0);
+
+            if (shouldPlayTick) {
                 playTick();
             }
         } else {

@@ -174,6 +174,13 @@ const rivalsActivity = computed(() => {
             };
         });
 });
+
+const currentBoardView = computed(() => {
+    if (['PLAYING', 'ENDING_COUNTDOWN'].includes(props.gameState.status)) {
+        return 'PLAYING';
+    }
+    return props.gameState.status;
+});
 </script>
 <template>
     <div class="flex flex-col w-full h-full">
@@ -194,7 +201,7 @@ const rivalsActivity = computed(() => {
         ]" :style="{ paddingBottom: keyboardHeight + 'px' }">
             <Transition name="fade" mode="out-in">
                     <!-- Grid dinámico: 3 columnas en PLAYING, 2 columnas en las demás fases -->
-                    <div :key="gameState.status" class="w-full flex flex-col items-center lg:grid lg:gap-8 lg:max-w-[1600px] lg:mx-auto" 
+                    <div :key="currentBoardView" class="w-full flex flex-col items-center lg:grid lg:gap-8 lg:max-w-[1600px] lg:mx-auto" 
                         :class="[
                             ['PLAYING', 'ENDING_COUNTDOWN'].includes(gameState.status) ? 'lg:grid-cols-[220px_1fr_200px] min-h-full' : 'lg:grid-cols-[1fr_200px] h-full min-h-0 flex-1 lg:items-stretch'
                         ]"> 

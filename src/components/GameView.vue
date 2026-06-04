@@ -57,7 +57,7 @@ watch(() => gameState.value.status, (newStatus) => {
             round_total:   gameState.value.config.classic?.rounds || 5,
             letter:        gameState.value.currentLetter || '?',
         });
-    } else if (newStatus === 'REVIEW') {
+    } else if (newStatus === 'ENDING_COUNTDOWN') {
         showStopSignal.value = true;
     } else if (newStatus === 'GAME_OVER') {
         // [PostHog] Partida terminada

@@ -522,16 +522,16 @@ export class TutiEngine extends BaseEngine {
         this.state.stoppedBy = userId;
         this.state.endingCountdownBy = player.name; // [P11] Para UI del contador
 
-        // [P11] M2 — Transicionar a ENDING_COUNTDOWN (3s de pánico)
+        // [P11] M2 — Transicionar a ENDING_COUNTDOWN (5s de pánico: 2s cartel + 3s escritura real)
         this.state.status = 'ENDING_COUNTDOWN';
-        this.state.timers.roundEndsAt = Date.now() + 3000;
+        this.state.timers.roundEndsAt = Date.now() + 5000;
         this.state.timers.graceEndsAt = null; // [Sync] Grace period ya expiró, limpiar
         this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
 
         if (this.onGameStateChange) this.onGameStateChange(this.state);
 
         if (this._endingTimer) clearTimeout(this._endingTimer);
-        this._endingTimer = setTimeout(() => this._forceReview(), 3000);
+        this._endingTimer = setTimeout(() => this._forceReview(), 5000);
 
         return this.state;
     }
