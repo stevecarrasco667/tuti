@@ -45,6 +45,9 @@ export class TutiEngine extends BaseEngine {
     // [P11] ENDING_COUNTDOWN: timer del pánico de 3 segundos
     private _endingTimer: ReturnType<typeof setTimeout> | null = null;
 
+    // [Preparación Rondas 2+]
+    private _loadingTimer: ReturnType<typeof setTimeout> | null = null;
+
     // [Sprint 4.1] Performance Optimization: Caché y Carga Background
     private _categoriesCache: CategoryRef[] | null = null;
     private _dictionaryLoadPromise: Promise<void[]> | null = null;
@@ -409,15 +412,7 @@ export class TutiEngine extends BaseEngine {
                     return [];
                 });
 
-                this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
-                // [Sprint 4 — S4-T3] Reset Anti-Troll start time for every new round.
-                // Previously missing here: _roundStartTime kept round-1's value, so the grace-period
-                // check in stopRound() always passed instantly in rounds 2+.
-                this._roundStartTime = Date.now();
-                // [Sync] Emitir graceEndsAt para que todos los clientes usen el mismo timestamp
-                const gracePeriodMs_1 = calcGracePeriod(this.state.categories.length);
-                this.state.timers.graceEndsAt = this._roundStartTime + gracePeriodMs_1;
-                this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
+                this._startLoadingRound();
             } else {
                 this._triggerGameOver('NORMAL');
             }
@@ -480,6 +475,52 @@ export class TutiEngine extends BaseEngine {
         }
 
         return this.state;
+    }
+
+    private _startLoadingRound() {
+        this.state.status = 'LOADING_ROUND';
+        this.state.answers = {};
+        this.state.answerStatuses = {};
+        this.state.votes = {};
+        this.state.roundScores = {};
+        this.state.whoFinishedVoting = [];
+        this.state.stoppedBy = null;
+        this.state.players.forEach(p => { p.filledCount = 0; });
+
+        // Seleccionar la letra de la ronda de forma centralizada
+        this.state.currentLetter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.charAt(Math.floor(Math.random() * 26));
+
+        // isLastRound
+        const currentRound = this.state.roundsPlayed + 1;
+        const totalRounds = this.state.config.classic?.rounds ?? 5;
+        this.state.isLastRound = currentRound >= totalRounds;
+
+        this.state.uiMetadata = { activeView: 'GAME', showTimer: false, targetTime: null };
+        this.state.timers.roundEndsAt = null;
+        this.state.timers.graceEndsAt = null;
+
+        // Cancelar temporizadores previos
+        if (this._endingTimer) { clearTimeout(this._endingTimer); this._endingTimer = null; }
+        if (this._votingTimer) { clearTimeout(this._votingTimer); this._votingTimer = null; }
+        if (this._resultsTimer) { clearTimeout(this._resultsTimer); this._resultsTimer = null; }
+
+        if (this._loadingTimer) clearTimeout(this._loadingTimer);
+        this._loadingTimer = setTimeout(() => {
+            this._loadingTimer = null;
+            this._startRoundGameplay();
+        }, 3800);
+
+        if (this.onGameStateChange) this.onGameStateChange(this.state);
+    }
+
+    private _startRoundGameplay() {
+        this.rounds.startRound(this.state, this.state.config, () => this.handleTimeUp_Internal());
+        this._roundStartTime = Date.now();
+        const gracePeriodMs = calcGracePeriod(this.state.categories.length);
+        this.state.timers.graceEndsAt = this._roundStartTime + gracePeriodMs;
+        this.state.uiMetadata = { activeView: 'GAME', showTimer: true, targetTime: this.state.timers.roundEndsAt };
+
+        if (this.onGameStateChange) this.onGameStateChange(this.state);
     }
 
     private handleTimeUp_Internal() {
@@ -687,6 +728,7 @@ export class TutiEngine extends BaseEngine {
         if (this._endingTimer) { clearTimeout(this._endingTimer); this._endingTimer = null; }
         if (this._votingTimer) { clearTimeout(this._votingTimer); this._votingTimer = null; }
         if (this._resultsTimer) { clearTimeout(this._resultsTimer); this._resultsTimer = null; }
+        if (this._loadingTimer) { clearTimeout(this._loadingTimer); this._loadingTimer = null; }
 
         // Clear temporal cache
         this.validation.getDictionaryManager().clearCache();

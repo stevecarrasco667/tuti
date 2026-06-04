@@ -49,14 +49,19 @@ watch(shouldSubmit, (needsSubmit) => {
 // Global state overlays
 watch(() => gameState.value.status, (newStatus) => {
     if (newStatus === 'PLAYING') {
+        // Solo mostrar la cuenta atrás en PLAYING si es la Ronda 1 (roundsPlayed === 0)
+        if (gameState.value.roundsPlayed === 0) {
+            showCountdown.value = true;
+            // [PostHog] Partida iniciada — dato más importante del funnel
+            trackGameStarted({
+                player_count:  gameState.value.players.length,
+                mode:          gameState.value.config.mode as 'CLASSIC' | 'IMPOSTOR',
+                round_total:   gameState.value.config.classic?.rounds || 5,
+                letter:        gameState.value.currentLetter || '?',
+            });
+        }
+    } else if (newStatus === 'LOADING_ROUND') {
         showCountdown.value = true;
-        // [PostHog] Partida iniciada — dato más importante del funnel
-        trackGameStarted({
-            player_count:  gameState.value.players.length,
-            mode:          gameState.value.config.mode as 'CLASSIC' | 'IMPOSTOR',
-            round_total:   gameState.value.config.classic?.rounds || 5,
-            letter:        gameState.value.currentLetter || '?',
-        });
     } else if (newStatus === 'ENDING_COUNTDOWN') {
         showStopSignal.value = true;
     } else if (newStatus === 'GAME_OVER') {

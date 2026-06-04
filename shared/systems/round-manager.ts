@@ -28,8 +28,10 @@ export class RoundManager {
         const totalRounds = config.classic?.rounds ?? 5;
         state.isLastRound = currentRound >= totalRounds;
 
-        // Pick new letter (Random)
-        state.currentLetter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.charAt(Math.floor(Math.random() * 26));
+        // Pick new letter (Random) if not already set
+        if (!state.currentLetter) {
+            state.currentLetter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.charAt(Math.floor(Math.random() * 26));
+        }
 
         // Start Timer
         const durationMs = config.classic.timeLimit * 1000;

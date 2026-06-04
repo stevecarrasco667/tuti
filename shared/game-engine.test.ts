@@ -328,19 +328,28 @@ describe('TutiEngine Core', () => {
             // 3. End Round 1 (Simulate flow)
             state.status = 'RESULTS';
 
-            // 4. Start Round 2
-            await engine.startGame(c1); // Helper validation might block if not Host, but p1 is Host (first joined)
+            vi.useFakeTimers();
+            try {
+                // 4. Start Round 2
+                await engine.startGame(c1); // Helper validation might block if not Host, but p1 is Host (first joined)
 
-            // 5. Assert Tabula Rasa
-            const newState = engine.getState();
-            expect(newState.status).toBe('PLAYING');
+                // Avanzar los 3.8s de LOADING_ROUND a PLAYING
+                await vi.advanceTimersByTimeAsync(3800);
 
-            // CRITICAL CHECKS
-            expect(newState.answers).toEqual({});
-            expect(newState.votes).toEqual({});
-            expect(newState.roundScores).toEqual({}); // The fix we implemented
-            expect(newState.answerStatuses).toEqual({});
-            expect(newState.whoFinishedVoting).toEqual([]);
+                // 5. Assert Tabula Rasa
+                const newState = engine.getState();
+                expect(newState.status).toBe('PLAYING');
+
+                // CRITICAL CHECKS
+                expect(newState.answers).toEqual({});
+                expect(newState.votes).toEqual({});
+                expect(newState.roundScores).toEqual({}); // The fix we implemented
+                expect(newState.answerStatuses).toEqual({});
+                expect(newState.whoFinishedVoting).toEqual([]);
+            } finally {
+                vi.clearAllTimers();
+                vi.useRealTimers();
+            }
         });
     });
 
