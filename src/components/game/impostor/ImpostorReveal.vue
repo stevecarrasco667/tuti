@@ -38,7 +38,7 @@ const totalCount = computed(() => props.impostorData.alivePlayers.length);
                 : 'bg-[radial-gradient(circle_at_center,_rgba(106,215,229,0.25)_0%,_rgba(0,0,0,1)_80%)]'">
         </div>
 
-        <div class="z-10 flex flex-col items-center justify-between w-full h-full max-w-5xl md:max-w-[90%] mx-auto px-4 py-[clamp(0.5rem,2dvh,2rem)] relative">
+        <div class="z-10 flex flex-col items-center justify-between w-full min-h-[100dvh] max-w-5xl md:max-w-[90%] mx-auto px-4 pt-[clamp(1rem,4dvh,2rem)] pb-0 relative overflow-y-auto scrollbar-thin">
             
             <!-- CONTENIDO CENTRAL COMPACTADO -->
             <div class="flex-1 flex flex-col items-center justify-center w-full gap-[clamp(0.5rem,3dvh,2rem)]">
@@ -80,7 +80,7 @@ const totalCount = computed(() => props.impostorData.alivePlayers.length);
             </div>
 
             <!-- Footer: Timer + Botón "Listo" [GD-1] -->
-            <div class="mt-auto flex-none flex flex-col items-center justify-end gap-4 pb-2">
+            <div class="sticky bottom-[env(safe-area-inset-bottom,1rem)] z-50 mt-auto flex-none flex flex-col items-center justify-end gap-4 pb-2 bg-black/40 md:bg-transparent backdrop-blur-md md:backdrop-blur-none p-4 rounded-3xl border border-white/10 md:border-none shadow-xl md:shadow-none w-full max-w-md md:w-auto mb-4 md:mb-0">
 
                 <!-- [GD-1] Botón "Listo" + contador -->
                 <div class="flex flex-col items-center gap-2">

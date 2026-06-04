@@ -92,7 +92,7 @@ const handleInputFocus = (event: Event) => {
 </script>
 
 <template>
-    <div class="h-full w-full flex flex-col items-center p-3 md:p-6 overflow-y-auto scrollbar-thin">
+    <div class="min-h-[100dvh] w-full flex flex-col justify-start items-center p-3 md:p-6 overflow-y-auto scrollbar-thin pb-[env(safe-area-inset-bottom,1rem)]">
         
         <!-- HEADER UNIFICADO: Categoría + Identidad + Tiempo -->
         <div class="w-full flex justify-between items-stretch bg-panel-card border border-white/10 p-2 md:p-3 rounded-2xl backdrop-blur-md shadow-sm max-w-xl flex-none mb-3 md:mb-4 relative overflow-hidden group gap-2 md:gap-3">
@@ -165,7 +165,7 @@ const handleInputFocus = (event: Event) => {
                     v-model="inputWord"
                     :disabled="isLocked"
                     :placeholder="t('impostorTyping.placeholder')"
-                    class="w-full bg-panel-input border-[3px] md:border-[4px] text-center text-xl md:text-4xl py-3.5 md:py-6 px-12 md:px-16 rounded-2xl md:rounded-[2.5rem] backdrop-blur-xl focus:outline-none transition-all font-black shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="w-full bg-panel-input border-[3px] md:border-[4px] text-center text-lg md:text-4xl py-2 md:py-6 px-10 md:px-16 rounded-2xl md:rounded-[2.5rem] backdrop-blur-xl focus:outline-none transition-all font-black shadow-inner disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                     :class="[
                         spoilerDetected 
                             ? 'border-action-error text-action-error placeholder:text-action-error/40 focus:border-action-error focus:bg-action-error/10 focus:shadow-glow-panic' 

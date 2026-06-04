@@ -182,16 +182,9 @@ const votingProgress = computed(() =>
         <!-- HEADER -->
         <div class="flex-none px-4 pt-3 pb-2">
             <!-- Row: Timer + Title + (mobile: nothing) -->
-            <div class="flex items-center justify-center relative mb-2">
-                <!-- Timer (absolute right) -->
-                <div class="absolute right-0 flex items-center justify-center min-w-[3rem] px-2 h-10 rounded-2xl border-2 border-white/10 bg-panel-card shadow-sm">
-                    <span class="text-lg font-black font-mono transition-colors duration-300" :class="timerColor">
-                        {{ Math.max(0, timeRemaining) }}
-                    </span>
-                </div>
-
+            <div class="flex flex-col-reverse sm:flex-row items-center sm:justify-center relative mb-2 gap-2 sm:gap-0">
                 <!-- Title -->
-                <div class="text-center">
+                <div class="text-center w-full">
                     <h2 class="text-xl md:text-2xl font-black text-ink-main tracking-widest uppercase drop-shadow-sm">
                         {{ t('impostorVoting.title') }}
                     </h2>
@@ -199,6 +192,13 @@ const votingProgress = computed(() =>
                     <p class="hidden md:block text-tuti-teal text-[11px] font-black uppercase tracking-widest bg-white/5 border border-white/10 px-3 py-0.5 rounded-full w-fit mx-auto mt-1">
                         {{ t('impostorVoting.subtitle') }}
                     </p>
+                </div>
+
+                <!-- Timer (flowing on mobile, absolute on desktop) -->
+                <div class="sm:absolute sm:right-0 flex items-center justify-center min-w-[3rem] px-2 h-10 rounded-2xl border-2 border-white/10 bg-panel-card shadow-sm shrink-0">
+                    <span class="text-lg font-black font-mono transition-colors duration-300" :class="timerColor">
+                        {{ Math.max(0, timeRemaining) }}
+                    </span>
                 </div>
             </div>
 
@@ -307,7 +307,7 @@ const votingProgress = computed(() =>
                         </div>
 
                         <!-- WORD — Visual protagonist -->
-                        <div class="relative w-full rounded-xl px-3 py-2 text-center transition-all duration-300"
+                        <div class="relative w-full rounded-xl px-3 py-2 text-center transition-all duration-300 min-h-0 min-w-0 flex flex-col justify-center items-center"
                              :class="[
                                  cardConfig.wordContainer,
                                  s.word

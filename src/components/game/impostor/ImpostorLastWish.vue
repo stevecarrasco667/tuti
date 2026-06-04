@@ -65,9 +65,9 @@ const eliminatedPlayer = computed(() =>
         <!-- Spotlight Radial FX -->
         <div class="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_center,_rgba(239,68,68,0.25)_0%,_rgba(0,0,0,1)_80%)]" />
 
-        <div class="z-10 flex flex-col items-center justify-between w-full h-full max-w-5xl md:max-w-[90%] mx-auto px-4 py-[clamp(0.5rem,2dvh,2rem)] relative">
+        <div class="z-10 flex flex-col items-center justify-between w-full min-h-[100dvh] max-w-5xl md:max-w-[90%] mx-auto px-4 py-[clamp(0.5rem,2dvh,2rem)] pb-[env(safe-area-inset-bottom,1rem)] relative overflow-y-auto scrollbar-thin">
             
-            <div class="flex-1 flex flex-col items-center justify-center w-full min-h-0 gap-[clamp(0.2rem,1.5dvh,1.5rem)]">
+            <div class="flex-1 flex flex-col items-center justify-center w-full min-h-0 gap-[clamp(0.2rem,1.5dvh,1.5rem)] py-4 my-auto">
                 
                 <!-- Eliminado Info -->
                 <div class="flex-none flex flex-col items-center">
@@ -79,7 +79,7 @@ const eliminatedPlayer = computed(() =>
                 <!-- Título Liquido -->
                 <div class="flex flex-col items-center flex-none w-full">
                     <span class="text-[clamp(2.5rem,6vw,4rem)] shrink-0 drop-shadow-md">⚰️</span>
-                    <h1 class="font-black uppercase tracking-tighter leading-[0.9] text-[clamp(4rem,9vw,8rem)] w-full text-balance text-white drop-shadow-[0_0_50px_rgba(255,255,255,0.6)]">
+                    <h1 class="font-black uppercase tracking-tighter leading-[0.9] text-[clamp(2.5rem,9vw,8rem)] w-full text-balance text-white drop-shadow-[0_0_50px_rgba(255,255,255,0.6)]">
                         {{ t('impostorLastWish.title') }}
                     </h1>
                 </div>

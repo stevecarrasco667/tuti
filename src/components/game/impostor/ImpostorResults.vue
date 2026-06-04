@@ -120,7 +120,7 @@ if (!matchOver.value && eliminatedPlayer.value) {
                 : 'bg-[radial-gradient(circle_at_center,_rgba(106,215,229,0.20)_0%,_rgba(0,0,0,1)_80%)]'">
         </div>
 
-        <div class="z-10 flex flex-col items-center justify-between w-full h-full max-w-5xl md:max-w-[90%] mx-auto px-4 py-[clamp(0.5rem,2dvh,1.5rem)] relative">
+        <div class="z-10 flex flex-col items-center justify-between w-full min-h-[100dvh] max-w-5xl md:max-w-[90%] mx-auto px-4 py-[clamp(0.5rem,2dvh,1.5rem)] relative overflow-y-auto scrollbar-thin">
             
             <!-- CONTENIDO CENTRAL FLEXIBLE -->
             <div class="flex-1 flex flex-col items-center w-full overflow-y-auto scrollbar-none md:scrollbar-thin min-h-0 px-2 relative z-10">
@@ -165,8 +165,7 @@ if (!matchOver.value && eliminatedPlayer.value) {
 
                     <!-- PALABRAS POR JUGADOR + REACCIONES -->
                     <div v-if="!matchOver" 
-                         class="w-full max-w-2xl mt-1.5 flex flex-col gap-2 relative z-10 overflow-y-auto scrollbar-thin px-1 pt-6 pb-2 shrink-0"
-                         :class="cardConfig.listMaxHeight"
+                         class="w-full max-w-2xl mt-1.5 flex flex-col gap-2 relative z-10 overflow-y-auto scrollbar-thin px-1 pt-6 pb-2 shrink-0 sm:shrink flex-1 min-h-[150px]"
                     >
                         <div
                             v-for="player in players"
@@ -197,7 +196,7 @@ if (!matchOver.value && eliminatedPlayer.value) {
             </div>
 
             <!-- ANCLA FANTASMA AL FONDO -->
-            <div class="mt-auto flex-none flex flex-col items-center justify-end w-full shrink-0 pt-1 pb-1">
+            <div class="sticky bottom-[env(safe-area-inset-bottom,0.5rem)] z-50 mt-auto flex-none flex flex-col items-center justify-end w-full shrink-0 pt-1 pb-1 bg-black/40 backdrop-blur-md rounded-xl md:bg-transparent md:backdrop-blur-none p-2 mb-2 md:mb-0">
                 <div v-if="matchOver" class="opacity-60 animate-pulse text-center w-full">
                     <p class="text-[clamp(0.7rem,1.2vw,1rem)] text-white/50 uppercase tracking-[0.4em] font-black">{{ t('impostorResults.calculatingVerdict') }}</p>
                 </div>
