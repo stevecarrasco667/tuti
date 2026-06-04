@@ -95,59 +95,59 @@ const handleInputFocus = (event: Event) => {
     <div class="h-full w-full flex flex-col items-center p-3 md:p-6 overflow-y-auto scrollbar-thin">
         
         <!-- HEADER UNIFICADO: Categoría + Identidad + Tiempo -->
-        <div class="w-full flex justify-between items-stretch bg-panel-card border border-white/10 p-2 md:p-3 rounded-2xl backdrop-blur-md shadow-sm max-w-xl flex-none mb-3 md:mb-4 relative overflow-hidden group gap-2 md:gap-3">
+        <div class="w-full flex justify-between items-stretch bg-panel-card border border-white/10 p-1.5 xs:p-2 md:p-3 rounded-2xl backdrop-blur-md shadow-sm max-w-xl flex-none mb-3 md:mb-4 relative overflow-hidden group gap-1 xs:gap-2 md:gap-3">
             <!-- 1. Categoría (Izquierda) -->
-            <div class="flex-[1.2] min-w-0 flex flex-col justify-center pl-1 md:pl-2">
-                <span class="text-[7px] md:text-[9px] text-ink-muted uppercase tracking-widest block font-black mb-0.5">{{ t('impostorTyping.category') }}</span>
-                <span class="text-[10px] xs:text-xs md:text-base text-ink-main font-black truncate">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</span>
+            <div class="flex-1 md:flex-[1.2] min-w-0 flex flex-col justify-center pl-0.5 xs:pl-1 md:pl-2">
+                <span class="text-[6px] xs:text-[7px] md:text-[9px] text-ink-muted uppercase tracking-wider md:tracking-widest block font-black mb-0.5">{{ t('impostorTyping.category') }}</span>
+                <span class="text-[9px] xs:text-[10px] md:text-base text-ink-main font-black truncate">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</span>
             </div>
             
             <!-- Divisor Vertical -->
-            <div class="h-8 md:h-10 w-px bg-white/10 flex-none self-center"></div>
+            <div class="h-6 xs:h-8 md:h-10 w-px bg-white/10 flex-none self-center"></div>
             
             <!-- 2. Identidad y Rol (Centro) -->
-            <div class="flex-[2.8] min-w-0 flex items-center px-1 md:px-2 gap-2 md:gap-3 transition-opacity duration-300"
+            <div class="flex-[2.5] md:flex-[2.8] min-w-0 flex items-center px-0.5 xs:px-1 md:px-2 gap-1 xs:gap-2 md:gap-3 transition-opacity duration-300"
                  :class="{ 'opacity-50': isDead }">
                 
-                <span class="text-2xl md:text-4xl flex-none drop-shadow-sm animate-pulse">
+                <span class="text-lg xs:text-xl md:text-4xl flex-none drop-shadow-sm animate-pulse">
                     {{ isDead ? '💀' : isImpostor ? '🤫' : '💡' }}
                 </span>
                 
-                <div class="min-w-0 flex flex-col justify-center text-left">
-                    <span class="text-[8px] md:text-xs uppercase tracking-widest font-black block mb-0.5 md:mb-1"
+                <div class="min-w-0 flex flex-col justify-center text-left w-full">
+                    <span class="text-[6px] xs:text-[8px] md:text-xs uppercase tracking-tight xs:tracking-normal md:tracking-widest font-black block mb-0.5 md:mb-1 truncate"
                           :class="[
                               isDead ? 'text-ink-muted' :
                               isImpostor ? 'text-action-error' : 'text-tuti-teal'
                           ]">
                         {{ isDead ? t('impostorTyping.ghostTitle') : isImpostor ? t('impostorTyping.impostorTitle') : t('impostorTyping.crewTitle') }}
                     </span>
-                    <span class="text-xs xs:text-sm md:text-xl lg:text-2xl text-ink-main font-black leading-tight truncate">
+                    <div class="flex items-baseline gap-0.5 xs:gap-1 md:gap-1 w-full min-w-0 leading-tight">
                         <template v-if="isDead">
-                            <span class="text-ink-muted font-bold text-[9px] xs:text-[10px] md:text-sm">{{ t('impostorTyping.ghostDesc') }}</span>
+                            <span class="text-ink-muted font-bold text-[8px] xs:text-[9px] md:text-sm truncate">{{ t('impostorTyping.ghostDesc') }}</span>
                         </template>
                         <template v-else-if="isImpostor">
-                            <span v-if="impostorAllies.length > 0" class="text-ink-muted font-normal text-[9px] xs:text-xs md:text-base">
+                            <span v-if="impostorAllies.length > 0" class="text-ink-muted font-normal text-[8px] xs:text-[9px] md:text-base truncate">
                                 {{ t('impostorTyping.allies') }}: <strong class="text-action-error font-black">{{ impostorAllies.join(', ') }}</strong>
                             </span>
-                            <span v-else class="text-action-error font-black italic text-xs xs:text-sm md:text-xl">
+                            <span v-else class="text-action-error font-black italic text-[9px] xs:text-xs md:text-xl truncate">
                                 {{ t('impostorTyping.impostorTip') }}
                             </span>
                         </template>
                         <template v-else>
-                            <span class="text-ink-muted font-normal text-[10px] xs:text-xs md:text-lg mr-1">{{ t('impostorTyping.wordIs') }}</span>
-                            <span class="text-tuti-teal font-black text-xs xs:text-sm md:text-xl lg:text-2xl animate-pulse">{{ secretWord }}</span>
+                            <span class="text-ink-muted font-normal text-[8px] xs:text-[10px] md:text-lg flex-none">{{ t('impostorTyping.wordIs') }}</span>
+                            <span class="text-tuti-teal font-black text-[10px] xs:text-xs md:text-xl lg:text-2xl animate-pulse truncate">{{ secretWord }}</span>
                         </template>
-                    </span>
+                    </div>
                 </div>
             </div>
             
             <!-- Divisor Vertical -->
-            <div class="h-8 md:h-10 w-px bg-white/10 flex-none self-center"></div>
+            <div class="h-6 xs:h-8 md:h-10 w-px bg-white/10 flex-none self-center"></div>
             
             <!-- 3. Tiempo (Derecha) -->
-            <div class="flex items-center gap-1 md:gap-2 flex-none justify-center pr-1 md:pr-2">
-                <span class="text-[7px] md:text-[9px] text-ink-muted uppercase tracking-widest font-black hidden xs:inline">{{ t('impostorTyping.time') }}</span>
-                <span class="text-sm md:text-xl font-mono font-black border bg-panel-input px-2 md:px-2.5 py-0.5 md:py-1 rounded-lg leading-none shadow-inner" :class="timerColor">
+            <div class="flex items-center gap-0.5 xs:gap-1 md:gap-2 flex-none justify-center pr-0.5 xs:pr-1 md:pr-2">
+                <span class="text-[6px] xs:text-[7px] md:text-[9px] text-ink-muted uppercase tracking-wider md:tracking-widest font-black hidden xs:inline">{{ t('impostorTyping.time') }}</span>
+                <span class="text-xs xs:text-sm md:text-xl font-mono font-black border bg-panel-input px-1.5 xs:px-2 md:px-2.5 py-0.5 md:py-1 rounded-md xs:rounded-lg md:rounded-xl leading-none shadow-inner" :class="timerColor">
                     {{ Math.max(0, timeRemaining) }}
                 </span>
             </div>
