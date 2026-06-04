@@ -92,8 +92,8 @@ describe('Server Integration - Game Flow', () => {
             await server.onMessage(JSON.stringify(stopPayload), host);
             expect(getState().status).toBe('ENDING_COUNTDOWN');
 
-            // 4. Avanzar los 3s del pánico → _forceReview() → REVIEW
-            await vi.advanceTimersByTimeAsync(3000);
+            // 4. Avanzar los 5s del pánico (2s cartel + 3s escritura) → _forceReview() → REVIEW
+            await vi.advanceTimersByTimeAsync(5000);
             expect(getState().status).toBe('REVIEW');
         } finally {
             vi.clearAllTimers();
