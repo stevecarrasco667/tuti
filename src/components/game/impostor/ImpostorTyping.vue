@@ -121,7 +121,7 @@ const handleInputFocus = (event: Event) => {
                           ]">
                         {{ isDead ? t('impostorTyping.ghostTitle') : isImpostor ? t('impostorTyping.impostorTitle') : t('impostorTyping.crewTitle') }}
                     </span>
-                    <span class="text-xs xs:text-sm md:text-xl lg:text-2xl text-ink-main font-black leading-tight truncate">
+                    <div class="text-xs xs:text-sm md:text-xl lg:text-2xl text-ink-main font-black leading-tight break-words">
                         <template v-if="isDead">
                             <span class="text-ink-muted font-bold text-[9px] xs:text-[10px] md:text-sm">{{ t('impostorTyping.ghostDesc') }}</span>
                         </template>
@@ -134,10 +134,10 @@ const handleInputFocus = (event: Event) => {
                             </span>
                         </template>
                         <template v-else>
-                            <span class="text-ink-muted font-normal text-[10px] xs:text-xs md:text-lg mr-1">{{ t('impostorTyping.wordIs') }}</span>
+                            <span class="text-ink-muted font-normal text-[9px] xs:text-[10px] md:text-lg mr-1">{{ t('impostorTyping.wordIs') }}</span>
                             <span class="text-tuti-teal font-black text-xs xs:text-sm md:text-xl lg:text-2xl animate-pulse">{{ secretWord }}</span>
                         </template>
-                    </span>
+                    </div>
                 </div>
             </div>
             

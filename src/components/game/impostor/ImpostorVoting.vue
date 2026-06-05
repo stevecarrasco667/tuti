@@ -307,22 +307,16 @@ const votingProgress = computed(() =>
                         </div>
 
                         <!-- WORD — Visual protagonist -->
-                        <div class="relative w-full rounded-xl px-3 py-2 text-center transition-all duration-300"
-                             :class="[
-                                 cardConfig.wordContainer,
-                                 s.word
-                                     ? 'bg-tuti-teal/10 border border-tuti-teal/30 shadow-[0_0_8px_rgba(20,184,166,0.05)]'
-                                     : 'bg-panel-input/30 border border-white/5 backdrop-blur-sm animate-pulse'
-                             ]"
+                        <div class="relative w-full flex-1 flex flex-col items-center justify-center text-center transition-all duration-300 py-3 md:py-6"
+                             :class="[!s.word ? 'animate-pulse' : '']"
                         >
                             <span v-if="s.word"
-                                  class="font-black text-tuti-teal break-all leading-tight"
-                                  :class="cardConfig.wordClass">
+                                  class="font-black text-tuti-teal break-words leading-none text-2xl md:text-[2rem] drop-shadow-md w-full">
                                 {{ s.word }}
                             </span>
-                            <div v-else class="flex items-center justify-center gap-1.5 py-0.5">
-                                <span class="text-xs animate-spin-slow">⏳</span>
-                                <span class="font-bold italic text-ink-soft/60"
+                            <div v-else class="flex flex-col items-center justify-center gap-2">
+                                <span class="text-3xl md:text-4xl animate-spin-slow">⏳</span>
+                                <span class="font-bold italic text-ink-soft/40"
                                       :class="cardConfig.thinkingClass">
                                     {{ t('impostorVoting.thinking') }}
                                 </span>
@@ -343,7 +337,7 @@ const votingProgress = computed(() =>
                         </div>
 
                         <!-- Reacciones: bar visible para TODOS (incluso el propio jugador ve las reacciones en su carta) -->
-                        <div class="flex items-center gap-1" v-if="s.word && !s.isPlayerDead">
+                        <div class="flex items-center gap-1 mb-2" v-if="s.word && !s.isPlayerDead">
                             <ReactionBar
                                 :counts="getCountsForTarget(s.id, impostorData.currentCategoryId)"
                                 :is-compact="cardConfig.reactionsCompact"
@@ -361,50 +355,29 @@ const votingProgress = computed(() =>
 
                         <button @click="handleVote(s.id)"
                                 :disabled="s.isMe || s.isPlayerDead || isDead || isSpectator"
-                                class="flex items-center justify-between w-full rounded-full transition-all duration-300 border-2 active:scale-95"
+                                class="w-full rounded-[1rem] md:rounded-full transition-all duration-300 border-[3px] py-2.5 md:py-3 active:scale-95 flex items-center justify-center relative overflow-hidden group"
                                 :class="[
-                                    cardConfig.buttonClass,
                                     s.isSelectedByMe
-                                        ? 'bg-action-error/10 border-action-error/45 shadow-[0_0_8px_rgba(251,113,133,0.2)]'
-                                        : 'bg-panel-input border-white/10 hover:border-white/20',
+                                        ? 'bg-action-error border-action-error shadow-[0_0_20px_rgba(239,68,68,0.4)]'
+                                        : 'bg-panel-input/40 border-white/10 hover:border-action-error/50 hover:bg-action-error/10',
                                     (!s.isMe && !s.isPlayerDead && !isDead && !isSpectator)
                                         ? 'cursor-pointer'
-                                        : 'cursor-not-allowed opacity-60 grayscale'
+                                        : 'cursor-not-allowed opacity-50 grayscale'
                                 ]"
                         >
-                            <span class="font-black tracking-widest uppercase text-left flex-shrink-0 mr-2"
+                            <span class="font-black tracking-widest uppercase text-center relative z-10 transition-colors"
                                   :class="[
-                                      s.isSelectedByMe ? 'text-action-error font-extrabold' : 'text-ink-soft',
-                                      cardConfig.buttonText
+                                      s.isSelectedByMe ? 'text-white text-base md:text-lg drop-shadow-md' : 'text-ink-soft text-sm md:text-base group-hover:text-action-error'
                                   ]">
-                                {{ t('impostorVoting.accuse') }}
+                                {{ s.isSelectedByMe ? '¡' + t('impostorVoting.accuse') + '!' : t('impostorVoting.accuse') }}
                             </span>
-
-                            <!-- Toggle visual — flex-shrink-0 so it never compresses -->
-                            <div class="relative inline-flex items-center rounded-full border transition-colors duration-300 border-white/10 shrink-0 shadow-inner focus:outline-none"
-                                 :class="[
-                                     cardConfig.switchContainer,
-                                     s.isSelectedByMe 
-                                         ? 'bg-action-error shadow-[0_0_10px_rgba(251,113,133,0.35)] border-action-error/30' 
-                                         : 'bg-[#0f0e2d]/60 shadow-inner border-white/5',
-                                     s.isMe ? 'opacity-40' : ''
-                                 ]">
-                                <div v-if="!s.isMe"
-                                     class="inline-block bg-white rounded-full transform transition-transform duration-200 ease-out shadow-md"
-                                     :class="[
-                                         cardConfig.switchCircle,
-                                         s.isSelectedByMe ? cardConfig.switchCircleTranslate : 'translate-x-0'
-                                     ]">
-                                </div>
-                            </div>
                         </button>
                     </div>
 
                     <!-- Footer: vote count -->
-                    <div class="bg-panel-input/60 flex justify-center items-center border-t-2 border-white/10 rounded-b-3xl"
-                         :class="cardConfig.footerPadding">
-                        <span class="text-action-warning mr-1 drop-shadow-sm" :class="cardConfig.reactionsCompact ? 'text-xs' : 'text-sm'">🔥</span>
-                        <span class="font-black text-ink-soft uppercase tracking-widest"
+                    <div class="flex justify-center items-center pb-3 pt-1">
+                        <span class="text-action-warning mr-1 drop-shadow-sm" :class="cardConfig.reactionsCompact ? 'text-[10px]' : 'text-xs'">🔥</span>
+                        <span class="font-black text-ink-muted uppercase tracking-widest"
                               :class="cardConfig.footerText">
                             {{ s.currentVotes }} {{ s.currentVotes === 1 ? t('impostorVoting.vote') : t('impostorVoting.votes') }}
                         </span>
