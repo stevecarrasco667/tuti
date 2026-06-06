@@ -44,7 +44,7 @@ const handleSubmit = (word: string) => {
     <div class="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-4 w-full h-full overflow-hidden p-4 relative">
         
         <!-- JUEGO (Columna Izquierda 1fr) -->
-        <div class="h-full w-full flex flex-col items-center justify-center relative rounded-3xl overflow-hidden shadow-inner pt-[60px] lg:pt-0">
+        <div class="h-full w-full flex flex-col items-center justify-center relative rounded-3xl overflow-hidden shadow-inner">
             <!-- TOP-LEFT: Botón de salida, igual que GameHUD, sin solapamiento -->
             <button @click="emit('exit')" class="absolute top-3 left-3 z-[90] text-white/60 hover:text-white transition-colors p-1" :title="t('gameHUD.exit')">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">

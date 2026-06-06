@@ -131,10 +131,10 @@ const cardConfig = computed(() => {
             bodyPadding: 'p-4 gap-2.5',
             footerPadding: 'py-2 px-3',
             avatarContainer: 'w-10 h-10 text-xl',
-            avatarText: 'text-lg md:text-xl',
+            avatarText: 'text-base md:text-xl',
             nameClass: 'text-[11px] md:text-xs',
             wordContainer: 'py-2 md:py-4',
-            wordClass: 'text-xl md:text-2xl',
+            wordClass: 'text-lg md:text-2xl',
             thinkingClass: 'text-xs md:text-sm',
             buttonClass: 'py-2 md:py-2.5 border-[2.5px] rounded-[0.8rem] md:rounded-full',
             buttonText: 'text-sm md:text-base',
@@ -146,10 +146,10 @@ const cardConfig = computed(() => {
             bodyPadding: 'p-2.5 md:p-3 gap-1.5',
             footerPadding: 'py-1.5 px-2',
             avatarContainer: 'w-8 h-8 text-lg',
-            avatarText: 'text-base md:text-lg',
+            avatarText: 'text-sm md:text-lg',
             nameClass: 'text-[9px] md:text-[10px]',
             wordContainer: 'py-1.5 md:py-3',
-            wordClass: 'text-lg md:text-xl',
+            wordClass: 'text-base md:text-xl',
             thinkingClass: 'text-[10px] md:text-xs',
             buttonClass: 'py-1.5 md:py-2 border-[2px] rounded-[0.6rem] md:rounded-full',
             buttonText: 'text-xs md:text-sm',
@@ -170,39 +170,51 @@ const totalVoters = computed(() => suspects.value.filter(s => !s.isPlayerDead).l
         <!-- HEADER UNIFICADO HORIZONTAL -->
         <div class="flex-none bg-panel-card/50 backdrop-blur-sm border-b border-white/5 px-3 py-2 md:py-2.5 mb-2 shadow-sm relative z-10 flex flex-col md:flex-row items-center justify-between gap-2 md:gap-4">
             
-            <!-- Izquierda: Título -->
-            <div class="flex items-center gap-2 w-full md:w-auto justify-center md:justify-start">
-                <span class="text-xl md:text-2xl drop-shadow-sm">🔎</span>
-                <h2 class="text-lg md:text-xl font-black text-ink-main tracking-widest uppercase drop-shadow-sm whitespace-nowrap">
-                    {{ t('impostorVoting.title') }}
-                </h2>
+            <!-- Izquierda (Móvil Fila 1) / Izquierda (Desktop): Título + Reloj Móvil -->
+            <div class="flex items-center justify-between w-full md:w-auto md:justify-start pl-10 md:pl-0">
+                <div class="flex items-center gap-1.5 md:gap-2">
+                    <h2 class="text-base md:text-xl font-black text-ink-main tracking-widest uppercase drop-shadow-sm whitespace-nowrap">
+                        {{ t('impostorVoting.title') }}
+                    </h2>
+                </div>
+                <!-- Reloj (Sólo Móvil) -->
+                <div class="flex md:hidden items-center gap-2">
+                    <span class="text-[9px] font-black text-ink-muted uppercase tracking-widest whitespace-nowrap">
+                        {{ votesCast }}/{{ totalVoters }} {{ t('impostorVoting.votes').toUpperCase() }}
+                    </span>
+                    <div class="flex items-center justify-center min-w-[2.25rem] px-1.5 h-7 rounded-xl border-2 border-white/10 bg-panel-input shadow-sm">
+                        <span class="text-sm font-black font-mono transition-colors duration-300 leading-none" :class="timerColor">
+                            {{ Math.max(0, timeRemaining) }}
+                        </span>
+                    </div>
+                </div>
             </div>
 
-            <!-- Centro: Identity Banner (Ultra-compacto) -->
+            <!-- Centro: Identity Banner (Móvil Fila 2) -->
             <div v-if="!isSpectator" class="flex-1 flex justify-center w-full min-w-0 transition-opacity duration-500" :class="{ 'opacity-60 grayscale': isDead }">
                 <div v-if="isImpostor"
-                     class="max-w-full bg-action-error/10 border-[1.5px] border-action-error/30 rounded-full px-4 py-1.5 flex items-center justify-center gap-1.5 shadow-inner overflow-hidden">
+                     class="w-full md:w-fit md:max-w-full bg-action-error/10 border-[1.5px] border-action-error/30 rounded-full px-4 py-1.5 flex items-center justify-center gap-1.5 shadow-inner overflow-hidden">
                     <span class="text-sm md:text-base flex-none">{{ isDead ? '💀' : '⚠️' }}</span>
-                    <span class="text-action-error font-black text-[10px] md:text-xs uppercase tracking-widest truncate">{{ t('impostorVoting.impostor') }}</span>
-                    <span class="text-ink-muted text-[10px] md:text-xs font-bold truncate mx-1">· {{ t('impostorTyping.categoryLabel') }} <strong class="text-action-error font-black">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</strong></span>
+                    <span class="text-action-error font-black text-[9px] md:text-xs uppercase tracking-widest truncate">{{ t('impostorVoting.impostor') }}</span>
+                    <span class="text-ink-muted text-[9px] md:text-xs font-bold truncate mx-1">· {{ t('impostorTyping.categoryLabel') }} <strong class="text-action-error font-black">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</strong></span>
                 </div>
                 <div v-else
-                     class="max-w-full bg-tuti-teal/10 border-[1.5px] border-tuti-teal/30 rounded-full px-4 py-1.5 flex items-center justify-center gap-1.5 shadow-inner overflow-hidden">
+                     class="w-full md:w-fit md:max-w-full bg-tuti-teal/10 border-[1.5px] border-tuti-teal/30 rounded-full px-4 py-1.5 flex items-center justify-center gap-1.5 shadow-inner overflow-hidden">
                     <span class="text-sm md:text-base flex-none">{{ isDead ? '💀' : '💡' }}</span>
-                    <span class="text-tuti-teal font-black text-[10px] md:text-xs uppercase tracking-widest truncate">{{ t('impostorVoting.crew') }}</span>
-                    <span class="text-ink-muted text-[10px] md:text-xs font-bold truncate mx-1">· {{ t('impostorTyping.wordIs') }} <strong class="text-tuti-teal font-black">{{ secretWord }}</strong></span>
+                    <span class="text-tuti-teal font-black text-[9px] md:text-xs uppercase tracking-widest truncate">{{ t('impostorVoting.crew') }}</span>
+                    <span class="text-ink-muted text-[9px] md:text-xs font-bold truncate mx-1">· {{ t('impostorTyping.wordIs') }} <strong class="text-tuti-teal font-black break-all">{{ secretWord }}</strong></span>
                 </div>
             </div>
             <!-- Espectador -->
             <div v-else class="flex-1 flex justify-center w-full min-w-0">
-                <div class="bg-panel-input/60 border border-white/10 rounded-full px-4 py-1.5 flex items-center justify-center gap-1.5 shadow-inner">
+                <div class="w-full md:w-fit md:max-w-full bg-panel-input/60 border border-white/10 rounded-full px-4 py-1.5 flex items-center justify-center gap-1.5 shadow-inner">
                     <span class="text-sm animate-pulse">👀</span>
                     <span class="text-action-primary font-black text-[10px] md:text-xs uppercase tracking-widest truncate">{{ t('impostorVoting.spectating') }}</span>
                 </div>
             </div>
 
-            <!-- Derecha: Votos + Reloj -->
-            <div class="flex items-center gap-3 w-full md:w-auto justify-center md:justify-end">
+            <!-- Derecha (Sólo Desktop): Votos + Reloj -->
+            <div class="hidden md:flex items-center gap-3 w-auto justify-end">
                 <span class="text-[10px] md:text-xs font-black text-ink-muted uppercase tracking-widest whitespace-nowrap">
                     {{ votesCast }}/{{ totalVoters }} {{ t('impostorVoting.votes').toUpperCase() }}
                 </span>
