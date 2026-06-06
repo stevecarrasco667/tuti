@@ -162,81 +162,55 @@ const cardConfig = computed(() => {
 // Phase 6: Global voting progress
 const votesCast = computed(() => Object.keys(props.impostorData.votes || {}).length);
 const totalVoters = computed(() => suspects.value.filter(s => !s.isPlayerDead).length);
-const votingProgress = computed(() =>
-    totalVoters.value > 0 ? Math.round((votesCast.value / totalVoters.value) * 100) : 0
-);
 </script>
 
 <template>
     <div class="h-full w-full flex flex-col overflow-hidden">
 
-        <!-- HEADER -->
-        <div class="flex-none px-4 pt-2 pb-1">
-            <!-- Row: Timer + Title + (mobile: nothing) -->
-            <div class="flex items-center justify-center relative mb-1 md:mb-2">
-                <!-- Timer (absolute right) -->
-                <div class="absolute right-0 flex items-center justify-center min-w-[3rem] px-2 h-10 rounded-2xl border-2 border-white/10 bg-panel-card shadow-sm">
-                    <span class="text-lg font-black font-mono transition-colors duration-300" :class="timerColor">
+        <!-- HEADER UNIFICADO HORIZONTAL -->
+        <div class="flex-none bg-panel-card/50 backdrop-blur-sm border-b border-white/5 px-3 py-2 md:py-2.5 mb-2 shadow-sm relative z-10 flex flex-col md:flex-row items-center justify-between gap-2 md:gap-4">
+            
+            <!-- Izquierda: Título -->
+            <div class="flex items-center gap-2 w-full md:w-auto justify-center md:justify-start">
+                <span class="text-xl md:text-2xl drop-shadow-sm">🔎</span>
+                <h2 class="text-lg md:text-xl font-black text-ink-main tracking-widest uppercase drop-shadow-sm whitespace-nowrap">
+                    {{ t('impostorVoting.title') }}
+                </h2>
+            </div>
+
+            <!-- Centro: Identity Banner (Ultra-compacto) -->
+            <div v-if="!isSpectator" class="flex-1 flex justify-center w-full min-w-0 transition-opacity duration-500" :class="{ 'opacity-60 grayscale': isDead }">
+                <div v-if="isImpostor"
+                     class="max-w-full bg-action-error/10 border-[1.5px] border-action-error/30 rounded-full px-4 py-1.5 flex items-center justify-center gap-1.5 shadow-inner overflow-hidden">
+                    <span class="text-sm md:text-base flex-none">{{ isDead ? '💀' : '⚠️' }}</span>
+                    <span class="text-action-error font-black text-[10px] md:text-xs uppercase tracking-widest truncate">{{ t('impostorVoting.impostor') }}</span>
+                    <span class="text-ink-muted text-[10px] md:text-xs font-bold truncate mx-1">· {{ t('impostorTyping.categoryLabel') }} <strong class="text-action-error font-black">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</strong></span>
+                </div>
+                <div v-else
+                     class="max-w-full bg-tuti-teal/10 border-[1.5px] border-tuti-teal/30 rounded-full px-4 py-1.5 flex items-center justify-center gap-1.5 shadow-inner overflow-hidden">
+                    <span class="text-sm md:text-base flex-none">{{ isDead ? '💀' : '💡' }}</span>
+                    <span class="text-tuti-teal font-black text-[10px] md:text-xs uppercase tracking-widest truncate">{{ t('impostorVoting.crew') }}</span>
+                    <span class="text-ink-muted text-[10px] md:text-xs font-bold truncate mx-1">· {{ t('impostorTyping.wordIs') }} <strong class="text-tuti-teal font-black">{{ secretWord }}</strong></span>
+                </div>
+            </div>
+            <!-- Espectador -->
+            <div v-else class="flex-1 flex justify-center w-full min-w-0">
+                <div class="bg-panel-input/60 border border-white/10 rounded-full px-4 py-1.5 flex items-center justify-center gap-1.5 shadow-inner">
+                    <span class="text-sm animate-pulse">👀</span>
+                    <span class="text-action-primary font-black text-[10px] md:text-xs uppercase tracking-widest truncate">{{ t('impostorVoting.spectating') }}</span>
+                </div>
+            </div>
+
+            <!-- Derecha: Votos + Reloj -->
+            <div class="flex items-center gap-3 w-full md:w-auto justify-center md:justify-end">
+                <span class="text-[10px] md:text-xs font-black text-ink-muted uppercase tracking-widest whitespace-nowrap">
+                    {{ votesCast }}/{{ totalVoters }} {{ t('impostorVoting.votes').toUpperCase() }}
+                </span>
+                <div class="flex items-center justify-center min-w-[2.5rem] px-2 h-8 rounded-xl border-2 border-white/10 bg-panel-input shadow-sm">
+                    <span class="text-base font-black font-mono transition-colors duration-300 leading-none" :class="timerColor">
                         {{ Math.max(0, timeRemaining) }}
                     </span>
                 </div>
-
-                <!-- Title -->
-                <div class="text-center">
-                    <h2 class="text-xl md:text-2xl font-black text-ink-main tracking-widest uppercase drop-shadow-sm">
-                        {{ t('impostorVoting.title') }}
-                    </h2>
-                    <!-- Only visible on desktop -->
-                    <p class="hidden md:block text-tuti-teal text-[11px] font-black uppercase tracking-widest bg-white/5 border border-white/10 px-3 py-0.5 rounded-full w-fit mx-auto mt-1">
-                        {{ t('impostorVoting.subtitle') }}
-                    </p>
-                </div>
-            </div>
-
-            <!-- Identity Banner — compact on mobile -->
-            <div v-if="!isSpectator" class="w-full flex justify-center transition-opacity duration-500" :class="{ 'opacity-50 grayscale pointer-events-none': isDead }">
-                <div v-if="isImpostor"
-                     class="w-fit mx-auto bg-action-error/10 border-[2px] border-action-error/30 rounded-2xl px-6 py-2 backdrop-blur-md flex items-center justify-center gap-2.5 shadow-sm">
-                    <span class="text-lg flex-none">⚠️</span>
-                    <div class="flex items-center justify-center gap-2 flex-wrap text-center">
-                        <span class="text-action-error font-black text-xs uppercase tracking-widest">{{ t('impostorVoting.impostor') }}</span>
-                        <span v-if="!isDead" class="text-ink-muted text-xs font-bold">·
-                            {{ t('impostorTyping.categoryLabel') }} <strong class="text-action-error font-black">{{ t(`categories.${impostorData.currentCategoryId}`, impostorData.currentCategoryName) }}</strong>
-                        </span>
-                    </div>
-                </div>
-                <div v-else
-                     class="w-fit mx-auto bg-tuti-teal/10 border-[2px] border-tuti-teal/30 rounded-2xl px-6 py-2 backdrop-blur-md flex items-center justify-center gap-2.5 shadow-sm">
-                    <span class="text-lg flex-none">💡</span>
-                    <div class="flex items-center justify-center gap-2 flex-wrap text-center">
-                        <span class="text-tuti-teal font-black text-xs uppercase tracking-widest">{{ t('impostorVoting.crew') }}</span>
-                        <span v-if="!isDead" class="text-ink-muted text-xs font-bold">·
-                            {{ t('impostorTyping.wordIs') }} <strong class="text-tuti-teal font-black">{{ secretWord }}</strong>
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <!-- Spectator Passive Banner -->
-            <div v-else class="w-full bg-panel-input/60 border border-white/10 rounded-2xl px-4 py-2 flex items-center justify-center gap-2 shadow-sm">
-                <span class="text-xl animate-pulse">👀</span>
-                <span class="text-action-primary font-black text-[10px] md:text-xs uppercase tracking-widest text-center">{{ t('impostorVoting.spectating') }}</span>
-            </div>
-
-            <!-- Phase 6: Voting Progress Bar -->
-            <div class="mt-2 flex items-center gap-3">
-                <div class="flex-1 h-1.5 bg-panel-input rounded-full overflow-hidden">
-                    <div class="h-full bg-action-primary rounded-full transition-all duration-500"
-                         :style="{ width: votingProgress + '%' }"></div>
-                </div>
-                <span class="text-[10px] font-black text-ink-muted uppercase tracking-widest whitespace-nowrap flex-none">
-                    {{ t('impostorVoting.voted', { votesCast, totalVoters }) }}
-                </span>
-            </div>
-
-            <!-- Ghost banner -->
-            <div v-if="isDead && !isSpectator" class="mt-2 bg-panel-input/60 border-2 border-white/10 rounded-2xl px-4 py-2 flex items-center gap-2 shadow-inner">
-                <span class="text-2xl">💀</span>
-                <span class="text-ink-muted font-black text-xs uppercase tracking-widest">{{ t('impostorVoting.ghostSilent') }}</span>
             </div>
         </div>
 
