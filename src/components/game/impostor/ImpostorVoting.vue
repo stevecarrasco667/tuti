@@ -118,14 +118,11 @@ const cardConfig = computed(() => {
             avatarContainer: 'w-12 h-12 text-2xl',
             avatarText: 'text-xl md:text-2xl',
             nameClass: 'text-xs md:text-sm',
-            wordContainer: 'py-3 px-4 min-h-[48px]',
-            wordClass: 'text-base md:text-lg',
-            thinkingClass: 'text-xs md:text-sm',
-            buttonClass: 'min-h-[48px] px-3.5',
-            buttonText: 'text-[11px] md:text-xs',
-            switchContainer: 'w-[48px] h-[28px] p-[3px]',
-            switchCircle: 'w-[22px] h-[22px]',
-            switchCircleTranslate: 'translate-x-[20px]',
+            wordContainer: 'py-3 md:py-6',
+            wordClass: 'text-2xl md:text-[2rem]',
+            thinkingClass: 'text-sm md:text-base',
+            buttonClass: 'py-2.5 md:py-3 border-[3px] rounded-[1rem] md:rounded-full',
+            buttonText: 'text-base md:text-lg',
             footerText: 'text-[10px] md:text-xs',
             reactionsCompact: false
         };
@@ -136,14 +133,11 @@ const cardConfig = computed(() => {
             avatarContainer: 'w-10 h-10 text-xl',
             avatarText: 'text-lg md:text-xl',
             nameClass: 'text-[11px] md:text-xs',
-            wordContainer: 'py-2 px-3 min-h-[40px]',
-            wordClass: 'text-sm md:text-base',
-            thinkingClass: 'text-[11px] md:text-xs',
-            buttonClass: 'min-h-[44px] px-3',
-            buttonText: 'text-[10px] md:text-[11px]',
-            switchContainer: 'w-[40px] h-[24px] p-[3px]',
-            switchCircle: 'w-[18px] h-[18px]',
-            switchCircleTranslate: 'translate-x-[16px]',
+            wordContainer: 'py-2 md:py-4',
+            wordClass: 'text-xl md:text-2xl',
+            thinkingClass: 'text-xs md:text-sm',
+            buttonClass: 'py-2 md:py-2.5 border-[2.5px] rounded-[0.8rem] md:rounded-full',
+            buttonText: 'text-sm md:text-base',
             footerText: 'text-[9px] md:text-[10px]',
             reactionsCompact: true
         };
@@ -154,14 +148,11 @@ const cardConfig = computed(() => {
             avatarContainer: 'w-8 h-8 text-lg',
             avatarText: 'text-base md:text-lg',
             nameClass: 'text-[9px] md:text-[10px]',
-            wordContainer: 'py-1.5 px-2 min-h-[32px]',
-            wordClass: 'text-xs md:text-sm',
-            thinkingClass: 'text-[9px] md:text-[10px]',
-            buttonClass: 'min-h-[38px] px-2',
-            buttonText: 'text-[9px]',
-            switchContainer: 'w-[32px] h-[20px] p-[2px]',
-            switchCircle: 'w-[16px] h-[16px]',
-            switchCircleTranslate: 'translate-x-[12px]',
+            wordContainer: 'py-1.5 md:py-3',
+            wordClass: 'text-lg md:text-xl',
+            thinkingClass: 'text-[10px] md:text-xs',
+            buttonClass: 'py-1.5 md:py-2 border-[2px] rounded-[0.6rem] md:rounded-full',
+            buttonText: 'text-xs md:text-sm',
             footerText: 'text-[8px] md:text-[9px]',
             reactionsCompact: true
         };
@@ -180,9 +171,9 @@ const votingProgress = computed(() =>
     <div class="h-full w-full flex flex-col overflow-hidden">
 
         <!-- HEADER -->
-        <div class="flex-none px-4 pt-3 pb-2">
+        <div class="flex-none px-4 pt-2 pb-1">
             <!-- Row: Timer + Title + (mobile: nothing) -->
-            <div class="flex items-center justify-center relative mb-2">
+            <div class="flex items-center justify-center relative mb-1 md:mb-2">
                 <!-- Timer (absolute right) -->
                 <div class="absolute right-0 flex items-center justify-center min-w-[3rem] px-2 h-10 rounded-2xl border-2 border-white/10 bg-panel-card shadow-sm">
                     <span class="text-lg font-black font-mono transition-colors duration-300" :class="timerColor">
@@ -307,11 +298,12 @@ const votingProgress = computed(() =>
                         </div>
 
                         <!-- WORD — Visual protagonist -->
-                        <div class="relative w-full flex-1 flex flex-col items-center justify-center text-center transition-all duration-300 py-3 md:py-6"
-                             :class="[!s.word ? 'animate-pulse' : '']"
+                        <div class="relative w-full flex-1 flex flex-col items-center justify-center text-center transition-all duration-300"
+                             :class="[!s.word ? 'animate-pulse' : '', cardConfig.wordContainer]"
                         >
                             <span v-if="s.word"
-                                  class="font-black text-tuti-teal break-words leading-none text-2xl md:text-[2rem] drop-shadow-md w-full">
+                                  class="font-black text-tuti-teal break-words leading-none drop-shadow-md w-full"
+                                  :class="cardConfig.wordClass">
                                 {{ s.word }}
                             </span>
                             <div v-else class="flex flex-col items-center justify-center gap-2">
@@ -355,8 +347,9 @@ const votingProgress = computed(() =>
 
                         <button @click="handleVote(s.id)"
                                 :disabled="s.isMe || s.isPlayerDead || isDead || isSpectator"
-                                class="w-full rounded-[1rem] md:rounded-full transition-all duration-300 border-[3px] py-2.5 md:py-3 active:scale-95 flex items-center justify-center relative overflow-hidden group"
+                                class="w-full transition-all duration-300 active:scale-95 flex items-center justify-center relative overflow-hidden group"
                                 :class="[
+                                    cardConfig.buttonClass,
                                     s.isSelectedByMe
                                         ? 'bg-action-error border-action-error shadow-[0_0_20px_rgba(239,68,68,0.4)]'
                                         : 'bg-panel-input/40 border-white/10 hover:border-action-error/50 hover:bg-action-error/10',
@@ -367,7 +360,8 @@ const votingProgress = computed(() =>
                         >
                             <span class="font-black tracking-widest uppercase text-center relative z-10 transition-colors"
                                   :class="[
-                                      s.isSelectedByMe ? 'text-white text-base md:text-lg drop-shadow-md' : 'text-ink-soft text-sm md:text-base group-hover:text-action-error'
+                                      cardConfig.buttonText,
+                                      s.isSelectedByMe ? 'text-white drop-shadow-md' : 'text-ink-soft group-hover:text-action-error'
                                   ]">
                                 {{ s.isSelectedByMe ? '¡' + t('impostorVoting.accuse') + '!' : t('impostorVoting.accuse') }}
                             </span>
