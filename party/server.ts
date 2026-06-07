@@ -543,8 +543,8 @@ export default class Server implements Party.Server {
             // 4. Unified Delta Broadcast — sends PATCHES (not full state) to existing clients
             // [Sprint 3 - P2] Broadcast PLAYER_JOINED solo en primer ingreso real (no en reconexiones)
             if (isGenuinelyNew) {
-                const joinedName = this.engine.getState().players.find(p => p.id === userId)?.name;
                 // Deactivated to keep the chat clean from join messages as requested by the user
+                // const joinedName = this.engine.getState().players.find(p => p.id === userId)?.name;
                 // if (joinedName) {
                 //     this.broadcastSystemMessage('PLAYER_JOINED', { name: joinedName });
                 // }
