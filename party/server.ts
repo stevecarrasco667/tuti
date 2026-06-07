@@ -544,9 +544,10 @@ export default class Server implements Party.Server {
             // [Sprint 3 - P2] Broadcast PLAYER_JOINED solo en primer ingreso real (no en reconexiones)
             if (isGenuinelyNew) {
                 const joinedName = this.engine.getState().players.find(p => p.id === userId)?.name;
-                if (joinedName) {
-                    this.broadcastSystemMessage('PLAYER_JOINED', { name: joinedName });
-                }
+                // Deactivated to keep the chat clean from join messages as requested by the user
+                // if (joinedName) {
+                //     this.broadcastSystemMessage('PLAYER_JOINED', { name: joinedName });
+                // }
             }
             this.broadcastStateDelta(this.engine.getState());
 
