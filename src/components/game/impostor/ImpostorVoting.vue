@@ -171,7 +171,7 @@ const totalVoters = computed(() => suspects.value.filter(s => !s.isPlayerDead).l
         <div class="flex-none bg-panel-card/50 backdrop-blur-sm border-b border-white/5 px-3 py-2 md:py-2.5 mb-2 shadow-sm relative z-10 flex flex-col md:flex-row items-center justify-between gap-2 md:gap-4">
             
             <!-- Izquierda (Móvil Fila 1) / Izquierda (Desktop): Título + Reloj Móvil -->
-            <div class="flex items-center justify-between w-full md:w-auto md:justify-start pl-10 md:pl-0">
+            <div class="flex items-center justify-between w-full md:w-auto md:justify-start pl-10 md:pl-12">
                 <div class="flex items-center gap-1.5 md:gap-2">
                     <h2 class="text-base md:text-xl font-black text-ink-main tracking-widest uppercase drop-shadow-sm whitespace-nowrap">
                         {{ t('impostorVoting.title') }}
