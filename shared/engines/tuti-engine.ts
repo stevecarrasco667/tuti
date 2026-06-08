@@ -1244,6 +1244,7 @@ export class TutiEngine extends BaseEngine {
         if (this._endingTimer) { clearTimeout(this._endingTimer); this._endingTimer = null; }
         if (this._votingTimer) { clearTimeout(this._votingTimer); this._votingTimer = null; }
         if (this._resultsTimer) { clearTimeout(this._resultsTimer); this._resultsTimer = null; }
+        if (this._loadingTimer) { clearTimeout(this._loadingTimer); this._loadingTimer = null; }
         this.validation.getDictionaryManager().clearCache();
         logger.info('TUTI_ENGINE_DISPOSED', { roomId: this.state.roomId ?? 'unknown' });
     }

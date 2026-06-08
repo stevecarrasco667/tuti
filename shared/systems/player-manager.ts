@@ -92,6 +92,13 @@ export class PlayerManager {
         // Cleanup map (socket is gone, but player stays)
         delete this.connectionMap[connectionId];
 
+        // Guard against race conditions: check if this user has other active connections
+        const hasOtherConnections = Object.values(this.connectionMap).includes(userId);
+        if (hasOtherConnections) {
+            console.log(`[PlayerManager] User ${userId} disconnected socket ${connectionId} but remains connected on other socket(s).`);
+            return;
+        }
+
         const player = state.players.find(p => p.id === userId);
         if (player) {
             player.isConnected = false;

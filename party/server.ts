@@ -123,7 +123,7 @@ export default class Server implements Party.Server {
     }
 
     // Reusable state change callback for Engine Factory
-    private onStateChange = (newState: RoomState) => {
+    private onStateChange = async (newState: RoomState) => {
         // 1. [Sprint H3] Tick Loop Phase Management — delegated to TickManager
         this.tickManager.manageTick(newState);
 
@@ -133,16 +133,21 @@ export default class Server implements Party.Server {
         // 3. Schedule backup alarm for next phase (critical for hibernate recovery)
         this.alarmManager.schedule(newState);
 
-        // 4. Diferido: Write-Behind a disco (max 1 vez cada 5s)
+        // 4A. Immediate Persistence for Impostor secrets (when dirty)
+        // Ensures secrets are stored in DB before rapid worker hibernation.
+        if (this.engine instanceof ImpostorEngine && this.engine.areSecretsDirty()) {
+            try {
+                await this.room.storage.put(IMPOSTOR_SECRET_KEY, this.engine.getSecretState());
+                logger.info('IMPOSTOR_SECRETS_PERSISTED_IMMEDIATELY', { roomId: this.room.id });
+            } catch (err) {
+                logger.error('PERSIST_SECRETS_FAILED', { roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
+            }
+        }
+
+        // 4B. Diferido: Write-Behind a disco (max 1 vez cada 5s)
         if (!this.saveTimeout) {
             this.saveTimeout = setTimeout(async () => {
                 await this.room.storage.put(STORAGE_KEY, this.engine.getState());
-                // [Sprint P1/P2 — Fase 3] Persist ImpostorEngine private secrets — but ONLY when dirty.
-                // Secrets mutate once per round (startNewRound), not every tick. This prevents
-                // redundant storage.put calls during the 60 ticks/min of the countdown.
-                if (this.engine instanceof ImpostorEngine && this.engine.areSecretsDirty()) {
-                    await this.room.storage.put(IMPOSTOR_SECRET_KEY, this.engine.getSecretState());
-                }
                 this.saveTimeout = null;
             }, 5000);
         }
@@ -645,6 +650,10 @@ export default class Server implements Party.Server {
                     if (oldMode !== newMode) {
                         logger.info('HOT_SWAP', { roomId: this.room.id, oldMode, newMode });
                         const currentState = this.engine.getState();
+                        
+                        // Dispose the old engine to clean up all active timers and references
+                        this.engine.dispose();
+
                         this.engine = createEngine(this.supabase, newMode, this.room.id, this.onStateChange);
                         this.engine.hydrate(currentState);
 
