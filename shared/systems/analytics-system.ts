@@ -36,6 +36,14 @@ export class AnalyticsSystem {
     }
 
     public static async trackEvent(supabase: SupabaseClient, event: AnalyticsEventLog): Promise<void> {
+        // [Sprint 2] Offload high-frequency events (player_joined, player_left_mid_game) from Supabase Postgres.
+        // These are captured on the client-side via PostHog to prevent DB connection pool exhaustion.
+        const highFrequencyEvents = ['player_joined', 'player_left_mid_game'];
+        if (highFrequencyEvents.includes(event.event_type)) {
+            logger.debug('ANALYTICS_EVENT_BYPASSED_DB', { eventType: event.event_type });
+            return;
+        }
+
         try {
             if (!supabase || typeof supabase.from !== 'function') return;
             const queryBuilder = supabase.from('analytics_events');

@@ -4,6 +4,7 @@ import { sendError } from "../utils/broadcaster";
 import { EVENTS } from "../../shared/consts";
 import { BaseEngine } from "../../shared/engines/base-engine";
 import { logger } from "../../shared/utils/logger";
+import { verifyJWT } from "../utils/jwt";
 
 import type { ChatMessage } from "../../shared/types";
 
@@ -45,6 +46,24 @@ export class ConnectionHandler extends BaseHandler {
             }
 
             const url = new URL(ctx.request.url);
+            
+            const rawName   = url.searchParams.get("name") || "Guest";
+            const rawUserId = url.searchParams.get("userId") || connection.id;
+            const rawToken  = url.searchParams.get("token");
+
+            // Guard against massive payloads (DoS defense) before processing
+            if (rawName.length > 100 || rawUserId.length > 150 || (rawToken && rawToken.length > 1500)) {
+                logger.warn('DoS_PAYLOAD_REJECTED', {
+                    nameLen: rawName.length,
+                    userIdLen: rawUserId.length,
+                    tokenLen: rawToken?.length || 0,
+                    connectionId: connection.id,
+                    roomId: this.room.id
+                });
+                connection.close(4400, 'PAYLOAD_TOO_LARGE');
+                return;
+            }
+
             // [Sprint 5 — S5-T3] Harden identity inputs before they enter engine state or authTokens.
             // Without limits, a malicious client can inflate state.players and durable storage
             // with arbitrarily long names/userIds, causing expensive JSON Patch diffs and DoS.
@@ -52,10 +71,6 @@ export class ConnectionHandler extends BaseHandler {
             const MAX_USERID_LEN  = 64;
             const MAX_TOKEN_LEN   = 512;
             const VALID_USERID_RE = /^[\w\-]{1,64}$/; // UUID-like or short alphanumeric
-
-            const rawName   = url.searchParams.get("name") || "Guest";
-            const rawUserId = url.searchParams.get("userId") || connection.id;
-            const rawToken  = url.searchParams.get("token");
 
             // Sanitize and cap each field
             const name = rawName.slice(0, MAX_NAME_LEN).trim() || "Guest";
@@ -77,23 +92,43 @@ export class ConnectionHandler extends BaseHandler {
             const isPublicRequest = url.searchParams.get('public') === 'true';
 
             // --- FASE 4: ANTI-SPOOFING & IDENTITY SECURITY ---
-            // Validación Real de JWT (Sprint 1): Verificamos contra la API de Supabase para validar la firma.
+            // Validación Real de JWT (Sprint 2): Verificación criptográfica local (WebCrypto) si hay SUPABASE_JWT_SECRET.
             let isAuthenticated = false;
             if (token && token.startsWith('eyJ')) {
-                try {
-                    const supabaseUrl = this.room.env.SUPABASE_URL as string;
-                    const apikey = this.room.env.SUPABASE_ANON_KEY as string;
-                    if (supabaseUrl && apikey) {
-                        const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
-                            headers: {
-                                Authorization: `Bearer ${token}`,
-                                apikey: apikey
-                            }
-                        });
-                        isAuthenticated = res.ok;
+                const jwtSecret = this.room.env.SUPABASE_JWT_SECRET as string | undefined;
+                if (jwtSecret) {
+                    try {
+                        const result = await verifyJWT(token, jwtSecret);
+                        isAuthenticated = result.isValid;
+                        if (!result.isValid) {
+                            logger.warn('JWT_VERIFY_LOCAL_FAILED', { error: result.error, roomId: this.room.id });
+                        } else {
+                            logger.info('JWT_VERIFY_LOCAL_SUCCESS', { userId, roomId: this.room.id });
+                        }
+                    } catch (err) {
+                        logger.warn('JWT_VERIFY_LOCAL_ERROR', { error: String(err) });
                     }
-                } catch (err) {
-                    logger.warn('JWT_VERIFY_ERROR', { error: String(err) });
+                } else {
+                    // Fallback seguro: verificación HTTP tradicional si no se ha configurado la variable de entorno
+                    logger.warn('SUPABASE_JWT_SECRET_MISSING', {
+                        message: 'Configure SUPABASE_JWT_SECRET in PartyKit environment for local verification.',
+                        roomId: this.room.id
+                    });
+                    try {
+                        const supabaseUrl = this.room.env.SUPABASE_URL as string;
+                        const apikey = this.room.env.SUPABASE_ANON_KEY as string;
+                        if (supabaseUrl && apikey) {
+                            const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
+                                headers: {
+                                    Authorization: `Bearer ${token}`,
+                                    apikey: apikey
+                                }
+                            });
+                            isAuthenticated = res.ok;
+                        }
+                    } catch (err) {
+                        logger.warn('JWT_VERIFY_FALLBACK_ERROR', { error: String(err) });
+                    }
                 }
             }
             let isNewToken = false;
