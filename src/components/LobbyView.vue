@@ -245,10 +245,10 @@ const handleLeave = () => {
         </div>
 
         <!-- Main Content Grid -->
-        <div class="flex-1 min-h-0 px-3 pt-2 pb-2 lg:pb-3 lg:px-4 overflow-hidden flex flex-col">
-            <!-- flex-col en móvil distribuye el panel de ajustes y el banner publicitario verticalmente;
-                 lg:grid restablece el sistema de rejilla de 12 columnas en escritorio. -->
-            <div class="flex-1 min-h-0 lg:h-full flex flex-col lg:grid lg:grid-cols-12 gap-2.5">
+        <div class="flex-1 min-h-0 px-3 pt-0 pb-2 lg:pt-2 lg:pb-3 lg:px-4 overflow-y-auto lg:overflow-hidden lg:flex lg:flex-col">
+            <!-- min-h-full en mobile permite que el grid crezca libremente (scroll real).
+                 h-full en desktop mantiene el layout de 2 columnas a altura fija. -->
+            <div class="min-h-full lg:h-full grid grid-cols-1 lg:grid-cols-12 gap-2.5">
 
                 <!-- Left Panel: Player List (Solo visible en Desktop) -->
                 <PlayerList
@@ -267,7 +267,7 @@ const handleLeave = () => {
 
                 <!-- Unified Settings Console: LobbySettingsPanel (Ocupa todo el ancho en móvil y 8/12 o 9/12 en escritorio) -->
                 <LobbySettingsPanel
-                    class="w-full lg:col-span-9"
+                    class="w-full lg:col-span-9 mt-2 lg:mt-0"
                     :config="localConfig"
                     :categories="currentCategories"
                     :am-i-host="amIHost"

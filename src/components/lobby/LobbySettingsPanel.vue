@@ -231,10 +231,10 @@ const tSpec = computed(() => {
 </script>
 
 <template>
-    <div class="lg:col-span-8 bg-panel-base/30 border-2 border-white/10 rounded-2xl shadow-game-panel flex flex-col flex-1 h-full min-h-0 overflow-hidden relative z-10 backdrop-blur-md">
+    <div class="lg:col-span-8 bg-panel-base/30 border-2 border-white/10 rounded-2xl shadow-game-panel flex flex-col lg:h-full lg:min-h-0 lg:overflow-hidden relative z-10 backdrop-blur-md">
         
         <!-- Premium Gartic-Phone Tab Header -->
-        <div class="flex-none p-1 border-b border-white/10 bg-panel-card/35 flex gap-1 shadow-md select-none">
+        <div class="sticky top-0 z-20 p-1 border-b border-white/10 bg-panel-base flex gap-1 shadow-md select-none rounded-t-2xl">
             <button
                 @click="activeTab = 'modes'"
                 class="flex-1 py-2.5 rounded-xl text-[10px] md:text-[11px] font-black uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-2 border cursor-pointer"
