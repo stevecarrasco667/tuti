@@ -32,7 +32,7 @@ const winnerLabel = (h: ImpostorHighlights) => {
         style="
             width: 1080px;
             height: 1920px;
-            background: #1a0533;
+            background: #1e1b4b;
             font-family: 'Outfit', 'Inter', system-ui, sans-serif;
             overflow: hidden;
             display: flex;
@@ -48,13 +48,13 @@ const winnerLabel = (h: ImpostorHighlights) => {
             <div style="
                 position: absolute; top: -120px; right: -120px;
                 width: 560px; height: 560px; border-radius: 50%;
-                background: #49107A; opacity: 0.6;
+                background: #312e81; opacity: 0.6;
             "></div>
             <!-- Blob bottom-left -->
             <div style="
                 position: absolute; bottom: -80px; left: -80px;
                 width: 420px; height: 420px; border-radius: 50%;
-                background: #3b0764; opacity: 0.5;
+                background: #2e2978; opacity: 0.5;
             "></div>
             <!-- Accent stripe -->
             <div style="
@@ -79,7 +79,7 @@ const winnerLabel = (h: ImpostorHighlights) => {
             <div style="
                 margin-top: 24px;
                 display: inline-block;
-                background: #49107A; border: 3px solid #fbbf24;
+                background: #312e81; border: 3px solid #fbbf24;
                 border-radius: 100px; padding: 12px 40px;
             ">
                 <span style="
@@ -117,8 +117,8 @@ const winnerLabel = (h: ImpostorHighlights) => {
 
                 <!-- Podium -->
                 <div style="
-                    background: #2e1060; border-radius: 32px;
-                    border: 3px solid #49107A;
+                    background: #1e1b4b; border-radius: 32px;
+                    border: 3px solid #2e2978;
                     padding: 40px 48px;
                 ">
                     <div style="
@@ -135,14 +135,14 @@ const winnerLabel = (h: ImpostorHighlights) => {
                             width: 64px; height: 64px; border-radius: 20px;
                             display: flex; align-items: center; justify-content: center;
                             font-size: 36px;
-                            background: #49107A; border: 3px solid #fbbf2440;
+                            background: #312e81; border: 3px solid #fbbf2440;
                             flex-shrink: 0;
                         ">{{ rankEmoji(i) }}</div>
 
                         <!-- Avatar -->
                         <div style="
                             width: 80px; height: 80px; border-radius: 50%;
-                            background: #49107A; border: 4px solid #fbbf2440;
+                            background: #312e81; border: 4px solid #fbbf2440;
                             display: flex; align-items: center; justify-content: center;
                             font-size: 44px; flex-shrink: 0;
                         ">{{ p.avatar }}</div>
@@ -155,7 +155,7 @@ const winnerLabel = (h: ImpostorHighlights) => {
                         <!-- Score -->
                         <div style="
                             font-size: 40px; font-weight: 900; color: #fbbf24;
-                            background: #49107A; border-radius: 16px;
+                            background: #312e81; border-radius: 16px;
                             padding: 8px 28px; border: 2px solid #fbbf2440;
                             flex-shrink: 0;
                         ">{{ p.score }} pts</div>
@@ -171,8 +171,8 @@ const winnerLabel = (h: ImpostorHighlights) => {
                 <div style="display: flex; gap: 32px;">
                     <!-- Rondas jugadas -->
                     <div style="
-                        flex: 1; background: #2e1060; border-radius: 28px;
-                        border: 3px solid #49107A; padding: 36px;
+                        flex: 1; background: #1e1b4b; border-radius: 28px;
+                        border: 3px solid #2e2978; padding: 36px;
                         display: flex; flex-direction: column; align-items: center; text-align: center;
                     ">
                         <div style="font-size: 64px; margin-bottom: 8px;">🎲</div>
@@ -182,7 +182,7 @@ const winnerLabel = (h: ImpostorHighlights) => {
 
                     <!-- Flash player -->
                     <div v-if="highlights.flashPlayer" style="
-                        flex: 2; background: #2e1060; border-radius: 28px;
+                        flex: 2; background: #1e1b4b; border-radius: 28px;
                         border: 3px solid #fbbf24; padding: 36px;
                         display: flex; flex-direction: column; align-items: center; text-align: center;
                     ">
@@ -194,7 +194,7 @@ const winnerLabel = (h: ImpostorHighlights) => {
                 </div>
 
                 <div v-if="highlights.mostRejectedWord" style="
-                    background: #49107A; border-radius: 28px;
+                    background: #312e81; border-radius: 28px;
                     border: 3px solid #f43f5e60;
                     padding: 36px 48px;
                     display: flex; align-items: center; gap: 32px;
@@ -234,7 +234,7 @@ const winnerLabel = (h: ImpostorHighlights) => {
                 </div>
 
                 <div style="
-                    background: #2e1060; border-radius: 32px;
+                    background: #1e1b4b; border-radius: 32px;
                     border: 3px solid #f43f5e60; padding: 40px 48px;
                 ">
                     <div style="font-size: 26px; font-weight: 800; letter-spacing: 5px; text-transform: uppercase; color: #f43f5e; margin-bottom: 28px;">{{ t('matchSummaryCard.impostorWas') }}</div>
@@ -247,7 +247,7 @@ const winnerLabel = (h: ImpostorHighlights) => {
 
                 <!-- Secret word + category -->
                 <div v-if="highlights.secretWord" style="
-                    background: #2e1060; border-radius: 28px;
+                    background: #1e1b4b; border-radius: 28px;
                     border: 3px solid #fbbf2460; padding: 40px 48px;
                 ">
                     <div style="font-size: 26px; font-weight: 800; letter-spacing: 5px; text-transform: uppercase; color: #fbbf24; margin-bottom: 16px;">
@@ -261,7 +261,7 @@ const winnerLabel = (h: ImpostorHighlights) => {
 
                 <!-- Most suspect innocente -->
                 <div v-if="highlights.mostSuspectPlayer" style="
-                    background: #49107A; border-radius: 28px;
+                    background: #312e81; border-radius: 28px;
                     border: 3px solid #fbbf2440; padding: 36px 48px;
                     display: flex; align-items: center; gap: 32px;
                 ">
