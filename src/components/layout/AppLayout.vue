@@ -18,13 +18,13 @@ const handleMockAction = (actionName: string) => {
 </script>
 
 <template>
-    <div class="w-full h-full flex flex-col md:flex-row relative bg-gradient-to-br from-[#0b0518] via-[#0d0722] to-[#0a0316] overflow-hidden">
+    <div class="w-full h-full flex flex-col md:flex-row relative overflow-hidden">
         
         <!-- SIDEBAR DE PC / BOTTOM BAR DE MÓVIL -->
         <Transition name="nav-slide">
             <nav 
                 v-if="isMenuVisible"
-                class="fixed z-40 bg-zinc-950/95 backdrop-blur-md border-white/10 transition-all duration-300
+                class="fixed z-40 bg-[#130a2f]/50 md:bg-[#11092c]/40 backdrop-blur-xl border-purple-500/20 transition-all duration-300
                        bottom-0 left-0 w-full pb-[env(safe-area-inset-bottom)] border-t h-[calc(64px+env(safe-area-inset-bottom))] flex flex-row items-center justify-around px-2
                        md:left-0 md:top-0 md:h-screen md:w-20 lg:w-64 md:border-r md:border-t-0 md:flex-col md:justify-start md:items-stretch md:py-6 md:px-4 md:pb-6"
                 aria-label="Navegación del Juego"
