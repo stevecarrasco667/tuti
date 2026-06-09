@@ -3,17 +3,16 @@ import { watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useRegisterSW } from 'virtual:pwa-register/vue';
 import { useGame } from './composables/useGame';
-import { useSound } from './composables/useSound';
 import { useToast } from './composables/useToast';
 import { useI18n } from 'vue-i18n';
 import { isBootstrapping } from './router/index';
 import ErrorBoundary from './components/ui/ErrorBoundary.vue';
 import { useKeyboard } from './composables/useKeyboard';
 import { App as CapacitorApp } from '@capacitor/app';
+import AppLayout from './components/layout/AppLayout.vue';
 
 useKeyboard();
 const { gameState, myUserId, leaveGame, isConnected } = useGame();
-const { isMuted, toggleMute } = useSound();
 const { toasts, addToast } = useToast();
 const { t } = useI18n();
 const router = useRouter();
@@ -100,8 +99,7 @@ watch(() => gameState.value.players.map(p => p.id).join(','), () => {
 });
 
 
-// Detectar si la vista actual está en GAME (para posicionar el botón mute)
-const isGameView = () => router.currentRoute.value.path.startsWith('/game/');
+
 
 // Detectar si la vista requiere pantalla completa absoluta (sin padding de borde)
 const isFullFrameView = () => {
@@ -133,22 +131,7 @@ CapacitorApp.addListener('backButton', ({ canGoBack }) => {
   <div class="w-screen h-[100dvh] overflow-hidden bg-panel-base text-ink-main flex flex-col items-center relative transition-all duration-300 font-sans group"
        :class="isFullFrameView() ? 'p-0' : 'p-2'">
 
-    <!-- MUTE BUTTON LAYER -->
-    <button
-        v-if="!isGameView()"
-        @click="toggleMute"
-        class="fixed z-modal w-12 h-12 flex items-center justify-center rounded-full bg-panel-card/80 border-[3px] border-white/10 text-white shadow-xl backdrop-blur-md transition-all hover:bg-white/20 active:scale-95 top-4 right-4"
-        :title="isMuted ? t('app.unmuteSound') : t('app.muteSound')"
-        :aria-label="isMuted ? t('app.unmuteSound') : t('app.muteSound')"
-    >
-        <svg v-if="!isMuted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 opacity-90">
-            <path d="M9.348 14.651l-2.853-2.852H4V8.201h2.495l2.853-2.852v9.302zM15.536 10a5.002 5.002 0 00-2.316-4.195v8.39A5.002 5.002 0 0015.536 10z" />
-            <path d="M12.22 3.102v13.796A7.003 7.003 0 0018.5 10a7.003 7.003 0 00-6.28-6.898z" />
-        </svg>
-        <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 opacity-50 text-red-400">
-            <path fill-rule="evenodd" d="M9.383 3.076a.75.75 0 011.066.079l.067.086 5.86 8.371a.75.75 0 01-1.127.949l-.067-.086-1.503-2.148H12v3.633a.75.75 0 01-1.077.677l-4.14-2.192H4a2 2 0 01-2-2V9.5a2 2 0 011.66-1.972l.34-.028h1.841l4.14-2.192a.75.75 0 011.402.399l.001 5.863L9.304 3.14a.75.75 0 01.079-1.064zM16.53 4.47a.75.75 0 011.06 0l1.94 1.94 1.94-1.94a.75.75 0 111.06 1.06L20.59 7.47l1.94 1.94a.75.75 0 11-1.06 1.06l-1.94-1.94-1.94 1.94a.75.75 0 01-1.06-1.06l1.94-1.94-1.94-1.94a.75.75 0 010-1.06z" clip-rule="evenodd" />
-        </svg>
-    </button>
+
 
     <!-- RECONNECTION BANNER -->
     <!-- Solo visible cuando la conexión WebSocket cae fuera de la pantalla de inicio.
@@ -200,8 +183,8 @@ CapacitorApp.addListener('backButton', ({ canGoBack }) => {
         </div>
     </Transition>
 
-    <!-- MAIN CONTENT con router-view -->
-    <main class="flex-1 w-full relative flex flex-col min-h-0">
+    <!-- MAIN CONTENT con AppLayout y router-view -->
+    <AppLayout class="flex-1 w-full relative flex flex-col min-h-0">
         <ErrorBoundary>
             <RouterView v-slot="{ Component }">
                 <Transition name="fade">
@@ -209,7 +192,7 @@ CapacitorApp.addListener('backButton', ({ canGoBack }) => {
                 </Transition>
             </RouterView>
         </ErrorBoundary>
-    </main>
+    </AppLayout>
 
     <!-- GLOBAL TOASTS (Overlay) — [Sprint H4 FE-2] unified renderer for all toast types -->
     <div class="fixed top-4 right-4 z-toast flex flex-col gap-2 pointer-events-none" aria-live="polite">

@@ -16,6 +16,7 @@ import { useMeta } from '../composables/useMeta';
 import { useAnalytics } from '../composables/useAnalytics';
 import AdBanner from './ui/AdBanner.vue';
 import { useAds } from '../composables/useAds';
+import { useSound } from '../composables/useSound';
 
 const { joinGame, myUserName, myUserAvatar } = useGame();
 const { filteredRooms, lobbyFilters, connect, refreshRooms } = useLobby();
@@ -25,6 +26,7 @@ const { t } = useI18n();
 const { resetMeta } = useMeta();
 const { trackHomeView, trackRoomCreated, trackRoomJoined } = useAnalytics();
 const { initAds } = useAds();
+const { isMuted, toggleMute } = useSound();
 
 const showJoinInput = ref(false);
 const joinCode = ref('');
@@ -115,15 +117,27 @@ const getStatusInfo = (room: any) => {
     <!-- Agregamos relative para servir de ancla al posicionamiento absoluto de banners -->
     <main class="w-full flex flex-col items-center justify-start p-4 min-h-full overflow-y-auto relative z-20"
           aria-label="Página principal de TutiGame — Jugar Tutti Frutti Online Gratis">
-        <GlobalLanguageSelector />
 
-        <!-- Rascacielos izquierdo absoluto flotando de forma independiente en el espacio exterior -->
-        <!-- right-[calc(50%+496px)] lo alinea exactamente a la izquierda del contenido central de 960px, sin importar la pantalla -->
-        <aside class="hidden xl:block w-40 select-none z-10 absolute right-[calc(50%+496px)] top-6">
-            <AdBanner position="desktop-left" />
-        </aside>
+        <!-- HUD de Configuración Rápida en Móviles -->
+        <div class="md:hidden w-full flex justify-end gap-3 px-4 pt-2 pb-0 z-30 select-none">
+            <!-- Botón Mute móvil -->
+            <button
+                @click="toggleMute"
+                class="w-10 h-10 flex items-center justify-center rounded-xl bg-panel-card/80 border border-white/10 text-white active:scale-95 shadow-sm"
+                :title="isMuted ? t('app.unmuteSound') : t('app.muteSound')"
+            >
+                <svg v-if="!isMuted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 opacity-85">
+                    <path d="M9.348 14.651l-2.853-2.852H4V8.201h2.495l2.853-2.852v9.302zM15.536 10a5.002 5.002 0 00-2.316-4.195v8.39A5.002 5.002 0 0015.536 10z" />
+                    <path d="M12.22 3.102v13.796A7.003 7.003 0 0018.5 10a7.003 7.003 0 00-6.28-6.898z" />
+                </svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 opacity-50 text-red-400">
+                    <path fill-rule="evenodd" d="M9.383 3.076a.75.75 0 011.066.079l.067.086 5.86 8.371a.75.75 0 01-1.127.949l-.067-.086-1.503-2.148H12v3.633a.75.75 0 01-1.077.677l-4.14-2.192H4a2 2 0 01-2-2V9.5a2 2 0 011.66-1.972l.34-.028h1.841l4.14-2.192a.75.75 0 011.402.399l.001 5.863L9.304 3.14a.75.75 0 01.079-1.064zM16.53 4.47a.75.75 0 011.06 0l1.94 1.94 1.94-1.94a.75.75 0 111.06 1.06L20.59 7.47l1.94 1.94a.75.75 0 11-1.06 1.06l-1.94-1.94-1.94 1.94a.75.75 0 01-1.06-1.06l1.94-1.94-1.94-1.94a.75.75 0 010-1.06z" clip-rule="evenodd" />
+                </svg>
+            </button>
+            <GlobalLanguageSelector />
+        </div>
 
-        <div class="max-w-[960px] mx-auto w-full grid grid-cols-1 lg:grid-cols-7 gap-10 lg:gap-16 min-h-0 mt-6 sm:mt-8 transform transition-transform duration-300 xl:translate-x-[88px]">
+        <div class="max-w-[960px] mx-auto w-full grid grid-cols-1 lg:grid-cols-7 gap-10 lg:gap-16 min-h-0 mt-6 sm:mt-8 transform transition-transform duration-300">
 
             <!-- LEFT: Consola -->
             <div class="lg:col-span-4 flex flex-col gap-5 justify-center">

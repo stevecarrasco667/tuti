@@ -3,6 +3,10 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { setLanguage, type SupportedLanguage } from '../../i18n';
 
+const props = defineProps<{
+    inline?: boolean;
+}>();
+
 const { locale } = useI18n();
 
 const languages: { code: SupportedLanguage, flag: string, label: string }[] = [
@@ -40,19 +44,32 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div ref="containerRef" class="fixed top-20 right-4 z-[100]">
+    <div ref="containerRef" :class="props.inline ? 'relative' : 'fixed top-20 right-4 z-[100]'">
         <button 
             @click="toggleDropdown"
-            class="w-12 h-12 flex items-center justify-center rounded-2xl bg-panel-card/80 backdrop-blur-md border-[3px] border-white/10 shadow-xl transition-all hover:bg-white/10 active:scale-95 group"
-            :class="isOpen ? 'border-action-primary bg-panel-card' : ''"
+            class="flex items-center justify-center transition-all active:scale-95 group"
+            :class="[
+                props.inline 
+                    ? 'w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10' 
+                    : 'w-12 h-12 rounded-2xl bg-panel-card/80 backdrop-blur-md border-[3px] border-white/10 shadow-xl hover:bg-white/10',
+                isOpen ? 'border-action-primary bg-panel-card' : ''
+            ]"
             title="Seleccionar Idioma / Select Language"
         >
             <img 
                 src="/languages.png" 
                 alt="Idiomas" 
-                class="w-7 h-7 object-contain transition-transform duration-200 group-hover:scale-110 rounded-full select-none"
+                class="object-contain transition-transform duration-200 group-hover:scale-110 rounded-full select-none"
+                :class="props.inline ? 'w-5 h-5' : 'w-7 h-7'"
             />
-            <span class="absolute -bottom-1.5 -right-1.5 text-[10px] w-6 h-6 flex items-center justify-center bg-panel-base border-[2px] border-white/10 rounded-full drop-shadow-md z-10">{{ languages.find(l => l.code === currentLang)?.flag }}</span>
+            <span 
+                class="absolute flex items-center justify-center bg-panel-base border border-white/10 rounded-full drop-shadow-md z-10 font-bold"
+                :class="props.inline 
+                    ? '-bottom-1 -right-1 text-[8px] w-5 h-5' 
+                    : '-bottom-1.5 -right-1.5 text-[10px] w-6 h-6'"
+            >
+                {{ languages.find(l => l.code === currentLang)?.flag }}
+            </span>
         </button>
 
         <!-- Dropdown Menu -->
@@ -64,7 +81,13 @@ onUnmounted(() => {
             leave-from-class="opacity-100 translate-y-0 scale-100"
             leave-to-class="opacity-0 -translate-y-2 scale-95"
         >
-            <div v-if="isOpen" class="absolute top-14 right-0 w-40 sm:w-48 mt-2 p-1.5 bg-panel-card/95 backdrop-blur-xl border-[3px] border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)] origin-top-right flex flex-col gap-1">
+            <div 
+                v-if="isOpen" 
+                class="absolute p-1.5 bg-panel-card/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex flex-col gap-1"
+                :class="props.inline 
+                    ? 'bottom-12 left-0 w-40 origin-bottom-left z-50' 
+                    : 'top-14 right-0 w-40 sm:w-48 mt-2 shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-[3px] origin-top-right'"
+            >
                 <button
                     v-for="lang in languages"
                     :key="lang.code"
