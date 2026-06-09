@@ -291,3 +291,56 @@
     -webkit-backdrop-filter: none !important;
   }
 }
+
+/* ♿ Accessibility & Performance Toggles (Sprint 6) */
+
+/* Disable background animations and stardust texture */
+body.disable-bg-animations .animate-float,
+body.disable-bg-animations .animate-border-glow,
+body.disable-bg-animations .animate-float-icon-1,
+body.disable-bg-animations .animate-float-icon-2,
+body.disable-bg-animations .animate-float-icon-3,
+body.disable-bg-animations .animate-float-icon-4,
+body.disable-bg-animations .animate-float-icon-5,
+body.disable-bg-animations .aura-1,
+body.disable-bg-animations .aura-2,
+body.disable-bg-animations .aura-3,
+body.disable-bg-animations .lobby-stardust {
+  animation: none !important;
+}
+body.disable-bg-animations::before {
+  display: none !important; /* Apaga el efecto de ruido para ahorrar renderizado de GPU */
+}
+
+/* Colorblind Mode Override */
+.colorblind-mode .text-action-success,
+.colorblind-mode .text-game-green {
+  color: #38bdf8 !important; /* Celeste de alto contraste */
+}
+.colorblind-mode .bg-action-success,
+.colorblind-mode .bg-game-green {
+  background-color: #0284c7 !important; /* Azul de alto contraste */
+}
+.colorblind-mode .text-action-error,
+.colorblind-mode .text-game-red {
+  color: #f97316 !important; /* Naranja */
+}
+.colorblind-mode .bg-action-error,
+.colorblind-mode .bg-game-red {
+  background-color: #ea580c !important; /* Rojo-Naranja fuerte */
+}
+.colorblind-mode .shadow-glow-success {
+  box-shadow: 0 0 20px -5px rgba(2, 132, 199, 0.6) !important;
+}
+.colorblind-mode .shadow-glow-panic {
+  box-shadow: 0 0 25px -5px rgba(234, 88, 12, 0.6), inset 0 0 150px rgba(234, 88, 12, 0.15) !important;
+}
+
+/* Large Text Sizing Override */
+.large-text {
+  font-size: 108%;
+}
+.large-text .text-xs { font-size: 0.85rem !important; }
+.large-text .text-\[10px\] { font-size: 0.75rem !important; }
+.large-text .text-\[9px\] { font-size: 0.7rem !important; }
+.large-text .text-\[8px\] { font-size: 0.65rem !important; }

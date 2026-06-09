@@ -6,6 +6,7 @@ import './style.css'
 import App from './App.vue'
 import { router } from './router/index'
 import { i18n } from './i18n'
+import { useAppSettings } from './composables/useAppSettings'
 
 const app = createApp(App);
 app.use(router);
@@ -54,4 +55,9 @@ window.addEventListener('error', (event) => {
     Sentry.captureException(event.error || new Error(event.message));
 });
 
+// [Sprint 6] Initialize Settings (Animations, Colorblind, Fonts)
+const { initSettings } = useAppSettings();
+initSettings();
+
 app.mount('#app');
+

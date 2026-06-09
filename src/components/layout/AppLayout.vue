@@ -1,16 +1,80 @@
 <script setup lang="ts">
+import { computed, ref, watch } from 'vue';
 import { useNavigation } from '../../composables/useNavigation';
 import { useAuth } from '../../composables/useAuth';
 import { useToast } from '../../composables/useToast';
 import { useI18n } from 'vue-i18n';
-import GlobalLanguageSelector from '../ui/GlobalLanguageSelector.vue';
 import { useSound } from '../../composables/useSound';
+import { useAppSettings } from '../../composables/useAppSettings';
+import { usePlayerHistory } from '../../composables/usePlayerHistory';
+import { setLanguage } from '../../i18n';
 
 const { currentTab, isMenuVisible, setTab } = useNavigation();
 const { user, isAuthenticated, signInWithGoogle } = useAuth();
 const { addToast } = useToast();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const { isMuted, toggleMute } = useSound();
+const {
+    sfxEnabled,
+    bgmEnabled,
+    vibrationEnabled,
+    bgAnimationsEnabled,
+    autoFocusEnabled,
+    particlesEnabled,
+    colorblindMode,
+    largeTextEnabled
+} = useAppSettings();
+
+const { getHistory } = usePlayerHistory();
+
+const historyList = ref<any[]>([]);
+
+const loadHistory = () => {
+    historyList.value = getHistory();
+};
+
+watch(currentTab, (newTab) => {
+    if (newTab === 'profile') {
+        loadHistory();
+    }
+}, { immediate: true });
+
+const formatDate = (dateStr: string) => {
+    try {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString(undefined, {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch {
+        return dateStr;
+    }
+};
+
+const setLanguageCode = (code: string) => {
+    setLanguage(code as any);
+};
+
+const isCapacitor = computed(() => {
+    return !!(window as any).Capacitor?.isNativePlatform?.();
+});
+
+const triggerClearCache = () => {
+    if (confirm('¿Estás seguro de que deseas restablecer todos los datos? Esto borrará tu historial, nombre de jugador y monedas virtuales.')) {
+        if (typeof localStorage !== 'undefined') {
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('tuti-') || key.startsWith('tuti_'))) {
+                    localStorage.removeItem(key);
+                }
+            }
+        }
+        window.location.reload();
+    }
+};
 
 const handleMockAction = (actionName: string) => {
     addToast(`${t('common.success') || 'Éxito'}: ${actionName}`, 'success');
@@ -64,18 +128,6 @@ const handleMockAction = (actionName: string) => {
                         <span class="md:inline" :class="currentTab === 'store' ? 'font-black' : 'font-bold'">Tienda</span>
                     </button>
 
-                    <!-- BOTÓN: LOGROS -->
-                    <button 
-                        @click="setTab('history')"
-                        class="flex flex-col md:flex-row items-center gap-1 md:gap-4 px-3 py-1.5 md:py-3.5 md:px-4 rounded-xl font-bold uppercase tracking-wider text-[9px] md:text-xs transition-all duration-300 w-20 md:w-full select-none"
-                        :class="currentTab === 'history' 
-                            ? 'text-white bg-action-info/20 border border-action-info/30 shadow-[0_0_15px_rgba(14,165,233,0.15)]' 
-                            : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'"
-                    >
-                        <span class="text-xl md:text-2xl filter drop-shadow-[0_0_5px_rgba(14,165,233,0.2)]">🏆</span>
-                        <span class="md:inline" :class="currentTab === 'history' ? 'font-black' : 'font-bold'">Logros</span>
-                    </button>
-
                     <!-- BOTÓN: PERFIL -->
                     <button 
                         @click="setTab('profile')"
@@ -88,31 +140,22 @@ const handleMockAction = (actionName: string) => {
                         <span class="md:inline" :class="currentTab === 'profile' ? 'font-black' : 'font-bold'">Perfil</span>
                     </button>
 
+                    <!-- BOTÓN: AJUSTES -->
+                    <button 
+                        @click="setTab('settings')"
+                        class="flex flex-col md:flex-row items-center gap-1 md:gap-4 px-3 py-1.5 md:py-3.5 md:px-4 rounded-xl font-bold uppercase tracking-wider text-[9px] md:text-xs transition-all duration-300 w-20 md:w-full select-none"
+                        :class="currentTab === 'settings' 
+                            ? 'text-white bg-action-info/20 border border-action-info/30 shadow-[0_0_15px_rgba(14,165,233,0.15)]' 
+                            : 'text-white/50 hover:text-white hover:bg-white/5 border border-transparent'"
+                    >
+                        <span class="text-xl md:text-2xl filter drop-shadow-[0_0_5px_rgba(14,165,233,0.2)]">⚙️</span>
+                        <span class="md:inline" :class="currentTab === 'settings' ? 'font-black' : 'font-bold'">Ajustes</span>
+                    </button>
+
                 </div>
 
-                <!-- Controles de Ajustes e Identidad (Solo Desktop) -->
+                <!-- Controles de Identidad (Solo Desktop) -->
                 <div class="hidden md:flex flex-col gap-3 mt-auto w-full">
-                    <!-- Ajustes: Mute e Idioma -->
-                    <div class="flex items-center justify-between lg:justify-start lg:gap-4 p-2 bg-white/5 rounded-2xl border border-white/5">
-                        <!-- Botón de Mute -->
-                        <button
-                            @click="toggleMute"
-                            class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white transition-all hover:bg-white/10 active:scale-95"
-                            :title="isMuted ? t('app.unmuteSound') : t('app.muteSound')"
-                            :aria-label="isMuted ? t('app.unmuteSound') : t('app.muteSound')"
-                        >
-                            <svg v-if="!isMuted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 opacity-85">
-                                <path d="M9.348 14.651l-2.853-2.852H4V8.201h2.495l2.853-2.852v9.302zM15.536 10a5.002 5.002 0 00-2.316-4.195v8.39A5.002 5.002 0 0015.536 10z" />
-                                <path d="M12.22 3.102v13.796A7.003 7.003 0 0018.5 10a7.003 7.003 0 00-6.28-6.898z" />
-                            </svg>
-                            <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 opacity-50 text-red-400">
-                                <path fill-rule="evenodd" d="M9.383 3.076a.75.75 0 011.066.079l.067.086 5.86 8.371a.75.75 0 01-1.127.949l-.067-.086-1.503-2.148H12v3.633a.75.75 0 01-1.077.677l-4.14-2.192H4a2 2 0 01-2-2V9.5a2 2 0 011.66-1.972l.34-.028h1.841l4.14-2.192a.75.75 0 011.402.399l.001 5.863L9.304 3.14a.75.75 0 01.079-1.064zM16.53 4.47a.75.75 0 011.06 0l1.94 1.94 1.94-1.94a.75.75 0 111.06 1.06L20.59 7.47l1.94 1.94a.75.75 0 11-1.06 1.06l-1.94-1.94-1.94 1.94a.75.75 0 01-1.06-1.06l1.94-1.94-1.94-1.94a.75.75 0 010-1.06z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                        <!-- Selector de Idioma inline -->
-                        <GlobalLanguageSelector inline />
-                    </div>
-
                     <!-- Tarjeta de Cuenta -->
                     <div class="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/5">
                         <img v-if="isAuthenticated && user?.user_metadata.avatar_url" :src="user.user_metadata.avatar_url" class="w-8 h-8 rounded-lg border border-white/10 shadow-sm flex-none" alt="Avatar">
@@ -216,7 +259,7 @@ const handleMockAction = (actionName: string) => {
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     
                     <!-- Tarjeta de Identidad -->
-                    <div class="md:col-span-1 bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col items-center text-center relative overflow-hidden">
+                    <div class="md:col-span-1 bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col items-center text-center relative overflow-hidden h-fit">
                         <div class="absolute -top-12 -right-12 w-28 h-28 bg-action-success/5 rounded-full blur-3xl pointer-events-none"></div>
                         
                         <div class="w-24 h-24 rounded-3xl bg-white/5 border-2 border-action-success flex items-center justify-center text-5xl mb-4 shadow-inner">
@@ -242,81 +285,268 @@ const handleMockAction = (actionName: string) => {
                         </div>
                     </div>
 
-                    <!-- Estadísticas -->
-                    <div class="md:col-span-2 bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col justify-between">
-                        <h3 class="text-xs font-black text-ink-main uppercase tracking-widest mb-4">🏆 Estadísticas de Juego</h3>
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
-                                <p class="text-ink-muted text-[10px] font-bold uppercase tracking-wider mb-1">Partidas Jugadas</p>
-                                <span class="text-3xl font-display font-black text-white">42</span>
-                            </div>
-                            <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
-                                <p class="text-ink-muted text-[10px] font-bold uppercase tracking-wider mb-1">Victorias Totales</p>
-                                <span class="text-3xl font-display font-black text-action-success">18</span>
-                            </div>
-                            <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
-                                <p class="text-ink-muted text-[10px] font-bold uppercase tracking-wider mb-1">Win Rate</p>
-                                <span class="text-3xl font-display font-black text-action-info">43%</span>
-                            </div>
-                            <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
-                                <p class="text-ink-muted text-[10px] font-bold uppercase tracking-wider mb-1">Récord de Puntuación</p>
-                                <span class="text-3xl font-display font-black text-game-yellow">140</span>
+                    <!-- Estadísticas e Historial -->
+                    <div class="md:col-span-2 flex flex-col gap-6">
+                        <!-- Estadísticas -->
+                        <div class="bg-white/5 border border-white/10 rounded-3xl p-6">
+                            <h3 class="text-xs font-black text-white uppercase tracking-widest mb-4">🏆 Estadísticas de Juego</h3>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                                    <p class="text-ink-muted text-[10px] font-bold uppercase tracking-wider mb-1">Partidas Jugadas</p>
+                                    <span class="text-3xl font-display font-black text-white">42</span>
+                                </div>
+                                <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                                    <p class="text-ink-muted text-[10px] font-bold uppercase tracking-wider mb-1">Victorias Totales</p>
+                                    <span class="text-3xl font-display font-black text-action-success">18</span>
+                                </div>
+                                <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                                    <p class="text-ink-muted text-[10px] font-bold uppercase tracking-wider mb-1">Win Rate</p>
+                                    <span class="text-3xl font-display font-black text-action-info">43%</span>
+                                </div>
+                                <div class="bg-white/5 p-4 rounded-2xl border border-white/5">
+                                    <p class="text-ink-muted text-[10px] font-bold uppercase tracking-wider mb-1">Récord de Puntuación</p>
+                                    <span class="text-3xl font-display font-black text-game-yellow">140</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="mt-6 pt-4 border-t border-white/10 flex justify-between items-center">
-                            <span class="text-[10px] font-black uppercase text-ink-muted tracking-wider">Historial de Clasificaciones</span>
-                            <button @click="setTab('history')" class="text-action-success hover:underline font-bold text-xs uppercase tracking-wider">Ver historial</button>
+                        <!-- Historial de Partidas -->
+                        <div class="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col">
+                            <h3 class="text-xs font-black text-white uppercase tracking-widest mb-4 flex items-center justify-between">
+                                <span>📋 Historial de Partidas</span>
+                                <span class="text-[10px] font-bold text-ink-muted uppercase">(Últimas 20)</span>
+                            </h3>
+
+                            <div v-if="historyList.length === 0" class="text-center py-6 text-ink-muted text-xs font-bold uppercase tracking-wider">
+                                No hay partidas registradas todavía.
+                            </div>
+                            <div v-else class="flex flex-col gap-3 max-h-[300px] overflow-y-auto pr-1">
+                                <div v-for="(entry, index) in historyList" :key="index"
+                                     class="flex items-center justify-between p-3 bg-white/5 border border-white/5 rounded-2xl hover:border-white/10 transition-colors">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <span class="text-xl">
+                                            {{ entry.myRank === 1 ? '🥇' : entry.myRank === 2 ? '🥈' : entry.myRank === 3 ? '🥉' : '🎮' }}
+                                        </span>
+                                        <div class="min-w-0">
+                                            <p class="text-white font-black text-xs uppercase">{{ entry.mode === 'CLASSIC' ? 'Tuti Clásico' : 'Modo Impostor' }}</p>
+                                            <p class="text-ink-muted text-[9px] font-bold">{{ formatDate(entry.date) }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right flex-none">
+                                        <span class="text-xs font-black" :class="entry.won ? 'text-action-success' : 'text-ink-soft'">
+                                            Puesto #{{ entry.myRank }}/{{ entry.totalPlayers }}
+                                        </span>
+                                        <p class="text-[9px] font-bold text-game-yellow">{{ entry.myScore }} pts</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- PLACEHOLDER: LOGROS Y LOGS -->
-            <div v-else-if="currentTab === 'history'" class="w-full max-w-[960px] mx-auto p-6 flex flex-col gap-6 animate-fade-in pb-12">
+            <!-- TAB: AJUSTES / CONFIGURACIÓN -->
+            <div v-else-if="currentTab === 'settings'" class="w-full max-w-[960px] mx-auto p-6 flex flex-col gap-6 animate-fade-in pb-12">
                 <div class="text-center py-6">
                     <h2 class="text-5xl font-display text-transparent bg-clip-text bg-gradient-to-r from-action-info via-cyan-400 to-sky-500 uppercase tracking-widest font-black filter drop-shadow-[0_0_15px_rgba(14,165,233,0.3)]">
-                        🏆 LOGROS & RETOS
+                        ⚙️ CONFIGURACIÓN
                     </h2>
-                    <p class="text-ink-muted text-xs font-bold uppercase tracking-widest mt-2">Completa desafíos para ganar bonus de monedas</p>
+                    <p class="text-ink-muted text-xs font-bold uppercase tracking-widest mt-2">Ajusta tu experiencia de juego en TutiGames</p>
                 </div>
 
-                <div class="flex flex-col gap-4">
-                    <!-- Logro 1 -->
-                    <div class="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-center justify-between gap-4 group">
-                        <div class="flex items-center gap-4 min-w-0">
-                            <div class="w-12 h-12 rounded-xl bg-action-success/10 border border-action-success/20 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">✍️</div>
-                            <div class="min-w-0">
-                                <h3 class="text-white font-black text-sm uppercase tracking-wide truncate">Tuti-Máster</h3>
-                                <p class="text-ink-soft text-xs truncate">Escribe 5 palabras perfectas aprobadas por los rivales</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Tarjeta: AUDIO & SONIDO -->
+                    <div class="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col gap-4">
+                        <h3 class="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                            🔊 Audio y Sonido
+                        </h3>
+                        <div class="flex flex-col gap-3">
+                            <!-- Toggle: Mute -->
+                            <div class="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
+                                <div>
+                                    <p class="text-white font-black text-xs uppercase">Silenciar Sonidos</p>
+                                    <p class="text-ink-muted text-[9px] font-bold uppercase">Apaga todos los efectos del juego</p>
+                                </div>
+                                <button @click="toggleMute" class="w-12 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none"
+                                        :class="isMuted ? 'bg-action-error' : 'bg-zinc-700'">
+                                    <div class="bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-200"
+                                         :class="isMuted ? 'translate-x-6' : 'translate-x-0'"></div>
+                                </button>
+                            </div>
+                            
+                            <!-- Toggle: SFX -->
+                            <div class="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5" :class="{ 'opacity-50': isMuted }">
+                                <div>
+                                    <p class="text-white font-black text-xs uppercase">Efectos Especiales (SFX)</p>
+                                    <p class="text-ink-muted text-[9px] font-bold uppercase">Sonidos al escribir y pulsar botones</p>
+                                </div>
+                                <button @click="sfxEnabled = !sfxEnabled" :disabled="isMuted" class="w-12 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none"
+                                        :class="sfxEnabled && !isMuted ? 'bg-action-success' : 'bg-zinc-700'">
+                                    <div class="bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-200"
+                                         :class="sfxEnabled && !isMuted ? 'translate-x-6' : 'translate-x-0'"></div>
+                                </button>
+                            </div>
+
+                            <!-- Toggle: BGM -->
+                            <div class="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5" :class="{ 'opacity-50': isMuted }">
+                                <div>
+                                    <p class="text-white font-black text-xs uppercase">Música de Fondo (BGM)</p>
+                                    <p class="text-ink-muted text-[9px] font-bold uppercase">Música ambiental en lobby y salas</p>
+                                </div>
+                                <button @click="bgmEnabled = !bgmEnabled" :disabled="isMuted" class="w-12 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none"
+                                        :class="bgmEnabled && !isMuted ? 'bg-action-success' : 'bg-zinc-700'">
+                                    <div class="bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-200"
+                                         :class="bgmEnabled && !isMuted ? 'translate-x-6' : 'translate-x-0'"></div>
+                                </button>
                             </div>
                         </div>
-                        <span class="text-xs font-bold text-action-success bg-action-success/10 border border-action-success/20 px-3 py-1.5 rounded-xl flex-none uppercase">Completo</span>
                     </div>
 
-                    <!-- Logro 2 -->
-                    <div class="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-center justify-between gap-4 group">
-                        <div class="flex items-center gap-4 min-w-0">
-                            <div class="w-12 h-12 rounded-xl bg-action-info/10 border border-action-info/20 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">🕵️</div>
-                            <div class="min-w-0">
-                                <h3 class="text-white font-black text-sm uppercase tracking-wide truncate">Cazador de Mentiras</h3>
-                                <p class="text-ink-soft text-xs truncate">Descubre al Impostor en la fase de votación de forma correcta</p>
-                            </div>
+                    <!-- Tarjeta: SELECCIÓN DE IDIOMA -->
+                    <div class="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col gap-4">
+                        <h3 class="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                            🌎 Idioma del Juego
+                        </h3>
+                        <p class="text-ink-muted text-[9px] font-bold uppercase">Selecciona el idioma de la interfaz y categorías:</p>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button v-for="lang in [
+                                { code: 'es', flag: '🇪🇸', label: 'Español' },
+                                { code: 'en', flag: '🇬🇧', label: 'English' },
+                                { code: 'pt', flag: '🇧🇷', label: 'Português' }
+                            ]" :key="lang.code"
+                                    @click="setLanguageCode(lang.code)"
+                                    class="flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all"
+                                    :class="locale === lang.code 
+                                        ? 'bg-action-info/10 border-action-info text-white shadow-lg' 
+                                        : 'bg-white/5 border-transparent text-ink-muted hover:bg-white/10 hover:text-white'">
+                                <span class="text-3xl filter drop-shadow-sm">{{ lang.flag }}</span>
+                                <span class="text-[10px] font-black uppercase tracking-wider">{{ lang.label }}</span>
+                            </button>
                         </div>
-                        <span class="text-xs font-bold text-action-info bg-action-info/10 border border-action-info/20 px-3 py-1.5 rounded-xl flex-none uppercase">Progreso: 2/5</span>
                     </div>
 
-                    <!-- Logro 3 -->
-                    <div class="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-center justify-between gap-4 group opacity-50">
-                        <div class="flex items-center gap-4 min-w-0">
-                            <div class="w-12 h-12 rounded-xl bg-zinc-800 border border-white/5 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">👑</div>
-                            <div class="min-w-0">
-                                <h3 class="text-white font-black text-sm uppercase tracking-wide truncate">Monarca Supremo</h3>
-                                <p class="text-ink-soft text-xs truncate">Gana 10 partidas en salas públicas competitivas</p>
+                    <!-- Tarjeta: RENDIMIENTO & GRÁFICOS -->
+                    <div class="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col gap-4">
+                        <h3 class="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                            ⚡ Rendimiento y Gráficos
+                        </h3>
+                        <div class="flex flex-col gap-3">
+                            <!-- Toggle: Fondo Animado -->
+                            <div class="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
+                                <div>
+                                    <p class="text-white font-black text-xs uppercase">Fondo Cósmico Animado</p>
+                                    <p class="text-ink-muted text-[9px] font-bold uppercase">Nebulosas y estrellas flotantes de fondo</p>
+                                </div>
+                                <button @click="bgAnimationsEnabled = !bgAnimationsEnabled" class="w-12 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none"
+                                        :class="bgAnimationsEnabled ? 'bg-action-success' : 'bg-zinc-700'">
+                                    <div class="bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-200"
+                                         :class="bgAnimationsEnabled ? 'translate-x-6' : 'translate-x-0'"></div>
+                                </button>
+                            </div>
+                            
+                            <!-- Toggle: Partículas -->
+                            <div class="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
+                                <div>
+                                    <p class="text-white font-black text-xs uppercase">Efectos de Partículas (VFX)</p>
+                                    <p class="text-ink-muted text-[9px] font-bold uppercase">Chispas y destellos de botones y clics</p>
+                                </div>
+                                <button @click="particlesEnabled = !particlesEnabled" class="w-12 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none"
+                                        :class="particlesEnabled ? 'bg-action-success' : 'bg-zinc-700'">
+                                    <div class="bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-200"
+                                         :class="particlesEnabled ? 'translate-x-6' : 'translate-x-0'"></div>
+                                </button>
                             </div>
                         </div>
-                        <span class="text-xs font-bold text-zinc-400 bg-zinc-800 border border-white/5 px-3 py-1.5 rounded-xl flex-none uppercase">Bloqueado</span>
+                    </div>
+
+                    <!-- Tarjeta: ACCESIBILIDAD -->
+                    <div class="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col gap-4">
+                        <h3 class="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                            ♿ Accesibilidad
+                        </h3>
+                        <div class="flex flex-col gap-3">
+                            <!-- Toggle: Modo Daltónicos -->
+                            <div class="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
+                                <div>
+                                    <p class="text-white font-black text-xs uppercase">Modo Daltónicos / Alto Contraste</p>
+                                    <p class="text-ink-muted text-[9px] font-bold uppercase">Colores alternativos optimizados para UI</p>
+                                </div>
+                                <button @click="colorblindMode = !colorblindMode" class="w-12 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none"
+                                        :class="colorblindMode ? 'bg-action-success' : 'bg-zinc-700'">
+                                    <div class="bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-200"
+                                         :class="colorblindMode ? 'translate-x-6' : 'translate-x-0'"></div>
+                                </button>
+                            </div>
+                            
+                            <!-- Toggle: Letra Grande -->
+                            <div class="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
+                                <div>
+                                    <p class="text-white font-black text-xs uppercase">Texto Grande</p>
+                                    <p class="text-ink-muted text-[9px] font-bold uppercase">Incrementa el tamaño de la letra de la app</p>
+                                </div>
+                                <button @click="largeTextEnabled = !largeTextEnabled" class="w-12 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none"
+                                        :class="largeTextEnabled ? 'bg-action-success' : 'bg-zinc-700'">
+                                    <div class="bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-200"
+                                         :class="largeTextEnabled ? 'translate-x-6' : 'translate-x-0'"></div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta: JUGABILIDAD -->
+                    <div class="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col gap-4">
+                        <h3 class="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                            🎮 Jugabilidad
+                        </h3>
+                        <div class="flex flex-col gap-3">
+                            <!-- Toggle: Auto Focus -->
+                            <div class="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
+                                <div>
+                                    <p class="text-white font-black text-xs uppercase">Foco de Entrada Automático</p>
+                                    <p class="text-ink-muted text-[9px] font-bold uppercase">Abre el teclado al iniciar la ronda de Tuti</p>
+                                </div>
+                                <button @click="autoFocusEnabled = !autoFocusEnabled" class="w-12 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none"
+                                        :class="autoFocusEnabled ? 'bg-action-success' : 'bg-zinc-700'">
+                                    <div class="bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-200"
+                                         :class="autoFocusEnabled ? 'translate-x-6' : 'translate-x-0'"></div>
+                                </button>
+                            </div>
+                            
+                            <!-- Toggle: Vibración -->
+                            <div class="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
+                                <div>
+                                    <p class="text-white font-black text-xs uppercase">Vibración Háptica</p>
+                                    <p class="text-ink-muted text-[9px] font-bold uppercase">Respuesta física al presionar botones (móvil)</p>
+                                </div>
+                                <button @click="vibrationEnabled = !vibrationEnabled" class="w-12 h-6 rounded-full p-0.5 transition-colors duration-200 focus:outline-none"
+                                        :class="vibrationEnabled ? 'bg-action-success' : 'bg-zinc-700'">
+                                    <div class="bg-white w-5 h-5 rounded-full shadow-md transform transition-transform duration-200"
+                                         :class="vibrationEnabled ? 'translate-x-6' : 'translate-x-0'"></div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta: MANTENIMIENTO & SISTEMA -->
+                    <div class="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col justify-between gap-4">
+                        <h3 class="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                            🛠️ Mantenimiento y Sistema
+                        </h3>
+                        <div class="flex flex-col gap-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-ink-muted text-[9px] font-bold uppercase">Versión de Aplicación</span>
+                                <span class="text-white font-black text-xs">v1.2.0 - Cosmic Edition</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-ink-muted text-[9px] font-bold uppercase">Plataforma</span>
+                                <span class="text-white font-black text-xs uppercase">{{ isCapacitor ? 'Capacitor Nativo' : 'Navegador Web' }}</span>
+                            </div>
+                        </div>
+                        <button @click="triggerClearCache" class="w-full bg-action-error/20 border border-action-error/40 hover:bg-action-error/30 text-white py-3 rounded-2xl font-black uppercase text-xs tracking-wider transition-all">
+                            ⚠️ Restablecer Datos de la App
+                        </button>
                     </div>
                 </div>
             </div>

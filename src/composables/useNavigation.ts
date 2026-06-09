@@ -3,7 +3,8 @@ import { useGame } from './useGame';
 import { useRouter } from 'vue-router';
 
 // Estado global persistido fuera de la función de fábrica para mantener la pestaña activa entre montajes
-const currentTab = ref<'home' | 'store' | 'profile' | 'history'>('home');
+const currentTab = ref<'home' | 'store' | 'profile' | 'settings'>('home');
+
 
 export function useNavigation() {
     const { gameState } = useGame();
@@ -37,7 +38,7 @@ export function useNavigation() {
         return true;
     });
 
-    const setTab = (tab: 'home' | 'store' | 'profile' | 'history') => {
+    const setTab = (tab: 'home' | 'store' | 'profile' | 'settings') => {
         currentTab.value = tab;
         // Si volvemos a 'home', nos aseguramos de redirigir a la vista raíz '/'
         if (tab === 'home') {
