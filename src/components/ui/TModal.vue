@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, watch, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -15,29 +15,79 @@ const emit = defineEmits<{
     (e: 'close'): void;
 }>();
 
+// ── Focus Trap ────────────────────────────────────────────────────────────────
+const dialogRef = ref<HTMLElement | null>(null);
+
+/** Selector de elementos focusables estándar (WCAG 2.1) */
+const FOCUSABLE = [
+    'a[href]',
+    'button:not([disabled])',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    'textarea:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])',
+].join(',');
+
+function trapFocus(e: KeyboardEvent) {
+    if (!dialogRef.value || !props.modelValue) return;
+    const focusable = Array.from(dialogRef.value.querySelectorAll<HTMLElement>(FOCUSABLE));
+    if (focusable.length === 0) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (e.key === 'Tab') {
+        if (e.shiftKey) {
+            // Shift+Tab: si el foco está en el primer elemento, saltar al último
+            if (document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            }
+        } else {
+            // Tab: si el foco está en el último elemento, saltar al primero
+            if (document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        }
+    }
+}
+
+// Guardar el elemento que tenía el foco antes de abrir el modal
+let previouslyFocused: HTMLElement | null = null;
+
+watch(() => props.modelValue, (isOpen) => {
+    if (typeof document === 'undefined') return;
+
+    if (isOpen) {
+        document.body.style.overflow = 'hidden';
+        previouslyFocused = document.activeElement as HTMLElement;
+        // Defer el foco al primer elemento focusable del diálogo
+        setTimeout(() => {
+            const focusable = dialogRef.value?.querySelector<HTMLElement>(FOCUSABLE);
+            focusable?.focus();
+        }, 50);
+    } else {
+        document.body.style.overflow = '';
+        // Devolver el foco al elemento que lo tenía antes de abrir
+        previouslyFocused?.focus();
+        previouslyFocused = null;
+    }
+});
+
 // Cerrar el modal
 const close = () => {
     emit('update:modelValue', false);
     emit('close');
 };
 
-// Cierre mediante evento presionar tecla ESC
+// Cierre mediante tecla ESC
 const handleKeydown = (e: KeyboardEvent) => {
     if (e.key === 'Escape' && props.modelValue) {
         close();
     }
+    trapFocus(e);
 };
-
-// Bloquear el scroll del body cuando el modal está abierto para evitar dobles scrolls,
-// pero esto se maneja con watch, o al menos con eventos
-import { watch } from 'vue';
-watch(() => props.modelValue, (isOpen) => {
-    if (isOpen && typeof document !== 'undefined') {
-        document.body.style.overflow = 'hidden';
-    } else if (typeof document !== 'undefined') {
-        document.body.style.overflow = '';
-    }
-});
 
 onMounted(() => {
     if (typeof document !== 'undefined') {
@@ -64,7 +114,14 @@ const maxWidthClass = {
 <template>
     <Teleport to="body">
         <Transition name="modal">
-            <div v-if="modelValue" class="fixed inset-0 z-[999] flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true">
+            <div
+                v-if="modelValue"
+                ref="dialogRef"
+                class="fixed inset-0 z-[999] flex items-center justify-center p-4 sm:p-6"
+                role="dialog"
+                aria-modal="true"
+                :aria-labelledby="title ? 'tmodal-title' : undefined"
+            >
                 <!-- Backdrop (Fondo Oscurecido / Blur) con listener para cerrar al hacer clic fuera -->
                 <div 
                     class="absolute inset-0 bg-panel-base/80 backdrop-blur-sm transition-opacity" 
@@ -76,7 +133,7 @@ const maxWidthClass = {
                     
                     <!-- Header -->
                     <div class="flex items-center justify-between p-4 border-b-2 border-white/10 shrink-0">
-                        <h3 class="text-ink-main text-sm font-black uppercase tracking-widest">{{ title }}</h3>
+                        <h3 id="tmodal-title" class="text-ink-main text-sm font-black uppercase tracking-widest">{{ title }}</h3>
                         <button 
                             @click="close"
                             class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/20 border-2 border-transparent hover:border-white/10 flex items-center justify-center text-ink-muted hover:text-white transition-all active:scale-95"

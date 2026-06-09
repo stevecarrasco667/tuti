@@ -48,7 +48,12 @@ export function useReactions() {
         reactionMap[key][senderId] = emoji;
 
         // Burst efímero de entrada (solo visual, 1.5s)
+        // Cap FIFO de 12 bursts activos: evitar acumulación ilimitada de partículas.
+        const MAX_BURSTS = 12;
         const burstId = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+        if (reactionBursts.value.length >= MAX_BURSTS) {
+            reactionBursts.value.shift(); // Eliminar el más antiguo (FIFO)
+        }
         reactionBursts.value.push({
             id: burstId,
             targetPlayerId,

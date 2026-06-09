@@ -42,20 +42,20 @@ const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.l
                     <select
                         :value="props.maxPlayers"
                         @change="emit('update-max-players', Number(($event.target as HTMLSelectElement).value))"
-                        class="w-full bg-panel-input border-[2px] border-panel-card text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input/80 transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9"
+                        class="w-full bg-panel-input border-[2px] border-panel-card text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input/80 transition-colors focus:outline-none focus:border-action-primary shadow-inner h-11"
                     >
                         <option v-for="n in 9" :key="n+1" :value="n+1" class="bg-panel-input">{{ n + 1 }} Max</option>
                     </select>
                     <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
                 </div>
-                <div v-else class="bg-panel-input border-[2px] border-panel-card text-ink-muted text-[10px] font-black uppercase tracking-wider px-3.5 py-2 rounded-xl shadow-inner text-center leading-5 h-9 select-none">
+                <div v-else class="bg-panel-input border-[2px] border-panel-card text-ink-muted text-[10px] font-black uppercase tracking-wider px-3.5 py-2 rounded-xl shadow-inner text-center leading-5 h-11 select-none flex items-center justify-center">
                     {{ props.maxPlayers }} Max
                 </div>
 
                 <!-- Public/Private Toggle -->
                 <button v-if="props.amIHost"
                     @click="emit('toggle-privacy')"
-                    class="w-full border-[2px] flex items-center justify-center gap-1 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all duration-200 active:scale-95 cursor-pointer h-9 shadow-sm"
+                    class="w-full border-[2px] flex items-center justify-center gap-1 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all duration-200 active:scale-95 cursor-pointer h-11 shadow-sm"
                     :class="props.isPublic 
                         ? 'bg-action-primary/20 border-action-primary text-action-primary shadow-[0_0_12px_rgba(245,158,11,0.25)]' 
                         : 'bg-panel-input border-panel-card text-ink-soft hover:text-ink-main hover:border-white/20'"
@@ -64,7 +64,7 @@ const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.l
                     <span>{{ props.isPublic ? $t('lobby.players.public') : $t('lobby.players.private') }}</span>
                 </button>
                 <div v-else 
-                    class="w-full border-[2px] border-panel-card bg-panel-input/50 text-ink-muted text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 rounded-xl h-9 select-none opacity-75"
+                    class="w-full border-[2px] border-panel-card bg-panel-input/50 text-ink-muted text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 rounded-xl h-11 select-none opacity-75"
                 >
                     <span>{{ props.isPublic ? '🌐' : '🔒' }}</span>
                     <span>{{ props.isPublic ? $t('lobby.players.public') : $t('lobby.players.private') }}</span>
@@ -94,7 +94,7 @@ const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.l
                     </div>
                 </div>
                 <button v-if="props.amIHost && !player.isHost" @click="emit('kick-player', player.id, player.name)"
-                    class="hidden group-hover:flex flex-none w-7 h-7 items-center justify-center rounded-lg bg-action-error/20 text-action-error hover:bg-action-error hover:text-white transition-all text-[10px] font-bold cursor-pointer"
+                    class="hidden group-hover:flex flex-none w-8 h-8 items-center justify-center rounded-lg bg-action-error/20 text-action-error hover:bg-action-error hover:text-white transition-all text-[10px] font-bold cursor-pointer"
                 >✕</button>
             </div>
 
@@ -128,7 +128,7 @@ const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.l
                 <button
                     v-if="props.amIHost"
                     @click="emit('add-bot')"
-                    class="flex items-center gap-1 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider bg-action-primary/10 text-action-primary hover:bg-action-primary hover:text-panel-base border border-action-primary/20 hover:border-action-primary hover:shadow-glow-primary rounded-lg cursor-pointer transition-all duration-300 flex-none h-7"
+                    class="flex items-center gap-1 px-2.5 py-1 text-[9px] font-black uppercase tracking-wider bg-action-primary/10 text-action-primary hover:bg-action-primary hover:text-panel-base border border-action-primary/20 hover:border-action-primary hover:shadow-glow-primary rounded-lg cursor-pointer transition-all duration-300 flex-none h-9 min-w-[64px] justify-center"
                 >
                     <span>+ 🤖 Bot</span>
                 </button>

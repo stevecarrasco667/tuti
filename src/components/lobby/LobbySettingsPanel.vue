@@ -5,6 +5,9 @@ import { supabase } from '../../lib/supabase';
 import { MASTER_CATEGORIES } from '../../../shared/engines/categories';
 import type { CategoryRef, GameConfig } from '../../../shared/types';
 import TButton from '../ui/TButton.vue';
+import ModeSelector from './ModeSelector.vue';
+import ClassicConfig from './ClassicConfig.vue';
+import ImpostorConfig from './ImpostorConfig.vue';
 
 const { t, locale } = useI18n();
 
@@ -31,18 +34,6 @@ const votingOptions = [10, 15, 20, 30, 45, 60, 90, 120];
 const impostorTypingOptions = [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
 const impostorVotingOptions = Array.from({ length: 22 }, (_, i) => 15 + i * 5); // [15,20,...,120]
 
-// Generic numeric input handler
-function handleNumericInput(field: string, rawValue: string, min: number, max: number, options?: number[]) {
-    let val = parseInt(rawValue, 10);
-    if (isNaN(val)) return;
-    if (options && options.length > 0) {
-        val = options.reduce((prev, curr) =>
-            Math.abs(curr - val) < Math.abs(prev - val) ? curr : prev
-        );
-    }
-    val = Math.max(min, Math.min(max, val));
-    emit('update-config', field, val);
-}
 // ── Presets Configuration ──────────────────────────────────────────────────
 const PRESETS = {
     CLASSIC: {
@@ -203,29 +194,11 @@ const tSpec = computed(() => {
         classic: {
             title: isEn ? "Classic Tuti" : isPt ? "Tuti Clássico" : "Tuti Clásico",
             subtitle: isEn ? "Fill category columns" : isPt ? "Preencha as categorias" : "Llenar columnas de categorías",
-            badge1: isEn ? "✍️ Fast Writing" : isPt ? "✍️ Escrita Veloz" : "✍️ Escritura Veloz",
-            badge1Desc: isEn ? "Complete the categories before someone says STOP!" : isPt ? "Preencha as categorias antes que alguém diga STOP!" : "¡Completa las categorías antes de que alguien diga BASTA!",
-            badge2: isEn ? "🗳️ Open Vote" : isPt ? "🗳️ Votação Aberta" : "🗳️ Votación Abierta",
-            badge2Desc: isEn ? "Everyone judges answers. Beware of duplicates!" : isPt ? "Todos julgam as respostas. Cuidado com duplicatas!" : "Todos juzgan las respuestas. ¡Cuidado con las repetidas!",
-            badge3: isEn ? "🏆 Classic Scoring" : isPt ? "🏆 Pontuação Clássica" : "🏆 Puntuación Clásica",
-            badge3Desc: isEn ? "+10 for unique words, +5 for repeated ones." : isPt ? "+10 para palavras únicas, +5 para repetidas." : "+10 por palabras únicas, +5 por repetidas."
         },
         impostor: {
             title: isEn ? "The Impostor" : isPt ? "O Impostor" : "El Impostor",
             subtitle: isEn ? "Find the infiltrator" : isPt ? "Encontre o infiltrado" : "Encontrar al infiltrado",
-            badge1: isEn ? "🕵️‍♂️ Infiltration" : isPt ? "🕵️‍♂️ Infiltração" : "🕵️‍♂️ Infiltración",
-            badge1Desc: isEn ? "One player is the Impostor and doesn't know the secret word." : isPt ? "Um jogador é o Impostor e não conhece a palavra secreta." : "Un jugador es el Impostor y no conoce la palabra secreta.",
-            badge2: isEn ? "🤫 Credible Bluff" : isPt ? "🤫 Blefe Crível" : "🤫 Farol Creíble",
-            badge2Desc: isEn ? "Type a word that fits the theme to avoid suspicion." : isPt ? "Digite uma palavra que caiba no tema para evitar suspeitas." : "Escribe una palabra que encaje en el tema para camuflarte.",
-            badge3: isEn ? "🗳️ Secret Judgment" : isPt ? "🗳️ Julgamento Secreto" : "🗳️ Juicio Secreto",
-            badge3Desc: isEn ? "The Room debates and votes on who is lying." : isPt ? "A sala debate e vota em quem está mentindo." : "El Tribunal debate y vota quién es el impostor."
         },
-        categories: isEn ? "Categories" : isPt ? "Categorias" : "Categorías",
-        edit: isEn ? "✏️ Edit" : isPt ? "✏️ Editar" : "✏️ Editar",
-        randomSelection: isEn ? "Random Categories" : isPt ? "Categorias Aleatórias" : "Categorías Aleatorias",
-        randomSelectionDesc: isEn ? "4 categories will be picked randomly on start." : isPt ? "4 categorias serão sorteadas ao iniciar." : "4 categorías serán elegidas al azar al iniciar.",
-        impostorDesc: isEn ? "Categories surprise of the catalogue" : isPt ? "Categorias surpresa do catálogo" : "Categorías sorpresa del catálogo",
-        impostorDescSub: isEn ? "If empty, the game will pick randomly from our database." : isPt ? "Se estiver vazio, o jogo sorteará do nosso catálogo." : "Si no seleccionas ninguna, el juego elegirá al azar de la base de datos."
     };
 });
 </script>
@@ -260,109 +233,15 @@ const tSpec = computed(() => {
 
             <!-- ───── TAB 1: MODOS DE JUEGO (Preestablecidos) ───── -->
             <div v-if="activeTab === 'modes'" class="space-y-4 animate-in fade-in duration-300">
-                
-                <!-- Gartic Phone style 2x2 grid of games -->
-                <div class="grid grid-cols-2 gap-3.5">
-                    <!-- Classic Card -->
-                    <div
-                        @click="props.amIHost && emit('update-config', 'mode', 'CLASSIC')"
-                        class="relative p-4 rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[110px] flex flex-col items-center justify-center select-none"
-                        :class="[
-                            props.config.mode === 'CLASSIC'
-                                ? 'border-action-primary bg-action-primary/10 shadow-[0_4px_16px_rgba(245,158,11,0.15)] scale-[1.01]'
-                                : 'border-white/10 bg-panel-card/45 hover:border-action-primary/50 hover:bg-panel-input/50 hover:scale-[1.02]',
-                            !props.amIHost ? 'cursor-not-allowed opacity-60 hover:scale-100' : 'cursor-pointer'
-                        ]"
-                    >
-                        <!-- Top-Left Pencil/Edit button (Host-only, selected only) -->
-                        <button v-if="props.amIHost && props.config.mode === 'CLASSIC'"
-                            @click.stop="openModal"
-                            class="absolute top-2 left-2 w-8 h-8 rounded-xl bg-panel-card/90 border border-white/10 hover:border-action-primary text-action-primary hover:bg-panel-input flex items-center justify-center shadow-md active:scale-90 transition-all cursor-pointer z-20"
-                            title="Editar Categorías"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                            </svg>
-                        </button>
-
-                        <!-- Top-Right Help/Tutorial button (selected only) -->
-                        <button v-if="props.config.mode === 'CLASSIC'"
-                            @click.stop="emit('open-tutorial', 'CLASSIC')"
-                            class="absolute top-2 right-2 w-8 h-8 rounded-xl bg-panel-card/90 border border-white/10 hover:border-action-info text-action-info hover:bg-panel-input flex items-center justify-center shadow-md active:scale-90 transition-all cursor-pointer z-20"
-                            title="Cómo Jugar"
-                        >
-                            <span class="text-xs font-black">❓</span>
-                        </button>
-
-                        <div class="text-3xl mb-1 group-hover:scale-110 transition-transform drop-shadow-[0_4px_8px_rgba(0,0,0,0.35)]">🎯</div>
-                        <h4 class="text-ink-main font-black text-xs tracking-wider leading-none uppercase">{{ tSpec.classic.title }}</h4>
-                        <p class="text-ink-soft text-[9px] font-bold mt-1.5 leading-none opacity-85">{{ tSpec.classic.subtitle }}</p>
-                        
-                        <!-- Compact category count status -->
-                        <div class="mt-2.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/5 text-[8px] font-black uppercase tracking-wider text-ink-soft select-none leading-none">
-                            {{ props.categories.length > 0 ? `${props.categories.length} Categorías` : '4 Categorías (Al Azar)' }}
-                        </div>
-                    </div>
-                    
-                    <!-- Impostor Card -->
-                    <div
-                        @click="props.amIHost && emit('update-config', 'mode', 'IMPOSTOR')"
-                        class="relative p-4 rounded-2xl border-[3px] transition-all duration-300 text-center group min-h-[110px] flex flex-col items-center justify-center select-none"
-                        :class="[
-                            props.config.mode === 'IMPOSTOR'
-                                ? 'border-action-error bg-action-error/10 shadow-[0_4px_16px_rgba(239,68,68,0.15)] scale-[1.01]'
-                                : 'border-white/10 bg-panel-card/45 hover:border-action-error/50 hover:bg-panel-input/50 hover:scale-[1.02]',
-                            !props.amIHost ? 'cursor-not-allowed opacity-60 hover:scale-100' : 'cursor-pointer'
-                        ]"
-                    >
-                        <!-- Top-Left Pencil/Edit button (Host-only, selected only) -->
-                        <button v-if="props.amIHost && props.config.mode === 'IMPOSTOR'"
-                            @click.stop="openModal"
-                            class="absolute top-2 left-2 w-8 h-8 rounded-xl bg-panel-card/90 border border-white/10 hover:border-action-primary text-action-primary hover:bg-panel-input flex items-center justify-center shadow-md active:scale-90 transition-all cursor-pointer z-20"
-                            title="Editar Categorías"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                            </svg>
-                        </button>
-
-                        <!-- Top-Right Help/Tutorial button (selected only) -->
-                        <button v-if="props.config.mode === 'IMPOSTOR'"
-                            @click.stop="emit('open-tutorial', 'IMPOSTOR')"
-                            class="absolute top-2 right-2 w-8 h-8 rounded-xl bg-panel-card/90 border border-white/10 hover:border-action-info text-action-info hover:bg-panel-input flex items-center justify-center shadow-md active:scale-90 transition-all cursor-pointer z-20"
-                            title="Cómo Jugar"
-                        >
-                            <span class="text-xs font-black">❓</span>
-                        </button>
-
-                        <div class="text-3xl mb-1 group-hover:scale-110 transition-transform drop-shadow-[0_4px_8px_rgba(0,0,0,0.35)]">🕵️</div>
-                        <h4 class="text-ink-main font-black text-xs tracking-wider leading-none uppercase">{{ tSpec.impostor.title }}</h4>
-                        <p class="text-ink-soft text-[9px] font-bold mt-1.5 leading-none opacity-85">{{ tSpec.impostor.subtitle }}</p>
-                        
-                        <!-- Compact category status -->
-                        <div class="mt-2.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/5 text-[8px] font-black uppercase tracking-wider text-ink-soft select-none leading-none">
-                            {{ props.categories.length > 0 ? `${props.categories.length} Temas` : 'Catálogo Aleatorio' }}
-                        </div>
-                    </div>
-
-                    <!-- Locked/Mystery Card 1 -->
-                    <div
-                        class="relative p-3.5 rounded-2xl border-2 border-dashed border-white/5 bg-panel-card/5 opacity-45 saturate-50 select-none flex flex-col items-center justify-center min-h-[110px] group transition-all duration-300 hover:opacity-60"
-                    >
-                        <div class="text-2xl mb-1 drop-shadow-sm group-hover:animate-bounce">🔒</div>
-                        <h4 class="text-ink-muted font-heading font-black text-[10px] tracking-widest leading-none uppercase">PRÓXIMAMENTE</h4>
-                        <p class="text-ink-muted text-[8px] font-bold mt-1 leading-none">Nuevo Juego 🤫</p>
-                    </div>
-
-                    <!-- Locked/Mystery Card 2 -->
-                    <div
-                        class="relative p-3.5 rounded-2xl border-2 border-dashed border-white/5 bg-panel-card/5 opacity-45 saturate-50 select-none flex flex-col items-center justify-center min-h-[110px] group transition-all duration-300 hover:opacity-60"
-                    >
-                        <div class="text-2xl mb-1 drop-shadow-sm group-hover:animate-bounce">🤫</div>
-                        <h4 class="text-ink-muted font-heading font-black text-[10px] tracking-widest leading-none uppercase">PRÓXIMAMENTE</h4>
-                        <p class="text-ink-muted text-[8px] font-bold mt-1 leading-none">¿Qué se vendrá? 👀</p>
-                    </div>
-                </div>
+                <ModeSelector
+                    :config="props.config"
+                    :categories="props.categories"
+                    :amIHost="props.amIHost"
+                    :tSpec="tSpec"
+                    @update-config="(field, value) => emit('update-config', field, value)"
+                    @open-modal="openModal"
+                    @open-tutorial="(mode) => emit('open-tutorial', mode)"
+                />
             </div>
 
             <!-- ───── TAB 2: CONFIGURACIÓN (Ajustes Personalizados) ───── -->
@@ -381,7 +260,7 @@ const tSpec = computed(() => {
                             ]" :key="preset.key"
                                 :disabled="!props.amIHost"
                                 @click="applyPreset(preset.key as 'fast' | 'party' | 'pro')"
-                                class="flex-1 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wide border transition-all cursor-pointer flex items-center justify-center gap-1 shadow-sm"
+                                class="flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wide border transition-all cursor-pointer flex items-center justify-center gap-1 shadow-sm min-h-[44px]"
                                 :class="[
                                     activePreset === preset.key
                                         ? preset.key === 'fast'
@@ -404,7 +283,7 @@ const tSpec = computed(() => {
                             <button v-for="lang in [{ code:'es', label:'🇪🇸 Español' }, { code:'en', label:'🇬🇧' }, { code:'pt', label:'🇧🇷' }]" :key="lang.code"
                                 :disabled="!props.amIHost"
                                 @click="emit('update-config', 'lang', lang.code)"
-                                class="flex-1 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wide border transition-all cursor-pointer"
+                                class="flex-1 py-2 rounded-xl text-[9px] font-black uppercase tracking-wide border transition-all cursor-pointer min-h-[44px]"
                                 :class="[
                                     props.config.lang === lang.code || (!props.config.lang && lang.code === 'es')
                                         ? 'bg-action-warning/20 border-action-warning text-action-warning shadow-sm'
@@ -417,255 +296,25 @@ const tSpec = computed(() => {
 
                 <!-- ── CLASSIC MODE SETTINGS PANEL ── -->
                 <template v-if="props.config.mode === 'CLASSIC'">
-                    <div class="flex flex-col gap-2 bg-panel-card/15 p-2 rounded-2xl border border-white/5">
-                        
-                        <!-- Category Count (only when no manual categories selected) -->
-                        <div v-if="!(props.config.classic?.categories?.length > 0)" class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
-                            <div class="flex items-start gap-3 min-w-0">
-                                <span class="text-xl flex-none leading-none mt-0.5">🎲</span>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.classic.randomCategories') }}</span>
-                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
-                                        {{ locale === 'en' ? 'Amount of random categories' : locale === 'pt' ? 'Quantidade de categorias aleatórias' : 'Cantidad de categorías que se elegirán al azar' }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="relative w-36 sm:w-40 flex-none">
-                                <select
-                                    :disabled="!props.amIHost"
-                                    :value="props.config.classic?.categoryCount ?? 4"
-                                    @change="handleNumericInput('classic.categoryCount', ($event.target as HTMLSelectElement).value, 1, 10)"
-                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
-                                >
-                                    <option v-for="n in 10" :key="n" :value="n" class="bg-panel-card">{{ n }} {{ n === 1 ? 'Categoría' : 'Categorías' }}</option>
-                                </select>
-                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
-                            </div>
-                        </div>
-
-                        <!-- Rounds stepper -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
-                            <div class="flex items-start gap-3 min-w-0">
-                                <span class="text-xl flex-none leading-none mt-0.5">🔁</span>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.classic.rounds') }}</span>
-                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
-                                        {{ locale === 'en' ? 'Number of game rounds' : locale === 'pt' ? 'Número de rodadas do jogo' : 'Número de rondas de la partida' }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="relative w-36 sm:w-40 flex-none">
-                                <select
-                                    :disabled="!props.amIHost"
-                                    :value="props.config.classic?.rounds || 3"
-                                    @change="handleNumericInput('classic.rounds', ($event.target as HTMLSelectElement).value, 1, 20)"
-                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
-                                >
-                                    <option v-for="n in 10" :key="n" :value="n" class="bg-panel-card">{{ n }} {{ n === 1 ? 'Ronda' : 'Rondas' }}</option>
-                                    <option :value="12" class="bg-panel-card">12 Rondas</option>
-                                    <option :value="15" class="bg-panel-card">15 Rondas</option>
-                                    <option :value="20" class="bg-panel-card">20 Rondas</option>
-                                </select>
-                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
-                            </div>
-                        </div>
-
-                        <!-- Time limit stepper -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
-                            <div class="flex items-start gap-3 min-w-0">
-                                <span class="text-xl flex-none leading-none mt-0.5">⏱️</span>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.classic.timeLimit') }}</span>
-                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
-                                        {{ locale === 'en' ? 'Time limit to write words per round' : locale === 'pt' ? 'Tempo para escrever palavras por rodada' : 'Tiempo para escribir palabras en cada ronda' }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="relative w-36 sm:w-40 flex-none">
-                                <select
-                                    :disabled="!props.amIHost"
-                                    :value="props.config.classic?.timeLimit || 60"
-                                    @change="handleNumericInput('classic.timeLimit', ($event.target as HTMLSelectElement).value, 30, 180, timeLimitOptions)"
-                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
-                                >
-                                    <option v-for="opt in timeLimitOptions" :key="opt" :value="opt" class="bg-panel-card">{{ opt }} Segundos</option>
-                                </select>
-                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
-                            </div>
-                        </div>
-
-                        <!-- Voting duration stepper -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
-                            <div class="flex items-start gap-3 min-w-0">
-                                <span class="text-xl flex-none leading-none mt-0.5">🗳️</span>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.classic.votingTime') }}</span>
-                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
-                                        {{ locale === 'en' ? 'Time to vote and validate answers' : locale === 'pt' ? 'Tempo para votar e qualificar respostas' : 'Tiempo para calificar y votar las respuestas' }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="relative w-36 sm:w-40 flex-none">
-                                <select
-                                    :disabled="!props.amIHost"
-                                    :value="props.config.classic?.votingDuration || 20"
-                                    @change="handleNumericInput('classic.votingDuration', ($event.target as HTMLSelectElement).value, 10, 120, votingOptions)"
-                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
-                                >
-                                    <option v-for="opt in votingOptions" :key="opt" :value="opt" class="bg-panel-card">{{ opt }} Segundos</option>
-                                </select>
-                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
-                            </div>
-                        </div>
-
-                        <!-- Suicidal Stop -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
-                            <div class="flex items-start gap-3 min-w-0">
-                                <span class="text-xl flex-none leading-none mt-0.5">💀</span>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.classic.suicidalStop') }}</span>
-                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">{{ t('lobby.settings.classic.suicidalStopDesc') }}</span>
-                                </div>
-                            </div>
-                            <div class="relative w-36 sm:w-40 flex-none">
-                                <select
-                                    :disabled="!props.amIHost"
-                                    :value="props.config.classic?.mutators?.suicidalStop ? 'true' : 'false'"
-                                    @change="emit('update-mutator', 'suicidalStop', ($event.target as HTMLSelectElement).value === 'true')"
-                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
-                                >
-                                    <option value="false" class="bg-panel-card">DESACTIVADO</option>
-                                    <option value="true" class="bg-panel-card text-action-error font-black">ACTIVADO 💀</option>
-                                </select>
-                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
-                            </div>
-                        </div>
-
-                        <!-- Anonymous Voting -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
-                            <div class="flex items-start gap-3 min-w-0">
-                                <span class="text-xl flex-none leading-none mt-0.5">🎭</span>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.classic.anonymousVoting') }}</span>
-                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">{{ t('lobby.settings.classic.anonymousVotingDesc') }}</span>
-                                </div>
-                            </div>
-                            <div class="relative w-36 sm:w-40 flex-none">
-                                <select
-                                    :disabled="!props.amIHost"
-                                    :value="props.config.classic?.mutators?.anonymousVoting ? 'true' : 'false'"
-                                    @change="emit('update-mutator', 'anonymousVoting', ($event.target as HTMLSelectElement).value === 'true')"
-                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
-                                >
-                                    <option value="false" class="bg-panel-card">DESACTIVADO</option>
-                                    <option value="true" class="bg-panel-card text-action-blue font-black">ACTIVADO 🎭</option>
-                                </select>
-                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
-                            </div>
-                        </div>
-                    </div>
+                    <ClassicConfig
+                        :config="props.config"
+                        :amIHost="props.amIHost"
+                        :timeLimitOptions="timeLimitOptions"
+                        :votingOptions="votingOptions"
+                        @update-config="(field, value) => emit('update-config', field, value)"
+                        @update-mutator="(mutator, value) => emit('update-mutator', mutator, value)"
+                    />
                 </template>
 
                 <!-- ── IMPOSTOR MODE SETTINGS PANEL ── -->
                 <template v-else-if="props.config.mode === 'IMPOSTOR'">
-                    <div class="flex flex-col gap-2 bg-panel-card/15 p-2 rounded-2xl border border-white/5">
-                        
-                        <!-- Category Count stepper -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
-                            <div class="flex items-start gap-3 min-w-0">
-                                <span class="text-xl flex-none leading-none mt-0.5">📦</span>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.impostor.categories') }}</span>
-                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
-                                        {{ locale === 'en' ? 'Number of secret categories' : locale === 'pt' ? 'Número de temas secretos' : 'Número de temas secretos por ronda' }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="relative w-36 sm:w-40 flex-none">
-                                <select
-                                    :disabled="!props.amIHost"
-                                    :value="props.config.impostor?.categoryCount ?? 3"
-                                    @change="handleNumericInput('impostor.categoryCount', ($event.target as HTMLSelectElement).value, 1, 8)"
-                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
-                                >
-                                    <option v-for="n in 8" :key="n" :value="n" class="bg-panel-card">{{ n }} {{ n === 1 ? 'Categoría' : 'Categorías' }}</option>
-                                </select>
-                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
-                            </div>
-                        </div>
-
-                        <!-- Rounds stepper -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
-                            <div class="flex items-start gap-3 min-w-0">
-                                <span class="text-xl flex-none leading-none mt-0.5">🔁</span>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.impostor.rounds') }}</span>
-                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
-                                        {{ locale === 'en' ? 'Number of impostor rounds' : locale === 'pt' ? 'Número de rodadas de impostor' : 'Número de rondas de la partida' }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="relative w-36 sm:w-40 flex-none">
-                                <select
-                                    :disabled="!props.amIHost"
-                                    :value="props.config.impostor?.rounds || 3"
-                                    @change="handleNumericInput('impostor.rounds', ($event.target as HTMLSelectElement).value, 1, 10)"
-                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
-                                >
-                                    <option v-for="n in 10" :key="n" :value="n" class="bg-panel-card">{{ n }} {{ n === 1 ? 'Ronda' : 'Rondas' }}</option>
-                                </select>
-                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
-                            </div>
-                        </div>
-
-                        <!-- Typing time stepper -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
-                            <div class="flex items-start gap-3 min-w-0">
-                                <span class="text-xl flex-none leading-none mt-0.5">⏱️</span>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.impostor.typingTime') }}</span>
-                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
-                                        {{ locale === 'en' ? 'Time limit to write your word' : locale === 'pt' ? 'Tempo para escrever sua palavra' : 'Tiempo para escribir tu palabra' }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="relative w-36 sm:w-40 flex-none">
-                                <select
-                                    :disabled="!props.amIHost"
-                                    :value="props.config.impostor?.typingTime || 30"
-                                    @change="handleNumericInput('impostor.typingTime', ($event.target as HTMLSelectElement).value, 10, 60, impostorTypingOptions)"
-                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
-                                >
-                                    <option v-for="opt in impostorTypingOptions" :key="opt" :value="opt" class="bg-panel-card">{{ opt }} Segundos</option>
-                                </select>
-                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
-                            </div>
-                        </div>
-
-                        <!-- Voting time stepper -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
-                            <div class="flex items-start gap-3 min-w-0">
-                                <span class="text-xl flex-none leading-none mt-0.5">🗳️</span>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">{{ t('lobby.settings.impostor.votingTime') }}</span>
-                                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
-                                        {{ locale === 'en' ? 'Time limit for discussion and voting' : locale === 'pt' ? 'Tempo para debate e votação' : 'Tiempo para debate y votación en el tribunal' }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="relative w-36 sm:w-40 flex-none">
-                                <select
-                                    :disabled="!props.amIHost"
-                                    :value="props.config.impostor?.votingTime || 40"
-                                    @change="handleNumericInput('impostor.votingTime', ($event.target as HTMLSelectElement).value, 15, 120, impostorVotingOptions)"
-                                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-9 select-none"
-                                >
-                                    <option v-for="opt in impostorVotingOptions" :key="opt" :value="opt" class="bg-panel-card">{{ opt }} Segundos</option>
-                                </select>
-                                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
-                            </div>
-                        </div>
-                    </div>
+                    <ImpostorConfig
+                        :config="props.config"
+                        :amIHost="props.amIHost"
+                        :impostorTypingOptions="impostorTypingOptions"
+                        :impostorVotingOptions="impostorVotingOptions"
+                        @update-config="(field, value) => emit('update-config', field, value)"
+                    />
                 </template>
             </div>
         </div>
@@ -718,7 +367,7 @@ const tSpec = computed(() => {
                     <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-3">
                         <button v-for="cat in filteredCategories" :key="cat.name"
                             @click="toggleCategory({ id: cat.id || cat.name.toLowerCase(), name: cat.name })"
-                            class="text-left px-4 py-4 rounded-2xl text-xs font-bold border-[3px] transition-all duration-200 flex items-center justify-between active:scale-95 shadow-sm"
+                            class="text-left px-4 py-4 rounded-2xl text-xs font-bold border-[3px] transition-all duration-200 flex items-center justify-between active:scale-95 shadow-sm min-h-[44px]"
                             :class="tempSelectedCategories.some(s => s.name === cat.name)
                                 ? 'bg-action-blue border-blue-400 text-white'
                                 : 'bg-panel-card border-white/10 text-ink-main hover:bg-panel-input hover:border-action-primary'"
