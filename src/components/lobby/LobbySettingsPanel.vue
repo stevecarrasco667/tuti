@@ -366,7 +366,7 @@ const tSpec = computed(() => {
     <Teleport to="body">
         <div v-if="showModal"
              class="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-ink-main/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="bg-panel-base border-[3px] border-white/50 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
                 <!-- Modal Header -->
                 <div class="p-4 border-b-2 border-white/50 flex items-center justify-between bg-panel-card/80 flex-none">
                     <h3 class="text-lg font-black text-ink-main uppercase tracking-widest">
@@ -423,64 +423,67 @@ const tSpec = computed(() => {
                 </div>
 
                 <!-- Category Grid / Locked Preview -->
-                <div class="flex-1 overflow-y-auto p-4 content-start bg-panel-input min-h-0 shadow-inner">
+                <div class="flex-1 overflow-y-auto content-start bg-panel-input min-h-0 shadow-inner">
                     <div v-if="isLoadingDb" class="flex flex-col items-center justify-center py-20 gap-3 text-ink-muted font-bold">
                         <div class="w-10 h-10 rounded-full border-4 border-white/10 border-t-action-primary animate-spin"></div>
                         <span>Cargando catálogo...</span>
                     </div>
 
-                    <!-- CASO: PAQUETE BLOQUEADO (SOLO EN MODO CLÁSICO) -->
+                    <!-- CASO: PAQUETE BLOQUEADO (DISEÑO DOS COLUMNAS) -->
                     <div v-else-if="props.config.mode === 'CLASSIC' && activeModalTab !== 'base' && activeModalTab !== 'selected' && !unlockedFrames.includes(activeModalTab) && !searchQuery" 
-                         class="flex flex-col items-center justify-center py-8 px-6 text-center max-w-md mx-auto gap-4 animate-in">
-                        <div class="text-6xl filter drop-shadow-md">
-                            {{ activeModalTab === 'pack_futbol' ? '⚽' : activeModalTab === 'pack_cine' ? '🍿' : '🎮' }}
-                        </div>
-                        <div class="space-y-1.5">
-                            <h4 class="text-base font-black text-white uppercase tracking-wider">
-                                {{ activeModalTab === 'pack_futbol' ? 'Expansión de Fútbol' : activeModalTab === 'pack_cine' ? 'Expansión de Cine y TV' : 'Expansión Gamer' }}
-                            </h4>
-                            <p class="text-ink-soft text-xs font-bold leading-normal">
-                                {{ activeModalTab === 'pack_futbol' ? 'Juega con temas de estadios, jugadores y equipos históricos.' : activeModalTab === 'pack_cine' ? 'Añade temas de directores de cine, películas de culto, villanos y héroes.' : 'Desbloquea temas de consolas, videojuegos retro y hardware.' }}
-                            </p>
-                        </div>
-
-                        <!-- Preview de categorías incluidas -->
-                        <div class="w-full bg-panel-card/45 border border-white/5 p-4 rounded-2xl text-left space-y-2.5">
-                            <h5 class="text-[10px] font-black text-ink-muted uppercase tracking-widest">Temas que incluye:</h5>
-                            <div class="grid grid-cols-2 gap-2 text-[10px] text-white/80 font-bold">
-                                <template v-if="activeModalTab === 'pack_futbol'">
-                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Deporte</div>
-                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Atleta/Deportista</div>
-                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Equipo Deportivo</div>
-                                </template>
-                                <template v-else-if="activeModalTab === 'pack_gamer'">
-                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Videojuego</div>
-                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Youtuber/Streamer</div>
-                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Marca de Tecnología</div>
-                                </template>
-                                <template v-else-if="activeModalTab === 'pack_cine'">
-                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Película</div>
-                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Serie de TV</div>
-                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Actor/Actriz</div>
-                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Villano</div>
-                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Superhéroe</div>
-                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Personaje Ficticio</div>
-                                </template>
+                         class="h-full flex flex-col sm:flex-row animate-in">
+                        
+                        <!-- Columna Izquierda: Identidad -->
+                        <div class="flex flex-col items-center justify-center gap-5 p-8 sm:w-[42%] sm:border-r border-white/10 text-center bg-white/5"
+                             :class="activeModalTab === 'pack_futbol' ? 'bg-blue-900/10' : activeModalTab === 'pack_cine' ? 'bg-pink-900/10' : 'bg-emerald-900/10'">
+                            <div class="text-7xl">
+                                {{ activeModalTab === 'pack_futbol' ? '⚽' : activeModalTab === 'pack_cine' ? '🍿' : '🎮' }}
+                            </div>
+                            <div class="space-y-1">
+                                <h4 class="text-lg font-black text-white uppercase tracking-wider">
+                                    {{ activeModalTab === 'pack_futbol' ? 'Expansión Fútbol' : activeModalTab === 'pack_cine' ? 'Expansión Cine y TV' : 'Expansión Gamer' }}
+                                </h4>
+                                <p class="text-ink-soft text-[11px] font-bold leading-snug">
+                                    {{ activeModalTab === 'pack_futbol' ? 'Temas de estadios, jugadores y equipos históricos.' : activeModalTab === 'pack_cine' ? 'Películas, directores, villanos y héroes.' : 'Consolas, videojuegos retro y hardware.' }}
+                                </p>
+                            </div>
+                            <div class="w-full pt-2">
+                                <span class="text-[9px] font-black text-amber-400 uppercase tracking-widest block mb-1">🪙 {{ activeModalTab === 'pack_gamer' ? 300 : 250 }}</span>
+                                <button @click="handleRedirectToStore" 
+                                        class="w-full py-3.5 bg-amber-500 text-zinc-950 rounded-xl font-black uppercase text-[11px] tracking-wider hover:bg-amber-400 transition-colors shadow-lg">
+                                    Ir a la Tienda 🛒
+                                </button>
                             </div>
                         </div>
 
-                        <!-- Llamado a la tienda -->
-                        <div class="w-full space-y-2.5 pt-2">
-                            <span class="text-[9px] font-black text-amber-400 uppercase tracking-widest block">Disponible por 🪙 {{ activeModalTab === 'pack_gamer' ? 300 : 250 }} monedas</span>
-                            <button @click="handleRedirectToStore" 
-                                    class="w-full py-3.5 bg-gradient-to-r from-game-yellow via-amber-500 to-amber-600 text-zinc-950 rounded-2xl font-black uppercase text-xs tracking-wider transition-all shadow-md hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
-                                Ir a la Tienda 🛒
-                            </button>
+                        <!-- Columna Derecha: Categorías -->
+                        <div class="p-6 sm:w-[58%] overflow-y-auto">
+                            <h5 class="text-[10px] font-black text-ink-muted uppercase tracking-widest mb-4">Incluye estas categorías:</h5>
+                            <div class="grid grid-cols-1 gap-2">
+                                <template v-if="activeModalTab === 'pack_futbol'">
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>⚽</span> Deporte</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🏅</span> Atleta/Deportista</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🏆</span> Equipo Deportivo</div>
+                                </template>
+                                <template v-else-if="activeModalTab === 'pack_gamer'">
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🎮</span> Videojuego</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>📺</span> Youtuber/Streamer</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>💻</span> Marca de Tecnología</div>
+                                </template>
+                                <template v-else-if="activeModalTab === 'pack_cine'">
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🎬</span> Película</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>📡</span> Serie de TV</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🌟</span> Actor/Actriz</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>😈</span> Villano</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🦸</span> Superhéroe</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🧙</span> Personaje Ficticio</div>
+                                </template>
+                            </div>
                         </div>
                     </div>
 
                     <!-- CASO NORMAL: LISTA DE CATEGORÍAS DISPONIBLES -->
-                    <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-3 p-4">
                         <button v-for="cat in filteredCategories" :key="cat.name"
                             @click="toggleCategory({ id: cat.id || cat.name.toLowerCase(), name: cat.name })"
                             class="text-left px-4 py-4 rounded-2xl text-xs font-bold border-[3px] transition-all duration-200 flex items-center justify-between active:scale-95 shadow-sm min-h-[44px] cursor-pointer"
@@ -523,5 +526,40 @@ const tSpec = computed(() => {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ── Locked Pack Two-Column Layout ── */
+.pack-category-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.875rem;
+  border-width: 1px;
+  border-style: solid;
+  background-color: rgba(255, 255, 255, 0.04);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  cursor: default;
+}
+.pack-category-card:hover {
+  background-color: rgba(255, 255, 255, 0.07);
+}
+.pack-category-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.pack-icon-bounce {
+  animation: iconFloat 3s ease-in-out infinite;
+}
+@keyframes iconFloat {
+  0%, 100% { transform: translateY(0px);  }
+  50%       { transform: translateY(-8px); }
 }
 </style>
