@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 import type { GameConfig } from '../../../shared/types';
 import { useProfile, STORE_ITEMS } from '../../composables/useProfile';
 
-const { locale } = useI18n();
+const { t, locale } = useI18n();
 const { unlockedFrames } = useProfile();
 
 const props = defineProps<{
@@ -59,7 +59,7 @@ function handleNumericInput(field: string, rawValue: string, min: number, max: n
                 >
                     <option value="" class="bg-panel-card">Ninguno (Gratis)</option>
                     <option v-for="pack in unlockedPacks" :key="pack.id" :value="pack.id" class="bg-panel-card">
-                        {{ pack.id === 'pack_futbol' ? '⚽ Fútbol' : '🎮 Gamer' }}
+                        {{ t(pack.name) || pack.name }}
                     </option>
                 </select>
                 <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>

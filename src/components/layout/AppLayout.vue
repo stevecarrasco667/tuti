@@ -10,6 +10,7 @@ import { usePlayerHistory } from '../../composables/usePlayerHistory';
 import { setLanguage } from '../../i18n';
 import { useProfile, STORE_ITEMS } from '../../composables/useProfile';
 import AvatarWrapper from '../ui/AvatarWrapper.vue';
+import TModal from '../ui/TModal.vue';
 
 const { currentTab, isMenuVisible, setTab } = useNavigation();
 const { user, isAuthenticated, signInWithGoogle } = useAuth();
@@ -45,6 +46,15 @@ const storeEmojis = computed(() => STORE_ITEMS.value.filter(item => item.type ==
 // Sub-pestaña activa dentro de la tienda
 const activeStoreTab = ref<'frames' | 'expansions' | 'emojis'>('frames');
 
+// Modal de detalles de artículo
+const selectedItem = ref<any | null>(null);
+const isDetailModalOpen = ref(false);
+
+const handleShowDetails = (item: any) => {
+    selectedItem.value = item;
+    isDetailModalOpen.value = true;
+};
+
 const historyList = ref<any[]>([]);
 const statsList = ref<any>(null);
 
@@ -69,7 +79,8 @@ watch(currentTab, (newTab) => {
 const handleBuyFrame = async (itemId: string, price: number) => {
     const res = await purchaseFrame(itemId, price);
     if (res.success) {
-        addToast('Cosmético adquirido con éxito.', 'success');
+        addToast('Artículo adquirido con éxito.', 'success');
+        isDetailModalOpen.value = false;
     } else {
         if (res.error === 'insufficient_funds') {
             addToast('No tienes suficientes monedas.', 'error');
@@ -314,7 +325,8 @@ const triggerClearCache = () => {
                     </div>
                     <div v-else class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         <div v-for="item in storeFrames" :key="item.id"
-                             class="bg-white/5 border border-white/5 hover:border-purple-500/30 rounded-2xl p-4 flex flex-col items-center gap-3 text-center transition-all group relative">
+                             @click="handleShowDetails(item)"
+                             class="bg-white/5 border border-white/5 hover:border-purple-500/30 rounded-2xl p-4 flex flex-col items-center gap-3 text-center transition-all group relative cursor-pointer hover:scale-[1.02]">
                             <div class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner relative">
                                 <AvatarWrapper :frameId="item.id">
                                     <div class="w-14 h-14 bg-panel-base rounded-full flex items-center justify-center text-2xl">😎</div>
@@ -327,24 +339,22 @@ const triggerClearCache = () => {
                             </div>
                             <button
                                 v-if="!unlockedFrames.includes(item.id)"
-                                @click="handleBuyFrame(item.id, item.price)"
-                                :disabled="coins < item.price"
                                 class="w-full py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all border cursor-pointer
                                        bg-white/5 hover:bg-purple-500/20 hover:border-purple-500/30 hover:text-purple-300
-                                       text-white/70 border-white/5 disabled:opacity-40 disabled:cursor-not-allowed"
+                                       text-white/70 border-white/5"
                             >
                                 {{ t('store.buyButton') || 'Adquirir' }}
                             </button>
                             <button
                                 v-else-if="equippedFrame !== item.id"
-                                @click="equipFrame(item.id)"
+                                @click.stop="equipFrame(item.id)"
                                 class="w-full bg-action-primary/20 hover:bg-action-primary/30 text-action-primary py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-colors border border-action-primary/30 cursor-pointer"
                             >
                                 {{ t('store.equipButton') || 'Equipar' }}
                             </button>
                             <button
                                 v-else
-                                @click="equipFrame(null)"
+                                @click.stop="equipFrame(null)"
                                 class="w-full bg-action-success/20 hover:bg-action-success/30 text-action-success py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-colors border border-action-success/30 cursor-pointer"
                             >
                                 {{ t('store.equippedButton') || 'Equipado ✓' }}
@@ -360,7 +370,8 @@ const triggerClearCache = () => {
                     </div>
                     <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div v-for="item in storeExpansions" :key="item.id"
-                             class="bg-white/5 border border-white/5 hover:border-blue-500/30 rounded-2xl p-5 flex items-center justify-between gap-4 transition-all group">
+                             @click="handleShowDetails(item)"
+                             class="bg-white/5 border border-white/5 hover:border-blue-500/30 rounded-2xl p-5 flex items-center justify-between gap-4 transition-all group cursor-pointer hover:scale-[1.02]">
                             <div class="flex items-center gap-4 min-w-0">
                                 <span class="text-4xl filter drop-shadow-md flex-none">
                                     {{ item.id === 'pack_futbol' ? '⚽' : item.id === 'pack_cine' ? '🎬' : '🎮' }}
@@ -373,11 +384,8 @@ const triggerClearCache = () => {
                             </div>
                             <button
                                 v-if="!unlockedFrames.includes(item.id)"
-                                @click="handleBuyFrame(item.id, item.price)"
-                                :disabled="coins < item.price"
                                 class="flex-none px-4 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white
-                                       disabled:opacity-40 disabled:from-zinc-800 disabled:to-zinc-800 disabled:text-white/40
-                                       rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md cursor-pointer disabled:cursor-not-allowed"
+                                       rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md cursor-pointer"
                             >
                                 {{ t('store.buyButton') || 'Comprar' }}
                             </button>
@@ -401,7 +409,8 @@ const triggerClearCache = () => {
                     </div>
                     <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div v-for="item in storeEmojis" :key="item.id"
-                             class="bg-white/5 border border-white/5 hover:border-pink-500/30 rounded-2xl p-5 flex flex-col gap-4 transition-all group">
+                             @click="handleShowDetails(item)"
+                             class="bg-white/5 border border-white/5 hover:border-pink-500/30 rounded-2xl p-5 flex flex-col gap-4 transition-all group cursor-pointer hover:scale-[1.02]">
                             <div class="flex items-start justify-between gap-3">
                                 <div class="min-w-0">
                                     <h4 class="text-white font-black text-sm uppercase tracking-wide">{{ t(item.name) || item.name }}</h4>
@@ -420,11 +429,9 @@ const triggerClearCache = () => {
 
                             <button
                                 v-if="!unlockedFrames.includes(item.id)"
-                                @click="handleBuyFrame(item.id, item.price)"
-                                :disabled="coins < item.price"
                                 class="w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all border cursor-pointer
                                        bg-pink-500/15 hover:bg-pink-500/25 hover:border-pink-500/40 hover:text-pink-300
-                                       text-white/70 border-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
+                                       text-white/70 border-white/10"
                             >
                                 {{ t('store.buyButton') || 'Desbloquear Pack' }}
                             </button>
@@ -743,6 +750,135 @@ const triggerClearCache = () => {
                     </div>
                 </div>
             </div>
+
+            <!-- Modal de Detalles del Paquete -->
+            <TModal v-model="isDetailModalOpen" :title="selectedItem ? t(selectedItem.name) || selectedItem.name : ''" maxWidth="md">
+                <div v-if="selectedItem" class="flex flex-col gap-6 text-center">
+                    <!-- Icono o preview del tipo -->
+                    <div class="flex flex-col items-center justify-center py-4">
+                        <!-- PREVIEW: MARCOS -->
+                        <div v-if="selectedItem.type === 'FRAME'" class="w-32 h-32 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shadow-inner relative scale-110">
+                            <AvatarWrapper :frameId="selectedItem.id">
+                                <div class="w-28 h-28 bg-panel-base rounded-full flex items-center justify-center text-5xl">😎</div>
+                            </AvatarWrapper>
+                        </div>
+
+                        <!-- PREVIEW: EMOJIS -->
+                        <div v-else-if="selectedItem.type === 'EMOJI'" class="text-6xl filter drop-shadow-lg animate-bounce">
+                            🎭
+                        </div>
+
+                        <!-- PREVIEW: EXPANSIONES -->
+                        <div v-else-if="selectedItem.type === 'EXPANSION'" class="text-6xl filter drop-shadow-lg">
+                            {{ selectedItem.id === 'pack_futbol' ? '⚽' : selectedItem.id === 'pack_cine' ? '🍿' : '🎮' }}
+                        </div>
+                    </div>
+
+                    <!-- Detalles e información de contenido -->
+                    <div class="space-y-2">
+                        <p class="text-white text-sm font-medium leading-relaxed px-4">
+                            {{ t(selectedItem.description) || selectedItem.description }}
+                        </p>
+                        
+                        <div class="text-[10px] font-bold uppercase tracking-widest text-ink-muted">
+                            Tipo: {{ selectedItem.type === 'FRAME' ? 'Marco de Avatar' : selectedItem.type === 'EMOJI' ? 'Paquete de Emojis' : 'Expansión de Categorías' }}
+                        </div>
+                    </div>
+
+                    <!-- CONTENIDO DETALLADO DEL PAQUETE -->
+                    <div class="bg-black/20 border border-white/5 rounded-2xl p-4 text-left space-y-3">
+                        <h4 class="text-xs font-black text-white uppercase tracking-wider border-b border-white/5 pb-1.5 flex items-center gap-1.5">
+                            📦 Contenido del Paquete:
+                        </h4>
+
+                        <!-- Contenido de Emojis -->
+                        <div v-if="selectedItem.type === 'EMOJI' && selectedItem.metadata?.emojis?.length" class="flex flex-wrap justify-center gap-3 py-2">
+                            <span v-for="emj in selectedItem.metadata.emojis" :key="emj"
+                                  class="text-3xl leading-none hover:scale-125 transition-transform cursor-default filter drop-shadow-sm"
+                                  :title="emj">
+                                {{ emj }}
+                            </span>
+                        </div>
+
+                        <!-- Contenido de Expansiones -->
+                        <div v-else-if="selectedItem.type === 'EXPANSION' && selectedItem.metadata?.categories?.length" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs py-1">
+                            <div v-for="cat in selectedItem.metadata.categories" :key="cat" class="flex items-center gap-2 text-white font-bold bg-white/5 border border-white/5 px-3 py-2 rounded-xl">
+                                <span class="text-sm">📌</span>
+                                <span>{{ cat }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Contenido de Marcos -->
+                        <div v-else-if="selectedItem.type === 'FRAME'" class="text-xs text-ink-soft leading-normal space-y-1 py-1">
+                            <p class="flex items-start gap-1.5">
+                                <span class="text-action-success flex-none">✓</span>
+                                <span>Efecto visual premium alrededor de tu avatar.</span>
+                            </p>
+                            <p class="flex items-start gap-1.5">
+                                <span class="text-action-success flex-none">✓</span>
+                                <span>Visible para todos los jugadores en la sala y votaciones.</span>
+                            </p>
+                            <p class="flex items-start gap-1.5">
+                                <span class="text-action-success flex-none">✓</span>
+                                <span>Efecto dinámico animado sin pérdidas de rendimiento.</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Botón de acción y precio -->
+                    <div class="pt-2 flex flex-col gap-3">
+                        <!-- Si no lo ha comprado -->
+                        <div v-if="!unlockedFrames.includes(selectedItem.id)" class="space-y-3">
+                            <div class="flex items-center justify-center gap-2">
+                                <span class="text-sm font-bold text-ink-muted uppercase tracking-wider">Precio:</span>
+                                <span class="text-lg font-black text-game-yellow">🪙 {{ selectedItem.price }}</span>
+                            </div>
+                            <button
+                                @click="handleBuyFrame(selectedItem.id, selectedItem.price)"
+                                :disabled="coins < selectedItem.price"
+                                class="w-full py-3 bg-gradient-to-r from-game-yellow via-amber-500 to-amber-600 text-zinc-950 disabled:opacity-40 disabled:from-zinc-800 disabled:to-zinc-800 disabled:text-white/40 rounded-2xl font-black uppercase text-xs tracking-wider transition-all shadow-lg shadow-amber-500/10 cursor-pointer disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99]"
+                            >
+                                {{ coins < selectedItem.price ? 'Monedas Insuficientes' : 'Comprar y Desbloquear' }}
+                            </button>
+                        </div>
+
+                        <!-- Si ya lo tiene -->
+                        <div v-else class="space-y-3">
+                            <div class="text-xs font-black text-action-success uppercase tracking-widest flex items-center justify-center gap-1.5">
+                                <span>✓</span> Ya posees este artículo
+                            </div>
+                            
+                            <!-- Si es un Marco, se puede equipar/desequipar -->
+                            <div v-if="selectedItem.type === 'FRAME'" class="w-full">
+                                <button
+                                    v-if="equippedFrame !== selectedItem.id"
+                                    @click="equipFrame(selectedItem.id); isDetailModalOpen = false;"
+                                    class="w-full bg-action-primary/20 hover:bg-action-primary/30 text-action-primary py-3 rounded-2xl font-black uppercase text-xs tracking-wider transition-all border border-action-primary/30 cursor-pointer"
+                                >
+                                    {{ t('store.equipButton') || 'Equipar Marco' }}
+                                </button>
+                                <button
+                                    v-else
+                                    @click="equipFrame(null); isDetailModalOpen = false;"
+                                    class="w-full bg-action-success/20 hover:bg-action-success/30 text-action-success py-3 rounded-2xl font-black uppercase text-xs tracking-wider transition-all border border-action-success/30 cursor-pointer"
+                                >
+                                    {{ t('store.equippedButton') || 'Desequipar Marco' }}
+                                </button>
+                            </div>
+
+                            <!-- Si es Emoji o Expansión, ya está activo permanentemente -->
+                            <div v-else class="w-full">
+                                <button
+                                    @click="isDetailModalOpen = false"
+                                    class="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white py-3 rounded-2xl font-black uppercase text-xs tracking-wider transition-all cursor-pointer"
+                                >
+                                    {{ t('store.ownedButton') || 'Cerrar (Ya Activo)' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </TModal>
 
         </main>
     </div>

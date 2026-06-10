@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS public.store_items (
 ALTER TABLE public.store_items ENABLE ROW LEVEL SECURITY;
 
 -- Política de lectura pública de artículos activos
+DROP POLICY IF EXISTS "Allow public read active items" ON public.store_items;
 CREATE POLICY "Allow public read active items" ON public.store_items
     FOR SELECT USING (is_active = true);
 
@@ -33,9 +34,11 @@ CREATE TABLE IF NOT EXISTS public.user_inventory (
 ALTER TABLE public.user_inventory ENABLE ROW LEVEL SECURITY;
 
 -- Políticas de RLS
+DROP POLICY IF EXISTS "Allow read own inventory" ON public.user_inventory;
 CREATE POLICY "Allow read own inventory" ON public.user_inventory
     FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Allow update own inventory configuration" ON public.user_inventory;
 CREATE POLICY "Allow update own inventory configuration" ON public.user_inventory
     FOR UPDATE USING (auth.uid() = user_id);
 
@@ -55,6 +58,9 @@ DECLARE
     item_exists boolean;
     db_price int;
 BEGIN
+    -- Asegurar que el perfil existe
+    PERFORM public.ensure_profile_exists(p_user_id);
+
     -- Verificar que el artículo existe en la base de datos y obtener su precio oficial
     SELECT EXISTS(SELECT 1 FROM public.store_items WHERE id = p_item_id AND is_active = true) INTO item_exists;
     IF NOT item_exists THEN
@@ -106,6 +112,9 @@ AS $$
 DECLARE
     res jsonb;
 BEGIN
+    -- Asegurar que el perfil existe
+    PERFORM public.ensure_profile_exists(p_user_id);
+
     SELECT jsonb_build_object(
         'profile', (SELECT jsonb_build_object(
             'id', id,
@@ -166,9 +175,9 @@ INSERT INTO public.store_items (id, type, price, metadata) VALUES
     ('frame_cosmic',  'FRAME', 400, '{"name_key": "store.frame_cosmic",  "className": "frame-cosmic"}'),
 
     -- ── Expansiones de Categorías ──────────────────────────────────────
-    ('pack_futbol', 'EXPANSION', 250, '{"name_key": "store.pack_futbol", "description_key": "store.pack_futbol_desc"}'),
-    ('pack_gamer',  'EXPANSION', 300, '{"name_key": "store.pack_gamer",  "description_key": "store.pack_gamer_desc"}'),
-    ('pack_cine',   'EXPANSION', 250, '{"name_key": "store.pack_cine",   "description_key": "store.pack_cine_desc"}'),
+    ('pack_futbol', 'EXPANSION', 250, '{"name_key": "store.pack_futbol", "description_key": "store.pack_futbol_desc", "categories": ["Deporte", "Atleta/Deportista", "Equipo Deportivo"]}'),
+    ('pack_gamer',  'EXPANSION', 300, '{"name_key": "store.pack_gamer",  "description_key": "store.pack_gamer_desc", "categories": ["Videojuego", "Youtuber/Streamer", "Marca de Tecnología"]}'),
+    ('pack_cine',   'EXPANSION', 250, '{"name_key": "store.pack_cine",   "description_key": "store.pack_cine_desc", "categories": ["Película", "Serie de TV", "Actor/Actriz", "Villano", "Superhéroe", "Personaje Ficticio"]}'),
 
     -- ── Packs de Emojis (reacciones en fase de votaciones) ────────────
     ('pack_emojis_gamer', 'EMOJI', 120,
@@ -186,3 +195,8 @@ INSERT INTO public.store_items (id, type, price, metadata) VALUES
 ON CONFLICT (id) DO UPDATE SET 
     price    = EXCLUDED.price,
     metadata = EXCLUDED.metadata;
+
+-- 8. Vincular categorías clásicas a sus paquetes correspondientes
+UPDATE public.categories SET pack_id = 'pack_futbol' WHERE id IN ('cls-50', 'cls-51', 'cls-52');
+UPDATE public.categories SET pack_id = 'pack_gamer' WHERE id IN ('cls-16', 'cls-17', 'cls-33');
+UPDATE public.categories SET pack_id = 'pack_cine' WHERE id IN ('cls-10', 'cls-11', 'cls-12', 'cls-13', 'cls-14', 'cls-15');

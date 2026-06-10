@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS user_unlocks (
 ALTER TABLE user_unlocks ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para user_unlocks
+DROP POLICY IF EXISTS "Allow read own unlocks" ON user_unlocks;
 CREATE POLICY "Allow read own unlocks" ON user_unlocks
     FOR SELECT USING (auth.uid() = user_id);
 
@@ -89,6 +90,7 @@ CREATE TABLE IF NOT EXISTS match_history (
 ALTER TABLE match_history ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para match_history
+DROP POLICY IF EXISTS "Allow read own history" ON match_history;
 CREATE POLICY "Allow read own history" ON match_history
     FOR SELECT USING (auth.uid() = user_id);
 
@@ -105,8 +107,37 @@ CREATE TABLE IF NOT EXISTS coin_transactions (
 ALTER TABLE coin_transactions ENABLE ROW LEVEL SECURITY;
 
 -- Políticas para coin_transactions
+DROP POLICY IF EXISTS "Allow read own transactions" ON coin_transactions;
 CREATE POLICY "Allow read own transactions" ON coin_transactions
     FOR SELECT USING (auth.uid() = user_id);
+
+-- Función auxiliar para asegurar que un perfil existe
+CREATE OR REPLACE FUNCTION public.ensure_profile_exists(p_user_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    u_email text;
+    u_name text;
+    u_avatar text;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = p_user_id) THEN
+        -- Intentar obtener información de auth.users si existe
+        SELECT email, 
+               COALESCE(raw_user_meta_data->>'full_name', raw_user_meta_data->>'name', 'Jugador'),
+               COALESCE(raw_user_meta_data->>'avatar_url', '👤')
+        INTO u_email, u_name, u_avatar
+        FROM auth.users
+        WHERE id = p_user_id;
+
+        -- Insertar el perfil con valores por defecto
+        INSERT INTO public.profiles (id, name, avatar, email, coins)
+        VALUES (p_user_id, COALESCE(u_name, 'Jugador'), COALESCE(u_avatar, '👤'), u_email, 0)
+        ON CONFLICT (id) DO NOTHING;
+    END IF;
+END;
+$$;
 
 -- 5. Crear función claim_match_rewards para procesar de servidor a servidor
 CREATE OR REPLACE FUNCTION claim_match_rewards(rewards_payload jsonb)
@@ -141,6 +172,9 @@ BEGIN
         p_total_players := (reward_item->>'totalPlayers')::int;
         p_won := (reward_item->>'won')::boolean;
 
+        -- Asegurar que el perfil existe
+        PERFORM public.ensure_profile_exists(p_user_id);
+        
         -- Verificar si el perfil existe
         SELECT EXISTS(SELECT 1 FROM profiles WHERE id = p_user_id) INTO user_exists;
         
@@ -195,6 +229,9 @@ DECLARE
     user_coins int;
     already_owned boolean;
 BEGIN
+    -- Asegurar que el perfil existe
+    PERFORM public.ensure_profile_exists(p_user_id);
+
     -- Comprobar si ya posee el cosmético
     SELECT EXISTS(SELECT 1 FROM user_unlocks WHERE user_id = p_user_id AND item_id = p_item_id) INTO already_owned;
     
@@ -250,6 +287,9 @@ DECLARE
     p_date timestamp with time zone;
     added_coins int := 0;
 BEGIN
+    -- Asegurar que el perfil existe
+    PERFORM public.ensure_profile_exists(p_user_id);
+
     -- 1. Sumar monedas del invitado
     IF guest_coins > 0 THEN
         -- Aplicamos las monedas directamente al perfil
