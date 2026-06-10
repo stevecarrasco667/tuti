@@ -54,13 +54,22 @@ const isLoading = ref<boolean>(false);
 
 const fetchCatalog = async () => {
     try {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        if (!supabaseUrl) return;
-        const res = await fetch(`${supabaseUrl}/storage/v1/object/public/store/store_catalog.json?t=${Date.now()}`);
-        if (!res.ok) throw new Error('Catalog file not found');
-        const data: any = await res.json();
-        if (data && Array.isArray(data.items)) {
-            STORE_ITEMS.value = data.items.map((item: any) => ({
+        // Lee el catálogo directamente de la tabla store_items (política RLS pública de lectura).
+        // Esto reemplaza el sistema anterior de JSON en Supabase Storage que requería
+        // invocar la Edge Function generate-catalog manualmente.
+        const { data: items, error } = await supabase
+            .from('store_items')
+            .select('id, type, price, metadata')
+            .eq('is_active', true)
+            .order('price', { ascending: true });
+
+        if (error) {
+            console.warn('[useProfile] Error al leer store_items de Supabase:', error.message);
+            return; // Mantener el fallback hardcodeado
+        }
+
+        if (items && items.length > 0) {
+            STORE_ITEMS.value = items.map((item: any) => ({
                 id: item.id,
                 name: item.metadata?.name_key || item.id,
                 description: item.metadata?.description_key || '',
@@ -69,9 +78,10 @@ const fetchCatalog = async () => {
                 type: item.type,
                 metadata: item.metadata || {}
             }));
+            console.log(`[useProfile] Catálogo cargado: ${items.length} ítems desde store_items.`);
         }
     } catch (err) {
-        console.warn('[useProfile] Could not fetch remote store catalog, using fallback:', err);
+        console.warn('[useProfile] fetchCatalog falló inesperadamente, usando fallback:', err);
     }
 };
 
@@ -163,6 +173,7 @@ export function useProfile() {
             });
 
             if (error) {
+                console.error('[useProfile] RPC purchase_store_item error:', error.code, error.message, error.details);
                 return { success: false, error: error.message };
             }
 
