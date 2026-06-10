@@ -195,8 +195,10 @@ CapacitorApp.addListener('backButton', ({ canGoBack }) => {
             </RouterView>
         </ErrorBoundary>
 
-        <!-- Active reactions animated overlays -->
-        <template v-if="isConnected && gameState.roomId">
+        <!-- Active reactions animated overlays — Lobby ONLY -->
+        <!-- La rueda de emojis y el overlay de partículas se restringen al Lobby.
+             En partida (PLAYING/GAME_OVER) interferirían con la jugabilidad. -->
+        <template v-if="isConnected && gameState.roomId && gameState.status === 'LOBBY'">
             <ActiveReactionsOverlay />
             <TacticalReactionWheel />
         </template>

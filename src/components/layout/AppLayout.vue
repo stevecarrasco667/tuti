@@ -42,6 +42,9 @@ const storeFrames = computed(() => STORE_ITEMS.value.filter(item => item.type ==
 const storeExpansions = computed(() => STORE_ITEMS.value.filter(item => item.type === 'EXPANSION'));
 const storeEmojis = computed(() => STORE_ITEMS.value.filter(item => item.type === 'EMOJI'));
 
+// Sub-pestaña activa dentro de la tienda
+const activeStoreTab = ref<'frames' | 'expansions' | 'emojis'>('frames');
+
 const historyList = ref<any[]>([]);
 const statsList = ref<any>(null);
 
@@ -224,166 +227,217 @@ const triggerClearCache = () => {
                 <slot />
             </div>
 
-            <!-- PLACEHOLDER: TIENDA CÓSMICA -->
-            <div v-else-if="currentTab === 'store'" class="w-full max-w-[960px] mx-auto p-6 flex flex-col gap-6 animate-fade-in pb-12">
-                <div class="text-center py-6 flex flex-col items-center gap-2">
-                    <h2 class="text-5xl font-display text-transparent bg-clip-text bg-gradient-to-r from-game-yellow via-amber-400 to-amber-500 uppercase tracking-widest font-black filter drop-shadow-[0_0_15px_rgba(251,191,36,0.3)]">
-                        🛒 TIENDA CÓSMICA
-                    </h2>
-                    <p class="text-ink-muted text-xs font-bold uppercase tracking-widest mt-1">Personaliza tu aspecto y apoya el juego</p>
-                    <div class="mt-2 inline-flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/30 px-4 py-1.5 rounded-full text-yellow-400 font-black text-xs uppercase tracking-wider shadow-[0_0_12px_rgba(234,179,8,0.15)] shadow-inner">
-                        🪙 Tus monedas: {{ coins }}
+            <!-- TIENDA CÓSMICA — Layout Premium Rediseñado -->
+            <div v-else-if="currentTab === 'store'" class="w-full max-w-[960px] mx-auto p-4 md:p-6 flex flex-col gap-4 animate-fade-in pb-12">
+
+                <!-- ── Header: Título + Monedas ───────────────────────── -->
+                <div class="flex items-center justify-between pt-2">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-display text-transparent bg-clip-text bg-gradient-to-r from-game-yellow to-amber-500 uppercase tracking-widest font-black filter drop-shadow-[0_0_12px_rgba(251,191,36,0.3)] leading-none">
+                            🛒 Tienda Cósmica
+                        </h2>
+                        <p class="text-ink-muted text-[10px] font-bold uppercase tracking-widest mt-1">Personaliza tu aspecto y expansiones</p>
+                    </div>
+                    <div class="flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/30 px-3 py-1.5 rounded-full text-yellow-400 font-black text-xs uppercase tracking-wider shadow-[0_0_10px_rgba(234,179,8,0.12)] flex-none">
+                        🪙 {{ coins }}
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Tarjeta VIP Ad-Free -->
-                    <div class="rounded-3xl p-px overflow-hidden bg-gradient-to-br from-yellow-400 via-amber-500 to-yellow-600 shadow-2xl relative group">
-                        <div class="absolute -inset-1 bg-gradient-to-br from-yellow-400 to-amber-600 opacity-20 blur-xl group-hover:opacity-40 transition-opacity"></div>
-                        <div class="bg-zinc-950/95 backdrop-blur-sm rounded-[23px] p-6 flex flex-col h-full relative z-10">
-                            <div class="flex justify-between items-start mb-4">
-                                <span class="text-3xl filter drop-shadow-md">👑</span>
-                                <span class="px-3 py-1 bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 text-[10px] font-black uppercase rounded-lg tracking-wider">Premium VIP</span>
+                <!-- ── Banners compactos: VIP + Simulador de monedas ──── -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Banner VIP (fila compacta) -->
+                    <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-gradient-to-r from-yellow-500/10 to-amber-600/5 border border-yellow-500/25 hover:border-yellow-500/40 transition-all">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="text-xl flex-none">👑</span>
+                            <div class="min-w-0">
+                                <p class="text-white font-black text-xs uppercase tracking-wide leading-none">Pase VIP Sin Anuncios</p>
+                                <p class="text-yellow-400/60 text-[9px] font-bold uppercase tracking-wider mt-0.5">Interfaz limpia y transiciones premium</p>
                             </div>
-                            <h3 class="text-2xl font-black text-white uppercase tracking-wider mb-2">Pase VIP Sin Anuncios</h3>
-                            <p class="text-ink-soft text-xs mb-6 leading-relaxed">Remueve permanentemente todos los anuncios de la versión web y móvil. Disfruta de una interfaz limpia y transiciones instantáneas.</p>
-                            <button @click="handleMockAction('Compra VIP Ad-Free')" class="mt-auto w-full bg-gradient-to-r from-yellow-400 to-amber-500 text-zinc-950 hover:scale-[1.02] active:scale-[0.98] transition-transform py-3 rounded-2xl font-black uppercase text-xs tracking-wider shadow-lg shadow-yellow-500/20">
-                                Desbloquear permanentemente
-                            </button>
                         </div>
+                        <button @click="handleMockAction('Compra VIP Ad-Free')"
+                            class="flex-none px-4 py-1.5 bg-gradient-to-r from-yellow-400 to-amber-500 text-zinc-950 rounded-xl font-black uppercase text-[10px] tracking-wider hover:scale-[1.03] active:scale-95 transition-transform shadow-md">
+                            Activar
+                        </button>
                     </div>
 
-                    <!-- Sandbox de Monedas -->
-                    <div class="rounded-3xl p-px overflow-hidden bg-white/10 shadow-xl">
-                        <div class="bg-zinc-950/95 backdrop-blur-sm rounded-[23px] p-6 flex flex-col h-full">
-                            <div class="flex justify-between items-start mb-4">
-                                <span class="text-3xl filter drop-shadow-md">🪙</span>
-                                <span class="px-3 py-1 bg-action-info/10 border border-action-info/30 text-action-info text-[10px] font-black uppercase rounded-lg tracking-wider">Monedas</span>
+                    <!-- Banner Simulador de Monedas (fila compacta) -->
+                    <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition-all">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="text-xl flex-none">🪙</span>
+                            <div class="min-w-0">
+                                <p class="text-white font-black text-xs uppercase tracking-wide leading-none">+100 Monedas de Prueba</p>
+                                <p class="text-ink-muted text-[9px] font-bold uppercase tracking-wider mt-0.5">Para probar la tienda en desarrollo</p>
                             </div>
-                            <h3 class="text-2xl font-black text-white uppercase tracking-wider mb-2">Simulador de Monedas</h3>
-                            <p class="text-ink-soft text-xs mb-6 leading-relaxed">Las monedas de juego se acumulan ganando partidas. Utiliza este botón para simular la obtención de monedas gratis para probar la tienda.</p>
-                            <button @click="handleMockAction('+100 Monedas virtuales')" class="mt-auto w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white py-3 rounded-2xl font-black uppercase text-xs tracking-wider transition-all">
-                                🪙 +100 Monedas de Prueba
-                            </button>
                         </div>
+                        <button @click="handleMockAction('+100 Monedas virtuales')"
+                            class="flex-none px-4 py-1.5 bg-white/10 border border-white/15 hover:bg-white/20 text-white rounded-xl font-black uppercase text-[10px] tracking-wider transition-all">
+                            +100
+                        </button>
                     </div>
                 </div>
 
-                <!-- Catálogo de Marcos -->
-                <div class="mt-8">
-                    <h3 class="text-xs font-black text-ink-main uppercase tracking-widest mb-4 flex items-center gap-2">
-                        🌌 {{ t('store.framesTitle') || 'Marcos de Avatar' }}
-                    </h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <div v-for="item in storeFrames" :key="item.id" 
-                             class="bg-white/5 border border-white/5 hover:border-white/10 rounded-2xl p-4 flex flex-col items-center gap-3 text-center transition-all group relative">
-                            <!-- Show equipped frame indicator -->
-                            <div class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-inner relative">
+                <!-- ── Sub-pestañas del catálogo ─────────────────────── -->
+                <div class="flex gap-2 p-1 bg-white/5 border border-white/5 rounded-2xl">
+                    <button
+                        @click="activeStoreTab = 'frames'"
+                        class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-black uppercase text-[10px] tracking-wider transition-all"
+                        :class="activeStoreTab === 'frames'
+                            ? 'bg-purple-500/25 border border-purple-500/40 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.2)]'
+                            : 'text-white/40 hover:text-white/70 hover:bg-white/5'"
+                    >
+                        🌌 {{ t('store.framesTitle') || 'Marcos' }}
+                    </button>
+                    <button
+                        @click="activeStoreTab = 'expansions'"
+                        class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-black uppercase text-[10px] tracking-wider transition-all"
+                        :class="activeStoreTab === 'expansions'
+                            ? 'bg-blue-500/25 border border-blue-500/40 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.2)]'
+                            : 'text-white/40 hover:text-white/70 hover:bg-white/5'"
+                    >
+                        📦 {{ t('store.expansionsTitle') || 'Expansiones' }}
+                    </button>
+                    <button
+                        @click="activeStoreTab = 'emojis'"
+                        class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-black uppercase text-[10px] tracking-wider transition-all"
+                        :class="activeStoreTab === 'emojis'
+                            ? 'bg-pink-500/25 border border-pink-500/40 text-pink-300 shadow-[0_0_12px_rgba(236,72,153,0.2)]'
+                            : 'text-white/40 hover:text-white/70 hover:bg-white/5'"
+                    >
+                        🎭 {{ t('store.emojisTitle') || 'Emojis' }}
+                    </button>
+                </div>
+
+                <!-- ── Catálogo: Marcos de Avatar ─────────────────────── -->
+                <div v-if="activeStoreTab === 'frames'" class="animate-fade-in">
+                    <div v-if="storeFrames.length === 0" class="text-center py-10 text-ink-muted text-xs font-bold uppercase tracking-wider">
+                        No hay marcos disponibles todavía.
+                    </div>
+                    <div v-else class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div v-for="item in storeFrames" :key="item.id"
+                             class="bg-white/5 border border-white/5 hover:border-purple-500/30 rounded-2xl p-4 flex flex-col items-center gap-3 text-center transition-all group relative">
+                            <div class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner relative">
                                 <AvatarWrapper :frameId="item.id">
                                     <div class="w-14 h-14 bg-panel-base rounded-full flex items-center justify-center text-2xl">😎</div>
                                 </AvatarWrapper>
                             </div>
-                            <div>
+                            <div class="w-full">
                                 <h4 class="text-white font-black text-xs uppercase tracking-wide truncate">{{ t(item.name) || item.name }}</h4>
                                 <p class="text-ink-soft text-[9px] font-medium leading-tight my-1 truncate w-full px-1">{{ t(item.description) || item.description }}</p>
                                 <span class="text-[10px] font-bold text-game-yellow">🪙 {{ item.price }}</span>
                             </div>
-                            
-                            <!-- Action button: Buy, Equip, or Equipped -->
-                            <button 
+                            <button
                                 v-if="!unlockedFrames.includes(item.id)"
                                 @click="handleBuyFrame(item.id, item.price)"
                                 :disabled="coins < item.price"
-                                class="w-full bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 text-white/80 hover:text-white py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-colors border border-white/5 cursor-pointer disabled:cursor-not-allowed"
+                                class="w-full py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all border cursor-pointer
+                                       bg-white/5 hover:bg-purple-500/20 hover:border-purple-500/30 hover:text-purple-300
+                                       text-white/70 border-white/5 disabled:opacity-40 disabled:cursor-not-allowed"
                             >
-                                Adquirir
+                                {{ t('store.buyButton') || 'Adquirir' }}
                             </button>
-                            <button 
+                            <button
                                 v-else-if="equippedFrame !== item.id"
                                 @click="equipFrame(item.id)"
                                 class="w-full bg-action-primary/20 hover:bg-action-primary/30 text-action-primary py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-colors border border-action-primary/30 cursor-pointer"
                             >
-                                Equipar
+                                {{ t('store.equipButton') || 'Equipar' }}
                             </button>
-                            <button 
+                            <button
                                 v-else
                                 @click="equipFrame(null)"
                                 class="w-full bg-action-success/20 hover:bg-action-success/30 text-action-success py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-colors border border-action-success/30 cursor-pointer"
                             >
-                                Equipado ✓
+                                {{ t('store.equippedButton') || 'Equipado ✓' }}
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Catálogo de Expansiones -->
-                <div v-if="storeExpansions.length > 0" class="mt-8">
-                    <h3 class="text-xs font-black text-ink-main uppercase tracking-widest mb-4 flex items-center gap-2">
-                        📦 {{ t('store.expansionsTitle') || 'Packs de Categorías (Expansiones)' }}
-                    </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div v-for="item in storeExpansions" :key="item.id" 
-                             class="bg-white/5 border border-white/5 hover:border-white/10 rounded-2xl p-5 flex items-center justify-between gap-4 transition-all group">
-                            <div class="flex items-center gap-4">
-                                <span class="text-4xl filter drop-shadow-md">{{ item.id === 'pack_futbol' ? '⚽' : '🎮' }}</span>
-                                <div class="text-left">
-                                    <h4 class="text-white font-black text-sm uppercase tracking-wide">{{ t(item.name) || item.name }}</h4>
-                                    <p class="text-ink-soft text-xs font-medium leading-tight mt-1">{{ t(item.description) || item.description }}</p>
+                <!-- ── Catálogo: Expansiones ──────────────────────────── -->
+                <div v-else-if="activeStoreTab === 'expansions'" class="animate-fade-in">
+                    <div v-if="storeExpansions.length === 0" class="text-center py-10 text-ink-muted text-xs font-bold uppercase tracking-wider">
+                        No hay expansiones disponibles todavía.
+                    </div>
+                    <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div v-for="item in storeExpansions" :key="item.id"
+                             class="bg-white/5 border border-white/5 hover:border-blue-500/30 rounded-2xl p-5 flex items-center justify-between gap-4 transition-all group">
+                            <div class="flex items-center gap-4 min-w-0">
+                                <span class="text-4xl filter drop-shadow-md flex-none">
+                                    {{ item.id === 'pack_futbol' ? '⚽' : item.id === 'pack_cine' ? '🎬' : '🎮' }}
+                                </span>
+                                <div class="text-left min-w-0">
+                                    <h4 class="text-white font-black text-sm uppercase tracking-wide truncate">{{ t(item.name) || item.name }}</h4>
+                                    <p class="text-ink-soft text-xs font-medium leading-tight mt-1 line-clamp-2">{{ t(item.description) || item.description }}</p>
                                     <span class="text-xs font-bold text-game-yellow mt-1 block">🪙 {{ item.price }}</span>
                                 </div>
                             </div>
-                            <button 
+                            <button
                                 v-if="!unlockedFrames.includes(item.id)"
                                 @click="handleBuyFrame(item.id, item.price)"
                                 :disabled="coins < item.price"
-                                class="px-5 bg-gradient-to-r from-yellow-400 to-amber-500 text-zinc-950 disabled:opacity-40 disabled:from-zinc-800 disabled:to-zinc-800 disabled:text-white/40 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md cursor-pointer disabled:cursor-not-allowed"
+                                class="flex-none px-4 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white
+                                       disabled:opacity-40 disabled:from-zinc-800 disabled:to-zinc-800 disabled:text-white/40
+                                       rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md cursor-pointer disabled:cursor-not-allowed"
                             >
-                                Comprar
+                                {{ t('store.buyButton') || 'Comprar' }}
                             </button>
-                            <span 
-                                v-else 
-                                class="px-5 py-2.5 bg-white/5 border border-white/10 text-white/50 rounded-xl text-xs font-black uppercase tracking-wider"
+                            <span
+                                v-else
+                                class="flex-none px-4 py-2.5 bg-white/5 border border-white/10 text-white/50 rounded-xl text-xs font-black uppercase tracking-wider"
                             >
-                                Adquirido ✓
+                                {{ t('store.ownedButton') || 'Adquirido ✓' }}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Catálogo de Emojis -->
-                <div v-if="storeEmojis.length > 0" class="mt-8">
-                    <h3 class="text-xs font-black text-ink-main uppercase tracking-widest mb-4 flex items-center gap-2">
-                        🎭 Emojis Tácticos Premium
-                    </h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <div v-for="item in storeEmojis" :key="item.id" 
-                             class="bg-white/5 border border-white/5 hover:border-white/10 rounded-2xl p-4 flex flex-col items-center gap-3 text-center transition-all group">
-                            <div class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-4xl group-hover:scale-110 transition-transform overflow-hidden relative">
-                                <img v-if="item.metadata?.url" :src="item.metadata.url" class="w-12 h-12 object-contain" alt="emoji" />
-                                <span v-else>🤯</span>
+                <!-- ── Catálogo: Packs de Emojis ──────────────────────── -->
+                <div v-else-if="activeStoreTab === 'emojis'" class="animate-fade-in">
+                    <p class="text-ink-muted text-[10px] font-bold uppercase tracking-wider mb-4">
+                        Los emojis comprados estarán disponibles como reacciones extra durante las votaciones.
+                    </p>
+                    <div v-if="storeEmojis.length === 0" class="text-center py-10 text-ink-muted text-xs font-bold uppercase tracking-wider">
+                        No hay packs de emojis disponibles todavía.
+                    </div>
+                    <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div v-for="item in storeEmojis" :key="item.id"
+                             class="bg-white/5 border border-white/5 hover:border-pink-500/30 rounded-2xl p-5 flex flex-col gap-4 transition-all group">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <h4 class="text-white font-black text-sm uppercase tracking-wide">{{ t(item.name) || item.name }}</h4>
+                                    <p class="text-ink-soft text-xs font-medium leading-tight mt-1 line-clamp-2">{{ t(item.description) || item.description }}</p>
+                                    <span class="text-xs font-bold text-game-yellow mt-2 block">🪙 {{ item.price }}</span>
+                                </div>
+                                <span class="text-3xl flex-none pt-0.5">🎭</span>
                             </div>
-                            <div>
-                                <h4 class="text-white font-black text-xs uppercase tracking-wide truncate">{{ t(item.name) || item.name }}</h4>
-                                <p class="text-ink-soft text-[9px] font-medium leading-tight my-1 truncate w-full px-1">{{ t(item.description) || item.description }}</p>
-                                <span class="text-[10px] font-bold text-game-yellow">🪙 {{ item.price }}</span>
+
+                            <!-- Preview de emojis del pack -->
+                            <div v-if="item.metadata?.emojis?.length" class="flex flex-wrap gap-2 p-3 bg-black/20 rounded-xl border border-white/5">
+                                <span v-for="emj in item.metadata.emojis" :key="emj"
+                                      class="text-xl leading-none hover:scale-125 transition-transform cursor-default"
+                                      :title="emj">{{ emj }}</span>
                             </div>
-                            <button 
+
+                            <button
                                 v-if="!unlockedFrames.includes(item.id)"
                                 @click="handleBuyFrame(item.id, item.price)"
                                 :disabled="coins < item.price"
-                                class="w-full bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 text-white/80 hover:text-white py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-colors border border-white/5 cursor-pointer disabled:cursor-not-allowed"
+                                class="w-full py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all border cursor-pointer
+                                       bg-pink-500/15 hover:bg-pink-500/25 hover:border-pink-500/40 hover:text-pink-300
+                                       text-white/70 border-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
                             >
-                                Adquirir
+                                {{ t('store.buyButton') || 'Desbloquear Pack' }}
                             </button>
-                            <span 
-                                v-else 
-                                class="w-full py-2 bg-white/5 border border-white/10 text-white/50 rounded-xl text-[9px] font-black uppercase tracking-wider"
+                            <span
+                                v-else
+                                class="w-full py-2.5 text-center bg-white/5 border border-white/10 text-white/50 rounded-xl text-xs font-black uppercase tracking-wider"
                             >
-                                Desbloqueado ✓
+                                {{ t('store.ownedButton') || 'Desbloqueado ✓' }}
                             </span>
                         </div>
                     </div>
                 </div>
+
             </div>
 
             <!-- PLACEHOLDER: PERFIL DEL JUGADOR -->

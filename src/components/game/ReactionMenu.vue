@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
+import { useProfile, STORE_ITEMS } from '../../composables/useProfile';
 
 const props = defineProps<{
     targetPlayerId: string;
@@ -12,7 +13,28 @@ const emit = defineEmits<{
 }>();
 
 const isOpen = ref(false);
-const EMOJIS = ['😂', '💀', '🤡', '🤯', '❤️', '👍'];
+
+// Emojis base siempre disponibles
+const BASE_EMOJIS = ['😂', '💀', '🤡', '🤯', '❤️', '👍'];
+
+// Enriquecer con emojis de los packs comprados por el usuario
+const { unlockedFrames } = useProfile();
+
+const allEmojis = computed(() => {
+    const extra: string[] = [];
+    for (const item of STORE_ITEMS.value) {
+        if (item.type === 'EMOJI' && unlockedFrames.value.includes(item.id)) {
+            const emojis = item.metadata?.emojis as string[] | undefined;
+            if (Array.isArray(emojis)) {
+                extra.push(...emojis);
+            }
+        }
+    }
+    // Deduplicar por si acaso un emoji base coincide con un pack
+    const combined = [...BASE_EMOJIS, ...extra];
+    return [...new Set(combined)];
+});
+
 let closeTimer: ReturnType<typeof setTimeout> | null = null;
 
 const sendReaction = (emoji: string) => {
@@ -82,7 +104,7 @@ onUnmounted(() => {
                 @mouseenter="cancelClose"
             >
                 <button
-                    v-for="emj in EMOJIS"
+                    v-for="emj in allEmojis"
                     :key="emj"
                     @click.stop.prevent="sendReaction(emj)"
                     class="flex items-center justify-center hover:bg-white/10 rounded-full transition-transform hover:scale-125 active:scale-95"

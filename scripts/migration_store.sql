@@ -155,15 +155,34 @@ CREATE TRIGGER on_store_item_change
     AFTER INSERT OR UPDATE OR DELETE ON public.store_items
     FOR EACH STATEMENT EXECUTE FUNCTION public.notify_catalog_change();
 
--- 7. Insertar catálogo inicial de artículos de prueba
+-- 7. Insertar catálogo completo de artículos de la TutiStore
+-- Marcos de Avatar (5), Expansiones de Categorías (3), Packs de Emojis (4)
 INSERT INTO public.store_items (id, type, price, metadata) VALUES
-    ('frame_neon', 'FRAME', 100, '{"name_key": "store.frame_neon", "className": "frame-neon"}'),
-    ('frame_gold', 'FRAME', 200, '{"name_key": "store.frame_gold", "className": "frame-gold"}'),
-    ('frame_fire', 'FRAME', 300, '{"name_key": "store.frame_fire", "className": "frame-fire"}'),
+    -- ── Marcos de Avatar ──────────────────────────────────────────────
+    ('frame_neon',    'FRAME', 100, '{"name_key": "store.frame_neon",    "className": "frame-neon"}'),
+    ('frame_gold',    'FRAME', 200, '{"name_key": "store.frame_gold",    "className": "frame-gold"}'),
+    ('frame_fire',    'FRAME', 300, '{"name_key": "store.frame_fire",    "className": "frame-fire"}'),
     ('frame_rainbow', 'FRAME', 500, '{"name_key": "store.frame_rainbow", "className": "frame-rainbow"}'),
+    ('frame_cosmic',  'FRAME', 400, '{"name_key": "store.frame_cosmic",  "className": "frame-cosmic"}'),
+
+    -- ── Expansiones de Categorías ──────────────────────────────────────
     ('pack_futbol', 'EXPANSION', 250, '{"name_key": "store.pack_futbol", "description_key": "store.pack_futbol_desc"}'),
-    ('pack_gamer', 'EXPANSION', 300, '{"name_key": "store.pack_gamer", "description_key": "store.pack_gamer_desc"}'),
-    ('emoji_brain_explode', 'EMOJI', 80, '{"name_key": "store.emoji_brain_explode", "url": "https://cdn.tutifruti.com/emojis/brain_explode.gif"}')
+    ('pack_gamer',  'EXPANSION', 300, '{"name_key": "store.pack_gamer",  "description_key": "store.pack_gamer_desc"}'),
+    ('pack_cine',   'EXPANSION', 250, '{"name_key": "store.pack_cine",   "description_key": "store.pack_cine_desc"}'),
+
+    -- ── Packs de Emojis (reacciones en fase de votaciones) ────────────
+    ('pack_emojis_gamer', 'EMOJI', 120,
+        '{"name_key": "store.pack_emojis_gamer", "description_key": "store.pack_emojis_gamer_desc",
+          "emojis": ["🎮", "👾", "🕹️", "⚔️", "👑", "🎯"]}'),
+    ('pack_emojis_spicy', 'EMOJI', 100,
+        '{"name_key": "store.pack_emojis_spicy", "description_key": "store.pack_emojis_spicy_desc",
+          "emojis": ["🔥", "🌶️", "💩", "🤡", "👻", "🤮"]}'),
+    ('pack_emojis_memes', 'EMOJI', 150,
+        '{"name_key": "store.pack_emojis_memes", "description_key": "store.pack_emojis_memes_desc",
+          "emojis": ["🤔", "🤫", "🥱", "🧠", "🤠", "👽"]}'),
+    ('pack_emojis_otaku', 'EMOJI', 130,
+        '{"name_key": "store.pack_emojis_otaku", "description_key": "store.pack_emojis_otaku_desc",
+          "emojis": ["🍥", "👺", "🦊", "⛩️", "🌸", "🎋"]}')
 ON CONFLICT (id) DO UPDATE SET 
-    price = EXCLUDED.price,
+    price    = EXCLUDED.price,
     metadata = EXCLUDED.metadata;
