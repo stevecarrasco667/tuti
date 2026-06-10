@@ -8,48 +8,79 @@ export interface StoreItem {
     description: string;
     price: number;
     className: string; // CSS class for visual frame animation
+    type: string; // FRAME | EMOJI | EXPANSION
+    metadata?: any;
 }
 
-export const STORE_ITEMS: StoreItem[] = [
+export const STORE_ITEMS = ref<StoreItem[]>([
     {
         id: 'frame_neon',
         name: 'Marco Neón',
         description: 'Borde brillante neón cian y rosa',
         price: 100,
-        className: 'frame-neon'
+        className: 'frame-neon',
+        type: 'FRAME'
     },
     {
         id: 'frame_gold',
         name: 'Marco Dorado',
         description: 'Elegancia premium de oro resplandeciente',
         price: 200,
-        className: 'frame-gold'
+        className: 'frame-gold',
+        type: 'FRAME'
     },
     {
         id: 'frame_fire',
         name: 'Marco de Fuego',
         description: 'Llamas ardientes de pasión competitiva',
         price: 300,
-        className: 'frame-fire'
+        className: 'frame-fire',
+        type: 'FRAME'
     },
     {
         id: 'frame_rainbow',
         name: 'Marco Arcoíris',
         description: 'Espectro dinámico multicolor',
         price: 500,
-        className: 'frame-rainbow'
+        className: 'frame-rainbow',
+        type: 'FRAME'
     }
-];
+]);
 
 const coins = ref<number>(0);
 const unlockedFrames = ref<string[]>([]);
 const equippedFrame = ref<string | null>(null);
 const isLoading = ref<boolean>(false);
 
+const fetchCatalog = async () => {
+    try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        if (!supabaseUrl) return;
+        const res = await fetch(`${supabaseUrl}/storage/v1/object/public/store/store_catalog.json?t=${Date.now()}`);
+        if (!res.ok) throw new Error('Catalog file not found');
+        const data: any = await res.json();
+        if (data && Array.isArray(data.items)) {
+            STORE_ITEMS.value = data.items.map((item: any) => ({
+                id: item.id,
+                name: item.metadata?.name_key || item.id,
+                description: item.metadata?.description_key || '',
+                price: item.price,
+                className: item.metadata?.className || '',
+                type: item.type,
+                metadata: item.metadata || {}
+            }));
+        }
+    } catch (err) {
+        console.warn('[useProfile] Could not fetch remote store catalog, using fallback:', err);
+    }
+};
+
 export function useProfile() {
     const { isAuthenticated, user } = useAuth();
 
     const fetchProfile = async () => {
+        await fetchCatalog();
+
         if (!isAuthenticated.value || !user.value) {
             // Load local guest profile
             coins.value = parseInt(localStorage.getItem('tuti-guest-coins') || '0', 10);
@@ -80,9 +111,9 @@ export function useProfile() {
                 equippedFrame.value = profile.frame_id || null;
             }
 
-            // 2. Fetch unlocked frames
+            // 2. Fetch unlocked items (inventory)
             const { data: unlocks, error: unlocksErr } = await supabase
-                .from('user_unlocks')
+                .from('user_inventory')
                 .select('item_id')
                 .eq('user_id', user.value.id);
 

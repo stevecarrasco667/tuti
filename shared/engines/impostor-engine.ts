@@ -30,7 +30,7 @@ export class ImpostorEngine extends BaseEngine {
     private _players = new PlayerManager();
     private configManager = new ConfigurationManager();
     protected onGameStateChange?: (state: RoomState) => void;
-    protected supabase: SupabaseClient;
+    public supabase: SupabaseClient;
 
     // [Sprint 2 - P1] Analytics Tracking
     private _sessionStartTime: number | null = null;

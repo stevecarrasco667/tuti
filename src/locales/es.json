@@ -1,4 +1,16 @@
 {
+    "store": {
+        "frame_neon": "Marco Neón",
+        "frame_gold": "Marco Dorado",
+        "frame_fire": "Marco de Fuego",
+        "frame_rainbow": "Marco Arcoíris",
+        "pack_futbol": "⚽ Pack Fútbol",
+        "pack_futbol_desc": "Categorías: Estadios, Jugadores y Equipos Históricos",
+        "pack_gamer": "🎮 Pack Gamer",
+        "pack_gamer_desc": "Categorías: Consolas, Videojuegos Retro y Hardware",
+        "emoji_brain_explode": "🤯 Mente Explotada",
+        "emoji_brain_explode_desc": "Taunt animado en partida"
+    },
     "home": {
         "available": "Disponible",
         "slogan": "El juego de palabras más rápido",

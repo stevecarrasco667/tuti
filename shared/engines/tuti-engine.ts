@@ -37,7 +37,7 @@ export class TutiEngine extends BaseEngine {
     private _players = new PlayerManager();
     private configManager = new ConfigurationManager();
     private voting = new VotingManager(this.validation);
-    protected supabase: SupabaseClient;
+    public supabase: SupabaseClient;
 
     // [P11] Anti-Troll: marca cuándo empezó la ronda para calcular el candado
     private _roundStartTime: number = 0;
@@ -58,7 +58,20 @@ export class TutiEngine extends BaseEngine {
 
     private async _getCategories(): Promise<CategoryRef[]> {
         if (this._categoriesCache) return this._categoriesCache;
-        const { data: catData, error } = await this.supabase.from('categories').select('id, name').eq('game_mode', 'classic');
+
+        const activePackId = this.state.config.activePackId;
+        let query = this.supabase
+            .from('categories')
+            .select('id, name')
+            .eq('game_mode', 'classic');
+
+        if (activePackId) {
+            query = query.or(`pack_id.is.null,pack_id.eq.${activePackId}`);
+        } else {
+            query = query.is('pack_id', null);
+        }
+
+        const { data: catData, error } = await query;
         if (error || !catData) {
             console.error('[TutiEngine] Failed to load categories, using master fallback');
         }
@@ -361,6 +374,9 @@ export class TutiEngine extends BaseEngine {
 
         if (player && player.isHost && this.state.status === 'LOBBY') {
             this.state.config = this.configManager.updateConfig(this.state.config, newConfig);
+            if (newConfig.activePackId !== undefined) {
+                this._categoriesCache = null;
+            }
         }
         return this.state;
     }

@@ -1,4 +1,16 @@
 {
+    "store": {
+        "frame_neon": "Moldura Neon",
+        "frame_gold": "Moldura Dourada",
+        "frame_fire": "Moldura de Fogo",
+        "frame_rainbow": "Moldura Arco-Íris",
+        "pack_futbol": "⚽ Pacote de Futebol",
+        "pack_futbol_desc": "Categorias: Estádios, Jogadores e Equipes Históricas",
+        "pack_gamer": "🎮 Pacote Gamer",
+        "pack_gamer_desc": "Categorias: Consoles, Jogos Antigos e Hardware",
+        "emoji_brain_explode": "🤯 Mente Explodida",
+        "emoji_brain_explode_desc": "Provocação animada em partida"
+    },
     "home": {
         "available": "Disponível",
         "slogan": "O jogo de palavras mais rápido",

@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { GameConfig } from '../../../shared/types';
+import { useProfile, STORE_ITEMS } from '../../composables/useProfile';
 
 const { locale } = useI18n();
+const { unlockedFrames } = useProfile();
 
 const props = defineProps<{
     config: GameConfig;
@@ -15,6 +18,10 @@ const emit = defineEmits<{
     (e: 'update-config', field: string, value: any): void;
     (e: 'update-mutator', mutator: string, value: boolean): void;
 }>();
+
+const unlockedPacks = computed(() => {
+    return STORE_ITEMS.value.filter(item => item.type === 'EXPANSION' && unlockedFrames.value.includes(item.id));
+});
 
 function handleNumericInput(field: string, rawValue: string, min: number, max: number, options?: number[]) {
     let val = parseInt(rawValue, 10);
@@ -31,6 +38,33 @@ function handleNumericInput(field: string, rawValue: string, min: number, max: n
 
 <template>
     <div class="flex flex-col gap-2 bg-panel-card/15 p-2 rounded-2xl border border-white/5">
+
+        <!-- Category Pack selection -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">
+            <div class="flex items-start gap-3 min-w-0">
+                <span class="text-xl flex-none leading-none mt-0.5">📦</span>
+                <div class="flex flex-col min-w-0">
+                    <span class="text-ink-main font-heading font-black text-xs uppercase tracking-wide leading-none">Paquete de Categorías</span>
+                    <span class="text-ink-muted text-[9px] font-bold mt-1 leading-normal max-w-sm">
+                        {{ locale === 'en' ? 'Play with premium category expansion packs' : locale === 'pt' ? 'Jogue com pacotes de categorias premium' : 'Jugar con paquetes de categorías premium adquiridos' }}
+                    </span>
+                </div>
+            </div>
+            <div class="relative w-36 sm:w-40 flex-none">
+                <select
+                    :disabled="!props.amIHost"
+                    :value="props.config.activePackId || ''"
+                    @change="emit('update-config', 'activePackId', ($event.target as HTMLSelectElement).value || null)"
+                    class="w-full bg-panel-card border-[2px] border-white/10 text-ink-main text-[10px] font-black uppercase tracking-wider pl-3.5 pr-8 py-2 rounded-xl appearance-none cursor-pointer hover:bg-panel-input transition-colors focus:outline-none focus:border-action-primary shadow-inner h-11 select-none"
+                >
+                    <option value="" class="bg-panel-card">Ninguno (Gratis)</option>
+                    <option v-for="pack in unlockedPacks" :key="pack.id" :value="pack.id" class="bg-panel-card">
+                        {{ pack.id === 'pack_futbol' ? '⚽ Fútbol' : '🎮 Gamer' }}
+                    </option>
+                </select>
+                <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none text-[9px]">▼</span>
+            </div>
+        </div>
 
         <!-- Category Count (only when no manual categories selected) -->
         <div v-if="!(props.config.classic?.categories?.length > 0)" class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 py-2 px-3 bg-panel-input/35 border border-white/10 rounded-xl hover:border-white/20 transition-all">

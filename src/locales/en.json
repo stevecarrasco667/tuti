@@ -1,4 +1,16 @@
 {
+    "store": {
+        "frame_neon": "Neon Frame",
+        "frame_gold": "Gold Frame",
+        "frame_fire": "Fire Frame",
+        "frame_rainbow": "Rainbow Frame",
+        "pack_futbol": "⚽ Football Pack",
+        "pack_futbol_desc": "Categories: Stadiums, Players and Historical Teams",
+        "pack_gamer": "🎮 Gamer Pack",
+        "pack_gamer_desc": "Categories: Consoles, Retro Games and Hardware",
+        "emoji_brain_explode": "🤯 Exploding Mind",
+        "emoji_brain_explode_desc": "Animated taunt in game"
+    },
     "home": {
         "available": "Available",
         "slogan": "The fastest word game",

@@ -56,7 +56,8 @@ export const GameConfigSchema = z.object({
         votingTime: z.number().min(15).max(120),
         categoryCount: z.number().min(1).max(8).optional().default(3),
         categories: z.array(CategoryRefSchema).max(8).optional().default([])
-    })
+    }),
+    activePackId: z.string().nullable().optional()
 });
 
 export const ImpostorDataSchema = z.object({
@@ -255,6 +256,14 @@ export const ConfirmImpostorWordSchema = z.object({
     type: z.literal(EVENTS.CONFIRM_IMPOSTOR_WORD)
 });
 
+export const SendReactionSchema = z.object({
+    type: z.literal(EVENTS.SEND_REACTION),
+    payload: z.object({
+        emojiId: z.string(),
+        customUrl: z.string().optional()
+    })
+});
+
 export const ClientMessageSchema = z.discriminatedUnion('type', [
     JoinRoomSchema,
     StartGameSchema,
@@ -275,4 +284,5 @@ export const ClientMessageSchema = z.discriminatedUnion('type', [
     SubmitLastWishSchema,   // [P10]
     UpdateImpostorDraftSchema,  // [P12]
     ConfirmImpostorWordSchema,  // [P12]
+    SendReactionSchema
 ]);

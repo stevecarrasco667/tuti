@@ -28,6 +28,25 @@ export class PlayerHandler extends BaseHandler {
                 sendError(sender, ERROR_CODES.NOT_HOST);
                 return;
             }
+
+            // Validar propiedad de la expansión si el host intenta activarla
+            if (payload.activePackId) {
+                const userId = this.engine.players.getPlayerId(sender.id);
+                if (userId && !userId.startsWith('guest_')) {
+                    const { data, error } = await this.engine.supabase
+                        .from('user_inventory')
+                        .select('id')
+                        .eq('user_id', userId)
+                        .eq('item_id', payload.activePackId)
+                        .maybeSingle();
+                    
+                    if (error || !data) {
+                        sendError(sender, 'No eres dueño de esta expansión de categorías.');
+                        return;
+                    }
+                }
+            }
+
             this.engine.updateConfig(sender.id, payload);
         } catch (err) {
             sendError(sender, (err as Error).message);

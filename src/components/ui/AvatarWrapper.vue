@@ -22,7 +22,7 @@ const props = defineProps<{
 
 const frameClass = computed(() => {
   if (!props.frameId) return null;
-  const item = STORE_ITEMS.find(i => i.id === props.frameId);
+  const item = STORE_ITEMS.value.find(i => i.id === props.frameId);
   return item ? item.className : null;
 });
 

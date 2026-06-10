@@ -145,6 +145,7 @@ export type ClientMessage =
     | { type: typeof EVENTS.LAST_WISH_TYPING; payload: { text: string } }              // [P10]
     | { type: typeof EVENTS.UPDATE_IMPOSTOR_DRAFT; payload: { word: string } }         // [P12] Live draft autoguardado
     | { type: typeof EVENTS.CONFIRM_IMPOSTOR_WORD }                                    // [P12] Jugador listo
+    | { type: typeof EVENTS.SEND_REACTION; payload: { emojiId: string; customUrl?: string } }
     | { type: typeof EVENTS.CHAT_SEND; payload: { text: string } };
 
 // Messages sent from Server to Client
@@ -169,6 +170,7 @@ export type ServerMessage =
     | { type: typeof EVENTS.PLAYER_JOINED; payload: { name: string } }
     | { type: typeof EVENTS.PLAYER_LEFT; payload: { name: string } }
     | { type: typeof EVENTS.ROOM_EXPIRED; payload: { config: GameConfig } }
+    | { type: typeof EVENTS.BROADCAST_REACTION; payload: { userId: string; emojiId: string; customUrl?: string } }
     | { type: typeof EVENTS.ROOM_DEAD };
 
 // [Patch 2.4] Single source of truth for the default RoomState.
@@ -211,7 +213,8 @@ export function createDefaultRoomState(roomId: string | null = null): RoomState 
                 votingTime: 40,
                 categoryCount: 3,
                 categories: []
-            }
+            },
+            activePackId: null
         },
         timers: {
             roundEndsAt: null,

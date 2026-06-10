@@ -14,7 +14,7 @@ import AvatarWrapper from '../ui/AvatarWrapper.vue';
 const { currentTab, isMenuVisible, setTab } = useNavigation();
 const { user, isAuthenticated, signInWithGoogle } = useAuth();
 const { addToast } = useToast();
-const { locale } = useI18n();
+const { t, locale } = useI18n();
 const { isMuted, toggleMute } = useSound();
 const {
     sfxEnabled,
@@ -37,6 +37,10 @@ const {
     equipFrame,
     addTestCoins
 } = useProfile();
+
+const storeFrames = computed(() => STORE_ITEMS.value.filter(item => item.type === 'FRAME'));
+const storeExpansions = computed(() => STORE_ITEMS.value.filter(item => item.type === 'EXPANSION'));
+const storeEmojis = computed(() => STORE_ITEMS.value.filter(item => item.type === 'EMOJI'));
 
 const historyList = ref<any[]>([]);
 const statsList = ref<any>(null);
@@ -265,13 +269,13 @@ const triggerClearCache = () => {
                     </div>
                 </div>
 
-                <!-- Catálogo de Cosméticos -->
-                <div class="mt-4">
+                <!-- Catálogo de Marcos -->
+                <div class="mt-8">
                     <h3 class="text-xs font-black text-ink-main uppercase tracking-widest mb-4 flex items-center gap-2">
-                        🌌 Marcos de Avatar Disponibles
+                        🌌 {{ t('store.framesTitle') || 'Marcos de Avatar' }}
                     </h3>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <div v-for="item in STORE_ITEMS" :key="item.id" 
+                        <div v-for="item in storeFrames" :key="item.id" 
                              class="bg-white/5 border border-white/5 hover:border-white/10 rounded-2xl p-4 flex flex-col items-center gap-3 text-center transition-all group relative">
                             <!-- Show equipped frame indicator -->
                             <div class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-inner relative">
@@ -280,8 +284,8 @@ const triggerClearCache = () => {
                                 </AvatarWrapper>
                             </div>
                             <div>
-                                <h4 class="text-white font-black text-xs uppercase tracking-wide truncate">{{ item.name }}</h4>
-                                <p class="text-ink-soft text-[9px] font-medium leading-tight my-1 truncate w-full px-1">{{ item.description }}</p>
+                                <h4 class="text-white font-black text-xs uppercase tracking-wide truncate">{{ t(item.name) || item.name }}</h4>
+                                <p class="text-ink-soft text-[9px] font-medium leading-tight my-1 truncate w-full px-1">{{ t(item.description) || item.description }}</p>
                                 <span class="text-[10px] font-bold text-game-yellow">🪙 {{ item.price }}</span>
                             </div>
                             
@@ -308,6 +312,75 @@ const triggerClearCache = () => {
                             >
                                 Equipado ✓
                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Catálogo de Expansiones -->
+                <div v-if="storeExpansions.length > 0" class="mt-8">
+                    <h3 class="text-xs font-black text-ink-main uppercase tracking-widest mb-4 flex items-center gap-2">
+                        📦 {{ t('store.expansionsTitle') || 'Packs de Categorías (Expansiones)' }}
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div v-for="item in storeExpansions" :key="item.id" 
+                             class="bg-white/5 border border-white/5 hover:border-white/10 rounded-2xl p-5 flex items-center justify-between gap-4 transition-all group">
+                            <div class="flex items-center gap-4">
+                                <span class="text-4xl filter drop-shadow-md">{{ item.id === 'pack_futbol' ? '⚽' : '🎮' }}</span>
+                                <div class="text-left">
+                                    <h4 class="text-white font-black text-sm uppercase tracking-wide">{{ t(item.name) || item.name }}</h4>
+                                    <p class="text-ink-soft text-xs font-medium leading-tight mt-1">{{ t(item.description) || item.description }}</p>
+                                    <span class="text-xs font-bold text-game-yellow mt-1 block">🪙 {{ item.price }}</span>
+                                </div>
+                            </div>
+                            <button 
+                                v-if="!unlockedFrames.includes(item.id)"
+                                @click="handleBuyFrame(item.id, item.price)"
+                                :disabled="coins < item.price"
+                                class="px-5 bg-gradient-to-r from-yellow-400 to-amber-500 text-zinc-950 disabled:opacity-40 disabled:from-zinc-800 disabled:to-zinc-800 disabled:text-white/40 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md cursor-pointer disabled:cursor-not-allowed"
+                            >
+                                Comprar
+                            </button>
+                            <span 
+                                v-else 
+                                class="px-5 py-2.5 bg-white/5 border border-white/10 text-white/50 rounded-xl text-xs font-black uppercase tracking-wider"
+                            >
+                                Adquirido ✓
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Catálogo de Emojis -->
+                <div v-if="storeEmojis.length > 0" class="mt-8">
+                    <h3 class="text-xs font-black text-ink-main uppercase tracking-widest mb-4 flex items-center gap-2">
+                        🎭 Emojis Tácticos Premium
+                    </h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div v-for="item in storeEmojis" :key="item.id" 
+                             class="bg-white/5 border border-white/5 hover:border-white/10 rounded-2xl p-4 flex flex-col items-center gap-3 text-center transition-all group">
+                            <div class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-4xl group-hover:scale-110 transition-transform overflow-hidden relative">
+                                <img v-if="item.metadata?.url" :src="item.metadata.url" class="w-12 h-12 object-contain" alt="emoji" />
+                                <span v-else>🤯</span>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-black text-xs uppercase tracking-wide truncate">{{ t(item.name) || item.name }}</h4>
+                                <p class="text-ink-soft text-[9px] font-medium leading-tight my-1 truncate w-full px-1">{{ t(item.description) || item.description }}</p>
+                                <span class="text-[10px] font-bold text-game-yellow">🪙 {{ item.price }}</span>
+                            </div>
+                            <button 
+                                v-if="!unlockedFrames.includes(item.id)"
+                                @click="handleBuyFrame(item.id, item.price)"
+                                :disabled="coins < item.price"
+                                class="w-full bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 text-white/80 hover:text-white py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-colors border border-white/5 cursor-pointer disabled:cursor-not-allowed"
+                            >
+                                Adquirir
+                            </button>
+                            <span 
+                                v-else 
+                                class="w-full py-2 bg-white/5 border border-white/10 text-white/50 rounded-xl text-[9px] font-black uppercase tracking-wider"
+                            >
+                                Desbloqueado ✓
+                            </span>
                         </div>
                     </div>
                 </div>

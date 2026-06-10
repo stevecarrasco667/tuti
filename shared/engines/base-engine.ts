@@ -11,7 +11,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 export abstract class BaseEngine {
 
     // --- DEPENDENCIES ---
-    protected abstract supabase: SupabaseClient;
+    public abstract supabase: SupabaseClient;
 
     // --- STATE ACCESS ---
     abstract getState(): RoomState;

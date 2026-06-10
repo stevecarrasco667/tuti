@@ -956,6 +956,22 @@ export default class Server implements Party.Server {
                     return; // skip delta sync — no state was mutated
                 }
 
+                case EVENTS.SEND_REACTION: {
+                    if (!this.actionLimiter.checkLimit(sender.id)) return;
+                    const trustedSenderId = this.engine.players.getPlayerId(sender.id);
+                    if (!trustedSenderId) return;
+
+                    this.room.broadcast(JSON.stringify({
+                        type: EVENTS.BROADCAST_REACTION,
+                        payload: {
+                            userId: trustedSenderId,
+                            emojiId: messageContext.payload.emojiId,
+                            customUrl: messageContext.payload.customUrl
+                        }
+                    }));
+                    return; // skip delta sync — stateless relay
+                }
+
                 // --- EL ÚLTIMO DESEO (P10) ---
                 case EVENTS.LAST_WISH_TYPING: {
                     // [Patch 2.1] Rate-limit live typing relay to avoid text-flood

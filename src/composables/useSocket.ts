@@ -1,6 +1,7 @@
 import { ref, watch } from 'vue';
 import { supabase } from '../lib/supabase';
 import { useReactions } from './useReactions';
+import { useActiveReactions } from './useActiveReactions';
 import { EVENTS } from '../../shared/consts';
 import { devLog, devWarn } from '../utils/devLogger';
 
@@ -33,6 +34,10 @@ function handleEphemeralMessages(raw: string) {
             const { targetPlayerId, categoryId, emoji, senderId } = msg.payload;
             const { registerReaction } = useReactions();
             registerReaction(targetPlayerId, categoryId, emoji, senderId ?? 'unknown');
+        } else if (msg.type === EVENTS.BROADCAST_REACTION) {
+            const { userId, emojiId, customUrl } = msg.payload;
+            const { triggerActiveReaction } = useActiveReactions();
+            triggerActiveReaction(userId, emojiId, customUrl);
         } else if (msg.type === EVENTS.LAST_WISH_TYPING) {
             // [P10] Actualizar el texto en tiempo real del Impostor
             lastWishText.value = msg.payload.text ?? '';

@@ -9,7 +9,9 @@ vi.mock('@supabase/supabase-js', () => ({
         from: vi.fn((table: string) => ({
             select: vi.fn((_columns: string) => {
                 const builder = {
-                    eq: vi.fn((_col: string, _val: string) => builder),
+                    eq: vi.fn((_col: string, _val: any) => builder),
+                    or: vi.fn((_filter: string) => builder),
+                    is: vi.fn((_col: string, _val: any) => builder),
                     then: (resolve: any) => {
                         if (table === 'categories') resolve({ data: [{ id: '1', name: 'A' }, { id: '2', name: 'B' }] });
                         else if (table === 'words') resolve({ data: [{ id: '1', word: 'Manzana' }, { id: '2', word: 'Pera' }] });

@@ -7,7 +7,9 @@ const mockSupabase = {
     from: (table: string) => ({
         select: (_columns: string) => {
             const builder = {
-                eq: (_column: string, _value: string) => builder,
+                eq: (_column: string, _value: any) => builder,
+                or: (_filter: string) => builder,
+                is: (_column: string, _value: any) => builder,
                 then: (resolve: any) => {
                     if (table === 'categories') resolve({ data: [{ id: '1', name: 'A' }, { id: '2', name: 'B' }] });
                     else if (table === 'words') resolve({ data: [{ id: '1', word: 'Manzana' }, { id: '2', word: 'Pera' }] });

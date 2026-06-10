@@ -32,11 +32,19 @@ export class DictionaryManager {
      * Fetches all classic category metadata (id, name).
      * Used right before starting a game to allow players to select or to pick random ones.
      */
-    public async getAllCategories(supabase: SupabaseClient): Promise<{ id: string; name: string }[]> {
-        const { data, error } = await supabase
+    public async getAllCategories(supabase: SupabaseClient, activePackId?: string | null): Promise<{ id: string; name: string }[]> {
+        let query = supabase
             .from('categories')
             .select('id, name')
             .eq('game_mode', 'classic');
+
+        if (activePackId) {
+            query = query.or(`pack_id.is.null,pack_id.eq.${activePackId}`);
+        } else {
+            query = query.is('pack_id', null);
+        }
+
+        const { data, error } = await query;
 
         if (error || !data) {
             console.error('[DictionaryManager] Failed to fetch categories:', error);

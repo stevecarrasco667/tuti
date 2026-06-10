@@ -10,6 +10,8 @@ import ErrorBoundary from './components/ui/ErrorBoundary.vue';
 import { useKeyboard } from './composables/useKeyboard';
 import { App as CapacitorApp } from '@capacitor/app';
 import AppLayout from './components/layout/AppLayout.vue';
+import ActiveReactionsOverlay from './components/game/ActiveReactionsOverlay.vue';
+import TacticalReactionWheel from './components/game/TacticalReactionWheel.vue';
 
 useKeyboard();
 const { gameState, myUserId, leaveGame, isConnected } = useGame();
@@ -192,6 +194,12 @@ CapacitorApp.addListener('backButton', ({ canGoBack }) => {
                 </Transition>
             </RouterView>
         </ErrorBoundary>
+
+        <!-- Active reactions animated overlays -->
+        <template v-if="isConnected && gameState.roomId">
+            <ActiveReactionsOverlay />
+            <TacticalReactionWheel />
+        </template>
     </AppLayout>
 
     <!-- GLOBAL TOASTS (Overlay) — [Sprint H4 FE-2] unified renderer for all toast types -->
