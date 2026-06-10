@@ -78,6 +78,13 @@ export default class Server implements Party.Server {
     // Optimization: Per-Connection Delta Sync (State Masking)
     // For deduplicating broadcastStateDelta patches
     private previousStates: Map<string, RoomState> = new Map();
+    
+    // Economy and Anti-Farming state
+    private rewardsClaimed = false;
+    private gameStartedAt: number | null = null;
+    private lastTrackedRound = -1;
+    private playerParticipation = new Map<string, { written: number; total: number }>();
+    private accumulatedPerformanceCoins = new Map<string, number>();
 
     // Handlers
     private playerHandler: PlayerHandler;
@@ -124,6 +131,101 @@ export default class Server implements Party.Server {
 
     // Reusable state change callback for Engine Factory
     private onStateChange = async (newState: RoomState) => {
+        // Track game start
+        const isGameActive = ['PLAYING', 'LOADING_ROUND', 'TYPING'].includes(newState.status);
+        if (isGameActive && !this.gameStartedAt) {
+            this.gameStartedAt = Date.now();
+            await this.room.storage.put('gameStartedAt', this.gameStartedAt);
+        }
+
+        // Track participation at the end of each round
+        const isReviewPhase = ['REVIEW', 'RESULTS', 'VOTING', 'ROLE_REVEAL'].includes(newState.status);
+        if (isReviewPhase && newState.roundsPlayed > this.lastTrackedRound) {
+            const roundIdx = newState.roundsPlayed;
+            const isClassic = newState.config.mode === 'CLASSIC';
+            
+            // Total categories in this round
+            const categoriesCount = isClassic 
+                ? (newState.categories?.length || newState.config.classic.categoryCount || 0)
+                : 1;
+
+            // Track for each player
+            for (const player of newState.players) {
+                if (player.isBot) continue;
+                
+                let writtenInRound = 0;
+                if (isClassic) {
+                    const playerAnswers = newState.answers?.[player.id] || {};
+                    for (const categoryId of Object.keys(playerAnswers)) {
+                        const ans = playerAnswers[categoryId];
+                        if (ans && ans.trim().length > 0) {
+                            writtenInRound++;
+                        }
+                    }
+
+                    // Accumulate classic performance coins
+                    let perfCoins = 0;
+                    const playerStatuses = newState.answerStatuses?.[player.id] || {};
+                    for (const catName of Object.keys(playerStatuses)) {
+                        if (catName === '__perfect__') continue;
+                        const s = playerStatuses[catName];
+                        if (s === 'VALID' || s === 'VALID_AUTO') {
+                            perfCoins += 3;
+                        } else if (s === 'DUPLICATE') {
+                            perfCoins += 1;
+                        }
+                    }
+                    const currentPerf = this.accumulatedPerformanceCoins.get(player.id) || 0;
+                    this.accumulatedPerformanceCoins.set(player.id, currentPerf + perfCoins);
+                } else {
+                    const word = newState.impostorData?.words?.[player.id];
+                    if (word && word.trim().length > 0) {
+                        writtenInRound++;
+                    }
+
+                    // Accumulate Impostor voting performance coins
+                    const impostorIds = this.engine instanceof ImpostorEngine
+                        ? this.engine.getSecretState().currentImpostorIds
+                        : [];
+                    const votes = newState.impostorData?.votes || {};
+                    const votedId = votes[player.id];
+                    if (votedId && impostorIds.includes(votedId)) {
+                        const currentPerf = this.accumulatedPerformanceCoins.get(player.id) || 0;
+                        this.accumulatedPerformanceCoins.set(player.id, currentPerf + 5);
+                    }
+                }
+
+                const current = this.playerParticipation.get(player.id) || { written: 0, total: 0 };
+                current.written += writtenInRound;
+                current.total += categoriesCount;
+                this.playerParticipation.set(player.id, current);
+            }
+
+            this.lastTrackedRound = roundIdx;
+            await this.room.storage.put('lastTrackedRound', this.lastTrackedRound);
+            await this.room.storage.put('playerParticipation', Object.fromEntries(this.playerParticipation.entries()));
+            await this.room.storage.put('accumulatedPerformanceCoins', Object.fromEntries(this.accumulatedPerformanceCoins.entries()));
+        }
+
+        // Process game rewards if transitioned to GAME_OVER
+        if (newState.status === 'GAME_OVER') {
+            await this.processGameRewards(newState);
+        }
+
+        // Reset tracking flags if transitioned to LOBBY (e.g. restart game)
+        if (newState.status === 'LOBBY') {
+            this.rewardsClaimed = false;
+            this.gameStartedAt = null;
+            this.lastTrackedRound = -1;
+            this.playerParticipation.clear();
+            this.accumulatedPerformanceCoins.clear();
+            await this.room.storage.delete('rewardsClaimed');
+            await this.room.storage.delete('gameStartedAt');
+            await this.room.storage.delete('lastTrackedRound');
+            await this.room.storage.delete('playerParticipation');
+            await this.room.storage.delete('accumulatedPerformanceCoins');
+        }
+
         // 1. [Sprint H3] Tick Loop Phase Management — delegated to TickManager
         this.tickManager.manageTick(newState);
 
@@ -151,11 +253,133 @@ export default class Server implements Party.Server {
                 this.saveTimeout = null;
             }, 5000);
         }
-
-        // 5. [Sprint P6 — SMELL-2] Heartbeat RPC removed from hot path.
-        // It now runs strictly on a 10s interval via startHeartbeat(), preventing
-        // CPU strangle and Lobby rate-limit exhaustion during active gameplay.
     };
+
+    private async processGameRewards(newState: RoomState) {
+        if (this.rewardsClaimed) return;
+        this.rewardsClaimed = true;
+        await this.room.storage.put('rewardsClaimed', true);
+
+        try {
+            const gameDuration = this.gameStartedAt ? (Date.now() - this.gameStartedAt) / 1000 : 0;
+            const activeHumans = newState.players.filter(p => !p.isBot && p.isConnected);
+            const meetsCuorum = activeHumans.length >= 3;
+
+            // Compute tie-aware competition ranking
+            const sortedPlayers = [...newState.players].sort((a, b) => b.score - a.score);
+            const ranks = new Map<string, number>();
+            let currentRank = 1;
+            for (let i = 0; i < sortedPlayers.length; i++) {
+                if (i > 0 && sortedPlayers[i].score < sortedPlayers[i - 1].score) {
+                    currentRank = i + 1;
+                }
+                ranks.set(sortedPlayers[i].id, currentRank);
+            }
+
+            const authenticatedRewards: any[] = [];
+            const playerBreakdown: Record<string, any> = {};
+
+            for (const player of newState.players) {
+                if (player.isBot) continue;
+
+                const playerRank = ranks.get(player.id) || 99;
+                const won = playerRank === 1;
+                const rankBonus = playerRank === 1 ? 30 : (playerRank === 2 ? 15 : (playerRank === 3 ? 10 : 0));
+
+                let winningFactionCoins = 0;
+                if (newState.config.mode === 'IMPOSTOR') {
+                    const winnerFaction = newState.impostorData?.cycleResult?.winner;
+                    const impostorIds = this.engine instanceof ImpostorEngine
+                        ? this.engine.getSecretState().currentImpostorIds
+                        : [];
+                    const isImpostor = impostorIds.includes(player.id);
+                    if ((winnerFaction === 'IMPOSTOR' && isImpostor) || (winnerFaction === 'CREW' && !isImpostor)) {
+                        winningFactionCoins = 15;
+                    }
+                }
+
+                const part = this.playerParticipation.get(player.id);
+                const meetsParticipation = part && part.total > 0 ? (part.written / part.total) >= 0.5 : false;
+
+                const playerEligible = gameDuration >= 90 && meetsCuorum && meetsParticipation;
+                const performanceCoins = this.accumulatedPerformanceCoins.get(player.id) || 0;
+
+                const baseCoins = playerEligible ? 10 : 0;
+                const earnedCoins = playerEligible
+                    ? Math.min(100, baseCoins + rankBonus + performanceCoins + winningFactionCoins)
+                    : 0;
+
+                playerBreakdown[player.id] = {
+                    isEligible: playerEligible,
+                    details: {
+                        base: baseCoins,
+                        rank: playerEligible ? rankBonus : 0,
+                        performance: playerEligible ? performanceCoins : 0,
+                        faction: playerEligible ? winningFactionCoins : 0,
+                        total: earnedCoins
+                    },
+                    checks: {
+                        duration: gameDuration,
+                        meetsDuration: gameDuration >= 90,
+                        meetsCuorum,
+                        humanCount: activeHumans.length,
+                        participationRate: part && part.total > 0 ? (part.written / part.total) : 0,
+                        meetsParticipation
+                    },
+                    totalCoins: 0 // Will be populated for authenticated players by Supabase
+                };
+
+                if (player.isAuthenticated) {
+                    authenticatedRewards.push({
+                        userId: player.id,
+                        coins: earnedCoins,
+                        mode: newState.config.mode,
+                        score: player.score,
+                        rank: playerRank,
+                        totalPlayers: newState.players.length,
+                        won: won
+                    });
+                }
+            }
+
+            // If there are authenticated players to reward, call Supabase RPC
+            if (authenticatedRewards.length > 0) {
+                logger.info('CLAIM_REWARDS_SUPABASE_CALL', { roomId: this.room.id, count: authenticatedRewards.length });
+                const { data, error } = await this.supabase.rpc('claim_match_rewards', {
+                    rewards_payload: authenticatedRewards
+                });
+                if (error) {
+                    logger.error('CLAIM_REWARDS_RPC_FAILED', { roomId: this.room.id }, new Error(error.message));
+                } else if (Array.isArray(data)) {
+                    for (const row of data) {
+                        if (row && typeof row === 'object' && 'userId' in row && 'totalCoins' in row) {
+                            if (playerBreakdown[row.userId]) {
+                                playerBreakdown[row.userId].totalCoins = row.totalCoins;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Send the MATCH_REWARDS summary event to all connections
+            const summaryPayload = {
+                roomId: this.room.id,
+                gameDuration,
+                meetsCuorum,
+                breakdown: playerBreakdown
+            };
+
+            this.room.broadcast(JSON.stringify({
+                type: EVENTS.MATCH_REWARDS,
+                payload: summaryPayload
+            }));
+
+            logger.info('GAME_REWARDS_PROCESSED_SUCCESSFULLY', { roomId: this.room.id, authenticatedCount: authenticatedRewards.length });
+
+        } catch (err) {
+            logger.error('PROCESS_GAME_REWARDS_CRITICAL_ERROR', { roomId: this.room.id }, err instanceof Error ? err : new Error(String(err)));
+        }
+    }
 
     constructor(room: Party.Room) {
         this.room = room;
@@ -263,6 +487,23 @@ export default class Server implements Party.Server {
                     } else {
                         logger.warn('IMPOSTOR_SECRETS_MISSING', { roomId: this.room.id });
                     }
+                }
+
+                // Hydrate economy state
+                const gameStartedAt = await this.room.storage.get<number>('gameStartedAt');
+                if (gameStartedAt) this.gameStartedAt = gameStartedAt;
+                const rewardsClaimed = await this.room.storage.get<boolean>('rewardsClaimed');
+                if (rewardsClaimed) this.rewardsClaimed = rewardsClaimed;
+                const lastTrackedRound = await this.room.storage.get<number>('lastTrackedRound');
+                if (lastTrackedRound !== undefined) this.lastTrackedRound = lastTrackedRound;
+                
+                const storedParticipation = await this.room.storage.get<Record<string, { written: number; total: number }>>('playerParticipation');
+                if (storedParticipation) {
+                    this.playerParticipation = new Map(Object.entries(storedParticipation));
+                }
+                const storedPerfCoins = await this.room.storage.get<Record<string, number>>('accumulatedPerformanceCoins');
+                if (storedPerfCoins) {
+                    this.accumulatedPerformanceCoins = new Map(Object.entries(storedPerfCoins));
                 }
             }
 

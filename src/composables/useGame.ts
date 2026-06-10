@@ -44,6 +44,7 @@ export function useGame() {
         myUserId: state.myUserId,
         myUserName: state.myUserName,
         myUserAvatar: state.myUserAvatar,
+        matchRewards: state.matchRewards,
 
         // --- HELPERS COMPUTADOS ---
         amIHost: state.amIHost,

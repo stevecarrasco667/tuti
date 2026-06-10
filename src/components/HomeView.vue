@@ -17,12 +17,15 @@ import { useAnalytics } from '../composables/useAnalytics';
 import AdBanner from './ui/AdBanner.vue';
 import { useAds } from '../composables/useAds';
 import { useSound } from '../composables/useSound';
+import { useProfile } from '../composables/useProfile';
+import AvatarWrapper from './ui/AvatarWrapper.vue';
 
 const { joinGame, myUserName, myUserAvatar } = useGame();
 const { filteredRooms, lobbyFilters, connect, refreshRooms } = useLobby();
 const { user, isAuthenticated, isLoading, signInWithGoogle, signOut } = useAuth();
 const { addToast } = useToast();
 const { t } = useI18n();
+const { equippedFrame } = useProfile();
 const { resetMeta } = useMeta();
 const { trackHomeView, trackRoomCreated, trackRoomJoined } = useAnalytics();
 const { initAds } = useAds();
@@ -189,7 +192,9 @@ const getStatusInfo = (room: any) => {
                     </div>
                     <div class="flex items-center gap-4">
                         <div class="relative group flex-none">
-                            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl flex items-center justify-center text-5xl shadow-inner transition-transform group-hover:scale-110 overflow-hidden ring-4 ring-action-secondary/40 bg-gradient-to-br from-panel-card to-panel-input">{{ selectedAvatar }}</div>
+                            <AvatarWrapper :frameId="equippedFrame">
+                                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center text-5xl shadow-inner transition-transform group-hover:scale-110 overflow-hidden ring-4 ring-action-secondary/40 bg-gradient-to-br from-panel-card to-panel-input">{{ selectedAvatar }}</div>
+                            </AvatarWrapper>
                         </div>
                         <div class="flex-1 min-w-0">
                             <p class="text-ink-soft text-[10px] font-bold tracking-wider uppercase mb-1">{{ t('home.publicName') }}</p>

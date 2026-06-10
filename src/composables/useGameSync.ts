@@ -66,6 +66,9 @@ watch(lastMessage, (newMsg) => {
             if (newState.status === 'LOBBY' || newState.status === 'GAME_OVER') {
                 state.localImpostorRole.value = null;
             }
+            if (newState.status === 'LOBBY' || newState.status === 'PLAYING') {
+                state.matchRewards.value = null;
+            }
 
             if (state.isStopping.value && state.gameState.value.status !== 'PLAYING') {
                 state.setStopping(false);
@@ -158,6 +161,26 @@ watch(lastMessage, (newMsg) => {
             if (msg.type === 'SYSTEM' && msg.code) {
                 const style = msg.code === 'PLAYER_JOINED' ? 'success' : 'info';
                 addToast(i18n.global.t(`system.${msg.code}`, msg.args || {}, { locale: state.gameState.value?.config?.lang || 'es' }), style);
+            }
+        } else if (parsed.type === EVENTS.MATCH_REWARDS) {
+            state.matchRewards.value = parsed.payload;
+            console.log('[useGameSync] Match rewards summary received:', parsed.payload);
+            
+            // Guest local persistence check:
+            const myPlayer = state.gameState.value.players.find(p => p.id === state.myUserId.value);
+            if (myPlayer && !myPlayer.isAuthenticated) {
+                const myReward = parsed.payload.breakdown?.[state.myUserId.value];
+                if (myReward && myReward.details && myReward.details.total > 0) {
+                    const currentCoins = parseInt(localStorage.getItem('tuti-guest-coins') || '0', 10);
+                    const newCoins = currentCoins + myReward.details.total;
+                    localStorage.setItem('tuti-guest-coins', String(newCoins));
+                    console.log(`[useGameSync] Local guest coins updated: +${myReward.details.total} (Total: ${newCoins})`);
+                    // Dynamically import useProfile to prevent circular dependencies
+                    import('./useProfile').then(({ useProfile }) => {
+                        const { fetchProfile } = useProfile();
+                        fetchProfile();
+                    });
+                }
             }
         }
         // WORD_REACT is handled by the singleton in useSocket.ts — do NOT handle it here

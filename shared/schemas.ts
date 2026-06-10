@@ -15,7 +15,8 @@ export const PlayerSchema = z.object({
     lastTypedAt: z.number().optional(),     // [GD-2] Última interacción
     filledCount: z.number().optional(),     // Rival progress counter (live game)
     isAuthenticated: z.boolean().optional(),
-    isBot: z.boolean().optional().default(false)
+    isBot: z.boolean().optional().default(false),
+    frameId: z.string().optional()
 });
 
 export const CategoryRefSchema = z.object({

@@ -27,8 +27,41 @@ if (!authSubscription) {
         isAuthenticated.value = !!session?.user;
         isLoading.value = false;
         
-        if (event === 'SIGNED_IN') {
-            console.log('User signed in:', session?.user.email);
+        if (event === 'SIGNED_IN' && session?.user) {
+            console.log('User signed in:', session.user.email);
+            // Run Cloud Sync (fusion of guest data to cloud)
+            const guestCoins = parseInt(localStorage.getItem('tuti-guest-coins') || '0', 10);
+            let guestUnlocks: string[] = [];
+            try {
+                const u = localStorage.getItem('tuti-guest-unlocks');
+                if (u) guestUnlocks = JSON.parse(u);
+            } catch {}
+            let guestHistory: any[] = [];
+            try {
+                const h = localStorage.getItem('tuti_player_history_v1');
+                if (h) guestHistory = JSON.parse(h);
+            } catch {}
+
+            if (guestCoins > 0 || guestUnlocks.length > 0 || guestHistory.length > 0) {
+                console.log('[Cloud Sync] Merging guest coins, unlocks and history to database...');
+                supabase.rpc('sync_guest_data_on_signup', {
+                    p_user_id: session.user.id,
+                    guest_coins: guestCoins,
+                    guest_unlocks: guestUnlocks,
+                    guest_history: guestHistory
+                }).then(({ data, error }) => {
+                    if (error) {
+                        console.error('[Cloud Sync] Error merging guest data:', error);
+                    } else {
+                        console.log('[Cloud Sync] Guest data merged successfully:', data);
+                        // Clear guest localStorage keys after successful cloud merge
+                        localStorage.removeItem('tuti-guest-coins');
+                        localStorage.removeItem('tuti-guest-unlocks');
+                        localStorage.removeItem('tuti-equipped-frame'); // reset local equipped frame
+                        localStorage.removeItem('tuti_player_history_v1');
+                    }
+                });
+            }
         } else if (event === 'SIGNED_OUT') {
             console.log('User signed out.');
         }

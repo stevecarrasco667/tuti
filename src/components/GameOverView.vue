@@ -23,7 +23,7 @@ import PostGameActions from './results/PostGameActions.vue';
 import MatchSummaryCard from './ui/MatchSummaryCard.vue';
 import InstallPrompt from './InstallPrompt.vue';
 
-const { gameState, myUserId, resetGame, leaveGame } = useGame();
+const { gameState, myUserId, resetGame, leaveGame, matchRewards } = useGame();
 const { playWin, playStop } = useSound();
 const { assignTitles } = useTitles();
 const { saveEntry } = usePlayerHistory();
@@ -263,6 +263,50 @@ onMounted(async () => {
 
                 <!-- COLUMNA DERECHA (sidebar desktop) -->
                 <div class="w-full lg:col-span-5 xl:col-span-4 flex flex-col gap-4 sm:gap-6 mt-6 lg:mt-0">
+                    <!-- Monedas Ganadas (Coins Earned - Sprint 6) -->
+                    <div v-if="matchRewards && matchRewards.breakdown?.[myUserId]" class="w-full bg-white/[0.03] backdrop-blur-md border border-yellow-500/20 rounded-2xl p-4 sm:p-5 shadow-lg relative overflow-hidden flex flex-col gap-3">
+                        <div class="absolute -top-12 -right-12 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                        <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                            <h3 class="text-yellow-400 font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs flex items-center gap-1.5">
+                                🪙 {{ t('results.coinsEarned', 'MONEDAS GANADAS') }}
+                            </h3>
+                            <span class="text-sm font-black text-yellow-400 bg-yellow-400/10 border border-yellow-400/30 px-3 py-1 rounded-full shadow-md animate-pulse">
+                                +{{ matchRewards.breakdown[myUserId].details.total }}
+                            </span>
+                        </div>
+
+                        <!-- If not eligible, show warnings -->
+                        <div v-if="!matchRewards.breakdown[myUserId].isEligible" class="text-action-error bg-action-error/10 border border-action-error/20 p-3 rounded-xl text-center text-[10px] sm:text-xs font-black uppercase tracking-wider leading-relaxed">
+                            ⚠️ {{ t('results.notEligibleCoins', 'Partida muy rápida o con baja participación. Juega completo para ganar monedas.') }}
+                        </div>
+
+                        <!-- Breakdown details if eligible -->
+                        <div v-else class="flex flex-col gap-2 text-[11px] sm:text-xs">
+                            <div class="flex justify-between items-center text-white/60">
+                                <span>{{ t('results.baseReward', 'Recompensa Base') }}</span>
+                                <span class="text-white font-bold font-mono">+{{ matchRewards.breakdown[myUserId].details.base }}</span>
+                            </div>
+                            <div v-if="matchRewards.breakdown[myUserId].details.rank > 0" class="flex justify-between items-center text-white/60">
+                                <span>{{ t('results.rankBonus', 'Bonus de Posición') }}</span>
+                                <span class="text-white font-bold font-mono">+{{ matchRewards.breakdown[myUserId].details.rank }}</span>
+                            </div>
+                            <div v-if="matchRewards.breakdown[myUserId].details.performance > 0" class="flex justify-between items-center text-white/60">
+                                <span>{{ t('results.performanceBonus', 'Bonus por Habilidad') }}</span>
+                                <span class="text-white font-bold font-mono">+{{ matchRewards.breakdown[myUserId].details.performance }}</span>
+                            </div>
+                            <div v-if="matchRewards.breakdown[myUserId].details.faction > 0" class="flex justify-between items-center text-white/60">
+                                <span>{{ t('results.factionBonus', 'Bonus de Facción Ganadora') }}</span>
+                                <span class="text-white font-bold font-mono">+{{ matchRewards.breakdown[myUserId].details.faction }}</span>
+                            </div>
+
+                            <!-- Total balance -->
+                            <div v-if="matchRewards.breakdown[myUserId].totalCoins !== undefined" class="flex justify-between items-center border-t border-white/10 pt-3 mt-1 text-xs font-black text-yellow-400 uppercase tracking-widest">
+                                <span>{{ t('results.totalBalance', 'Saldo Total') }}</span>
+                                <span class="flex items-center gap-1">🪙 {{ matchRewards.breakdown[myUserId].totalCoins || '???' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Premios de la Partida -->
                     <MatchHighlightsPanel :titles="titles" :player-map="playerMap" />
                     <!-- Acciones (Desktop) -->

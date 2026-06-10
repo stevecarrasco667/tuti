@@ -8,11 +8,13 @@ import { useSound } from '../../composables/useSound';
 import { useAppSettings } from '../../composables/useAppSettings';
 import { usePlayerHistory } from '../../composables/usePlayerHistory';
 import { setLanguage } from '../../i18n';
+import { useProfile, STORE_ITEMS } from '../../composables/useProfile';
+import AvatarWrapper from '../ui/AvatarWrapper.vue';
 
 const { currentTab, isMenuVisible, setTab } = useNavigation();
 const { user, isAuthenticated, signInWithGoogle } = useAuth();
 const { addToast } = useToast();
-const { t, locale } = useI18n();
+const { locale } = useI18n();
 const { isMuted, toggleMute } = useSound();
 const {
     sfxEnabled,
@@ -25,19 +27,63 @@ const {
     largeTextEnabled
 } = useAppSettings();
 
-const { getHistory } = usePlayerHistory();
+const { getHistory, getStats } = usePlayerHistory();
+const {
+    coins,
+    unlockedFrames,
+    equippedFrame,
+    fetchProfile,
+    purchaseFrame,
+    equipFrame,
+    addTestCoins
+} = useProfile();
 
 const historyList = ref<any[]>([]);
+const statsList = ref<any>(null);
 
-const loadHistory = () => {
-    historyList.value = getHistory();
+const loadHistory = async () => {
+    historyList.value = await getHistory();
+};
+
+const loadStats = async () => {
+    statsList.value = await getStats();
 };
 
 watch(currentTab, (newTab) => {
     if (newTab === 'profile') {
         loadHistory();
+        loadStats();
+        fetchProfile();
+    } else if (newTab === 'store') {
+        fetchProfile();
     }
 }, { immediate: true });
+
+const handleBuyFrame = async (itemId: string, price: number) => {
+    const res = await purchaseFrame(itemId, price);
+    if (res.success) {
+        addToast('Cosmético adquirido con éxito.', 'success');
+    } else {
+        if (res.error === 'insufficient_funds') {
+            addToast('No tienes suficientes monedas.', 'error');
+        } else if (res.error === 'item_already_owned') {
+            addToast('Ya tienes este artículo.', 'info');
+        } else {
+            addToast('Error al realizar la compra.', 'error');
+        }
+    }
+};
+
+const handleMockAction = (actionName: string) => {
+    if (actionName.includes('+100 Monedas') || actionName.includes('Monedas')) {
+        addTestCoins(100);
+        addToast('🪙 +100 monedas de prueba añadidas.', 'success');
+    } else if (actionName.includes('Compra VIP')) {
+        addToast('👑 ¡Pase VIP Premium activado con éxito! (Simulado)', 'success');
+    } else {
+        addToast(`Acción: ${actionName} (Simulado)`, 'info');
+    }
+};
 
 const formatDate = (dateStr: string) => {
     try {
@@ -76,9 +122,6 @@ const triggerClearCache = () => {
     }
 };
 
-const handleMockAction = (actionName: string) => {
-    addToast(`${t('common.success') || 'Éxito'}: ${actionName}`, 'success');
-};
 </script>
 
 <template>
@@ -179,11 +222,14 @@ const handleMockAction = (actionName: string) => {
 
             <!-- PLACEHOLDER: TIENDA CÓSMICA -->
             <div v-else-if="currentTab === 'store'" class="w-full max-w-[960px] mx-auto p-6 flex flex-col gap-6 animate-fade-in pb-12">
-                <div class="text-center py-6">
+                <div class="text-center py-6 flex flex-col items-center gap-2">
                     <h2 class="text-5xl font-display text-transparent bg-clip-text bg-gradient-to-r from-game-yellow via-amber-400 to-amber-500 uppercase tracking-widest font-black filter drop-shadow-[0_0_15px_rgba(251,191,36,0.3)]">
                         🛒 TIENDA CÓSMICA
                     </h2>
-                    <p class="text-ink-muted text-xs font-bold uppercase tracking-widest mt-2">Personaliza tu aspecto y apoya el juego</p>
+                    <p class="text-ink-muted text-xs font-bold uppercase tracking-widest mt-1">Personaliza tu aspecto y apoya el juego</p>
+                    <div class="mt-2 inline-flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/30 px-4 py-1.5 rounded-full text-yellow-400 font-black text-xs uppercase tracking-wider shadow-[0_0_12px_rgba(234,179,8,0.15)] shadow-inner">
+                        🪙 Tus monedas: {{ coins }}
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -225,22 +271,42 @@ const handleMockAction = (actionName: string) => {
                         🌌 Marcos de Avatar Disponibles
                     </h3>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <div v-for="item in [
-                            { id: 'neon', name: 'Neón Cyber', price: 150, emoji: '⚡' },
-                            { id: 'gold', name: 'Aura Dorada', price: 250, emoji: '✨' },
-                            { id: 'fire', name: 'Fuego Cósmico', price: 350, emoji: '🔥' },
-                            { id: 'rainbow', name: 'Arcoíris Flujo', price: 500, emoji: '🌈' }
-                        ]" :key="item.id" 
-                             class="bg-white/5 border border-white/5 hover:border-white/10 rounded-2xl p-4 flex flex-col items-center gap-3 text-center transition-all group">
-                            <div class="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-inner">
-                                {{ item.emoji }}
+                        <div v-for="item in STORE_ITEMS" :key="item.id" 
+                             class="bg-white/5 border border-white/5 hover:border-white/10 rounded-2xl p-4 flex flex-col items-center gap-3 text-center transition-all group relative">
+                            <!-- Show equipped frame indicator -->
+                            <div class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-inner relative">
+                                <AvatarWrapper :frameId="item.id">
+                                    <div class="w-14 h-14 bg-panel-base rounded-full flex items-center justify-center text-2xl">😎</div>
+                                </AvatarWrapper>
                             </div>
                             <div>
                                 <h4 class="text-white font-black text-xs uppercase tracking-wide truncate">{{ item.name }}</h4>
+                                <p class="text-ink-soft text-[9px] font-medium leading-tight my-1 truncate w-full px-1">{{ item.description }}</p>
                                 <span class="text-[10px] font-bold text-game-yellow">🪙 {{ item.price }}</span>
                             </div>
-                            <button @click="handleMockAction(`Comprar marco ${item.name}`)" class="w-full bg-white/5 hover:bg-white/10 text-white/80 hover:text-white py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-colors border border-white/5">
+                            
+                            <!-- Action button: Buy, Equip, or Equipped -->
+                            <button 
+                                v-if="!unlockedFrames.includes(item.id)"
+                                @click="handleBuyFrame(item.id, item.price)"
+                                :disabled="coins < item.price"
+                                class="w-full bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5 text-white/80 hover:text-white py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-colors border border-white/5 cursor-pointer disabled:cursor-not-allowed"
+                            >
                                 Adquirir
+                            </button>
+                            <button 
+                                v-else-if="equippedFrame !== item.id"
+                                @click="equipFrame(item.id)"
+                                class="w-full bg-action-primary/20 hover:bg-action-primary/30 text-action-primary py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-colors border border-action-primary/30 cursor-pointer"
+                            >
+                                Equipar
+                            </button>
+                            <button 
+                                v-else
+                                @click="equipFrame(null)"
+                                class="w-full bg-action-success/20 hover:bg-action-success/30 text-action-success py-2 rounded-xl text-[9px] font-black uppercase tracking-wider transition-colors border border-action-success/30 cursor-pointer"
+                            >
+                                Equipado ✓
                             </button>
                         </div>
                     </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useGame } from '../../composables/useGame';
+import AvatarWrapper from '../ui/AvatarWrapper.vue';
 
 // [Sprint 2 - P2] Reveal del Gran Reveal del Impostor al final de la partida.
 // Modo CREW: muestra los héroes + impostores descubiertos.
@@ -33,7 +34,9 @@ const { t } = useI18n();
                     <div class="flex flex-wrap items-center justify-center gap-3">
                         <div v-for="crew in crewWinners" :key="crew.id"
                              class="flex items-center gap-2.5 bg-panel-base border border-white/20 px-3.5 py-2.5 rounded-xl shadow-lg hover:scale-105 transition-transform">
-                            <span class="text-2xl md:text-3xl">{{ crew.avatar || '👤' }}</span>
+                            <AvatarWrapper :frameId="crew.frameId">
+                                <span class="text-2xl md:text-3xl flex items-center justify-center w-10 h-10 bg-panel-input rounded-full border border-white/10">{{ crew.avatar || '👤' }}</span>
+                            </AvatarWrapper>
                             <span class="text-ink-main font-black text-xs md:text-sm uppercase tracking-wider">{{ crew.name }}</span>
                         </div>
                     </div>
@@ -44,7 +47,9 @@ const { t } = useI18n();
                     <div class="flex flex-wrap items-center justify-center gap-2.5">
                         <div v-for="impId in gameState.impostorData?.cycleResult?.revealedImpostorIds || []" :key="impId"
                              class="flex items-center gap-2 bg-panel-base/50 border border-action-error/20 px-3 py-1.5 rounded-xl">
-                            <span class="text-lg opacity-80">{{ gameState.players.find(p => p.id === impId)?.avatar || '👤' }}</span>
+                            <AvatarWrapper :frameId="gameState.players.find(p => p.id === impId)?.frameId">
+                                <span class="text-lg opacity-80 flex items-center justify-center w-8 h-8 bg-panel-input rounded-full border border-white/10">{{ gameState.players.find(p => p.id === impId)?.avatar || '👤' }}</span>
+                            </AvatarWrapper>
                             <span class="text-ink-muted font-bold text-[10px] uppercase tracking-wider">{{ gameState.players.find(p => p.id === impId)?.name }}</span>
                             <span class="text-xs ml-1">☠️</span>
                         </div>
@@ -59,7 +64,9 @@ const { t } = useI18n();
                     <div class="flex flex-wrap items-center justify-center gap-4">
                         <div v-for="impId in gameState.impostorData?.cycleResult?.revealedImpostorIds || []" :key="impId"
                              class="flex items-center gap-3 bg-panel-base border-2 border-action-error/40 px-4 py-3 rounded-xl shadow-2xl hover:scale-105 transition-transform">
-                            <span class="text-3xl md:text-4xl">{{ gameState.players.find(p => p.id === impId)?.avatar || '👤' }}</span>
+                            <AvatarWrapper :frameId="gameState.players.find(p => p.id === impId)?.frameId">
+                                <span class="text-3xl md:text-4xl flex items-center justify-center w-12 h-12 bg-panel-input rounded-full border border-white/10">{{ gameState.players.find(p => p.id === impId)?.avatar || '👤' }}</span>
+                            </AvatarWrapper>
                             <span class="text-white font-black text-sm md:text-base uppercase tracking-wider">{{ gameState.players.find(p => p.id === impId)?.name }}</span>
                             <span class="text-xl ml-1 drop-shadow-sm">☠️</span>
                         </div>

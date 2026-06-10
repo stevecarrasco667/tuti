@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Player } from '../../../shared/types';
 import { useI18n } from 'vue-i18n';
+import AvatarWrapper from '../ui/AvatarWrapper.vue';
 
 // [Sprint 2 - P2] Podio Classic Mode + Tabla General (Rediseño Premium)
 defineProps<{
@@ -30,9 +31,11 @@ const getMedalColor = (index: number) => {
             <div v-if="top3[1]" class="relative w-[30%] max-w-[150px] flex flex-col items-center">
                 <!-- Avatar & Medal -->
                 <div class="relative mb-2">
-                    <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-22 lg:h-22 rounded-full border-[3px] border-slate-300/80 bg-panel-input flex items-center justify-center shadow-lg relative z-10 transition-transform duration-500 hover:scale-105">
-                        <span class="text-4xl sm:text-5xl lg:text-6xl drop-shadow-md">{{ top3[1].avatar || '👤' }}</span>
-                    </div>
+                    <AvatarWrapper :frameId="top3[1].frameId">
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-22 lg:h-22 rounded-full border-[3px] border-slate-300/80 bg-panel-input flex items-center justify-center shadow-lg relative z-10 transition-transform duration-500 hover:scale-105">
+                            <span class="text-4xl sm:text-5xl lg:text-6xl drop-shadow-md">{{ top3[1].avatar || '👤' }}</span>
+                        </div>
+                    </AvatarWrapper>
                     <div class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-b border-2 font-black rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center z-20 text-xs sm:text-sm" :class="getMedalColor(1)">
                         2
                     </div>
@@ -54,9 +57,11 @@ const getMedalColor = (index: number) => {
                 </div>
                 <!-- Avatar & Medal -->
                 <div class="relative mb-3">
-                    <div class="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-full border-[4px] border-yellow-400 bg-panel-input flex items-center justify-center shadow-[0_0_30px_rgba(250,204,21,0.3)] relative z-10 transition-transform duration-500 hover:scale-105">
-                        <span class="text-5xl sm:text-6xl lg:text-7xl drop-shadow-md">{{ top3[0].avatar || '👤' }}</span>
-                    </div>
+                    <AvatarWrapper :frameId="top3[0].frameId">
+                        <div class="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-full border-[4px] border-yellow-400 bg-panel-input flex items-center justify-center shadow-[0_0_30px_rgba(250,204,21,0.3)] relative z-10 transition-transform duration-500 hover:scale-105">
+                            <span class="text-5xl sm:text-6xl lg:text-7xl drop-shadow-md">{{ top3[0].avatar || '👤' }}</span>
+                        </div>
+                    </AvatarWrapper>
                     <div class="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-gradient-to-b border-2 font-black rounded-full w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center z-20 text-sm sm:text-base" :class="getMedalColor(0)">
                         1
                     </div>
@@ -72,9 +77,11 @@ const getMedalColor = (index: number) => {
             <div v-if="top3[2]" class="relative w-[30%] max-w-[150px] flex flex-col items-center">
                 <!-- Avatar & Medal -->
                 <div class="relative mb-2">
-                    <div class="w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-full border-[3px] border-amber-600/80 bg-panel-input flex items-center justify-center shadow-lg relative z-10 transition-transform duration-500 hover:scale-105">
-                        <span class="text-3xl sm:text-4xl lg:text-5xl drop-shadow-md">{{ top3[2].avatar || '👤' }}</span>
-                    </div>
+                    <AvatarWrapper :frameId="top3[2].frameId">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-full border-[3px] border-amber-600/80 bg-panel-input flex items-center justify-center shadow-lg relative z-10 transition-transform duration-500 hover:scale-105">
+                            <span class="text-3xl sm:text-4xl lg:text-5xl drop-shadow-md">{{ top3[2].avatar || '👤' }}</span>
+                        </div>
+                    </AvatarWrapper>
                     <div class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-b border-2 font-black rounded-full w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center z-20 text-[10px] sm:text-xs" :class="getMedalColor(2)">
                         3
                     </div>
@@ -99,7 +106,9 @@ const getMedalColor = (index: number) => {
                     <div v-for="(player, idx) in rest" :key="player.id" class="flex items-center justify-between py-2 px-3 bg-white/[0.03] rounded-xl border border-white/[0.05] hover:bg-white/[0.06] transition-colors">
                         <div class="flex items-center gap-3">
                             <span class="text-white/30 font-black text-[9px] sm:text-xs uppercase w-5 text-center">#{{ idx + 4 }}</span>
-                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-panel-base border border-white/10 shadow-sm text-sm sm:text-base flex items-center justify-center">{{ player.avatar || '👤' }}</div>
+                            <AvatarWrapper :frameId="player.frameId">
+                                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-panel-base border border-white/10 shadow-sm text-sm sm:text-base flex items-center justify-center">{{ player.avatar || '👤' }}</div>
+                            </AvatarWrapper>
                             <span class="text-white/80 font-bold uppercase tracking-wider text-[11px] sm:text-xs">{{ player.name }}</span>
                         </div>
                         <span class="text-white/60 font-black bg-panel-base/50 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs">{{ player.score }} pts</span>

@@ -31,6 +31,7 @@ export const EVENTS = {
     PRIVATE_ROLE_ASSIGNMENT: 'PRIVATE_ROLE_ASSIGNMENT', // [Sprint 3.4] Whisper: private role per-connection
     SYSTEM_MESSAGE: 'SYSTEM',
     SYSTEM_VERSION: 'SYSTEM_VERSION',
+    MATCH_REWARDS: 'MATCH_REWARDS',
 
     // Chat Events (Server -> Client)
     CHAT_NEW: 'CHAT_NEW',

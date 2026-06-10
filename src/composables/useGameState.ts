@@ -13,6 +13,7 @@ export const STORAGE_KEY_TOKEN_EXPIRY = 'tuti-session-token-expiry';
 // Global state to persist across component mounts if needed
 const localImpostorRole = ref<PrivateRolePayload | null>(null);
 const gameState = ref<RoomState>(createDefaultRoomState(null));
+const matchRewards = ref<any | null>(null);
 
 // UI states
 const isStopping = ref(false);
@@ -96,6 +97,7 @@ export function useGameState() {
         myUserId,
         myUserName,
         myUserAvatar,
+        matchRewards,
 
         // Computed Helpers
         amIHost,

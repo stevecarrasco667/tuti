@@ -2,6 +2,7 @@
 import type { Player } from '../../../shared/types';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import AvatarWrapper from '../ui/AvatarWrapper.vue';
 
 const { t } = useI18n();
 const props = defineProps<{
@@ -78,7 +79,9 @@ const emptySlots = computed(() => Math.max(0, props.maxPlayers - props.players.l
             <div v-for="player in props.players" :key="player.id"
                  class="flex items-center gap-2.5 p-2.5 bg-panel-card rounded-xl border border-white/10 hover:border-action-primary transition-colors group shadow-sm animate-in fade-in duration-200"
             >
-                <div class="w-10 h-10 bg-panel-input border border-white/10 rounded-lg flex items-center justify-center text-xl flex-none shadow-inner">{{ player.avatar || '👤' }}</div>
+                <AvatarWrapper :frameId="player.frameId">
+                    <div class="w-10 h-10 bg-panel-input border border-white/10 rounded-full flex items-center justify-center text-xl flex-none shadow-inner">{{ player.avatar || '👤' }}</div>
+                </AvatarWrapper>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-1 truncate">
                         <span class="text-ink-main font-black text-xs md:text-sm truncate">{{ player.name }}</span>

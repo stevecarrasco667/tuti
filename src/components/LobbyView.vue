@@ -12,6 +12,7 @@ import PlayerList from './lobby/PlayerList.vue';
 import LobbySettingsPanel from './lobby/LobbySettingsPanel.vue';
 import GameTutorialModal from './tutorials/GameTutorialModal.vue';
 import AdBanner from './ui/AdBanner.vue';
+import AvatarWrapper from './ui/AvatarWrapper.vue';
 
 const { gameState, startGame, updateConfig, myUserId, amIHost, kickPlayer, leaveGame, addBot } = useGame();
 const { playJoin, playAlarm, playSuccess } = useSound();
@@ -205,15 +206,17 @@ const handleLeave = () => {
         <div class="lg:hidden flex-none w-full px-4 py-3 bg-panel-card/30 border-b border-white/5 backdrop-blur-md relative z-10 overflow-hidden select-none">
             <div class="flex items-center gap-4 overflow-x-auto pb-1 scrollbar-none justify-start select-none">
                 <div v-for="player in players" :key="player.id" class="flex flex-col items-center flex-none relative animate-in fade-in duration-200">
-                    <div class="w-12 h-12 bg-panel-input border-2 border-white/10 rounded-full flex items-center justify-center text-2xl shadow-sm relative" :class="{ 'opacity-60 grayscale border-red-500/30': !player.isConnected }">
-                        {{ player.avatar || '👤' }}
-                        <span v-if="player.isHost" class="absolute -top-1.5 -right-1.5 text-xs bg-panel-card/90 rounded-full p-0.5 shadow-sm">👑</span>
-                        <!-- Botón de kickear en la fila horizontal móvil si somos Host y el jugador no es Host -->
-                        <button v-if="amIHost && !player.isHost" @click="handleKick(player.id, player.name)" 
-                                class="absolute -top-1.5 -left-1.5 w-5 h-5 flex items-center justify-center rounded-full bg-action-error text-white border border-white/20 font-bold text-[9px] cursor-pointer shadow-md active:scale-90 transition-transform">
-                            ✕
-                        </button>
-                    </div>
+                    <AvatarWrapper :frameId="player.frameId">
+                        <div class="w-12 h-12 bg-panel-input border-2 border-white/10 rounded-full flex items-center justify-center text-2xl shadow-sm relative" :class="{ 'opacity-60 grayscale border-red-500/30': !player.isConnected }">
+                            {{ player.avatar || '👤' }}
+                            <span v-if="player.isHost" class="absolute -top-1.5 -right-1.5 text-xs bg-panel-card/90 rounded-full p-0.5 shadow-sm">👑</span>
+                            <!-- Botón de kickear en la fila horizontal móvil si somos Host y el jugador no es Host -->
+                            <button v-if="amIHost && !player.isHost" @click="handleKick(player.id, player.name)" 
+                                    class="absolute -top-1.5 -left-1.5 w-5 h-5 flex items-center justify-center rounded-full bg-action-error text-white border border-white/20 font-bold text-[9px] cursor-pointer shadow-md active:scale-90 transition-transform">
+                                ✕
+                            </button>
+                        </div>
+                    </AvatarWrapper>
                     <span class="text-[9px] text-ink-soft font-black uppercase tracking-wider max-w-[68px] truncate mt-1 bg-panel-input/50 px-1.5 py-0.5 rounded-full border border-white/5 flex items-center gap-0.5">
                         <span v-if="player.id === myUserId" class="text-action-blue font-extrabold text-[8px] bg-action-blue/10 px-1 rounded">{{ t('lobby.players.you', 'Tú') }}</span>
                         <span v-else>{{ player.name }}</span>

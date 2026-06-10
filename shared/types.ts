@@ -158,6 +158,7 @@ export type ServerMessage =
     | { type: typeof EVENTS.PRIVATE_ROLE_ASSIGNMENT; payload: PrivateRolePayload } // [Sprint 3.4] Whisper
     | { type: typeof EVENTS.SYSTEM_MESSAGE; payload: string }
     | { type: typeof EVENTS.SYSTEM_VERSION; payload: { version: string } }
+    | { type: typeof EVENTS.MATCH_REWARDS; payload: any }
     | { type: typeof EVENTS.CHAT_NEW; payload: ChatMessage }
     | { type: typeof EVENTS.CHAT_HISTORY; payload: ChatMessage[] }
     | { type: typeof EVENTS.SERVER_ERROR; payload: { message: string } } // [Phoenix P0] Error Telemetry
