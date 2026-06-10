@@ -8,8 +8,12 @@ import TButton from '../ui/TButton.vue';
 import ModeSelector from './ModeSelector.vue';
 import ClassicConfig from './ClassicConfig.vue';
 import ImpostorConfig from './ImpostorConfig.vue';
+import { useProfile } from '../../composables/useProfile';
+import { useNavigation } from '../../composables/useNavigation';
+import { useSocket } from '../../composables/useSocket';
 
 const { t, locale } = useI18n();
+const { unlockedFrames } = useProfile();
 
 const props = defineProps<{
     config: GameConfig;
@@ -82,8 +86,32 @@ function applyPreset(presetKey: 'fast' | 'party' | 'pro') {
 // ── Categories Modal State (local confirmation) ──────────────────────────────
 const showModal = ref(false);
 const searchQuery = ref('');
-const activeFilterTag = ref<string | null>(null);
+const activeModalTab = ref<'base' | 'pack_futbol' | 'pack_gamer' | 'pack_cine' | 'selected'>('base');
 const tempSelectedCategories = ref<CategoryRef[]>([]);
+
+// Mapeo estático de categorías clásicas a sus paquetes correspondientes
+const getPackForCategory = (catId: string): string | null => {
+    const idNum = catId.replace('cls-', '');
+    if (['50', '51', '52'].includes(idNum)) return 'pack_futbol';
+    if (['16', '17', '33'].includes(idNum)) return 'pack_gamer';
+    if (['10', '11', '12', '13', '14', '15'].includes(idNum)) return 'pack_cine';
+    return null; // Tuti Clásico (Base/Gratis)
+};
+
+// Función para redirigir a la Tienda y desconectarse del WS actual
+const handleRedirectToStore = () => {
+    const { disconnectIntentionally } = useSocket();
+    const { setTab } = useNavigation();
+    
+    // 1. Desconexión intencional limpia del socket del lobby actual
+    disconnectIntentionally();
+    
+    // 2. Cerrar el modal actual
+    showModal.value = false;
+    
+    // 3. Cambiar pestaña global a 'store' (redirige automáticamente a '/')
+    setTab('store');
+};
 
 // Remote Categories State (Impostor Mode)
 const dbCategories = ref<{ id: string; name: string; normalizedName: string }[]>([]);
@@ -140,14 +168,6 @@ watch(() => props.config.mode, () => {
     fetchImpostorCategories();
 });
 
-// Computed filtering for modal
-const availableTags = computed(() => {
-    if (props.config.mode === 'IMPOSTOR') return ['BASE DE DATOS', 'POPULAR'];
-    const tags = new Set<string>();
-    MASTER_CATEGORIES.forEach(c => c.tags.forEach(t => tags.add(t)));
-    return Array.from(tags).sort();
-});
-
 const filteredCategories = computed(() => {
     const query = searchQuery.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     
@@ -155,16 +175,38 @@ const filteredCategories = computed(() => {
         return dbCategories.value.filter(cat => cat.normalizedName.includes(query));
     }
 
+    // Si hay una consulta de búsqueda activa, ignoramos el tab del modal y filtramos globalmente
+    // de entre todos los paquetes que el anfitrión posee desbloqueados (o básico/gratis)
+    if (query) {
+        return NORMALIZED_MASTER_CATEGORIES.filter(cat => {
+            const packId = getPackForCategory(cat.id);
+            if (packId && !unlockedFrames.value.includes(packId)) return false;
+            return cat.normalizedName.includes(query);
+        });
+    }
+
+    // Si está en el tab de categorías seleccionadas
+    if (activeModalTab.value === 'selected') {
+        return NORMALIZED_MASTER_CATEGORIES.filter(cat => 
+            tempSelectedCategories.value.some(s => s.name === cat.name)
+        );
+    }
+
+    // Filtrar por el paquete/tab activo en el modal
     return NORMALIZED_MASTER_CATEGORIES.filter(cat => {
-        if (activeFilterTag.value && !cat.tags.includes(activeFilterTag.value)) return false;
-        return cat.normalizedName.includes(query);
+        const packId = getPackForCategory(cat.id);
+        if (activeModalTab.value === 'base') {
+            return packId === null;
+        } else {
+            return packId === activeModalTab.value;
+        }
     });
 });
 
 function openModal() {
     tempSelectedCategories.value = [...props.categories];
     searchQuery.value = '';
-    activeFilterTag.value = null;
+    activeModalTab.value = 'base';
     showModal.value = true;
     if (props.config.mode === 'IMPOSTOR' && dbCategories.value.length === 0) {
         fetchImpostorCategories();
@@ -335,39 +377,113 @@ const tSpec = computed(() => {
                     </div>
                 </div>
 
-                <!-- Search + Tag Filters -->
+                <!-- Search + Package Tabs (Classic Mode only) -->
                 <div class="p-4 bg-panel-card/30 space-y-3 flex-none border-b-2 border-white/30">
                     <div class="relative">
                         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xl">🔍</span>
                         <input v-model="searchQuery" type="text" placeholder="Buscar categoría..."
                                class="w-full bg-panel-input border-2 border-white/10 pl-[3.25rem] pr-4 py-3 text-ink-main placeholder-ink-muted focus:border-action-primary outline-none transition-colors font-bold text-sm rounded-xl shadow-inner">
                     </div>
-                    <!-- Tag filters scrollbar -->
-                    <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-none pt-1">
-                        <button @click="activeFilterTag = null"
-                            :class="['px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide transition-all border-2 whitespace-nowrap',
-                                !activeFilterTag ? 'bg-action-blue border-action-blue text-white shadow-sm' : 'border-white/10 bg-panel-input text-ink-soft hover:text-ink-main hover:bg-panel-card']">
-                            Todo
+                    
+                    <!-- Pestañas de Paquetes en modo clásico -->
+                    <div v-if="props.config.mode === 'CLASSIC'" class="flex gap-2 overflow-x-auto pb-1 scrollbar-none pt-1">
+                        <button @click="activeModalTab = 'base'; searchQuery = ''"
+                            :class="['px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all border-2 whitespace-nowrap cursor-pointer',
+                                activeModalTab === 'base' && !searchQuery ? 'bg-purple-500/20 border-purple-500 text-purple-300 shadow-sm' : 'border-white/10 bg-panel-input text-ink-soft hover:text-ink-main hover:bg-panel-card']">
+                            📦 Base (Gratis)
                         </button>
-                        <button v-for="tag in availableTags" :key="tag"
-                            @click="activeFilterTag = activeFilterTag === tag ? null : tag"
-                            :class="['px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide transition-all border-2 whitespace-nowrap',
-                                activeFilterTag === tag ? 'bg-action-primary border-action-primary text-panel-base shadow-sm' : 'border-white/10 bg-panel-input text-ink-soft hover:text-ink-main hover:bg-panel-card']">
-                            {{ tag }}
+                        
+                        <button @click="activeModalTab = 'pack_futbol'; searchQuery = ''"
+                            :class="['px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all border-2 whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
+                                activeModalTab === 'pack_futbol' && !searchQuery ? 'bg-blue-500/20 border-blue-500 text-blue-300 shadow-sm' : 'border-white/10 bg-panel-input text-ink-soft hover:text-ink-main hover:bg-panel-card']">
+                            ⚽ Fútbol
+                            <span v-if="!unlockedFrames.includes('pack_futbol')" class="text-[8px] opacity-75">🔒</span>
+                        </button>
+                        
+                        <button @click="activeModalTab = 'pack_gamer'; searchQuery = ''"
+                            :class="['px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all border-2 whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
+                                activeModalTab === 'pack_gamer' && !searchQuery ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-sm' : 'border-white/10 bg-panel-input text-ink-soft hover:text-ink-main hover:bg-panel-card']">
+                            🎮 Gamer
+                            <span v-if="!unlockedFrames.includes('pack_gamer')" class="text-[8px] opacity-75">🔒</span>
+                        </button>
+
+                        <button @click="activeModalTab = 'pack_cine'; searchQuery = ''"
+                            :class="['px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all border-2 whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
+                                activeModalTab === 'pack_cine' && !searchQuery ? 'bg-pink-500/20 border-pink-500 text-pink-300 shadow-sm' : 'border-white/10 bg-panel-input text-ink-soft hover:text-ink-main hover:bg-panel-card']">
+                            🍿 Cine/TV
+                            <span v-if="!unlockedFrames.includes('pack_cine')" class="text-[8px] opacity-75">🔒</span>
+                        </button>
+
+                        <button @click="activeModalTab = 'selected'; searchQuery = ''"
+                            :class="['px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all border-2 whitespace-nowrap flex items-center gap-1.5 cursor-pointer ml-auto',
+                                activeModalTab === 'selected' && !searchQuery ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-sm' : 'border-white/10 bg-panel-input text-ink-soft hover:text-ink-main hover:bg-panel-card']">
+                            ⭐ Seleccionadas ({{ tempSelectedCategories.length }})
                         </button>
                     </div>
                 </div>
 
-                <!-- Category Grid -->
+                <!-- Category Grid / Locked Preview -->
                 <div class="flex-1 overflow-y-auto p-4 content-start bg-panel-input min-h-0 shadow-inner">
                     <div v-if="isLoadingDb" class="flex flex-col items-center justify-center py-20 gap-3 text-ink-muted font-bold">
                         <div class="w-10 h-10 rounded-full border-4 border-white/10 border-t-action-primary animate-spin"></div>
                         <span>Cargando catálogo...</span>
                     </div>
+
+                    <!-- CASO: PAQUETE BLOQUEADO (SOLO EN MODO CLÁSICO) -->
+                    <div v-else-if="props.config.mode === 'CLASSIC' && activeModalTab !== 'base' && activeModalTab !== 'selected' && !unlockedFrames.includes(activeModalTab) && !searchQuery" 
+                         class="flex flex-col items-center justify-center py-8 px-6 text-center max-w-md mx-auto gap-4 animate-in">
+                        <div class="text-6xl filter drop-shadow-md">
+                            {{ activeModalTab === 'pack_futbol' ? '⚽' : activeModalTab === 'pack_cine' ? '🍿' : '🎮' }}
+                        </div>
+                        <div class="space-y-1.5">
+                            <h4 class="text-base font-black text-white uppercase tracking-wider">
+                                {{ activeModalTab === 'pack_futbol' ? 'Expansión de Fútbol' : activeModalTab === 'pack_cine' ? 'Expansión de Cine y TV' : 'Expansión Gamer' }}
+                            </h4>
+                            <p class="text-ink-soft text-xs font-bold leading-normal">
+                                {{ activeModalTab === 'pack_futbol' ? 'Juega con temas de estadios, jugadores y equipos históricos.' : activeModalTab === 'pack_cine' ? 'Añade temas de directores de cine, películas de culto, villanos y héroes.' : 'Desbloquea temas de consolas, videojuegos retro y hardware.' }}
+                            </p>
+                        </div>
+
+                        <!-- Preview de categorías incluidas -->
+                        <div class="w-full bg-panel-card/45 border border-white/5 p-4 rounded-2xl text-left space-y-2.5">
+                            <h5 class="text-[10px] font-black text-ink-muted uppercase tracking-widest">Temas que incluye:</h5>
+                            <div class="grid grid-cols-2 gap-2 text-[10px] text-white/80 font-bold">
+                                <template v-if="activeModalTab === 'pack_futbol'">
+                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Deporte</div>
+                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Atleta/Deportista</div>
+                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Equipo Deportivo</div>
+                                </template>
+                                <template v-else-if="activeModalTab === 'pack_gamer'">
+                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Videojuego</div>
+                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Youtuber/Streamer</div>
+                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Marca de Tecnología</div>
+                                </template>
+                                <template v-else-if="activeModalTab === 'pack_cine'">
+                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Película</div>
+                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Serie de TV</div>
+                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Actor/Actriz</div>
+                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Villano</div>
+                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Superhéroe</div>
+                                    <div class="bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 flex items-center gap-1.5">📌 Personaje Ficticio</div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Llamado a la tienda -->
+                        <div class="w-full space-y-2.5 pt-2">
+                            <span class="text-[9px] font-black text-amber-400 uppercase tracking-widest block">Disponible por 🪙 {{ activeModalTab === 'pack_gamer' ? 300 : 250 }} monedas</span>
+                            <button @click="handleRedirectToStore" 
+                                    class="w-full py-3.5 bg-gradient-to-r from-game-yellow via-amber-500 to-amber-600 text-zinc-950 rounded-2xl font-black uppercase text-xs tracking-wider transition-all shadow-md hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
+                                Ir a la Tienda 🛒
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CASO NORMAL: LISTA DE CATEGORÍAS DISPONIBLES -->
                     <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-3">
                         <button v-for="cat in filteredCategories" :key="cat.name"
                             @click="toggleCategory({ id: cat.id || cat.name.toLowerCase(), name: cat.name })"
-                            class="text-left px-4 py-4 rounded-2xl text-xs font-bold border-[3px] transition-all duration-200 flex items-center justify-between active:scale-95 shadow-sm min-h-[44px]"
+                            class="text-left px-4 py-4 rounded-2xl text-xs font-bold border-[3px] transition-all duration-200 flex items-center justify-between active:scale-95 shadow-sm min-h-[44px] cursor-pointer"
                             :class="tempSelectedCategories.some(s => s.name === cat.name)
                                 ? 'bg-action-blue border-blue-400 text-white'
                                 : 'bg-panel-card border-white/10 text-ink-main hover:bg-panel-input hover:border-action-primary'"
@@ -376,7 +492,9 @@ const tSpec = computed(() => {
                             <span v-if="tempSelectedCategories.some(s => s.name === cat.name)" class="text-lg font-black leading-none">✓</span>
                         </button>
                     </div>
-                    <div v-if="!isLoadingDb && filteredCategories.length === 0" class="text-center py-16 text-ink-muted font-black uppercase tracking-widest text-sm flex flex-col items-center gap-3">
+
+                    <div v-if="!isLoadingDb && filteredCategories.length === 0 && (activeModalTab === 'base' || activeModalTab === 'selected' || unlockedFrames.includes(activeModalTab) || searchQuery)" 
+                         class="text-center py-16 text-ink-muted font-black uppercase tracking-widest text-sm flex flex-col items-center gap-3">
                         <span class="text-5xl">👻</span>
                         Sin resultados
                     </div>
