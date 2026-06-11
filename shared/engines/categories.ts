@@ -31,8 +31,6 @@ export const MASTER_CATEGORIES: CategoryItem[] = [
     { id: '7',  name: 'Fruta/Verdura',  tags: ['CLASICO', 'NATURALEZA'] },
     { id: '8',  name: 'Cosa',           tags: ['CLASICO', 'FACIL'] },
     { id: '9',  name: 'Profesión',      tags: ['CLASICO', 'SOCIEDAD'] },
-    { id: '20', name: 'Canción',        tags: ['MUSICA', 'ARTE'] },
-    { id: '21', name: 'Cantante/Banda', tags: ['MUSICA', 'FAMOSO'] },
     { id: '30', name: 'Marca',          tags: ['MARCAS', 'CONSUMO'] },
     { id: '31', name: 'Marca de Auto',  tags: ['MARCAS', 'VEHICULO'] },
     { id: '32', name: 'Marca de Ropa',  tags: ['MARCAS', 'MODA'] },
@@ -47,6 +45,8 @@ export const MASTER_CATEGORIES: CategoryItem[] = [
     { id: '52', name: 'Equipo Deportivo',   tags: ['DEPORTE', 'GRUPO'],    packId: 'pack_futbol' },
 
     // ── PACK MÚSICA 🎵 (150 🪙) ───────────────────────────────────────────────
+    { id: '20', name: 'Canción',                         tags: ['MUSICA', 'ARTE'],        packId: 'pack_musica' },
+    { id: '21', name: 'Cantante/Banda',                  tags: ['MUSICA', 'FAMOSO'],      packId: 'pack_musica' },
     { id: '22', name: 'Instrumento Musical',             tags: ['MUSICA', 'OBJETO'],      packId: 'pack_musica' },
     { id: '23', name: 'Título de Canción de Reggaeton',  tags: ['MUSICA', 'FUN', 'HARD'], packId: 'pack_musica' },
     { id: '63', name: 'Nombre de banda de rock',         tags: ['FUN', 'MUSICA'],         packId: 'pack_musica' },
