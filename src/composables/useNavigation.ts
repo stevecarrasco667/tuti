@@ -41,8 +41,13 @@ export function useNavigation() {
     const setTab = (tab: 'home' | 'store' | 'profile' | 'settings') => {
         currentTab.value = tab;
         // Si volvemos a 'home', nos aseguramos de redirigir a la vista raíz '/'
+        // a menos que estemos en el contexto de una sala activa (lobby, game, results)
         if (tab === 'home') {
-            router.push('/');
+            const path = router.currentRoute.value?.path || '';
+            const isRoom = path.startsWith('/lobby/') || path.startsWith('/game/') || path.startsWith('/results/');
+            if (!isRoom) {
+                router.push('/');
+            }
         }
     };
 

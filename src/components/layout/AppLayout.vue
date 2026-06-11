@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { useNavigation } from '../../composables/useNavigation';
 import { useAuth } from '../../composables/useAuth';
 import { useToast } from '../../composables/useToast';
@@ -13,6 +14,17 @@ import AvatarWrapper from '../ui/AvatarWrapper.vue';
 import TModal from '../ui/TModal.vue';
 
 const { currentTab, isMenuVisible, setTab } = useNavigation();
+const route = useRoute();
+const isRoomRoute = computed(() => {
+    const path = route.path;
+    return path.startsWith('/lobby/') || path.startsWith('/game/') || path.startsWith('/results/');
+});
+const returnButtonText = computed(() => {
+    if (route.path.startsWith('/lobby/')) {
+        return t('app.backToLobby') || 'Volver al Lobby';
+    }
+    return t('app.backToGame') || 'Volver a la Partida';
+});
 const { user, isAuthenticated, signInWithGoogle } = useAuth();
 const { addToast } = useToast();
 const { t, locale } = useI18n();
@@ -241,6 +253,19 @@ const triggerClearCache = () => {
             <!-- TIENDA CÓSMICA — Layout Premium Rediseñado -->
             <div v-else-if="currentTab === 'store'" class="w-full max-w-[960px] mx-auto p-4 md:p-6 flex flex-col gap-4 animate-fade-in pb-12">
 
+                <!-- Botón de retorno contextual cuando se está dentro del lobby/juego -->
+                <div v-if="isRoomRoute" class="flex items-center justify-start pt-2">
+                    <button
+                        @click="setTab('home')"
+                        class="flex items-center gap-1.5 px-4 py-2 bg-panel-card/70 hover:bg-panel-input border border-white/10 hover:border-white/20 rounded-xl text-ink-soft hover:text-white font-heading font-black text-[10px] md:text-xs uppercase tracking-wider transition-all duration-75 active:scale-95 cursor-pointer shadow-md select-none"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-3.5 h-3.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                        </svg>
+                        <span>{{ returnButtonText }}</span>
+                    </button>
+                </div>
+
                 <!-- ── Header: Título + Monedas ───────────────────────── -->
                 <div class="flex items-center justify-between pt-2">
                     <div>
@@ -453,6 +478,20 @@ const triggerClearCache = () => {
 
             <!-- PLACEHOLDER: PERFIL DEL JUGADOR -->
             <div v-else-if="currentTab === 'profile'" class="w-full max-w-[960px] mx-auto p-6 flex flex-col gap-6 animate-fade-in pb-12">
+
+                <!-- Botón de retorno contextual cuando se está dentro del lobby/juego -->
+                <div v-if="isRoomRoute" class="flex items-center justify-start pt-2">
+                    <button
+                        @click="setTab('home')"
+                        class="flex items-center gap-1.5 px-4 py-2 bg-panel-card/70 hover:bg-panel-input border border-white/10 hover:border-white/20 rounded-xl text-ink-soft hover:text-white font-heading font-black text-[10px] md:text-xs uppercase tracking-wider transition-all duration-75 active:scale-95 cursor-pointer shadow-md select-none"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-3.5 h-3.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                        </svg>
+                        <span>{{ returnButtonText }}</span>
+                    </button>
+                </div>
+
                 <div class="text-center py-6">
                     <h2 class="text-5xl font-display text-transparent bg-clip-text bg-gradient-to-r from-action-success via-emerald-400 to-emerald-500 uppercase tracking-widest font-black filter drop-shadow-[0_0_15px_rgba(16,185,129,0.3)]">
                         👤 MI PERFIL
@@ -552,6 +591,20 @@ const triggerClearCache = () => {
 
             <!-- TAB: AJUSTES / CONFIGURACIÓN -->
             <div v-else-if="currentTab === 'settings'" class="w-full max-w-[960px] mx-auto p-6 flex flex-col gap-6 animate-fade-in pb-12">
+
+                <!-- Botón de retorno contextual cuando se está dentro del lobby/juego -->
+                <div v-if="isRoomRoute" class="flex items-center justify-start pt-2">
+                    <button
+                        @click="setTab('home')"
+                        class="flex items-center gap-1.5 px-4 py-2 bg-panel-card/70 hover:bg-panel-input border border-white/10 hover:border-white/20 rounded-xl text-ink-soft hover:text-white font-heading font-black text-[10px] md:text-xs uppercase tracking-wider transition-all duration-75 active:scale-95 cursor-pointer shadow-md select-none"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-3.5 h-3.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                        </svg>
+                        <span>{{ returnButtonText }}</span>
+                    </button>
+                </div>
+
                 <div class="text-center py-6">
                     <h2 class="text-5xl font-display text-transparent bg-clip-text bg-gradient-to-r from-action-info via-cyan-400 to-sky-500 uppercase tracking-widest font-black filter drop-shadow-[0_0_15px_rgba(14,165,233,0.3)]">
                         ⚙️ CONFIGURACIÓN

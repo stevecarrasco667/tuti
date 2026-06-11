@@ -470,7 +470,9 @@
         "connecting": "Connecting to room",
         "preparingGame": "Preparing match...",
         "muteSound": "Mute Sound",
-        "unmuteSound": "Unmute Sound"
+        "unmuteSound": "Unmute Sound",
+        "backToLobby": "Back to Lobby",
+        "backToGame": "Back to Match"
     },
     "pwa": {
         "title": "Install TutiGame",

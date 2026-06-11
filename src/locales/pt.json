@@ -470,7 +470,9 @@
         "connecting": "Conectando à sala",
         "preparingGame": "Preparando partida...",
         "muteSound": "Silenciar",
-        "unmuteSound": "Ativar Som"
+        "unmuteSound": "Ativar Som",
+        "backToLobby": "Voltar para o Lobby",
+        "backToGame": "Voltar para a Partida"
     },
     "pwa": {
         "title": "Instalar TutiGame",

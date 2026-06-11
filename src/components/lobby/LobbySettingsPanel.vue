@@ -10,7 +10,6 @@ import ClassicConfig from './ClassicConfig.vue';
 import ImpostorConfig from './ImpostorConfig.vue';
 import { useProfile } from '../../composables/useProfile';
 import { useNavigation } from '../../composables/useNavigation';
-import { useSocket } from '../../composables/useSocket';
 
 const { t, locale } = useI18n();
 const { unlockedFrames } = useProfile();
@@ -89,18 +88,14 @@ const searchQuery = ref('');
 const activeModalTab = ref<'base' | 'pack_futbol' | 'pack_musica' | 'pack_fun' | 'pack_gamer' | 'pack_cine' | 'selected'>('base');
 const tempSelectedCategories = ref<CategoryRef[]>([]);
 
-// Función para redirigir a la Tienda y desconectarse del WS actual
+// Función para redirigir a la Tienda (el WS se mantiene activo en background)
 const handleRedirectToStore = () => {
-    const { disconnectIntentionally } = useSocket();
     const { setTab } = useNavigation();
     
-    // 1. Desconexión intencional limpia del socket del lobby actual
-    disconnectIntentionally();
-    
-    // 2. Cerrar el modal actual
+    // 1. Cerrar el modal actual
     showModal.value = false;
     
-    // 3. Cambiar pestaña global a 'store' (redirige automáticamente a '/')
+    // 2. Cambiar pestaña global a 'store'
     setTab('store');
 };
 
