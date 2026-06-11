@@ -374,7 +374,11 @@ const triggerClearCache = () => {
                              class="bg-white/5 border border-white/5 hover:border-blue-500/30 rounded-2xl p-5 flex items-center justify-between gap-4 transition-all group cursor-pointer hover:scale-[1.02]">
                             <div class="flex items-center gap-4 min-w-0">
                                 <span class="text-4xl filter drop-shadow-md flex-none">
-                                    {{ item.id === 'pack_futbol' ? '⚽' : item.id === 'pack_cine' ? '🎬' : '🎮' }}
+                                    <template v-if="item.id === 'pack_futbol'">⚽</template>
+                                    <template v-else-if="item.id === 'pack_musica'">🎵</template>
+                                    <template v-else-if="item.id === 'pack_fun'">🎉</template>
+                                    <template v-else-if="item.id === 'pack_cine'">🍿</template>
+                                    <template v-else>🎮</template>
                                 </span>
                                 <div class="text-left min-w-0">
                                     <h4 class="text-white font-black text-sm uppercase tracking-wide truncate">{{ t(item.name) || item.name }}</h4>
@@ -770,7 +774,11 @@ const triggerClearCache = () => {
 
                         <!-- PREVIEW: EXPANSIONES -->
                         <div v-else-if="selectedItem.type === 'EXPANSION'" class="text-6xl filter drop-shadow-lg">
-                            {{ selectedItem.id === 'pack_futbol' ? '⚽' : selectedItem.id === 'pack_cine' ? '🍿' : '🎮' }}
+                            <template v-if="selectedItem.id === 'pack_futbol'">⚽</template>
+                            <template v-else-if="selectedItem.id === 'pack_musica'">🎵</template>
+                            <template v-else-if="selectedItem.id === 'pack_fun'">🎉</template>
+                            <template v-else-if="selectedItem.id === 'pack_cine'">🍿</template>
+                            <template v-else>🎮</template>
                         </div>
                     </div>
 

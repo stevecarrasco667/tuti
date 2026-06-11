@@ -86,17 +86,8 @@ function applyPreset(presetKey: 'fast' | 'party' | 'pro') {
 // ── Categories Modal State (local confirmation) ──────────────────────────────
 const showModal = ref(false);
 const searchQuery = ref('');
-const activeModalTab = ref<'base' | 'pack_futbol' | 'pack_gamer' | 'pack_cine' | 'selected'>('base');
+const activeModalTab = ref<'base' | 'pack_futbol' | 'pack_musica' | 'pack_fun' | 'pack_gamer' | 'pack_cine' | 'selected'>('base');
 const tempSelectedCategories = ref<CategoryRef[]>([]);
-
-// Mapeo estático de categorías clásicas a sus paquetes correspondientes
-const getPackForCategory = (catId: string): string | null => {
-    const idNum = catId.replace('cls-', '');
-    if (['50', '51', '52'].includes(idNum)) return 'pack_futbol';
-    if (['16', '17', '33'].includes(idNum)) return 'pack_gamer';
-    if (['10', '11', '12', '13', '14', '15'].includes(idNum)) return 'pack_cine';
-    return null; // Tuti Clásico (Base/Gratis)
-};
 
 // Función para redirigir a la Tienda y desconectarse del WS actual
 const handleRedirectToStore = () => {
@@ -179,7 +170,7 @@ const filteredCategories = computed(() => {
     // de entre todos los paquetes que el anfitrión posee desbloqueados (o básico/gratis)
     if (query) {
         return NORMALIZED_MASTER_CATEGORIES.filter(cat => {
-            const packId = getPackForCategory(cat.id);
+            const packId = cat.packId ?? null;
             if (packId && !unlockedFrames.value.includes(packId)) return false;
             return cat.normalizedName.includes(query);
         });
@@ -194,7 +185,7 @@ const filteredCategories = computed(() => {
 
     // Filtrar por el paquete/tab activo en el modal
     return NORMALIZED_MASTER_CATEGORIES.filter(cat => {
-        const packId = getPackForCategory(cat.id);
+        const packId = cat.packId ?? null;
         if (activeModalTab.value === 'base') {
             return packId === null;
         } else {
@@ -392,14 +383,28 @@ const tSpec = computed(() => {
                                 activeModalTab === 'base' && !searchQuery ? 'bg-purple-500/20 border-purple-500 text-purple-300 shadow-sm' : 'border-white/10 bg-panel-input text-ink-soft hover:text-ink-main hover:bg-panel-card']">
                             📦 Base (Gratis)
                         </button>
-                        
+
                         <button @click="activeModalTab = 'pack_futbol'; searchQuery = ''"
                             :class="['px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all border-2 whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
                                 activeModalTab === 'pack_futbol' && !searchQuery ? 'bg-blue-500/20 border-blue-500 text-blue-300 shadow-sm' : 'border-white/10 bg-panel-input text-ink-soft hover:text-ink-main hover:bg-panel-card']">
                             ⚽ Fútbol
                             <span v-if="!unlockedFrames.includes('pack_futbol')" class="text-[8px] opacity-75">🔒</span>
                         </button>
-                        
+
+                        <button @click="activeModalTab = 'pack_musica'; searchQuery = ''"
+                            :class="['px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all border-2 whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
+                                activeModalTab === 'pack_musica' && !searchQuery ? 'bg-violet-500/20 border-violet-500 text-violet-300 shadow-sm' : 'border-white/10 bg-panel-input text-ink-soft hover:text-ink-main hover:bg-panel-card']">
+                            🎵 Música
+                            <span v-if="!unlockedFrames.includes('pack_musica')" class="text-[8px] opacity-75">🔒</span>
+                        </button>
+
+                        <button @click="activeModalTab = 'pack_fun'; searchQuery = ''"
+                            :class="['px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all border-2 whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
+                                activeModalTab === 'pack_fun' && !searchQuery ? 'bg-orange-500/20 border-orange-500 text-orange-300 shadow-sm' : 'border-white/10 bg-panel-input text-ink-soft hover:text-ink-main hover:bg-panel-card']">
+                            🎉 Fun
+                            <span v-if="!unlockedFrames.includes('pack_fun')" class="text-[8px] opacity-75">🔒</span>
+                        </button>
+
                         <button @click="activeModalTab = 'pack_gamer'; searchQuery = ''"
                             :class="['px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all border-2 whitespace-nowrap flex items-center gap-1.5 cursor-pointer',
                                 activeModalTab === 'pack_gamer' && !searchQuery ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-sm' : 'border-white/10 bg-panel-input text-ink-soft hover:text-ink-main hover:bg-panel-card']">
@@ -429,47 +434,89 @@ const tSpec = computed(() => {
                         <span>Cargando catálogo...</span>
                     </div>
 
-                    <!-- CASO: PAQUETE BLOQUEADO (DISEÑO DOS COLUMNAS) -->
-                    <div v-else-if="props.config.mode === 'CLASSIC' && activeModalTab !== 'base' && activeModalTab !== 'selected' && !unlockedFrames.includes(activeModalTab) && !searchQuery" 
+                    <!-- CASO: PAQUETE BLOQUEADO — DISEÑO DOS COLUMNAS -->
+                    <div v-else-if="props.config.mode === 'CLASSIC' && activeModalTab !== 'base' && activeModalTab !== 'selected' && !unlockedFrames.includes(activeModalTab) && !searchQuery"
                          class="h-full flex flex-col sm:flex-row animate-in">
-                        
-                        <!-- Columna Izquierda: Identidad -->
-                        <div class="flex flex-col items-center justify-center gap-5 p-8 sm:w-[42%] sm:border-r border-white/10 text-center bg-white/5"
-                             :class="activeModalTab === 'pack_futbol' ? 'bg-blue-900/10' : activeModalTab === 'pack_cine' ? 'bg-pink-900/10' : 'bg-emerald-900/10'">
-                            <div class="text-7xl">
-                                {{ activeModalTab === 'pack_futbol' ? '⚽' : activeModalTab === 'pack_cine' ? '🍿' : '🎮' }}
+
+                        <!-- Columna Izquierda: Identidad del Pack + CTA -->
+                        <div class="flex flex-col items-center justify-center gap-5 p-8 sm:w-[42%] sm:border-r border-white/10 text-center"
+                             :class="{
+                                 'bg-blue-900/15':   activeModalTab === 'pack_futbol',
+                                 'bg-violet-900/15': activeModalTab === 'pack_musica',
+                                 'bg-orange-900/15': activeModalTab === 'pack_fun',
+                                 'bg-emerald-900/15':activeModalTab === 'pack_gamer',
+                                 'bg-pink-900/15':   activeModalTab === 'pack_cine',
+                             }">
+                            <!-- Ícono -->
+                            <div class="text-7xl pack-icon-bounce">
+                                <template v-if="activeModalTab === 'pack_futbol'">⚽</template>
+                                <template v-else-if="activeModalTab === 'pack_musica'">🎵</template>
+                                <template v-else-if="activeModalTab === 'pack_fun'">🎉</template>
+                                <template v-else-if="activeModalTab === 'pack_gamer'">🎮</template>
+                                <template v-else-if="activeModalTab === 'pack_cine'">🍿</template>
                             </div>
+                            <!-- Nombre -->
                             <div class="space-y-1">
                                 <h4 class="text-lg font-black text-white uppercase tracking-wider">
-                                    {{ activeModalTab === 'pack_futbol' ? 'Expansión Fútbol' : activeModalTab === 'pack_cine' ? 'Expansión Cine y TV' : 'Expansión Gamer' }}
+                                    <template v-if="activeModalTab === 'pack_futbol'">Expansión Fútbol</template>
+                                    <template v-else-if="activeModalTab === 'pack_musica'">Pack Música</template>
+                                    <template v-else-if="activeModalTab === 'pack_fun'">Pack Fun</template>
+                                    <template v-else-if="activeModalTab === 'pack_gamer'">Pack Gamer</template>
+                                    <template v-else-if="activeModalTab === 'pack_cine'">Pack Cine y TV</template>
                                 </h4>
-                                <p class="text-ink-soft text-[11px] font-bold leading-snug">
-                                    {{ activeModalTab === 'pack_futbol' ? 'Temas de estadios, jugadores y equipos históricos.' : activeModalTab === 'pack_cine' ? 'Películas, directores, villanos y héroes.' : 'Consolas, videojuegos retro y hardware.' }}
+                                <p class="text-ink-soft text-[11px] font-bold leading-snug max-w-[200px] mx-auto">
+                                    <template v-if="activeModalTab === 'pack_futbol'">Deporte, atletas y equipos del mundo del fútbol.</template>
+                                    <template v-else-if="activeModalTab === 'pack_musica'">Instrumentos, reggaeton y bandas de rock.</template>
+                                    <template v-else-if="activeModalTab === 'pack_fun'">Categorías creativas y de humor para animar la partida.</template>
+                                    <template v-else-if="activeModalTab === 'pack_gamer'">Videojuegos, streamers, apps y tecnología.</template>
+                                    <template v-else-if="activeModalTab === 'pack_cine'">Películas, series, actores, villanos y personajes icónicos.</template>
                                 </p>
                             </div>
-                            <div class="w-full pt-2">
-                                <span class="text-[9px] font-black text-amber-400 uppercase tracking-widest block mb-1">🪙 {{ activeModalTab === 'pack_gamer' ? 300 : 250 }}</span>
-                                <button @click="handleRedirectToStore" 
-                                        class="w-full py-3.5 bg-amber-500 text-zinc-950 rounded-xl font-black uppercase text-[11px] tracking-wider hover:bg-amber-400 transition-colors shadow-lg">
+                            <!-- Precio + CTA -->
+                            <div class="w-full pt-2 space-y-2">
+                                <span class="text-[9px] font-black text-amber-400 uppercase tracking-widest block">
+                                    🪙 {{ activeModalTab === 'pack_gamer' ? 250 : activeModalTab === 'pack_cine' ? 300 : 150 }} monedas
+                                </span>
+                                <button @click="handleRedirectToStore"
+                                        class="w-full py-3.5 bg-amber-500 text-zinc-950 rounded-xl font-black uppercase text-[11px] tracking-wider hover:bg-amber-400 transition-colors shadow-lg cursor-pointer">
                                     Ir a la Tienda 🛒
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Columna Derecha: Categorías -->
+                        <!-- Columna Derecha: Categorías incluidas -->
                         <div class="p-6 sm:w-[58%] overflow-y-auto">
                             <h5 class="text-[10px] font-black text-ink-muted uppercase tracking-widest mb-4">Incluye estas categorías:</h5>
                             <div class="grid grid-cols-1 gap-2">
+                                <!-- Fut -->
                                 <template v-if="activeModalTab === 'pack_futbol'">
                                     <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>⚽</span> Deporte</div>
                                     <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🏅</span> Atleta/Deportista</div>
                                     <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🏆</span> Equipo Deportivo</div>
                                 </template>
+                                <!-- Música -->
+                                <template v-else-if="activeModalTab === 'pack_musica'">
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🎸</span> Instrumento Musical</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🎤</span> Título de Canción de Reggaeton</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🤘</span> Nombre de banda de rock</div>
+                                </template>
+                                <!-- Fun -->
+                                <template v-else-if="activeModalTab === 'pack_fun'">
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>😅</span> Excusa para llegar tarde</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>💔</span> Motivo de ruptura</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🤑</span> Lo primero que harías si ganas la lotería</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>😠</span> Insulto (suave)</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🫦</span> Palabra que rime con “Amor”</div>
+                                </template>
+                                <!-- Gamer -->
                                 <template v-else-if="activeModalTab === 'pack_gamer'">
                                     <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🎮</span> Videojuego</div>
                                     <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>📺</span> Youtuber/Streamer</div>
                                     <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>💻</span> Marca de Tecnología</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>📱</span> App Móvil</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🌐</span> Sitio Web</div>
                                 </template>
+                                <!-- Cine -->
                                 <template v-else-if="activeModalTab === 'pack_cine'">
                                     <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🎬</span> Película</div>
                                     <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>📡</span> Serie de TV</div>
@@ -477,6 +524,8 @@ const tSpec = computed(() => {
                                     <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>😈</span> Villano</div>
                                     <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🦸</span> Superhéroe</div>
                                     <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🧙</span> Personaje Ficticio</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🧑‍🍳</span> Ingrediente de Cocina</div>
+                                    <div class="bg-panel-base/50 p-3 rounded-xl border border-white/5 flex items-center gap-3 text-xs font-bold text-white/80"><span>🍰</span> Postre</div>
                                 </template>
                             </div>
                         </div>

@@ -165,7 +165,7 @@ CREATE TRIGGER on_store_item_change
     FOR EACH STATEMENT EXECUTE FUNCTION public.notify_catalog_change();
 
 -- 7. Insertar catálogo completo de artículos de la TutiStore
--- Marcos de Avatar (5), Expansiones de Categorías (3), Packs de Emojis (4)
+-- Marcos de Avatar (5), Expansiones de Categorías (5), Packs de Emojis (4)
 INSERT INTO public.store_items (id, type, price, metadata) VALUES
     -- ── Marcos de Avatar ──────────────────────────────────────────────
     ('frame_neon',    'FRAME', 100, '{"name_key": "store.frame_neon",    "className": "frame-neon"}'),
@@ -175,9 +175,11 @@ INSERT INTO public.store_items (id, type, price, metadata) VALUES
     ('frame_cosmic',  'FRAME', 400, '{"name_key": "store.frame_cosmic",  "className": "frame-cosmic"}'),
 
     -- ── Expansiones de Categorías ──────────────────────────────────────
-    ('pack_futbol', 'EXPANSION', 250, '{"name_key": "store.pack_futbol", "description_key": "store.pack_futbol_desc", "categories": ["Deporte", "Atleta/Deportista", "Equipo Deportivo"]}'),
-    ('pack_gamer',  'EXPANSION', 300, '{"name_key": "store.pack_gamer",  "description_key": "store.pack_gamer_desc", "categories": ["Videojuego", "Youtuber/Streamer", "Marca de Tecnología"]}'),
-    ('pack_cine',   'EXPANSION', 250, '{"name_key": "store.pack_cine",   "description_key": "store.pack_cine_desc", "categories": ["Película", "Serie de TV", "Actor/Actriz", "Villano", "Superhéroe", "Personaje Ficticio"]}'),
+    ('pack_futbol', 'EXPANSION', 150, '{"name_key": "store.pack_futbol", "description_key": "store.pack_futbol_desc", "categories": ["Deporte", "Atleta/Deportista", "Equipo Deportivo"]}'),
+    ('pack_musica', 'EXPANSION', 150, '{"name_key": "store.pack_musica", "description_key": "store.pack_musica_desc", "categories": ["Instrumento Musical", "Título de Canción de Reggaeton", "Nombre de banda de rock"]}'),
+    ('pack_fun',    'EXPANSION', 150, '{"name_key": "store.pack_fun",    "description_key": "store.pack_fun_desc",    "categories": ["Excusa para llegar tarde", "Motivo de ruptura", "Lo primero que harías si ganas la lotería", "Insulto (suave)", "Palabra que rime con \"Amor\""]}'),
+    ('pack_gamer',  'EXPANSION', 250, '{"name_key": "store.pack_gamer",  "description_key": "store.pack_gamer_desc",  "categories": ["Videojuego", "Youtuber/Streamer", "Marca de Tecnología", "App Móvil", "Sitio Web"]}'),
+    ('pack_cine',   'EXPANSION', 300, '{"name_key": "store.pack_cine",   "description_key": "store.pack_cine_desc",   "categories": ["Película", "Serie de TV", "Actor/Actriz", "Villano", "Superhéroe", "Personaje Ficticio", "Ingrediente de Cocina", "Postre"]}'),
 
     -- ── Packs de Emojis (reacciones en fase de votaciones) ────────────
     ('pack_emojis_gamer', 'EMOJI', 120,
@@ -198,5 +200,12 @@ ON CONFLICT (id) DO UPDATE SET
 
 -- 8. Vincular categorías clásicas a sus paquetes correspondientes
 UPDATE public.categories SET pack_id = 'pack_futbol' WHERE id IN ('cls-50', 'cls-51', 'cls-52');
-UPDATE public.categories SET pack_id = 'pack_gamer' WHERE id IN ('cls-16', 'cls-17', 'cls-33');
-UPDATE public.categories SET pack_id = 'pack_cine' WHERE id IN ('cls-10', 'cls-11', 'cls-12', 'cls-13', 'cls-14', 'cls-15');
+UPDATE public.categories SET pack_id = 'pack_musica' WHERE id IN ('cls-22', 'cls-23', 'cls-63');
+UPDATE public.categories SET pack_id = 'pack_fun'    WHERE id IN ('cls-60', 'cls-61', 'cls-62', 'cls-64', 'cls-65');
+UPDATE public.categories SET pack_id = 'pack_gamer'  WHERE id IN ('cls-16', 'cls-17', 'cls-33', 'cls-34', 'cls-35');
+UPDATE public.categories SET pack_id = 'pack_cine'   WHERE id IN ('cls-10', 'cls-11', 'cls-12', 'cls-13', 'cls-14', 'cls-15', 'cls-41', 'cls-42');
+-- Limpiar pack_id de las categorías base (por si una migración anterior las asignó a algún pack)
+UPDATE public.categories SET pack_id = NULL WHERE id IN (
+    'cls-1', 'cls-2', 'cls-3', 'cls-4', 'cls-5', 'cls-6', 'cls-7', 'cls-8', 'cls-9',
+    'cls-20', 'cls-21', 'cls-30', 'cls-31', 'cls-32', 'cls-40', 'cls-43', 'cls-66', 'cls-67'
+);
