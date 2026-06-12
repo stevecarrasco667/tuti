@@ -64,7 +64,15 @@
         "claimName": "Reivindique seu nome",
         "signInGoogle": "Entrar com o Google",
         "verified": "Verificado",
-        "signOut": "Sair"
+        "signOut": "Sair",
+        "guestIdentityHint": "Faça login para salvar seu progresso na nuvem",
+        "levelLabel": "Nível",
+        "stats": {
+            "games": "Partidas",
+            "wins": "Vitórias",
+            "efficiency": "Eficiência",
+            "noGames": "Jogue partidas para ver suas estatísticas aqui."
+        }
     },
     "common": {
         "modes": {

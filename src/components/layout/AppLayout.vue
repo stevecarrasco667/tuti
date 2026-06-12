@@ -11,6 +11,8 @@ import { usePlayerHistory } from '../../composables/usePlayerHistory';
 import { setLanguage } from '../../i18n';
 import { useProfile, STORE_ITEMS } from '../../composables/useProfile';
 import AvatarWrapper from '../ui/AvatarWrapper.vue';
+import CoinIcon from '../ui/CoinIcon.vue';
+
 import TModal from '../ui/TModal.vue';
 
 const { currentTab, isMenuVisible, setTab } = useNavigation();
@@ -275,7 +277,7 @@ const triggerClearCache = () => {
                         <p class="text-ink-muted text-[10px] font-bold uppercase tracking-widest mt-1">Personaliza tu aspecto y expansiones</p>
                     </div>
                     <div class="flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/30 px-3 py-1.5 rounded-full text-yellow-400 font-black text-xs uppercase tracking-wider shadow-[0_0_10px_rgba(234,179,8,0.12)] flex-none">
-                        🪙 {{ coins }}
+                        <CoinIcon class="w-3.5 h-3.5" /> {{ coins }}
                     </div>
                 </div>
 
@@ -299,7 +301,7 @@ const triggerClearCache = () => {
                     <!-- Banner Simulador de Monedas (fila compacta) -->
                     <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition-all">
                         <div class="flex items-center gap-3 min-w-0">
-                            <span class="text-xl flex-none">🪙</span>
+                            <CoinIcon class="w-5 h-5 flex-none" />
                             <div class="min-w-0">
                                 <p class="text-white font-black text-xs uppercase tracking-wide leading-none">+100 Monedas de Prueba</p>
                                 <p class="text-ink-muted text-[9px] font-bold uppercase tracking-wider mt-0.5">Para probar la tienda en desarrollo</p>
@@ -360,7 +362,7 @@ const triggerClearCache = () => {
                             <div class="w-full">
                                 <h4 class="text-white font-black text-xs uppercase tracking-wide truncate">{{ t(item.name) || item.name }}</h4>
                                 <p class="text-ink-soft text-[9px] font-medium leading-tight my-1 truncate w-full px-1">{{ t(item.description) || item.description }}</p>
-                                <span class="text-[10px] font-bold text-game-yellow">🪙 {{ item.price }}</span>
+                                <span class="text-[10px] font-bold text-game-yellow flex items-center justify-center gap-1"><CoinIcon class="w-3 h-3" /> {{ item.price }}</span>
                             </div>
                             <button
                                 v-if="!unlockedFrames.includes(item.id)"
@@ -408,7 +410,7 @@ const triggerClearCache = () => {
                                 <div class="text-left min-w-0">
                                     <h4 class="text-white font-black text-sm uppercase tracking-wide truncate">{{ t(item.name) || item.name }}</h4>
                                     <p class="text-ink-soft text-xs font-medium leading-tight mt-1 line-clamp-2">{{ t(item.description) || item.description }}</p>
-                                    <span class="text-xs font-bold text-game-yellow mt-1 block">🪙 {{ item.price }}</span>
+                                    <span class="text-xs font-bold text-game-yellow mt-1 flex items-center gap-1"><CoinIcon class="w-3.5 h-3.5" /> {{ item.price }}</span>
                                 </div>
                             </div>
                             <button
@@ -444,7 +446,7 @@ const triggerClearCache = () => {
                                 <div class="min-w-0">
                                     <h4 class="text-white font-black text-sm uppercase tracking-wide">{{ t(item.name) || item.name }}</h4>
                                     <p class="text-ink-soft text-xs font-medium leading-tight mt-1 line-clamp-2">{{ t(item.description) || item.description }}</p>
-                                    <span class="text-xs font-bold text-game-yellow mt-2 block">🪙 {{ item.price }}</span>
+                                    <span class="text-xs font-bold text-game-yellow mt-2 flex items-center gap-1"><CoinIcon class="w-3.5 h-3.5" /> {{ item.price }}</span>
                                 </div>
                                 <span class="text-3xl flex-none pt-0.5">🎭</span>
                             </div>
@@ -892,7 +894,7 @@ const triggerClearCache = () => {
                         <div v-if="!unlockedFrames.includes(selectedItem.id)" class="space-y-3">
                             <div class="flex items-center justify-center gap-2">
                                 <span class="text-sm font-bold text-ink-muted uppercase tracking-wider">Precio:</span>
-                                <span class="text-lg font-black text-game-yellow">🪙 {{ selectedItem.price }}</span>
+                                <span class="text-lg font-black text-game-yellow flex items-center gap-1.5"><CoinIcon class="w-5 h-5" /> {{ selectedItem.price }}</span>
                             </div>
                             <button
                                 @click="handleBuyFrame(selectedItem.id, selectedItem.price)"

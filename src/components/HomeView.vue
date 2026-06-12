@@ -18,15 +18,54 @@ import AdBanner from './ui/AdBanner.vue';
 import { useAds } from '../composables/useAds';
 import { useSound } from '../composables/useSound';
 import { useProfile } from '../composables/useProfile';
+import { usePlayerHistory } from '../composables/usePlayerHistory';
 import AvatarWrapper from './ui/AvatarWrapper.vue';
+import CoinIcon from './ui/CoinIcon.vue';
+
 
 const { joinGame, myUserName, myUserAvatar } = useGame();
 const { filteredRooms, lobbyFilters, connect, refreshRooms } = useLobby();
 const { user, isAuthenticated, isLoading, signInWithGoogle, signOut } = useAuth();
 const { addToast } = useToast();
 const { t } = useI18n();
-const { equippedFrame } = useProfile();
+const { coins, equippedFrame } = useProfile();
+const { getStats } = usePlayerHistory();
 const { resetMeta } = useMeta();
+
+const stats = ref<any>(null);
+const coinDifference = ref<number>(0);
+const triggerCoinAnim = ref(false);
+
+const playerLevel = computed(() => {
+    if (!stats.value) return 1;
+    return 1 + Math.floor(((stats.value.wins || 0) * 3 + (stats.value.gamesPlayed || 0)) / 5);
+});
+
+const levelTier = computed(() => {
+    const lvl = playerLevel.value;
+    if (lvl >= 10) return 'gold';
+    if (lvl >= 5) return 'silver';
+    return 'bronze';
+});
+
+const ringClass = computed(() => {
+    const tier = levelTier.value;
+    if (tier === 'gold') return 'ring-tier-gold';
+    if (tier === 'silver') return 'ring-tier-silver';
+    return 'ring-tier-bronze';
+});
+
+watch(coins, async (newVal, oldVal) => {
+    if (oldVal !== undefined && newVal !== undefined && newVal > oldVal) {
+        coinDifference.value = newVal - oldVal;
+        triggerCoinAnim.value = true;
+        setTimeout(() => {
+            triggerCoinAnim.value = false;
+        }, 1200);
+    }
+    stats.value = await getStats();
+}, { immediate: true });
+
 const { trackHomeView, trackRoomCreated, trackRoomJoined } = useAnalytics();
 const { initAds } = useAds();
 const { isMuted, toggleMute } = useSound();
@@ -185,26 +224,54 @@ const getStatusInfo = (room: any) => {
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-xs font-black text-ink-main uppercase tracking-widest flex items-center gap-1">
                             {{ t('home.yourIdentity') }}
-                            <span v-if="!isAuthenticated" title="Inicia sesión para editar tu nombre" class="cursor-help w-4 h-4 rounded-full bg-panel-input flex items-center justify-center text-[10px] font-bold ml-1 border border-white/5">?</span>
+                            <span v-if="!isAuthenticated" :title="t('home.guestIdentityHint')" class="cursor-help w-4 h-4 rounded-full bg-panel-input flex items-center justify-center text-[10px] font-bold ml-1 border border-white/5">?</span>
                         </h3>
                         <button v-if="isAuthenticated" @click="isEditingProfile = !isEditingProfile" class="text-[10px] font-bold text-white bg-white/5 hover:bg-white/10 px-3 py-2 rounded-lg border border-white/10 transition-colors uppercase">{{ isEditingProfile ? t('home.save') : t('home.edit') }}</button>
                         <button v-else @click="signInWithGoogle" class="text-[10px] font-bold text-action-info opacity-80 hover:opacity-100 uppercase underline">{{ t('home.customize') }}</button>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <div class="relative group flex-none">
+                    <div class="flex items-center gap-5">
+                        <div class="relative group flex-none pb-2">
                             <AvatarWrapper :frameId="equippedFrame">
-                                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center text-5xl shadow-inner transition-transform group-hover:scale-110 overflow-hidden ring-4 ring-action-secondary/40 bg-gradient-to-br from-panel-card to-panel-input">{{ selectedAvatar }}</div>
+                                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center text-5xl shadow-inner transition-transform group-hover:scale-105 overflow-hidden ring-4 bg-gradient-to-br from-panel-card to-panel-input" :class="ringClass">
+                                    {{ selectedAvatar }}
+                                </div>
                             </AvatarWrapper>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-ink-soft text-[10px] font-bold tracking-wider uppercase mb-1">{{ t('home.publicName') }}</p>
-                            <div v-if="!isAuthenticated" class="group flex items-center justify-between bg-panel-base/50 p-3 rounded-xl border-2 border-transparent">
-                                <span class="text-2xl sm:text-3xl font-black text-ink-muted truncate tracking-tight">{{ playerName }}</span>
-                                <span class="text-[10px] text-action-error font-bold uppercase ml-2 opacity-80 select-none hidden sm:inline-block">{{ t('home.requiresLogin') }}</span>
+                            <!-- Level badge under the avatar, absolutely centered -->
+                            <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-white text-panel-card text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full border border-white/20 shadow-[0_2px_4px_rgba(0,0,0,0.3)] flex items-center gap-0.5 whitespace-nowrap z-20">
+                                <span class="text-panel-card/75">{{ t('home.levelLabel') }}</span> <span class="text-action-info">{{ playerLevel }}</span>
                             </div>
-                            <TInput v-else-if="isEditingProfile" v-model="playerName" placeholder="Tu nombre..." :maxlength="20" input-class="rounded-lg py-2 text-lg" aria-label="Tu nombre público" />
-                            <div v-else class="flex flex-col">
-                                <p class="text-2xl sm:text-3xl font-black text-ink-main truncate tracking-tight">{{ playerName }}</p>
+                        </div>
+                        <div class="flex-1 min-w-0 flex flex-col gap-2">
+                            <div>
+                                <p class="text-ink-soft text-[9px] font-bold tracking-wider uppercase mb-1">{{ t('home.publicName') }}</p>
+                                <div v-if="!isAuthenticated" class="group flex items-center justify-between bg-panel-base/50 p-2.5 rounded-xl border border-white/5">
+                                    <span class="text-xl sm:text-2xl font-black text-ink-muted truncate tracking-tight">{{ playerName }}</span>
+                                    <span class="text-[9px] text-action-error font-bold uppercase ml-2 opacity-80 select-none hidden sm:inline-block">{{ t('home.requiresLogin') }}</span>
+                                </div>
+                                <TInput v-else-if="isEditingProfile" v-model="playerName" placeholder="Tu nombre..." :maxlength="20" input-class="rounded-lg py-1.5 text-base" aria-label="Tu nombre público" />
+                                <div v-else class="flex items-center gap-2">
+                                    <p class="text-xl sm:text-2xl font-black text-ink-main truncate tracking-tight">{{ playerName }}</p>
+                                    <span v-if="isAuthenticated" class="inline-flex items-center gap-0.5 text-[8px] bg-action-success/10 text-action-success border border-action-success/20 px-1.5 py-0.5 rounded font-black uppercase tracking-wider select-none">
+                                        <span class="text-[7px]">✔</span> {{ t('home.verified') }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Coins Display Badge -->
+                            <div class="relative flex items-center gap-2 select-none">
+                                <div 
+                                    class="inline-flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/20 px-3 py-1 rounded-full transition-all"
+                                    :class="{ 'animate-coin-pulse border-yellow-400 bg-yellow-400/20': triggerCoinAnim }"
+                                >
+                                    <CoinIcon class="w-3.5 h-3.5" />
+                                    <span class="text-[11px] font-black text-yellow-400 font-mono tracking-wide">{{ coins }}</span>
+                                </div>
+                                <span 
+                                    v-if="triggerCoinAnim && coinDifference > 0" 
+                                    class="absolute left-16 top-0 text-[10px] font-black text-yellow-400 animate-float-up-fade"
+                                >
+                                    +{{ coinDifference }}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -213,6 +280,24 @@ const getStatusInfo = (room: any) => {
                             class="aspect-square flex items-center justify-center text-2xl rounded-xl transition-all border-2"
                             :class="selectedAvatar === avatar ? 'bg-panel-card border-action-primary scale-110 shadow-sm' : 'bg-panel-input border-transparent hover:border-white/10 opacity-60 hover:opacity-100'"
                             :aria-label="`Seleccionar avatar ${avatar}`">{{ avatar }}</button>
+                    </div>
+                    <!-- Stats Breakdown grid -->
+                    <div v-if="stats && stats.gamesPlayed > 0 && !isEditingProfile" class="mt-4 pt-4 border-t border-white/5 grid grid-cols-3 gap-2 animate-in fade-in">
+                        <div class="bg-panel-base/30 p-2 rounded-xl border border-white/5 text-center flex flex-col justify-center min-w-0">
+                            <span class="text-[8px] font-bold text-ink-soft uppercase tracking-wider block truncate">{{ t('home.stats.games') }}</span>
+                            <span class="text-xs font-black text-white font-mono mt-0.5">{{ stats.gamesPlayed }}</span>
+                        </div>
+                        <div class="bg-panel-base/30 p-2 rounded-xl border border-white/5 text-center flex flex-col justify-center min-w-0">
+                            <span class="text-[8px] font-bold text-ink-soft uppercase tracking-wider block truncate">{{ t('home.stats.wins') }}</span>
+                            <span class="text-xs font-black text-action-success font-mono mt-0.5">{{ stats.wins }}</span>
+                        </div>
+                        <div class="bg-panel-base/30 p-2 rounded-xl border border-white/5 text-center flex flex-col justify-center min-w-0">
+                            <span class="text-[8px] font-bold text-ink-soft uppercase tracking-wider block truncate">{{ t('home.stats.efficiency') }}</span>
+                            <span class="text-xs font-black text-action-info font-mono mt-0.5">{{ stats.winRate }}%</span>
+                        </div>
+                    </div>
+                    <div v-else-if="!isEditingProfile" class="mt-3 text-[10px] text-ink-muted italic opacity-60">
+                        {{ t('home.stats.noGames') }}
                     </div>
                     <div v-if="!isAuthenticated" class="mt-4 pt-4 border-t border-white/10 flex justify-end">
                         <button @click="handleClearData" class="text-[10px] font-bold text-action-error/70 hover:text-action-error uppercase transition-colors">{{ t('home.clearLocalData') }}</button>

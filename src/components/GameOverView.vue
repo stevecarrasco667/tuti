@@ -22,6 +22,8 @@ import MatchHighlightsPanel from './results/MatchHighlightsPanel.vue';
 import PostGameActions from './results/PostGameActions.vue';
 import MatchSummaryCard from './ui/MatchSummaryCard.vue';
 import InstallPrompt from './InstallPrompt.vue';
+import CoinIcon from './ui/CoinIcon.vue';
+
 
 const { gameState, myUserId, resetGame, leaveGame, matchRewards } = useGame();
 const { playWin, playStop } = useSound();
@@ -268,7 +270,7 @@ onMounted(async () => {
                         <div class="absolute -top-12 -right-12 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl pointer-events-none"></div>
                         <div class="flex items-center justify-between border-b border-white/10 pb-3">
                             <h3 class="text-yellow-400 font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs flex items-center gap-1.5">
-                                🪙 {{ t('results.coinsEarned', 'MONEDAS GANADAS') }}
+                                <CoinIcon class="w-3.5 h-3.5 text-yellow-400" /> {{ t('results.coinsEarned', 'MONEDAS GANADAS') }}
                             </h3>
                             <span class="text-sm font-black text-yellow-400 bg-yellow-400/10 border border-yellow-400/30 px-3 py-1 rounded-full shadow-md animate-pulse">
                                 +{{ matchRewards.breakdown[myUserId].details.total }}
@@ -302,7 +304,7 @@ onMounted(async () => {
                             <!-- Total balance -->
                             <div v-if="matchRewards.breakdown[myUserId].totalCoins !== undefined" class="flex justify-between items-center border-t border-white/10 pt-3 mt-1 text-xs font-black text-yellow-400 uppercase tracking-widest">
                                 <span>{{ t('results.totalBalance', 'Saldo Total') }}</span>
-                                <span class="flex items-center gap-1">🪙 {{ matchRewards.breakdown[myUserId].totalCoins || '???' }}</span>
+                                <span class="flex items-center gap-1"><CoinIcon class="w-3.5 h-3.5" /> {{ matchRewards.breakdown[myUserId].totalCoins || '???' }}</span>
                             </div>
                         </div>
                     </div>

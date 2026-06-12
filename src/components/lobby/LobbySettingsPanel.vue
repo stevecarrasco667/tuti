@@ -10,6 +10,8 @@ import ClassicConfig from './ClassicConfig.vue';
 import ImpostorConfig from './ImpostorConfig.vue';
 import { useProfile } from '../../composables/useProfile';
 import { useNavigation } from '../../composables/useNavigation';
+import CoinIcon from '../ui/CoinIcon.vue';
+
 
 const { t, locale } = useI18n();
 const { unlockedFrames } = useProfile();
@@ -469,8 +471,8 @@ const tSpec = computed(() => {
                             </div>
                             <!-- Precio + CTA -->
                             <div class="w-full pt-2 space-y-2">
-                                <span class="text-[9px] font-black text-amber-400 uppercase tracking-widest block">
-                                    🪙 {{ activeModalTab === 'pack_gamer' ? 250 : activeModalTab === 'pack_cine' ? 300 : 150 }} monedas
+                                <span class="text-[9px] font-black text-amber-400 uppercase tracking-widest flex items-center justify-center gap-1.5">
+                                    <CoinIcon class="w-3.5 h-3.5" /> {{ activeModalTab === 'pack_gamer' ? 250 : activeModalTab === 'pack_cine' ? 300 : 150 }} monedas
                                 </span>
                                 <button @click="handleRedirectToStore"
                                         class="w-full py-3.5 bg-amber-500 text-zinc-950 rounded-xl font-black uppercase text-[11px] tracking-wider hover:bg-amber-400 transition-colors shadow-lg cursor-pointer">

@@ -64,7 +64,15 @@
         "claimName": "Reclama tu nombre",
         "signInGoogle": "Iniciar con Google",
         "verified": "Verificado",
-        "signOut": "Salir"
+        "signOut": "Salir",
+        "guestIdentityHint": "Inicia sesión para guardar tu progreso en la nube",
+        "levelLabel": "Nivel",
+        "stats": {
+            "games": "Partidas",
+            "wins": "Victorias",
+            "efficiency": "Eficiencia",
+            "noGames": "Juega partidas para ver tus estadísticas aquí."
+        }
     },
     "common": {
         "modes": {

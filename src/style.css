@@ -421,4 +421,56 @@ body.disable-bg-animations .frame-fire,
 body.disable-bg-animations .frame-rainbow {
   animation: none !important;
   transform: none !important;
-}
+}
+
+/* Level Tier Avatar Rings (Metallic Progressions) */
+.ring-tier-bronze {
+  --tw-ring-color: rgba(180, 83, 9, 0.75) !important; /* amber-700 */
+  box-shadow: 0 0 10px rgba(180, 83, 9, 0.45), inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.ring-tier-silver {
+  --tw-ring-color: rgba(148, 163, 184, 0.8) !important; /* slate-400 */
+  box-shadow: 0 0 14px rgba(148, 163, 184, 0.5), inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.ring-tier-gold {
+  --tw-ring-color: rgba(234, 179, 8, 0.85) !important; /* yellow-500 */
+  box-shadow: 0 0 18px rgba(234, 179, 8, 0.65), inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Coin Increment Animations */
+@keyframes float-up-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.8);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.95);
+  }
+}
+.animate-float-up-fade {
+  animation: float-up-fade 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes coin-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+    background-color: rgba(245, 158, 11, 0.2);
+    border-color: rgba(245, 158, 11, 0.4);
+  }
+}
+.animate-coin-pulse {
+  animation: coin-pulse 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+

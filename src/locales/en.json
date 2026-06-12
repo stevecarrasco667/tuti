@@ -64,7 +64,15 @@
         "claimName": "Claim your name",
         "signInGoogle": "Sign in with Google",
         "verified": "Verified",
-        "signOut": "Sign Out"
+        "signOut": "Sign Out",
+        "guestIdentityHint": "Sign in to save your progress in the cloud",
+        "levelLabel": "Level",
+        "stats": {
+            "games": "Matches",
+            "wins": "Wins",
+            "efficiency": "Win Rate",
+            "noGames": "Play matches to view your statistics here."
+        }
     },
     "common": {
         "modes": {
