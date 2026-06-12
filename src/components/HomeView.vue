@@ -281,24 +281,7 @@ const getStatusInfo = (room: any) => {
                             :class="selectedAvatar === avatar ? 'bg-panel-card border-action-primary scale-110 shadow-sm' : 'bg-panel-input border-transparent hover:border-white/10 opacity-60 hover:opacity-100'"
                             :aria-label="`Seleccionar avatar ${avatar}`">{{ avatar }}</button>
                     </div>
-                    <!-- Stats Breakdown grid -->
-                    <div v-if="stats && stats.gamesPlayed > 0 && !isEditingProfile" class="mt-4 pt-4 border-t border-white/5 grid grid-cols-3 gap-2 animate-in fade-in">
-                        <div class="bg-panel-base/30 p-2 rounded-xl border border-white/5 text-center flex flex-col justify-center min-w-0">
-                            <span class="text-[8px] font-bold text-ink-soft uppercase tracking-wider block truncate">{{ t('home.stats.games') }}</span>
-                            <span class="text-xs font-black text-white font-mono mt-0.5">{{ stats.gamesPlayed }}</span>
-                        </div>
-                        <div class="bg-panel-base/30 p-2 rounded-xl border border-white/5 text-center flex flex-col justify-center min-w-0">
-                            <span class="text-[8px] font-bold text-ink-soft uppercase tracking-wider block truncate">{{ t('home.stats.wins') }}</span>
-                            <span class="text-xs font-black text-action-success font-mono mt-0.5">{{ stats.wins }}</span>
-                        </div>
-                        <div class="bg-panel-base/30 p-2 rounded-xl border border-white/5 text-center flex flex-col justify-center min-w-0">
-                            <span class="text-[8px] font-bold text-ink-soft uppercase tracking-wider block truncate">{{ t('home.stats.efficiency') }}</span>
-                            <span class="text-xs font-black text-action-info font-mono mt-0.5">{{ stats.winRate }}%</span>
-                        </div>
-                    </div>
-                    <div v-else-if="!isEditingProfile" class="mt-3 text-[10px] text-ink-muted italic opacity-60">
-                        {{ t('home.stats.noGames') }}
-                    </div>
+
                     <div v-if="!isAuthenticated" class="mt-4 pt-4 border-t border-white/10 flex justify-end">
                         <button @click="handleClearData" class="text-[10px] font-bold text-action-error/70 hover:text-action-error uppercase transition-colors">{{ t('home.clearLocalData') }}</button>
                     </div>

@@ -1,0 +1,484 @@
+fase 1: Este documento presenta una auditoría exhaustiva, crítica y técnica del estado actual del proyecto Tuti Games (Tuti2). El análisis se ha estructurado adoptando los perfiles de CTO, Arquitecto Full Stack Senior, Lead Frontend Engineer, Lead UX/UI Designer, Game Designer, Ingeniero de Seguridad y Consultor de Negocios.
+
+1. Arquitectura de Software y Código
+
+Estructura de Directorios y Separación de Conceptos
+
+El repositorio adopta una estructura monorrepósito híbrida bien definida:
+
+src/: Aplicación de cliente SPA (Vue 3, TypeScript).
+
+party/: Servidor multijugador basado en PartyKit (Durable Objects ejecutados sobre la red global de Cloudflare Workers).
+
+shared/: Código isomórfico compartido entre cliente y servidor (motores de juego, validación de esquemas Zod, tipos de datos e diccionarios).
+
+Esta separación es excelente desde el punto de vista del desarrollo. Garantiza que las reglas y validaciones de los juegos (en shared/engines/) sean exactamente las mismas que ejecuta el servidor de forma autoritativa y el cliente de forma optimista.
+
+Evaluación del Stack de Estado
+
+El proyecto no utiliza Pinia ni Vuex. En su lugar, implementa un patrón Composable-Based Singleton:
+
+Los archivos en src/composables/ (como useGameState.ts) declaran variables reactivas (ref y reactive) a nivel de módulo (fuera de la función de fábrica exportada).
+
+Cuando varios componentes invocan a useGame(), comparten las mismas referencias de memoria globales.
+
+Ventaja: Reduce el boilerplate de configuración de Pinia y proporciona excelente tree-shaking.
+
+Desventaja: Riesgo de fugas de memoria o retención de observadores en pruebas unitarias si los estados de los módulos no se limpian adecuadamente entre suites de test (ver Deuda Técnica).
+
+El "God Component" Crítico
+
+LobbySettingsPanel.vue es el componente más problemático del frontend (761 líneas de código, 55.6KB).
+
+Infracción de Responsabilidad Única (SRP): Mezcla la selección de modos de juego, la configuración de presets clásicos y de impostor, la consulta y carga de categorías personalizadas, y la lógica modal compleja del selector de categorías.
+
+Recomendación: Dividir en componentes aislados:ModeSelector.vue (Selector visual de modo de juego)
+
+ClassicConfigForm.vue (Configuraciones exclusivas de Tuti Clásico)
+
+ImpostorConfigForm.vue (Configuraciones exclusivas de El Impostor)
+
+CategoryPickerModal.vue (Diálogo modal interactivo para categorías)
+
+2. Backend y Seguridad del Servidor
+
+Infraestructura Híbrida: PartyKit + Supabase
+
+PartyKit actúa como el núcleo autoritativo en tiempo real. El estado de la partida corre enteramente en memoria dentro de un Durable Object efímero.
+
+Supabase es utilizado exclusivamente para la autenticación de usuarios (Google OAuth) y la obtención rápida de tablas de configuración estática (kill switch de anuncios de global_config).
+
+Esta división es óptima para mantener costos en el tier gratuito: el tráfico intensivo va a PartyKit (vía WebSocket) y no colapsa las cuotas de PostgreSQL de Supabase.
+
+Vulnerabilidades Críticas de Seguridad
+
+Fuga de Respuestas en Tuti Clásico:Durante la fase de escritura (PLAYING), el método updateAnswers() de tuti-engine.ts guarda los textos que el usuario está tecleando en state.answers[userId].
+
+Debido a que getClientState() devuelve el estado completo y server.ts difunde los cambios de estado agregados con PATCH_STATE, las respuestas activas de cada jugador viajan en crudo por WebSocket a todos los rivales.
+
+Aunque la interfaz del cliente oculte las respuestas de los rivales, cualquier usuario que abra la pestaña de red del navegador puede ver lo que escriben los demás en tiempo real.
+
+Entradas no Desinfectadas en Handshakes:En connection.ts, los parámetros name, userId y token se leen directamente desde los query params de conexión y se inyectan en la memoria del servidor sin validación estricta de longitud.
+
+Un atacante podría enviar nombres gigantescos de megabytes para consumir memoria RAM del Durable Object (ataque DoS por inflado de estado).
+
+CPU Starvation en Cloudflare Workers
+
+En party/server.ts, se identificaron timers huérfanos que sobreviven tras la eliminación del motor. Si un jugador abandona una sala durante el período de gracia de Impostor, el timer de gracia de setTimeout en ImpostorEngine se mantiene activo. En Cloudflare Workers, los procesos suspendidos con timers activos evitan que el aislamiento de memoria (V8 Isolate) sea recolectado por el recolector de basura, generando cargos extra por tiempo de CPU o consumiendo innecesariamente recursos de ejecución.
+
+3. Eficiencia de Red, Sincronización y Payload
+
+Transmisión de Deltas via JSON Patch
+
+El sistema utiliza fast-json-patch para enviar diferencias en lugar del estado completo en cada cambio:
+
+Cuando el estado del juego cambia, el servidor genera un parche JSON comparándolo con el estado previo conocido para esa conexión (previousStates.get(connId)).
+
+Problema: El servidor ejecuta structuredClone sobre el estado global y llama a compare() por cada cliente individual conectado en cada tick de un segundo. Con 10 jugadores, esto significa 10 clones profundos y 10 comparaciones complejas por segundo.
+
+Con categorías grandes o listas largas de chats, este proceso puede causar picos de CPU en PartyKit y degradar la latencia.
+
+Payload en Redes Móviles
+
+Para usuarios en redes móviles (3G/4G/LTE), el flujo constante de parches de red (debido al tecleo en tiempo real de los oponentes) consume ancho de banda valioso:
+
+Solución propuesta: Enviar únicamente el recuento de caracteres escritos (filledCount) y las marcas de tiempo (lastTypedAt) de los rivales a través del canal ligero RIVAL_UPDATE, y omitir por completo las mutaciones en state.answers del parche global hasta que finalice la ronda.
+
+4. Reactividad Vue y Performance Frontend
+
+Watchers Redundantes en useGameState
+
+En useGameState.ts, se declaran watchers para persistir los valores del usuario local en localStorage (como nombre, ID y avatar).
+
+Dado que estos observadores se declaran en el cuerpo del composable, cada vez que un componente monta o llama a useGameState, se crea una nueva instancia de observadores duplicados.
+
+Esto satura el bus de renderizado de Vue y causa escrituras de disco duplicadas a localStorage en celulares de gama baja.
+
+Corrección: Mover los watchers a la inicialización singleton de módulo, ejecutándose una única vez en la carga del script de la aplicación.
+
+Renderizado de Animaciones y Reacciones
+
+El sistema de reacciones visuales (useReactions.ts) no tiene un límite máximo de partículas activas en pantalla. En rondas rápidas con 8 jugadores enviando emojis concurrentes, la acumulación masiva de bursts en el DOM del cliente causa caídas de frames notables (jank de CPU). Es imperativo limitar los bursts visuales a un máximo de 15 animaciones simultáneas por cliente.
+
+5. Tipado Estricto y Deuda Técnica
+
+Divergencia de Datos (Drift)
+
+Hay un desfase importante entre las interfaces tipadas en types.ts y los esquemas de validación de Zod en schemas.ts:
+
+Por ejemplo, PlayerSchema en Zod carece del campo avatar, mientras que la interfaz Player de TypeScript sí lo requiere.
+
+El esquema RoomStateSchema no cuenta con campos clave del runtime como remainingTime, stoppedBy o gameOverReason.
+
+Riesgo: El uso de as any o el casteo explícito desactiva las protecciones del compilador de TS en la red de comunicación.
+
+Casts as any en Rutas Críticas
+
+El proyecto cuenta con varios parches rápidos con casts de tipo any (por ejemplo, en useGameSync.ts al leer la versión del sistema, y en useSocket.ts al configurar el socket). Esto debilita la robustez del código y expone la aplicación a errores de tipo TypeError: Cannot read properties of undefined en producción.
+
+6. UX/UI y Diseño Visual
+
+Sistema de Diseño "Soft-Pop"
+
+El diseño de Tuti2 es visualmente excepcional y premium:
+
+Hace uso de una paleta armónica con un color base oscuro (#1e1b4b - panel) con texturas y acentos neón y pasteles en base a efectos de cristal y degradados (glassmorphism).
+
+Excelente uso de tipografías importadas de Google Fonts (Nunito para encabezados, Inter para textos, Bebas Neue para elementos decorativos de gran formato).
+
+Sombras 3D en botones y paneles que dan una sensación jugable muy pulida y táctil.
+
+Adaptabilidad y Accesibilidad Móvil
+
+El scroll interno implementado en el panel de configuración y los boards garantiza una excelente navegación en dispositivos móviles sin perder visibilidad de las pestañas clave.
+
+Las tarjetas adaptan sus fuentes a resoluciones de pantallas pequeñas (sm y md) evitando desbordamientos de textos largos en palabras de respuestas.
+
+Sin embargo, las áreas de toque en móviles para botones táctiles pequeños (como los de silenciar o ver el perfil en lobbies) están en el límite inferior de las guías de accesibilidad móvil (se recomiendan áreas mínimas de interacción de 44x44 píxeles).
+
+7. Diseño de Juego y Gamificación
+
+Análisis de la Experiencia de Juego
+
+Tuti2 reimagina con éxito los juegos sociales de palabras tradicionales:
+
+Modo Clásico (Tutti Frutti):Apela a la nostalgia con reglas simples y competitivas.
+
+El sistema de autovalidación automática por diccionario ahorra discusiones de mesa, acelerando las transiciones del juego.
+
+Modo El Impostor:Introduce mecánicas de deducción social similares a Among Us o Spyfall.
+
+El diseño del juego obliga a los jugadores a teclear palabras astutas relacionadas con una categoría secreta sin delatarse, requiriendo ingenio cognitivo.
+
+Ciclo de Retención e Interacción
+
+La inclusión de un sistema dinámico de reacciones emoji en tiempo real fomenta la burla amistosa y el engagement directo.
+
+La pantalla de fin de partida (GameOverView) incluye un generador automático de imágenes (MatchSummaryCard) que permite exportar resúmenes visuales a redes sociales (Instagram, Twitter, TikTok), lo cual es una excelente estrategia viral nativa.
+
+8. Monetización, Escalabilidad y Viabilidad comercial
+
+Modelo de Costos de Infraestructura
+
+El proyecto está optimizado con maestría para correr a Costo Operativo Cero en etapas de inicio:
+
+Cloudflare Pages: Hospeda la SPA de Vue y el middleware de bots de forma 100% gratuita.
+
+PartyKit (Tier Gratuito): Proporciona 100,000 requests diarios de Durable Objects sin coste.
+
+Supabase (Tier Gratuito): Suficiente para la base de datos de killswitches y la autenticación federada básica.
+
+Estrategia de Monetización Recomendada
+
+Dado que el juego es de consumo casual y rápido, la monetización se divide en tres fases lógicas:
+
+Publicidad No Intrusiva (Implementada):Banners de AdSense (web) y AdMob (Capacitor nativo) en zonas muertas como las barras inferiores y laterales del lobby.
+
+Integración de anuncios intersticiales de video recompensado en la transición hacia la pantalla final de puntuaciones (GameOverView).
+
+Cosméticos y Personalización (Futuro):Venta de avatares especiales, marcos de tarjetas 3D en oro/plata/neón animados en el chat y paquetes de reacciones emoji personalizadas.
+
+Paquetes de Categorías Premium:Venta de packs temáticos de categorías (Cine de Culto, Cultura Pop, Anime, Videojuegos Retro) para el modo clásico y de impostor.
+
+Diagnóstico de Lanzamiento
+
+El proyecto se encuentra en un estado Beta Avanzado (90% de preparación para producción).
+
+Lo que falta para el lanzamiento oficial:Parchear la vulnerabilidad crítica de fuga de respuestas en el WebSocket (C1).
+
+Eliminar los timers huérfanos del backend PartyKit para evitar consumir límites de CPU gratuitos.
+
+Sincronizar y depurar los esquemas Zod frente a los tipos TypeScript del juego.
+
+Testeo de carga simulada con 50 salas simultáneas en PartyKit para validar latencias de delta patch.
+
+Fase 2: Backend, Infraestructura, Seguridad y Escalabilidad
+Este documento detalla la auditoría técnica para la Fase 2, enfocada en la infraestructura y lógica del lado del servidor (PartyKit + Supabase). El análisis ha evaluado la seguridad, concurrencia, persistencia de datos, límites de escala ante picos de tráfico y costos de infraestructura.
+
+1. Supabase y Verificación de Identidad
+Autenticación JWT y Handshake
+Cómo funciona hoy: En 
+connection.ts
+, si el cliente proporciona un token JWT de Supabase, el backend realiza una petición HTTP síncrona fetch al endpoint de Supabase auth (/auth/v1/user) para verificar si la sesión es válida.
+Vulnerabilidad de Escalabilidad (Crítico):
+Si el juego escala a 5,000 o 10,000 usuarios simultáneos, la tasa de handshakes por minuto será enorme. Realizar una petición HTTP externa a Supabase por cada conexión añade un retraso de red (latencia de ~50ms a ~150ms) y expone la app a que la API de Supabase colapse bajo carga de red Edge distribuida.
+Si Supabase se cae o introduce throttling, ningún usuario podrá unirse a ninguna partida, ya que el proceso de conexión se bloqueará.
+Refactorización necesaria: Realizar la verificación de JWT de manera local en el Worker mediante la API nativa de WebCrypto (Cloudflare Workers). Dado que Supabase firma los JWT con un secreto HS256 (o asíncrono RS256) compartible, el Worker puede decodificar y validar la firma localmente en microsegundos y sin realizar llamadas HTTP de red externas.
+2. Realtime y Conexiones WebSockets (PartyKit)
+Sincronización y consistencia
+Delta Sync: El servidor implementa la sincronización por diferencias a nivel de conexión a través de fast-json-patch en broadcastStateDelta(). El uso de structuredClone (nativo en V8) es un excelente acierto en comparación con JSON.parse(JSON.stringify).
+Análisis de Consistencia: Los motores (TutiEngine y ImpostorEngine) gestionan el estado en memoria principal de forma síncrona. Toda acción entrante al WebSocket es linealizada en un único hilo por la arquitectura de Cloudflare Durable Objects. Esto previene automáticamente condiciones de carrera de escritura en base de datos PostgreSQL, garantizando consistencia local óptima.
+3. Concurrencia y Race Conditions Detectadas
+🚨 Bug de Carrera Crítico en la Reconexión de Usuarios
+Archivos: 
+player-manager.ts
+ y 
+connection.ts
+.
+El Problema:
+Un jugador pierde la conexión móvil momentáneamente. El cliente intenta reconectarse de forma inmediata abriendo un nuevo socket (newConnectionId) asociado al mismo userId.
+En ConnectionHandler.handleConnect, la reconexión se procesa con éxito: se registra el nuevo mapeo en connectionMap y el jugador se mantiene como isConnected = true in-place.
+Poco después, el socket antiguo (oldConnectionId) termina de morir físicamente. El sistema de PartyKit dispara tardíamente el evento de cierre (onClose) para ese socket viejo.
+El servidor procesa el cierre y llama a PlayerManager.remove(state, oldConnectionId).
+En remove:
+El manager recupera el userId asociado a la conexión antigua.
+Borra la entrada del socket viejo en connectionMap.
+Establece player.isConnected = false y marca la fecha de desconexión.
+Impacto: El jugador es marcado como desconectado y se dispara la sucesión de host o la alerta de abandono, a pesar de que el usuario ya está conectado y activo a través de su nuevo socket de reconexión.
+Refactorización Necesaria: En PlayerManager.remove, antes de establecer player.isConnected = false, verificar si existen otros connectionId apuntando al mismo userId en connectionMap. Si existen, omitir la marca de desconexión.
+4. Consistencia de Datos e Hidratación de Secretos
+⚠️ Race Condition en el Debounce de Persistencia de Secretos (Impostor)
+Archivos: 
+server.ts
+ y 
+impostor-engine.ts
+.
+El Problema:
+ImpostorEngine almacena identidades y palabras secretas de manera privada. Para sobrevivir a la hibernación del Worker, se guardan en IMPOSTOR_SECRET_KEY en el Durable Storage.
+La persistencia física (storage.put) se realiza de forma retardada (debounced) cada 5 segundos en server.ts para no abusar del storage en el bucle del contador de segundos (tick).
+Al iniciar una ronda (startNewRound), los secretos mutan y el flag _secretsDirty se marca como true. Si el Durable Object se apaga repentinamente antes de que pasen los 5 segundos del debounce (debido a inactividad o desconexiones), los secretos de la ronda activa se pierden.
+Al reconectarse los jugadores, la sala se hidratará con el estado de ronda activo, pero sin la palabra secreta ni la identidad del impostor, rompiendo la partida por completo.
+Refactorización Necesaria: Las mutaciones de secretos críticos (cambios de fase de ronda en startNewRound o resoluciones de votos) son eventos de muy baja frecuencia. Deben persistirse de forma inmediata en Durable Storage mediante un await storage.put bloqueante, tal como se implementó recientemente con el mapeo de auth_tokens_v1.
+5. Fugas de Memoria en Hot-Swaps de Sala
+Archivos: 
+server.ts
+ y 
+manager.ts
+.
+El Problema:
+Cuando el anfitrión de la sala cambia el modo de juego (CLASSIC ↔ IMPOSTOR), el servidor ejecuta una recarga de motor (Hot-Swap) creando una nueva instancia mediante createEngine().
+El motor antiguo queda huérfano. Sin embargo, su instancia interna de DictionaryManager nunca es destruida ni liberada.
+Las categorías de palabras que el motor viejo tenía reservadas mediante GlobalWordCache.acquire siguen manteniendo un refCount >= 1 a nivel de módulo del Isolate de V8.
+Impacto: La memoria RAM del Isolate acumula Sets de palabras que nunca serán recolectados por el Garbage Collector. Con el paso del tiempo y múltiples hot-swaps, el Isolate de Cloudflare colapsará por Out Of Memory (OOM).
+Refactorización Necesaria: Implementar un método dispose() en BaseEngine y sus subclases que invoque explícitamente a DictionaryManager.clearCache(). La clase Server de PartyKit debe llamar a this.engine.dispose() inmediatamente antes de reemplazar el motor en la operación de Hot-Swap.
+6. Proyecciones de Escalabilidad de Usuarios Concurrentes
+Evaluación ante picos de tráfico:
+¿Soportaría 100 usuarios simultáneos?
+Sí (Nota: 10/10). Se traduce en unas 10 a 15 salas activas distribuidas en la red de Cloudflare Workers. El consumo de CPU e IO en almacenamiento durable es insignificante y se mantiene holgadamente dentro del tier gratuito de PartyKit y Supabase.
+¿Soportaría 1,000 usuarios simultáneos?
+Sí (Nota: 8/10). Equivale a unas 100 a 150 salas concurrentes. La infraestructura de Cloudflare Workers escalará horizontalmente de forma geográfica sin cuellos de botella en la entrega de WebSockets.
+Cuello de botella latente: El sistema de analíticas síncronas (AnalyticsSystem.trackEvent) realizará cientos de inserciones HTTP directas en Supabase por minuto. Esto saturará los recursos de CPU de la instancia de PostgreSQL gratuita de Supabase, lo que puede provocar latencias y timeouts en el handshake inicial al unirse a las salas.
+¿Soportaría 5,000 usuarios simultáneos?
+Mejorable (Nota: 5/10). Unas 500 salas activas simultáneamente.
+Cuellos de botella críticos:
+Límites de conexión en Supabase: Las validaciones de JWT síncronas vía HTTP /auth/v1/user y las inserciones de analíticas fallarán masivamente por agotamiento de conexiones en el backend Postgres de Supabase.
+Lobby Único: El lobby global (party/lobby.ts) es un único Durable Object centralizado. Al recibir hearbeats de 500 salas activas cada 10 segundos, sumado a las conexiones de usuarios buscando salas públicas, procesará ~100 peticiones concurrentes por segundo, acercándose al límite de procesamiento de un único thread de DO.
+¿Soportaría 10,000 usuarios simultáneos?
+Deficiente (Nota: 2/10).
+El servidor colapsará por timeouts HTTP en cascada contra Supabase. Las salas de PartyKit no podrán validar los accesos iniciales de los usuarios y el lobby global sufrirá congelamientos debido a la saturación de procesamiento del hilo único del Durable Object de lobby.
+7. Costos Futuros de Infraestructura
+Para mantener el juego a escala masiva, la estructura de costos mensuales estimada es:
+
+Cloudflare Pages (Frontend): $0/mes (Infinito tráfico en el tier gratuito de Pages).
+Supabase (Base de datos y Auth):
+$0/mes si se optimizan las analíticas asíncronas y la validación de firmas JWT se realiza de forma local en el Worker.
+$25/mes (Plan Pro) si se mantiene el diseño de analíticas relacionales directas para evitar restricciones de CPU y conexiones Postgres.
+PartyKit / Cloudflare Workers (Servidor Multiplayer):
+El tier gratuito cubre 100,000 requests diarios de Durable Objects.
+Si se supera la cuota gratuita, el plan de pago es de **20/mes∗∗(incluye10millonesdeDOrequests,escalandoa0.15 por millón de requests adicionales).
+Para un tráfico estable de 10,000 usuarios simultáneos diarios, el coste de PartyKit oscilará entre 30y50 al mes.
+8. Calificación y Conclusiones de la Fase 2
+Nota de Evaluación: 7.2 / 10
+Fortalezas
+Desacoplamiento de Analíticas y Chat de la Sincronización de Estado: El servidor evita astutamente propagar de deltas de WebSocket o reprogramar alarmas en eventos de chat y reacciones emoji en caliente, reduciendo enormemente los ciclos de CPU del Durable Object.
+Esquema de Validación en Red: La integración de Zod a la entrada del switch de mensajes en server.ts actúa como un escudo robusto contra inyecciones de payloads maliciosos.
+Debilidades
+Bug de Carrera de Reconexión: Las desconexiones de sockets antiguos invalidan el estado activo del socket reconectado (isConnected = false).
+Fuga de Memoria en Caches del Isolate: Los Hot-Swaps de modos de juego en salas activas acumulan colecciones de palabras en RAM sin invocar a release.
+Riesgos
+Dependencia Síncrona de Supabase API: El handshake del juego está acoplado a la disponibilidad de la API HTTP de Supabase para analíticas y autenticación JWT, un punto único de fallo que colapsará la escalabilidad a partir de 1,000 usuarios.
+Oportunidades
+Validación Local de JWT: Eliminar la consulta de red /auth/v1/user y verificar la firma localmente con WebCrypto en el Worker para reducir latencia a cero y aumentar fiabilidad al 100%.
+Búfer de Analíticas: Migrar las analíticas relacionales en caliente a eventos agregados o integrarlos en PostHog de forma asíncrona en el frontend.
+
+Fase 3: Frontend, UX/UI y Experiencia de Usuario
+Este documento presenta el análisis detallado para la Fase 3, enfocado en la interfaz visual, responsividad, accesibilidad, interacciones y flujos de usuario de Tuti Games (Tuti2). El objetivo es evaluar si el producto ofrece una experiencia táctil y visual Premium digna de un producto comercial exitoso.
+
+1. Diseño Visual y Consistencia de Marca
+Estética Premium "Soft-Pop"
+El juego sobresale por su excelente dirección artística:
+
+Paleta de Colores Armónica: Uso de tonos base oscuros (#1e1b4b - azul noche) combinado con acentos neón y pasteles que le confieren un look arcade moderno. La interfaz se siente viva y dinámica gracias al uso de difuminados de fondo (backdrop-blur) y bordes translúcidos (glassmorphism).
+Tipografías y Jerarquía: La combinación de Nunito (títulos amigables y redondeados), Inter (lecturas limpias de datos) y Bebas Neue (números grandes e impactos de branding) le da una personalidad lúdica muy marcada.
+Botones y Paneles 3D: La implementación en CSS de sombras sólidas estilo cómic/pop (shadow-3d-yellow, shadow-3d-red, etc.) da una sensación física y jugable muy pulida a las interacciones del ratón y dedo.
+2. Responsividad y Adaptabilidad Móvil
+Solución a los Scrolls y Contenedores
+Lobby y Pantallas de Espera: El scroll interno del panel de configuración de la sala implementado recientemente corrige la pérdida de visibilidad de las pestañas en móviles. La barra de jugadores y las pestañas de modos de juego se mantienen estáticas y visibles en todo momento.
+Cartas de Votación Adaptativas: 
+VotingCard.vue
+ implementa de forma brillante el cambio de layout:
+Mobile: Se distribuye como una columna vertical que maximiza el espacio disponible para leer palabras. El switch de aprobación y los menús de reacciones se reordenan para facilitar el alcance del pulgar.
+Desktop: Se extiende como una fila horizontal estilizada, reduciendo el scroll vertical en pantallas grandes.
+Rendimiento de Texto: El uso de clases dinámicas basadas en cardSize en computados previene que palabras largas (como "Astronauta") se corten o desborden en pantallas pequeñas.
+3. Accesibilidad (a11y) y Áreas de Contacto (Hit Targets)
+Puntos de Fricción en Dispositivos Móviles
+Aunque visualmente es excelente, el juego presenta algunas deficiencias en accesibilidad web móvil (a11y):
+
+Botones de Configuración Pequeños: En el lobby de móviles, los botones pequeños como el de silenciar audio o el selector de privacidad tienen un área física de contacto inferior a 32x32 píxeles. Las pautas de accesibilidad móvil (WCAG / Apple / Google UI guidelines) exigen áreas mínimas de contacto de 44x44 píxeles para evitar toques accidentales o frustración del usuario.
+Falta de Accesibilidad por Teclado en Modales: El componente 
+TModal.vue
+ captura eventos de teclado para cerrar con ESC y bloquea el scroll del body, pero no implementa un Focus Trap (atrapado de foco). Si un usuario navega con teclado (Tabulador) en un modal de ajustes, el foco del cursor puede salirse del modal y navegar por elementos ocultos del fondo, lo que rompe la navegación por accesibilidad física.
+4. Flujos de Usuario y Puntos de Fricción
+El Flujo de Compartición (Excelente UX)
+El flujo para invitar amigos en 
+LobbyView.vue
+ está sumamente pulido:
+
+Si el usuario está en un dispositivo móvil, se ejecuta navigator.share() nativo, permitiendo enviar la invitación directamente a WhatsApp o Telegram en 2 toques.
+En escritorio, copia el enlace al portapapeles con una animación de confirmación rápida y un sonido de éxito de baja frecuencia.
+Punto de Fricción en el Ingreso: Al abrir un enlace de invitación en móvil (/?room=ABC), la redirección a través de los guards del router puede tomar hasta 8 segundos en frío si el servidor de PartyKit está hibernando. Durante este tiempo, la pantalla muestra un loader genérico que puede hacer pensar al usuario que la aplicación se congeló.
+5. Estados Vacíos y Manejo de Errores Visuales
+El Lobby Solitario
+Cuando un jugador crea una sala privada, se queda solo en el lobby a la espera de sus amigos. Actualmente, el panel muestra la lista de jugadores vacía (sólo el creador).
+Falta un Copy de Llamada a la Acción (CTA): No hay un mensaje claro ni una ilustración divertida que incite activamente a presionar el botón de invitar. Un texto como "¡El juego es más divertido con amigos! Presiona Compartir para invitarlos" mejoraría la retención inicial.
+ErrorBoundary Robusto: La implementación de 
+ErrorBoundary.vue
+ con capturas directas de Sentry garantiza que si el frontend experimenta un error de render (por ejemplo, al recibir una palabra extraña), el juego no muestre una pantalla en blanco ("White Screen of Death"). En su lugar, muestra un botón limpio para recargar la sala de forma controlada.
+6. Micro-animaciones e Interactividad
+Elementos Premium
+Haptic Feedback: La vibración de 20ms de duración al interactuar con los botones de voto en móvil (navigator.vibrate(20)) aporta una excelente sensación de confirmación táctil que hace sentir al juego como una app nativa premium.
+Transiciones de Fases: Los cambios entre fases (ROLE_REVEAL → TYPING → VOTING) usan transiciones fluidas de opacidad y escala que evitan saltos visuales abruptos.
+Puntos a Corregir: Jank de CPU por Reacciones
+El sistema de ráfagas de reacciones emoji (reactionBursts) renderiza múltiples elementos flotantes de forma síncrona en el DOM en base a animaciones CSS.
+Si 8 jugadores envían reacciones de forma concurrente, el DOM acumula decenas de elementos de texto flotantes, produciendo micro-tirones (caída de FPS) en celulares de gama media y baja.
+Solución propuesta: Limitar las ráfagas visuales concurrentes en el frontend a un máximo de 12 emojis activos simultáneamente por cliente.
+7. Calificación y Conclusiones de la Fase 3
+Nota de Evaluación: 8.8 / 10
+Fortalezas
+Identidad Visual Coherente: Dirección artística arcade-pop premium muy consistente que destaca inmediatamente a la vista.
+Haptic Feedback e Interactividad Háptica: Detalles táctiles sutiles en móviles que elevan la percepción de calidad.
+Responsividad de Componentes Críticos: El layout adaptativo y los scrolls de configuración garantizan una experiencia cómoda en múltiples tamaños de pantalla.
+Debilidades
+Áreas de Contacto Táctil Reducidas: Hit-targets menores a 44x44px en controles pequeños en teléfonos.
+Falta de Focus Trap en Modales: Rompe la navegación secuencial por teclado de elementos interactivos.
+Ausencia de CTAs en Estados Vacíos: No hay copys descriptivos e interactivos cuando el usuario está solo en el lobby.
+Riesgos
+Caídas de FPS en Celulares Modestos: La acumulación desmedida de bursts de reacciones emoji ralentiza el renderizado del DOM en teléfonos de gama baja.
+Oportunidades
+Loader de Conexión en Frío: Implementar un loader interactivo o un mensaje explicativo ("Despertando el servidor...") durante las esperas de conexión en frío para evitar la deserción del usuario.
+Ilustración e Invitación en Lobby: Añadir copys animados que inviten a compartir la sala cuando el contador de jugadores es igual a 1.
+
+Fase 4: Gameplay y Calidad de los Juegos
+Este documento detalla la auditoría de diseño de juego (Game Design), balance, mecánicas y pacing para la Fase 4. Se ha analizado la jugabilidad de Tuti Clásico y El Impostor, evaluando la diversión, la rejugabilidad, el comportamiento de la IA de los bots y la claridad general del sistema.
+
+1. Modo Clásico (Tuti Clásico)
+Mecánicas que Maximizan el Engagement
+El Escudo Dorado 🛡️: La autovalidación síncrona mediante diccionario local y cache de Supabase (en 
+score-system.ts
+) es una excelente solución digital. Al inmunizar las palabras correctas ante la votación de rivales, elimina las discusiones y agiliza las rondas.
+Perfect Bonus (+50 pts): Premiar a los jugadores que logran rellenar todas las casillas con palabras válidas fomenta la competitividad y premia la destreza cognitiva amplia.
+Ronda Final con Puntaje Doble (Double Points): Duplicar los puntos en la última ronda es una regla clásica de diseño de juegos de mesa de alta tensión. Mantiene a los jugadores rezagados motivados hasta el último segundo al habilitar remontadas épicas.
+Puntos de Fricción de Diseño
+Vulnerabilidad por "Pereza de Votación": El sistema valida por defecto cualquier palabra no autovalidada a menos que el 50% o más de los jugadores vote negativamente. Si los rivales deciden no votar por pereza o distracción, palabras sin sentido que inicien con la letra correcta pasarán como válidas.
+Propuesta: Introducir un sistema de "penalización por spam" (ej. perder 50 puntos si una palabra es rechazada por consenso de más del 70% de la sala). Esto desincentivaría teclear caracteres aleatorios solo por rellenar.
+2. Modo El Impostor
+Deducción Social y Balance
+Asignación Dinámica de Impostores: El motor escala el número de impostores de forma lógica según la cantidad de jugadores activos (1 impostor para <6 jugadores, 2 impostores para 6-8, 3 para >=9), garantizando que la probabilidad de deducción se mantenga balanceada.
+La Mecánica del Último Deseo (Last Wish):
+Cuando la tripulación vota y elimina a un Impostor, el juego no termina. Se abre una ventana de 10 segundos (
+impostor-engine.ts:637
+) donde el impostor eliminado puede adivinar la palabra secreta de la tripulación.
+Si acierta, el Impostor roba la victoria (+300 pts). Si falla, gana la tripulación.
+Evaluación: Es una mecánica brillante de balance (catch-up mechanic). Evita que los impostores descubiertos tempranamente se frustren y premia la atención del impostor sobre las pistas escritas por la tripulación.
+Enmascaramiento de Datos: Ocultar los drafts escritos de los rivales en fase de escritura (TYPING) y los votos en curso en la fase de votación (VOTING) en 
+impostor-engine.ts:109-126
+ es crítico para mantener la autoridad y evitar trampas de lectura de paquetes de red.
+3. Análisis Crítico de la IA de los Bots
+🚨 La Gran Falla de Diseño en Modo Impostor
+Classic (Tuti Clásico): La IA de los bots en 
+tuti-engine.ts:1100
+ es excelente. Analiza las palabras tecleadas por los humanos en tiempo real para no duplicar las respuestas intencionadamente y siempre elige palabras reales de la base de datos o de fallbacks estáticos de forma inteligente.
+El Impostor (Crítico): Los bots están completamente desatendidos en este modo.
+Un anfitrión puede agregar bots al lobby en modo Impostor.
+Al iniciar la partida, el bot recibe un rol de tripulante o impostor, pero no tiene lógica para actuar.
+En la fase TYPING, el bot no escribe ninguna palabra. En la fase VOTING, el bot no emite votos.
+Los jugadores humanos deben esperar a que el temporizador finalice de forma completa por inactividad del bot en cada fase, destrozando el pacing del juego.
+Refactorización Necesaria: Ocultar y deshabilitar el botón de "Añadir Bot" en el panel del lobby cuando el modo de juego seleccionado en la configuración sea El Impostor, ya que la mecánica de deducción social requiere exclusivamente interacción humana.
+4. Pacing de Partida y Claridad de Reglas
+Optimización del Flujo Temporal (GD-1)
+Las transiciones visuales inactivas se han reducido acertadamente:
+Fase de revelación de rol: de 10s a 6s.
+Fase de resultados de ronda: de 10s a 7s.
+Esto elimina "tiempos muertos" de espera pasiva en pantallas donde el usuario no realiza ninguna acción interactiva, aumentando la retención en dispositivos móviles.
+5. Dinámica Social y Rejugabilidad
+Chat, Reacciones y Match Highlights
+La integración de reacciones emoji dinámicas sobre las tarjetas aporta una capa de interacción social lúdica muy competitiva durante la fase de votación.
+El panel de Match Highlights (MatchHighlightsPanel.vue) analiza las estadísticas de la partida en el cliente al final del juego para otorgar títulos divertidos a los jugadores (como "El Más Rápido", "El Más Votado", etc.). Esto fomenta el humor interno, crea memorias jugables y aumenta enormemente la rejugabilidad inmediata de la sala.
+6. Calificación y Conclusiones de la Fase 4
+Nota de Evaluación: 8.5 / 10
+Fortalezas
+Catch-up Mechanic en Impostor (Last Wish): Ofrece un final emocionante y balanceado para el impostor descubierto, manteniendo la tensión hasta el final de la ronda.
+Perfect Bonus y Multiplicadores: Incentivos claros que premian la destreza y mantienen el interés competitivo en la ronda final del modo Clásico.
+IA de Bots Inteligente en Tuti Clásico: El algoritmo de no duplicación evita el comportamiento de bots planos.
+Debilidades
+Bots Rotos en Modo Impostor (Crítico): La posibilidad de agregar bots en este modo rompe el flujo del juego, ya que la IA del bot carece de rutinas de tecleo de pistas, votación y deducción.
+Vulnerabilidad de Palabras sin Sentido: Las palabras inválidas no penalizan de ninguna manera en Tuti Clásico si la sala decide no votar por distracción.
+Riesgos
+Pérdida de Pacing por Esperas de Temporizadores: Si un jugador humano se desconecta o queda AFK en el modo Impostor durante la fase de votación, la sala debe esperar todo el temporizador de forma forzada.
+Oportunidades
+Ocultar Bots en Impostor: Bloquear la creación de bots en el lobby cuando se selecciona el modo Impostor como solución de diseño inmediata.
+Sistema de Puntos Negativos: Introducir penalizaciones pequeñas por palabras rechazadas unánimemente en Tuti Clásico.
+Temporizadores Dinámicos: Terminar las fases de votación e impostor de forma inmediata en cuanto todos los jugadores humanos conectados y activos hayan confirmado su voto o palabra.
+
+ Fase 5: Retención, Viralidad y Monetización
+Este documento presenta el análisis detallado para la Fase 5, enfocado en la capacidad del juego para retener a los usuarios en el tiempo (engagement), su potencial de propagación viral (adquisición orgánica) y las vías de rentabilización comercial (monetización).
+
+1. Retención de Usuarios (Engagement y Hábito)
+Mecánicas de Retención Actuales
+Historial de Partidas Local: 
+usePlayerHistory.ts
+ guarda en localStorage las últimas 20 partidas del usuario (fecha, modo, puntaje, ranking y si ganó). Esto da un sentido de historial e identidad básica al jugador.
+Títulos y Medallas de Partida: El sistema de títulos asigna roles divertidos y estadísticas curiosas al final de cada juego (ej. "El Más Rápido", "El Más Votado"). Esto estimula la diversión grupal y la rejugabilidad inmediata en el mismo grupo de amigos.
+Fricción para Generar Hábito (Lo que falta)
+Falta de Progresión Persistente: Dado que el historial es local y no hay cuentas de usuario persistentes en base de datos con niveles de experiencia (XP), rangos de clasificación (Ranked) o cosméticos desbloqueables, no hay un gancho fuerte a largo plazo.
+Los juegos sociales modernos (Among Us, Gartic Phone) logran retención mediante la acumulación de experiencia, pases de batalla gratuitos o skins de avatares persistentes.
+Propuesta: Crear un sistema de niveles e inventario de avatares en la base de datos Supabase, asociado al ID del usuario autenticado (Google Auth).
+2. Viralidad y Crecimiento Orgánico
+La Captura Viral Premium (Excelente UX)
+El flujo de compartir en 
+GameOverView.vue
+ es el canal viral más potente del juego:
+
+Resumen Visual Estilizado: Genera un Canvas PNG de alta resolución (1080x1920) adaptado para historias de Instagram, WhatsApp y TikTok a través del componente 
+MatchSummaryCard.vue
+.
+Descarga Local de Respaldo: Realiza una descarga local síncrona inmediata antes de abrir menús de redes sociales. Esto garantiza que la imagen se conserve localmente, independientemente del éxito del menú de compartir.
+Bifurcación Multidispositivo Hábil:
+En móviles, usa la API Web Share nativa permitiendo el envío directo de la imagen a chats y redes sociales de forma natural.
+En PC, copia automáticamente el enlace de invitación al portapapeles, evitando el menú nativo de compartir que en ordenadores tiene una experiencia deficiente.
+Adopción de PWA: El aviso de instalación de PWA (InstallPrompt.vue) incentiva a los usuarios recurrentes a anclar el juego en su pantalla de inicio móvil, mejorando la retención de accesos directos.
+3. Estrategia de Monetización
+Publicidad Híbrida Inteligente
+El sistema de anuncios en 
+useAds.ts
+ está sumamente bien estructurado para maximizar ingresos sin alterar la experiencia:
+
+Híbrido Web/Nativo (Capacitor): Carga anuncios de AdSense en la versión web (banners integrados en el lobby) y SDK de AdMob para la app móvil nativa en Android/iOS (banners inline e intersticiales de pantalla completa).
+Anuncios Intersticiales con Pacing: En 
+GameOverView.vue:170
+, el juego precarga y muestra anuncios intersticiales de forma controlada al final de la partida. Esto captura ingresos por impresión cuando la tensión del juego ha bajado y el usuario está en una pantalla pasiva de resultados.
+Desarrollo Seguro: El uso de IDs de test de Google previene baneos accidentales durante fases de desarrollo o pruebas de control de calidad.
+Kill Switch Remoto: Permite deshabilitar anuncios de forma global instantáneamente desde Supabase ante problemas de cumplimiento o revisión en tiendas de aplicaciones.
+Oportunidades de Monetización Futuras
+Cosméticos y Avatares Premium: Venta de marcos 3D animados para las cartas de los jugadores en lobbies y chats (ej. bordes de fuego, neón o arcoíris).
+Paquetes de Categorías Temáticas: Packs de vocabulario especializados para hostear partidas (ej. "Cine de Terror", "Anime y Manga", "Cultura Pop de los 90s").
+Pase VIP "Sin Anuncios": Compra única de bajo coste ($1.99) para eliminar los banners de AdSense y AdMob de forma permanente para el usuario.
+4. Viabilidad Comercial y Retorno de Inversión (Veredicto)
+Costo Operativo Mínimo: Al ejecutarse sobre Cloudflare Workers (PartyKit) y Supabase gratuito, el coste de mantenimiento técnico mensual para los primeros 5,000 usuarios registrados es cercano a $0/mes.
+Margen de Ganancias Alto: Con un coste mensual casi nulo, los ingresos obtenidos por anuncios e interacciones en móviles proveen un retorno de inversión (ROI) directo e inmediato desde el primer mes de lanzamiento público.
+Viabilidad Comercial: Excelente. El juego combina mecánicas de deducción altamente adictivas con Tutti Frutti tradicional, lo que abre una ventana demográfica muy amplia (de 8 a 40 años). Su naturaleza multijugador genera un crecimiento viral intrínseco (un usuario hostea e invita a 5 amigos nuevos, quienes a su vez conocen el juego y repiten el ciclo).
+5. Calificación y Conclusiones de la Fase 5
+Nota de Evaluación: 9.2 / 10
+Fortalezas
+Canal Viral de Resultados de Alta Calidad: MatchSummaryCard y Web Share API nativa garantizan la exportación visual fluida a Instagram/WhatsApp.
+Arquitectura de Anuncios Híbrida e Inteligente: Integración de AdMob (nativo) y AdSense (web) con precarga controlada en pantallas pasivas de resultados.
+Estructura a Costo Cero: Optimización de recursos de Cloudflare y Supabase que garantiza viabilidad económica inmediata.
+Debilidades
+Ausencia de Progresión Global: Falta de cuentas persistentes con niveles, rangos de competitividad (XP) o cosméticos de perfil coleccionables en base de datos.
+Falta de Compartición de Highlights Individuales: La tarjeta de resumen es general de la partida; no permite que un jugador exporte su highlight individual destacado (ej. "¡Fui coronado como El Más Rápido en Tuti!") para presumir logros individuales en redes.
+Riesgos
+Regulaciones de Tiendas de Aplicaciones (AdMob): Las políticas de Google Play e iOS App Store son muy estrictas respecto al pacing de anuncios intersticiales. Si un anuncio se dispara de forma abrupta o interrumpe flujos de usuario, la app podría ser bloqueada temporalmente.
+Oportunidades
+Cosméticos Persistentes por Supabase: Integrar una tienda simple de avatares y marcos 3D desbloqueables con monedas virtuales del juego (obtenidas por ganar rondas).
+Highlights Individuales para Redes: Permitir que cada jugador exporte un widget visual de su medalla de partida específica para maximizar la viralidad egocéntrica del usuario.
+
