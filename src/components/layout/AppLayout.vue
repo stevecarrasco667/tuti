@@ -279,14 +279,14 @@ const triggerClearCache = () => {
                         </div>
                         
                         <!-- Compact VIP Badge on Desktop next to the title -->
-                        <div class="hidden md:flex items-center gap-2.5 bg-gradient-to-r from-yellow-500/10 via-amber-500/15 to-yellow-600/5 border border-yellow-500/25 px-3 py-1.5 rounded-xl transition-all hover:border-yellow-500/40">
-                            <span class="text-lg">👑</span>
+                        <div class="hidden md:flex items-center gap-3 bg-gradient-to-r from-yellow-500/15 via-amber-500/20 to-yellow-600/10 border border-yellow-500/35 px-4 py-2 rounded-2xl transition-all hover:border-yellow-500/50 shadow-md">
+                            <span class="text-xl">👑</span>
                             <div class="text-left">
-                                <h3 class="text-white font-black text-[10px] uppercase tracking-wider leading-none">Pase VIP</h3>
-                                <p class="text-yellow-400/80 text-[8px] font-bold uppercase tracking-wider mt-0.5 leading-none">Sin anuncios & Marcos</p>
+                                <h3 class="text-white font-black text-xs uppercase tracking-wider leading-none">Pase VIP</h3>
+                                <p class="text-yellow-400/80 text-[10px] font-bold uppercase tracking-wider mt-0.5 leading-none">Sin anuncios & Marcos</p>
                             </div>
                             <button @click="handleMockAction('Compra VIP Ad-Free')"
-                                    class="ml-1 px-2.5 py-1 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-zinc-950 rounded-lg font-black text-[8px] uppercase tracking-wider transition-all hover:scale-105 active:scale-95 cursor-pointer">
+                                    class="ml-1.5 px-3 py-1.5 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-zinc-950 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm">
                                 Activar
                             </button>
                         </div>
@@ -296,13 +296,13 @@ const triggerClearCache = () => {
                         <button 
                             v-if="coins < 150" 
                             @click="setTab('home')"
-                            class="px-2.5 py-1.5 bg-blue-500/20 hover:bg-blue-500/35 border border-blue-500/30 hover:border-blue-500/40 text-blue-300 rounded-full font-black text-[9px] uppercase tracking-wider transition-colors cursor-pointer"
+                            class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/35 border border-blue-500/35 hover:border-blue-500/50 text-blue-200 rounded-full font-black text-xs uppercase tracking-wider shadow-sm transition-all hover:scale-[1.02] cursor-pointer"
                         >
                             Jugar 🎮
                         </button>
                         <!-- HUD Monedas -->
-                        <div class="flex items-center gap-1.5 bg-yellow-500/10 border border-yellow-500/30 px-3 py-1.5 rounded-full text-yellow-400 font-black text-xs uppercase tracking-wider shadow-[0_0_10px_rgba(234,179,8,0.12)]">
-                            <CoinIcon class="w-3.5 h-3.5" /> {{ coins }}
+                        <div class="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/35 px-4 py-2 rounded-full text-yellow-400 font-black text-sm uppercase tracking-wider shadow-[0_2px_8px_rgba(234,179,8,0.15)]">
+                            <CoinIcon class="w-4 h-4" /> {{ coins }}
                         </div>
                     </div>
                 </div>
@@ -330,35 +330,35 @@ const triggerClearCache = () => {
                 </div>
 
                 <!-- ── Sub-pestañas del catálogo ─────────────────────── -->
-                <div class="flex gap-2.5 p-1.5 bg-white/5 border border-white/5 rounded-2xl">
+                <div class="flex gap-2 p-1 bg-white/5 border border-white/5 rounded-2xl">
                     <button
                         @click="activeStoreTab = 'frames'"
-                        class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase text-xs md:text-sm tracking-wider transition-all cursor-pointer"
+                        class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-black uppercase text-xs tracking-wider transition-all cursor-pointer"
                         :class="activeStoreTab === 'frames'
                             ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
                             : 'text-white/40 hover:text-white/70 hover:bg-white/5 border border-transparent'"
                     >
-                        <span class="text-sm md:text-base">🌌</span>
+                        <span class="text-sm">🌌</span>
                         <span>{{ t('store.framesTitle') || 'Marcos' }}</span>
                     </button>
                     <button
                         @click="activeStoreTab = 'expansions'"
-                        class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase text-xs md:text-sm tracking-wider transition-all cursor-pointer"
+                        class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-black uppercase text-xs tracking-wider transition-all cursor-pointer"
                         :class="activeStoreTab === 'expansions'
                             ? 'bg-blue-500/20 border border-blue-500/40 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.25)]'
                             : 'text-white/40 hover:text-white/70 hover:bg-white/5 border border-transparent'"
                     >
-                        <span class="text-sm md:text-base">📦</span>
+                        <span class="text-sm">📦</span>
                         <span>{{ t('store.expansionsTitle') || 'Expansiones' }}</span>
                     </button>
                     <button
                         @click="activeStoreTab = 'emojis'"
-                        class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase text-xs md:text-sm tracking-wider transition-all cursor-pointer"
+                        class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-black uppercase text-xs tracking-wider transition-all cursor-pointer"
                         :class="activeStoreTab === 'emojis'
                             ? 'bg-pink-500/20 border border-pink-500/40 text-pink-300 shadow-[0_0_12px_rgba(236,72,153,0.25)]'
                             : 'text-white/40 hover:text-white/70 hover:bg-white/5 border border-transparent'"
                     >
-                        <span class="text-sm md:text-base">🎭</span>
+                        <span class="text-sm">🎭</span>
                         <span>{{ t('store.emojisTitle') || 'Emojis' }}</span>
                     </button>
                 </div>
