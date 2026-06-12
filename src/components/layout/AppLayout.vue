@@ -254,113 +254,115 @@ const triggerClearCache = () => {
 
             <!-- TIENDA CÓSMICA — Layout Premium Rediseñado -->
             <div v-else-if="currentTab === 'store'" class="w-full max-w-[960px] mx-auto p-4 md:p-6 flex flex-col gap-4 animate-fade-in pb-12">
-
-                <!-- Botón de retorno contextual cuando se está dentro del lobby/juego -->
-                <div v-if="isRoomRoute" class="flex items-center justify-start pt-2">
-                    <button
-                        @click="setTab('home')"
-                        class="flex items-center gap-1.5 px-4 py-2 bg-panel-card/70 hover:bg-panel-input border border-white/10 hover:border-white/20 rounded-xl text-ink-soft hover:text-white font-heading font-black text-[10px] md:text-xs uppercase tracking-wider transition-all duration-75 active:scale-95 cursor-pointer shadow-md select-none"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-3.5 h-3.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                        </svg>
-                        <span>{{ returnButtonText }}</span>
-                    </button>
-                </div>
-
-                <!-- ── Header: Título + Monedas ───────────────────────── -->
-                <div class="flex items-center justify-between pt-2 gap-4 flex-wrap md:flex-nowrap">
-                    <div class="flex items-center gap-4 flex-wrap">
-                        <div>
-                            <h2 class="text-2xl md:text-3xl font-display text-transparent bg-clip-text bg-gradient-to-r from-game-yellow to-amber-500 uppercase tracking-widest font-black filter drop-shadow-[0_0_12px_rgba(251,191,36,0.3)] leading-none">
-                                🛒 Tienda Cósmica
-                            </h2>
-                            <p class="text-ink-muted text-[10px] font-bold uppercase tracking-widest mt-1">Personaliza tu aspecto y expansiones</p>
-                        </div>
-                        
-                        <!-- Compact VIP Badge on Desktop next to the title -->
-                        <div class="hidden md:flex items-center gap-3 bg-gradient-to-r from-yellow-500/15 via-amber-500/20 to-yellow-600/10 border border-yellow-500/35 px-4 py-2 rounded-2xl transition-all hover:border-yellow-500/50 shadow-md">
-                            <span class="text-xl">👑</span>
-                            <div class="text-left">
-                                <h3 class="text-white font-black text-xs uppercase tracking-wider leading-none">Pase VIP</h3>
-                                <p class="text-yellow-400/80 text-[10px] font-bold uppercase tracking-wider mt-0.5 leading-none">Sin anuncios & Marcos</p>
-                            </div>
-                            <button @click="handleMockAction('Compra VIP Ad-Free')"
-                                    class="ml-1.5 px-3 py-1.5 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-zinc-950 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm">
-                                Activar
-                            </button>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 flex-none">
-                        <!-- Botón sutil de Jugar si tiene pocas monedas -->
-                        <button 
-                            v-if="coins < 150" 
+                <!-- ── Cabecera y Navegación Sticky ────────────────────── -->
+                <div class="sticky top-0 z-30 bg-[#130a2f] md:bg-[#130a2f]/90 backdrop-blur-md -mt-4 md:-mt-6 pt-4 md:pt-6 pb-3 -mx-4 px-4 md:-mx-6 md:px-6 flex flex-col gap-4">
+                    <!-- Botón de retorno contextual cuando se está dentro del lobby/juego -->
+                    <div v-if="isRoomRoute" class="flex items-center justify-start pt-2">
+                        <button
                             @click="setTab('home')"
-                            class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/35 border border-blue-500/35 hover:border-blue-500/50 text-blue-200 rounded-full font-black text-xs uppercase tracking-wider shadow-sm transition-all hover:scale-[1.02] cursor-pointer"
+                            class="flex items-center gap-1.5 px-4 py-2 bg-panel-card/70 hover:bg-panel-input border border-white/10 hover:border-white/20 rounded-xl text-ink-soft hover:text-white font-heading font-black text-[10px] md:text-xs uppercase tracking-wider transition-all duration-75 active:scale-95 cursor-pointer shadow-md select-none"
                         >
-                            Jugar 🎮
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-3.5 h-3.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                            </svg>
+                            <span>{{ returnButtonText }}</span>
                         </button>
-                        <!-- HUD Monedas -->
-                        <div class="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/35 px-4 py-2 rounded-full text-yellow-400 font-black text-sm uppercase tracking-wider shadow-[0_2px_8px_rgba(234,179,8,0.15)]">
-                            <CoinIcon class="w-4 h-4" /> {{ coins }}
+                    </div>
+
+                    <!-- ── Header: Título + Monedas ───────────────────────── -->
+                    <div class="flex items-center justify-between pt-2 gap-4 flex-wrap md:flex-nowrap">
+                        <div class="flex items-center gap-4 flex-wrap">
+                            <div>
+                                <h2 class="text-2xl md:text-3xl font-display text-transparent bg-clip-text bg-gradient-to-r from-game-yellow to-amber-500 uppercase tracking-widest font-black filter drop-shadow-[0_0_12px_rgba(251,191,36,0.3)] leading-none">
+                                    🛒 Tienda Cósmica
+                                </h2>
+                                <p class="text-ink-muted text-[10px] font-bold uppercase tracking-widest mt-1">Personaliza tu aspecto y expansiones</p>
+                            </div>
+                            
+                            <!-- Compact VIP Badge on Desktop next to the title -->
+                            <div class="hidden md:flex items-center gap-3 bg-gradient-to-r from-yellow-500/15 via-amber-500/20 to-yellow-600/10 border border-yellow-500/35 px-4 py-2 rounded-2xl transition-all hover:border-yellow-500/50 shadow-md">
+                                <span class="text-xl">👑</span>
+                                <div class="text-left">
+                                    <h3 class="text-white font-black text-xs uppercase tracking-wider leading-none">Pase VIP</h3>
+                                    <p class="text-yellow-400/80 text-[10px] font-bold uppercase tracking-wider mt-0.5 leading-none">Sin anuncios & Marcos</p>
+                                </div>
+                                <button @click="handleMockAction('Compra VIP Ad-Free')"
+                                        class="ml-1.5 px-3 py-1.5 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-zinc-950 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm">
+                                    Activar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 flex-none">
+                            <!-- Botón sutil de Jugar si tiene pocas monedas -->
+                            <button 
+                                v-if="coins < 150" 
+                                @click="setTab('home')"
+                                class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/35 border border-blue-500/35 hover:border-blue-500/50 text-blue-200 rounded-full font-black text-xs uppercase tracking-wider shadow-sm transition-all hover:scale-[1.02] cursor-pointer"
+                            >
+                                Jugar 🎮
+                            </button>
+                            <!-- HUD Monedas -->
+                            <div class="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/35 px-4 py-2 rounded-full text-yellow-400 font-black text-sm uppercase tracking-wider shadow-[0_2px_8px_rgba(234,179,8,0.15)]">
+                                <CoinIcon class="w-4 h-4" /> {{ coins }}
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- ── Banner VIP: Barra Compacta Horizontal (Solo Móvil) ── -->
-                <div class="md:hidden w-full bg-gradient-to-r from-yellow-500/15 via-amber-500/25 to-yellow-600/10 border border-yellow-500/35 rounded-2xl px-4 py-2.5 shadow-[0_2px_8px_rgba(245,158,11,0.1)] relative overflow-hidden flex flex-col sm:flex-row justify-between items-center gap-3 transition-all hover:border-yellow-500/50">
-                    <div class="absolute -top-12 -left-12 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl pointer-events-none"></div>
-                    
-                    <div class="flex items-center gap-3 min-w-0 relative z-10 text-left">
-                        <span class="text-2xl bg-yellow-500/10 border border-yellow-500/30 p-1.5 rounded-xl flex-none shadow-sm">👑</span>
-                        <div class="min-w-0">
-                            <h3 class="text-white font-black text-xs uppercase tracking-wider leading-none flex items-center gap-2">
-                                Pase VIP Cósmico
-                                <span class="bg-yellow-400 text-zinc-950 text-[8px] font-black uppercase px-1.5 py-0.25 rounded-md select-none">Premium</span>
-                            </h3>
-                            <p class="text-yellow-400/70 text-[9px] font-bold uppercase tracking-wider mt-1 leading-none">
-                                Sin anuncios · Marcos exclusivos · Reacciones extra
-                            </p>
+                    <!-- ── Banner VIP: Barra Compacta Horizontal (Solo Móvil) ── -->
+                    <div class="md:hidden w-full bg-gradient-to-r from-yellow-500/15 via-amber-500/25 to-yellow-600/10 border border-yellow-500/35 rounded-2xl px-4 py-2.5 shadow-[0_2px_8px_rgba(245,158,11,0.1)] relative overflow-hidden flex flex-col sm:flex-row justify-between items-center gap-3 transition-all hover:border-yellow-500/50">
+                        <div class="absolute -top-12 -left-12 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                        
+                        <div class="flex items-center gap-3 min-w-0 relative z-10 text-left">
+                            <span class="text-2xl bg-yellow-500/10 border border-yellow-500/30 p-1.5 rounded-xl flex-none shadow-sm">👑</span>
+                            <div class="min-w-0">
+                                <h3 class="text-white font-black text-xs uppercase tracking-wider leading-none flex items-center gap-2">
+                                    Pase VIP Cósmico
+                                    <span class="bg-yellow-400 text-zinc-950 text-[8px] font-black uppercase px-1.5 py-0.25 rounded-md select-none">Premium</span>
+                                </h3>
+                                <p class="text-yellow-400/70 text-[9px] font-bold uppercase tracking-wider mt-1 leading-none">
+                                    Sin anuncios · Marcos exclusivos · Reacciones extra
+                                </p>
+                            </div>
                         </div>
+                        <button @click="handleMockAction('Compra VIP Ad-Free')"
+                            class="flex-none w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-zinc-950 rounded-xl font-black uppercase text-[10px] tracking-wider hover:scale-[1.02] active:scale-95 transition-all shadow-[0_2px_6px_rgba(245,158,11,0.2)] cursor-pointer relative z-10">
+                            Activar VIP
+                        </button>
                     </div>
-                    <button @click="handleMockAction('Compra VIP Ad-Free')"
-                        class="flex-none w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-zinc-950 rounded-xl font-black uppercase text-[10px] tracking-wider hover:scale-[1.02] active:scale-95 transition-all shadow-[0_2px_6px_rgba(245,158,11,0.2)] cursor-pointer relative z-10">
-                        Activar VIP
-                    </button>
-                </div>
 
-                <!-- ── Sub-pestañas del catálogo ─────────────────────── -->
-                <div class="flex gap-2 p-1 bg-white/5 border border-white/5 rounded-2xl">
-                    <button
-                        @click="activeStoreTab = 'frames'"
-                        class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-black uppercase text-xs tracking-wider transition-all cursor-pointer"
-                        :class="activeStoreTab === 'frames'
-                            ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
-                            : 'text-white/40 hover:text-white/70 hover:bg-white/5 border border-transparent'"
-                    >
-                        <span class="text-sm">🌌</span>
-                        <span>{{ t('store.framesTitle') || 'Marcos' }}</span>
-                    </button>
-                    <button
-                        @click="activeStoreTab = 'expansions'"
-                        class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-black uppercase text-xs tracking-wider transition-all cursor-pointer"
-                        :class="activeStoreTab === 'expansions'
-                            ? 'bg-blue-500/20 border border-blue-500/40 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.25)]'
-                            : 'text-white/40 hover:text-white/70 hover:bg-white/5 border border-transparent'"
-                    >
-                        <span class="text-sm">📦</span>
-                        <span>{{ t('store.expansionsTitle') || 'Expansiones' }}</span>
-                    </button>
-                    <button
-                        @click="activeStoreTab = 'emojis'"
-                        class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-black uppercase text-xs tracking-wider transition-all cursor-pointer"
-                        :class="activeStoreTab === 'emojis'
-                            ? 'bg-pink-500/20 border border-pink-500/40 text-pink-300 shadow-[0_0_12px_rgba(236,72,153,0.25)]'
-                            : 'text-white/40 hover:text-white/70 hover:bg-white/5 border border-transparent'"
-                    >
-                        <span class="text-sm">🎭</span>
-                        <span>{{ t('store.emojisTitle') || 'Emojis' }}</span>
-                    </button>
+                    <!-- ── Sub-pestañas del catálogo ─────────────────────── -->
+                    <div class="flex gap-2 p-1 bg-white/5 border border-white/5 rounded-2xl">
+                        <button
+                            @click="activeStoreTab = 'frames'"
+                            class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-black uppercase text-xs tracking-wider transition-all cursor-pointer"
+                            :class="activeStoreTab === 'frames'
+                                ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
+                                : 'text-white/40 hover:text-white/70 hover:bg-white/5 border border-transparent'"
+                        >
+                            <span class="text-sm">🌌</span>
+                            <span>{{ t('store.framesTitle') || 'Marcos' }}</span>
+                        </button>
+                        <button
+                            @click="activeStoreTab = 'expansions'"
+                            class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-black uppercase text-xs tracking-wider transition-all cursor-pointer"
+                            :class="activeStoreTab === 'expansions'
+                                ? 'bg-blue-500/20 border border-blue-500/40 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.25)]'
+                                : 'text-white/40 hover:text-white/70 hover:bg-white/5 border border-transparent'"
+                        >
+                            <span class="text-sm">📦</span>
+                            <span>{{ t('store.expansionsTitle') || 'Expansiones' }}</span>
+                        </button>
+                        <button
+                            @click="activeStoreTab = 'emojis'"
+                            class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-black uppercase text-xs tracking-wider transition-all cursor-pointer"
+                            :class="activeStoreTab === 'emojis'
+                                ? 'bg-pink-500/20 border border-pink-500/40 text-pink-300 shadow-[0_0_12px_rgba(236,72,153,0.25)]'
+                                : 'text-white/40 hover:text-white/70 hover:bg-white/5 border border-transparent'"
+                        >
+                            <span class="text-sm">🎭</span>
+                            <span>{{ t('store.emojisTitle') || 'Emojis' }}</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- ── Catálogo: Marcos de Avatar ─────────────────────── -->
