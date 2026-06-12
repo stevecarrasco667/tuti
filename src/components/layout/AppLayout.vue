@@ -280,56 +280,28 @@ const triggerClearCache = () => {
                                 </h2>
                                 <p class="text-ink-muted text-[10px] font-bold uppercase tracking-widest mt-1">Personaliza tu aspecto y expansiones</p>
                             </div>
-                            
-                            <!-- Compact VIP Badge on Desktop next to the title -->
-                            <div class="hidden md:flex items-center gap-3 bg-gradient-to-r from-yellow-500/15 via-amber-500/20 to-yellow-600/10 border border-yellow-500/35 px-4 py-2 rounded-2xl transition-all hover:border-yellow-500/50 shadow-md">
-                                <span class="text-xl">👑</span>
-                                <div class="text-left">
-                                    <h3 class="text-white font-black text-xs uppercase tracking-wider leading-none">Pase VIP</h3>
-                                    <p class="text-yellow-400/80 text-[10px] font-bold uppercase tracking-wider mt-0.5 leading-none">Sin anuncios & Marcos</p>
-                                </div>
-                                <button @click="handleMockAction('Compra VIP Ad-Free')"
-                                        class="ml-1.5 px-3 py-1.5 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-zinc-950 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm">
-                                    Activar
-                                </button>
-                            </div>
                         </div>
-                        <div class="flex items-center gap-2 flex-none">
+                        <div class="flex items-center gap-1.5 sm:gap-2 flex-none">
                             <!-- Botón sutil de Jugar si tiene pocas monedas -->
                             <button 
                                 v-if="coins < 150" 
                                 @click="setTab('home')"
-                                class="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/35 border border-blue-500/35 hover:border-blue-500/50 text-blue-200 rounded-full font-black text-xs uppercase tracking-wider shadow-sm transition-all hover:scale-[1.02] cursor-pointer"
+                                class="px-2.5 py-1.5 sm:px-4 sm:py-2 bg-blue-500/20 hover:bg-blue-500/35 border border-blue-500/35 hover:border-blue-500/50 text-blue-200 rounded-full font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-sm transition-all hover:scale-[1.02] cursor-pointer whitespace-nowrap"
                             >
                                 Jugar 🎮
                             </button>
+                            <!-- Píldora VIP Dorado Compacto -->
+                            <button
+                                @click="handleMockAction('Compra VIP Ad-Free')"
+                                class="px-2.5 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-yellow-500/20 via-amber-500/30 to-yellow-600/20 hover:from-yellow-500/30 hover:to-amber-500/40 border border-yellow-500/40 hover:border-yellow-500/60 text-yellow-400 rounded-full font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-[0_2px_8px_rgba(234,179,8,0.1)] transition-all hover:scale-[1.02] active:scale-95 cursor-pointer whitespace-nowrap flex items-center gap-1"
+                            >
+                                <span>👑 VIP</span>
+                            </button>
                             <!-- HUD Monedas -->
-                            <div class="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/35 px-4 py-2 rounded-full text-yellow-400 font-black text-sm uppercase tracking-wider shadow-[0_2px_8px_rgba(234,179,8,0.15)]">
-                                <CoinIcon class="w-4 h-4" /> {{ coins }}
+                            <div class="flex items-center gap-1.5 sm:gap-2 bg-yellow-500/10 border border-yellow-500/35 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-yellow-400 font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_2px_8px_rgba(234,179,8,0.15)] whitespace-nowrap">
+                                <CoinIcon class="w-3.5 h-3.5 sm:w-4 sm:h-4" /> {{ coins }}
                             </div>
                         </div>
-                    </div>
-
-                    <!-- ── Banner VIP: Barra Compacta Horizontal (Solo Móvil) ── -->
-                    <div class="md:hidden w-full bg-gradient-to-r from-yellow-500/15 via-amber-500/25 to-yellow-600/10 border border-yellow-500/35 rounded-2xl px-4 py-2.5 shadow-[0_2px_8px_rgba(245,158,11,0.1)] relative overflow-hidden flex flex-col sm:flex-row justify-between items-center gap-3 transition-all hover:border-yellow-500/50">
-                        <div class="absolute -top-12 -left-12 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl pointer-events-none"></div>
-                        
-                        <div class="flex items-center gap-3 min-w-0 relative z-10 text-left">
-                            <span class="text-2xl bg-yellow-500/10 border border-yellow-500/30 p-1.5 rounded-xl flex-none shadow-sm">👑</span>
-                            <div class="min-w-0">
-                                <h3 class="text-white font-black text-xs uppercase tracking-wider leading-none flex items-center gap-2">
-                                    Pase VIP Cósmico
-                                    <span class="bg-yellow-400 text-zinc-950 text-[8px] font-black uppercase px-1.5 py-0.25 rounded-md select-none">Premium</span>
-                                </h3>
-                                <p class="text-yellow-400/70 text-[9px] font-bold uppercase tracking-wider mt-1 leading-none">
-                                    Sin anuncios · Marcos exclusivos · Reacciones extra
-                                </p>
-                            </div>
-                        </div>
-                        <button @click="handleMockAction('Compra VIP Ad-Free')"
-                            class="flex-none w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-zinc-950 rounded-xl font-black uppercase text-[10px] tracking-wider hover:scale-[1.02] active:scale-95 transition-all shadow-[0_2px_6px_rgba(245,158,11,0.2)] cursor-pointer relative z-10">
-                            Activar VIP
-                        </button>
                     </div>
 
                     <!-- ── Sub-pestañas del catálogo ─────────────────────── -->
@@ -377,15 +349,15 @@ const triggerClearCache = () => {
                     <div v-else class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         <div v-for="item in storeFrames" :key="item.id"
                              @click="handleShowDetails(item)"
-                             class="bg-white/5 border border-white/5 hover:border-purple-500/30 rounded-2xl p-4 flex flex-col items-center gap-3 text-center transition-all group relative cursor-pointer hover:scale-[1.02]"
+                             class="bg-white/5 border border-white/5 hover:border-purple-500/30 rounded-2xl p-3 sm:p-4 flex flex-col items-center gap-2 sm:gap-3 text-center transition-all group relative cursor-pointer hover:scale-[1.02]"
                              :class="{ 'glow-owned': unlockedFrames.includes(item.id) }"
                         >
                             <div 
-                                class="w-16 h-16 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner relative"
+                                class="w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner relative"
                                 :class="item.id === 'frame_gold' || item.id === 'frame_rainbow' ? 'bg-rarity-legendary' : item.id === 'frame_fire' ? 'bg-rarity-epic' : 'bg-rarity-rare'"
                             >
                                 <AvatarWrapper :frameId="item.id">
-                                    <div class="w-14 h-14 bg-panel-base rounded-full flex items-center justify-center text-2xl">😎</div>
+                                    <div class="w-10 h-10 sm:w-14 sm:h-14 bg-panel-base rounded-full flex items-center justify-center text-lg sm:text-2xl">😎</div>
                                 </AvatarWrapper>
                                 
                                 <!-- Badge de recomendación/rareza -->
@@ -405,7 +377,7 @@ const triggerClearCache = () => {
                             </div>
                             <div class="w-full">
                                 <h4 class="text-white font-black text-xs uppercase tracking-wide truncate">{{ t(item.name) || item.name }}</h4>
-                                <p class="text-ink-soft text-[9px] font-medium leading-tight my-1 truncate w-full px-1">{{ t(item.description) || item.description }}</p>
+                                <p class="text-ink-soft text-[9px] font-medium leading-tight my-1 truncate w-full px-1 hidden sm:block">{{ t(item.description) || item.description }}</p>
                                 
                                 <!-- Barra de progreso de ahorro para Marcos -->
                                 <div v-if="!unlockedFrames.includes(item.id) && coins < item.price" class="w-full mt-2 space-y-1">
@@ -421,24 +393,24 @@ const triggerClearCache = () => {
                             
                             <button
                                 v-if="!unlockedFrames.includes(item.id)"
-                                class="w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border cursor-pointer flex items-center justify-center gap-1.5"
+                                class="w-full py-2 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5"
                                 :class="coins >= item.price
                                     ? 'bg-gradient-to-r from-purple-500 to-indigo-500 border-purple-400 hover:from-purple-400 hover:to-indigo-400 text-white shadow-md'
                                     : 'bg-white/5 text-white/40 border-white/5 cursor-not-allowed'"
                                 :disabled="coins < item.price"
                             >
-                                <CoinIcon class="w-3.5 h-3.5" /> {{ item.price }}
+                                <CoinIcon class="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {{ item.price }}
                             </button>
                             <button
                                 v-else-if="equippedFrame !== item.id"
                                 @click.stop="equipFrame(item.id)"
-                                class="w-full bg-white/5 hover:bg-white/10 text-white py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors border border-white/10 cursor-pointer"
+                                class="w-full bg-white/5 hover:bg-white/10 text-white py-2 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-colors border border-white/10 cursor-pointer"
                             >
                                 Equipar
                             </button>
                             <div
                                 v-else
-                                class="w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider text-center bg-action-success/15 border border-action-success/30 text-action-success flex items-center justify-center gap-1 glow-owned select-none"
+                                class="w-full py-2 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-center bg-action-success/15 border border-action-success/30 text-action-success flex items-center justify-center gap-1 glow-owned select-none"
                             >
                                 <span>✓ Propio</span>
                             </div>
@@ -451,10 +423,10 @@ const triggerClearCache = () => {
                     <div v-if="storeExpansions.length === 0" class="text-center py-10 text-ink-muted text-xs font-bold uppercase tracking-wider">
                         No hay expansiones disponibles todavía.
                     </div>
-                    <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div v-else class="grid grid-cols-2 sm:grid-cols-2 gap-3 md:gap-4">
                         <div v-for="item in storeExpansions" :key="item.id"
                              @click="handleShowDetails(item)"
-                             class="bg-white/5 border border-white/5 hover:border-blue-500/30 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all group cursor-pointer hover:scale-[1.02] relative overflow-hidden"
+                             class="bg-white/5 border border-white/5 hover:border-blue-500/30 rounded-2xl p-3 sm:p-5 flex flex-col justify-between gap-3 sm:gap-4 transition-all group cursor-pointer hover:scale-[1.02] relative overflow-hidden"
                              :class="{ 'glow-owned': unlockedFrames.includes(item.id) }"
                         >
                             <!-- Badge Promocional -->
@@ -473,10 +445,10 @@ const triggerClearCache = () => {
                                 <template v-else-if="item.id === 'pack_cine'">🍿 Premium</template>
                             </span>
 
-                            <div class="flex items-center gap-4 min-w-0 mt-2 sm:mt-0">
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 min-w-0 mt-4 sm:mt-0">
                                 <!-- Icono encapsulado con degradado de rareza -->
                                 <div 
-                                    class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-inner flex-none relative"
+                                    class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl shadow-inner flex-none relative"
                                     :class="item.id === 'pack_cine' ? 'bg-rarity-legendary' : item.id === 'pack_gamer' ? 'bg-rarity-epic' : 'bg-rarity-rare'"
                                 >
                                     <template v-if="item.id === 'pack_futbol'">⚽</template>
@@ -486,8 +458,8 @@ const triggerClearCache = () => {
                                     <template v-else>🎮</template>
                                 </div>
                                 <div class="text-left min-w-0 flex-1">
-                                    <h4 class="text-white font-black text-sm uppercase tracking-wide truncate">{{ t(item.name) || item.name }}</h4>
-                                    <p class="text-ink-soft text-[11px] font-medium leading-tight mt-1 line-clamp-2">{{ t(item.description) || item.description }}</p>
+                                    <h4 class="text-white font-black text-xs sm:text-sm uppercase tracking-wide truncate">{{ t(item.name) || item.name }}</h4>
+                                    <p class="text-ink-soft text-[11px] font-medium leading-tight mt-1 line-clamp-2 hidden sm:block">{{ t(item.description) || item.description }}</p>
                                     
                                     <!-- Barra de Progreso de Monedas -->
                                     <div v-if="!unlockedFrames.includes(item.id) && coins < item.price" class="w-full mt-2 max-w-[200px] space-y-1">
@@ -503,17 +475,17 @@ const triggerClearCache = () => {
                             </div>
                             
                             <!-- Acción derecha -->
-                            <div class="flex-none flex items-center">
+                            <div class="flex-none flex items-center w-full">
                                 <button
                                     v-if="!unlockedFrames.includes(item.id)"
-                                    class="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md cursor-pointer disabled:opacity-40 disabled:from-zinc-800 disabled:to-zinc-800 disabled:text-white/40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                                    class="w-full px-3 py-2 sm:px-5 sm:py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white rounded-xl text-[9px] sm:text-xs font-black uppercase tracking-wider transition-all shadow-md cursor-pointer disabled:opacity-40 disabled:from-zinc-800 disabled:to-zinc-800 disabled:text-white/40 disabled:cursor-not-allowed flex items-center justify-center gap-1 sm:gap-1.5"
                                     :disabled="coins < item.price"
                                 >
-                                    <CoinIcon class="w-3.5 h-3.5" /> {{ item.price }}
+                                    <CoinIcon class="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {{ item.price }}
                                 </button>
                                 <div
                                     v-else
-                                    class="w-full sm:w-auto px-4 py-2.5 text-center bg-action-success/15 border border-action-success/30 text-action-success rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1 glow-owned select-none"
+                                    class="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-center bg-action-success/15 border border-action-success/30 text-action-success rounded-xl text-[9px] sm:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1 glow-owned select-none"
                                 >
                                     <span>✓ Propio</span>
                                 </div>
@@ -530,10 +502,10 @@ const triggerClearCache = () => {
                     <div v-if="storeEmojis.length === 0" class="text-center py-10 text-ink-muted text-xs font-bold uppercase tracking-wider">
                         No hay packs de emojis disponibles todavía.
                     </div>
-                    <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div v-else class="grid grid-cols-2 sm:grid-cols-2 gap-3 md:gap-4">
                         <div v-for="item in storeEmojis" :key="item.id"
                              @click="handleShowDetails(item)"
-                             class="bg-white/5 border border-white/5 hover:border-pink-500/30 rounded-2xl p-5 flex flex-col gap-4 transition-all group cursor-pointer hover:scale-[1.02] relative overflow-hidden"
+                             class="bg-white/5 border border-white/5 hover:border-pink-500/30 rounded-2xl p-3 sm:p-5 flex flex-col justify-between gap-3 sm:gap-4 transition-all group cursor-pointer hover:scale-[1.02] relative overflow-hidden"
                              :class="{ 'glow-owned': unlockedFrames.includes(item.id) }"
                         >
                             <!-- Badge Promocional -->
@@ -541,13 +513,13 @@ const triggerClearCache = () => {
                                 🎭 Expresivo
                             </span>
 
-                            <div class="flex items-center gap-4 mt-2">
-                                <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-inner bg-rarity-epic flex-none">
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 min-w-0 mt-4 sm:mt-0">
+                                <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl shadow-inner bg-rarity-epic flex-none">
                                     🎭
                                 </div>
                                 <div class="text-left min-w-0 flex-1">
-                                    <h4 class="text-white font-black text-sm uppercase tracking-wide truncate">{{ t(item.name) || item.name }}</h4>
-                                    <p class="text-ink-soft text-xs font-medium leading-tight mt-1 line-clamp-1">{{ t(item.description) || item.description }}</p>
+                                    <h4 class="text-white font-black text-xs sm:text-sm uppercase tracking-wide truncate">{{ t(item.name) || item.name }}</h4>
+                                    <p class="text-ink-soft text-xs font-medium leading-tight mt-1 line-clamp-1 hidden sm:block">{{ t(item.description) || item.description }}</p>
                                     
                                     <!-- Barra de Progreso de Monedas -->
                                     <div v-if="!unlockedFrames.includes(item.id) && coins < item.price" class="w-full mt-2 max-w-[200px] space-y-1">
@@ -563,22 +535,22 @@ const triggerClearCache = () => {
                             </div>
  
                             <!-- Preview de emojis del pack -->
-                            <div v-if="item.metadata?.emojis?.length" class="flex flex-wrap gap-2 p-3 bg-black/20 rounded-xl border border-white/5">
+                            <div v-if="item.metadata?.emojis?.length" class="flex flex-wrap gap-1 sm:gap-2 p-1.5 sm:p-3 bg-black/20 rounded-xl border border-white/5">
                                 <span v-for="emj in item.metadata.emojis" :key="emj"
-                                      class="text-xl leading-none hover:scale-125 transition-transform cursor-default"
+                                      class="text-sm sm:text-xl leading-none hover:scale-125 transition-transform cursor-default"
                                       :title="emj">{{ emj }}</span>
                             </div>
  
                             <button
                                 v-if="!unlockedFrames.includes(item.id)"
-                                class="w-full py-3 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md cursor-pointer disabled:opacity-40 disabled:from-zinc-800 disabled:to-zinc-800 disabled:text-white/40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                                class="w-full py-2 sm:py-3 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 text-white rounded-xl text-[9px] sm:text-xs font-black uppercase tracking-wider transition-all shadow-md cursor-pointer disabled:opacity-40 disabled:from-zinc-800 disabled:to-zinc-800 disabled:text-white/40 disabled:cursor-not-allowed flex items-center justify-center gap-1 sm:gap-1.5"
                                 :disabled="coins < item.price"
                             >
-                                <CoinIcon class="w-3.5 h-3.5" /> {{ item.price }}
+                                <CoinIcon class="w-3 h-3 sm:w-3.5 sm:h-3.5" /> {{ item.price }}
                             </button>
                             <div
                                 v-else
-                                class="w-full py-2.5 text-center bg-action-success/15 border border-action-success/30 text-action-success rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1 glow-owned select-none"
+                                class="w-full py-2 sm:py-2.5 text-center bg-action-success/15 border border-action-success/30 text-action-success rounded-xl text-[9px] sm:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1 glow-owned select-none"
                             >
                                 <span>✓ Propio</span>
                             </div>
