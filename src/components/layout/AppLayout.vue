@@ -269,12 +269,27 @@ const triggerClearCache = () => {
                 </div>
 
                 <!-- ── Header: Título + Monedas ───────────────────────── -->
-                <div class="flex items-center justify-between pt-2">
-                    <div>
-                        <h2 class="text-2xl md:text-3xl font-display text-transparent bg-clip-text bg-gradient-to-r from-game-yellow to-amber-500 uppercase tracking-widest font-black filter drop-shadow-[0_0_12px_rgba(251,191,36,0.3)] leading-none">
-                            🛒 Tienda Cósmica
-                        </h2>
-                        <p class="text-ink-muted text-[10px] font-bold uppercase tracking-widest mt-1">Personaliza tu aspecto y expansiones</p>
+                <div class="flex items-center justify-between pt-2 gap-4 flex-wrap md:flex-nowrap">
+                    <div class="flex items-center gap-4 flex-wrap">
+                        <div>
+                            <h2 class="text-2xl md:text-3xl font-display text-transparent bg-clip-text bg-gradient-to-r from-game-yellow to-amber-500 uppercase tracking-widest font-black filter drop-shadow-[0_0_12px_rgba(251,191,36,0.3)] leading-none">
+                                🛒 Tienda Cósmica
+                            </h2>
+                            <p class="text-ink-muted text-[10px] font-bold uppercase tracking-widest mt-1">Personaliza tu aspecto y expansiones</p>
+                        </div>
+                        
+                        <!-- Compact VIP Badge on Desktop next to the title -->
+                        <div class="hidden md:flex items-center gap-2.5 bg-gradient-to-r from-yellow-500/10 via-amber-500/15 to-yellow-600/5 border border-yellow-500/25 px-3 py-1.5 rounded-xl transition-all hover:border-yellow-500/40">
+                            <span class="text-lg">👑</span>
+                            <div class="text-left">
+                                <h3 class="text-white font-black text-[10px] uppercase tracking-wider leading-none">Pase VIP</h3>
+                                <p class="text-yellow-400/80 text-[8px] font-bold uppercase tracking-wider mt-0.5 leading-none">Sin anuncios & Marcos</p>
+                            </div>
+                            <button @click="handleMockAction('Compra VIP Ad-Free')"
+                                    class="ml-1 px-2.5 py-1 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-zinc-950 rounded-lg font-black text-[8px] uppercase tracking-wider transition-all hover:scale-105 active:scale-95 cursor-pointer">
+                                Activar
+                            </button>
+                        </div>
                     </div>
                     <div class="flex items-center gap-2 flex-none">
                         <!-- Botón sutil de Jugar si tiene pocas monedas -->
@@ -292,8 +307,8 @@ const triggerClearCache = () => {
                     </div>
                 </div>
 
-                <!-- ── Banner VIP: Barra Compacta Horizontal ──────────── -->
-                <div class="w-full bg-gradient-to-r from-yellow-500/15 via-amber-500/25 to-yellow-600/10 border border-yellow-500/35 rounded-2xl px-4 py-2.5 shadow-[0_2px_8px_rgba(245,158,11,0.1)] relative overflow-hidden flex flex-col sm:flex-row justify-between items-center gap-3 transition-all hover:border-yellow-500/50">
+                <!-- ── Banner VIP: Barra Compacta Horizontal (Solo Móvil) ── -->
+                <div class="md:hidden w-full bg-gradient-to-r from-yellow-500/15 via-amber-500/25 to-yellow-600/10 border border-yellow-500/35 rounded-2xl px-4 py-2.5 shadow-[0_2px_8px_rgba(245,158,11,0.1)] relative overflow-hidden flex flex-col sm:flex-row justify-between items-center gap-3 transition-all hover:border-yellow-500/50">
                     <div class="absolute -top-12 -left-12 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl pointer-events-none"></div>
                     
                     <div class="flex items-center gap-3 min-w-0 relative z-10 text-left">
@@ -315,33 +330,36 @@ const triggerClearCache = () => {
                 </div>
 
                 <!-- ── Sub-pestañas del catálogo ─────────────────────── -->
-                <div class="flex gap-2 p-1 bg-white/5 border border-white/5 rounded-2xl">
+                <div class="flex gap-2.5 p-1.5 bg-white/5 border border-white/5 rounded-2xl">
                     <button
                         @click="activeStoreTab = 'frames'"
-                        class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-black uppercase text-[10px] tracking-wider transition-all"
+                        class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase text-xs md:text-sm tracking-wider transition-all cursor-pointer"
                         :class="activeStoreTab === 'frames'
-                            ? 'bg-purple-500/25 border border-purple-500/40 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.2)]'
-                            : 'text-white/40 hover:text-white/70 hover:bg-white/5'"
+                            ? 'bg-purple-500/20 border border-purple-500/40 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
+                            : 'text-white/40 hover:text-white/70 hover:bg-white/5 border border-transparent'"
                     >
-                        🌌 {{ t('store.framesTitle') || 'Marcos' }}
+                        <span class="text-sm md:text-base">🌌</span>
+                        <span>{{ t('store.framesTitle') || 'Marcos' }}</span>
                     </button>
                     <button
                         @click="activeStoreTab = 'expansions'"
-                        class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-black uppercase text-[10px] tracking-wider transition-all"
+                        class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase text-xs md:text-sm tracking-wider transition-all cursor-pointer"
                         :class="activeStoreTab === 'expansions'
-                            ? 'bg-blue-500/25 border border-blue-500/40 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.2)]'
-                            : 'text-white/40 hover:text-white/70 hover:bg-white/5'"
+                            ? 'bg-blue-500/20 border border-blue-500/40 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.25)]'
+                            : 'text-white/40 hover:text-white/70 hover:bg-white/5 border border-transparent'"
                     >
-                        📦 {{ t('store.expansionsTitle') || 'Expansiones' }}
+                        <span class="text-sm md:text-base">📦</span>
+                        <span>{{ t('store.expansionsTitle') || 'Expansiones' }}</span>
                     </button>
                     <button
                         @click="activeStoreTab = 'emojis'"
-                        class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-black uppercase text-[10px] tracking-wider transition-all"
+                        class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase text-xs md:text-sm tracking-wider transition-all cursor-pointer"
                         :class="activeStoreTab === 'emojis'
-                            ? 'bg-pink-500/25 border border-pink-500/40 text-pink-300 shadow-[0_0_12px_rgba(236,72,153,0.2)]'
-                            : 'text-white/40 hover:text-white/70 hover:bg-white/5'"
+                            ? 'bg-pink-500/20 border border-pink-500/40 text-pink-300 shadow-[0_0_12px_rgba(236,72,153,0.25)]'
+                            : 'text-white/40 hover:text-white/70 hover:bg-white/5 border border-transparent'"
                     >
-                        🎭 {{ t('store.emojisTitle') || 'Emojis' }}
+                        <span class="text-sm md:text-base">🎭</span>
+                        <span>{{ t('store.emojisTitle') || 'Emojis' }}</span>
                     </button>
                 </div>
 
