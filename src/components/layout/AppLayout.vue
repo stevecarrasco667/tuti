@@ -245,17 +245,19 @@ const triggerClearCache = () => {
         </Transition>
 
         <!-- ÁREA CENTRAL DE CONTENIDO DINÁMICO -->
-        <main class="flex-1 w-full relative flex flex-col min-h-0 overflow-y-auto transition-all duration-300"
-              :class="{ 'pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0 md:pl-20 lg:pl-64': isMenuVisible }">
+        <main class="flex-1 w-full relative flex flex-col min-h-0 transition-all duration-300"
+              :class="{ 
+                  'pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0 md:pl-20 lg:pl-64': isMenuVisible,
+                  'overflow-y-auto': currentTab !== 'store',
+                  'overflow-hidden': currentTab === 'store'
+              }">
             
             <div v-if="currentTab === 'home'" class="w-full h-full flex flex-col min-h-0">
                 <slot />
             </div>
 
             <!-- TIENDA CÓSMICA — Layout Premium Rediseñado -->
-            <div v-else-if="currentTab === 'store'" class="w-full max-w-[960px] mx-auto p-4 md:p-6 flex flex-col gap-4 animate-fade-in pb-12">
-                <!-- ── Cabecera y Navegación Sticky ────────────────────── -->
-                <div class="sticky top-0 z-30 bg-[#130a2f] md:bg-[#130a2f]/90 backdrop-blur-md -mt-4 md:-mt-6 pt-4 md:pt-6 pb-3 -mx-4 px-4 md:-mx-6 md:px-6 flex flex-col gap-4">
+            <div v-else-if="currentTab === 'store'" class="w-full h-full max-w-[960px] mx-auto p-4 md:p-6 flex flex-col gap-4 animate-fade-in min-h-0 pb-0">
                     <!-- Botón de retorno contextual cuando se está dentro del lobby/juego -->
                     <div v-if="isRoomRoute" class="flex items-center justify-start pt-2">
                         <button
@@ -363,9 +365,11 @@ const triggerClearCache = () => {
                             <span>{{ t('store.emojisTitle') || 'Emojis' }}</span>
                         </button>
                     </div>
-                </div>
 
-                <!-- ── Catálogo: Marcos de Avatar ─────────────────────── -->
+                    <!-- ── Contenedor Scrollable del Catálogo (Scroll Interno) ── -->
+                    <div class="flex-1 overflow-y-auto min-h-0 pr-1 pb-10 space-y-6">
+
+                    <!-- ── Catálogo: Marcos de Avatar ─────────────────────── -->
                 <div v-if="activeStoreTab === 'frames'" class="animate-fade-in">
                     <div v-if="storeFrames.length === 0" class="text-center py-10 text-ink-muted text-xs font-bold uppercase tracking-wider">
                         No hay marcos disponibles todavía.
@@ -602,6 +606,7 @@ const triggerClearCache = () => {
                     </div>
                 </div>
 
+                </div> <!-- Fin de Contenedor Scrollable del Catálogo -->
             </div>
 
             <!-- PLACEHOLDER: PERFIL DEL JUGADOR -->
