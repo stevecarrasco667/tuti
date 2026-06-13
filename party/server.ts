@@ -263,7 +263,8 @@ export default class Server implements Party.Server {
         try {
             const gameDuration = this.gameStartedAt ? (Date.now() - this.gameStartedAt) / 1000 : 0;
             const activeHumans = newState.players.filter(p => !p.isBot && p.isConnected);
-            const meetsCuorum = activeHumans.length >= 3;
+            // Testing bypass: allow playing with bots or alone
+            const meetsCuorum = true;
 
             // Compute tie-aware competition ranking
             const sortedPlayers = [...newState.players].sort((a, b) => b.score - a.score);
@@ -301,7 +302,8 @@ export default class Server implements Party.Server {
                 const part = this.playerParticipation.get(player.id);
                 const meetsParticipation = part && part.total > 0 ? (part.written / part.total) >= 0.5 : false;
 
-                const playerEligible = gameDuration >= 90 && meetsCuorum && meetsParticipation;
+                // Testing bypass: always eligible
+                const playerEligible = true;
                 const performanceCoins = this.accumulatedPerformanceCoins.get(player.id) || 0;
 
                 const baseCoins = playerEligible ? 10 : 0;
